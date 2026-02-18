@@ -1,0 +1,92 @@
+export const fontConfig = {
+    displaySmall: {
+        fontSize: 18,
+        fontWeight: '400',
+        letterSpacing: 0,
+        lineHeight: 46,
+    },
+    displayMedium: {
+        fontSize: 22,
+        fontWeight: '400',
+        letterSpacing: 0,
+        lineHeight: 52,
+    },
+    displayLarge: {
+        fontSize: 54,
+        fontWeight: '400',
+        letterSpacing: 0,
+        lineHeight: 64,
+    },
+    headlineSmall: {
+        fontSize: 20,
+        fontWeight: '400',
+        letterSpacing: 0,
+        lineHeight: 52,
+    },
+    headlineMedium: {
+        fontSize: 24,
+        fontWeight: '400',
+        letterSpacing: 0,
+        lineHeight: 48,
+    },
+    headlineLarge: {
+        fontSize: 26,
+        fontWeight: '400',
+        letterSpacing: 0,
+        lineHeight: 64,
+    },
+    titleSmall: {
+        fontSize: 12,
+        fontWeight: '500',
+        letterSpacing: 0.1,
+        lineHeight: 35,
+    },
+    titleMedium: {
+        fontSize: 14,
+        fontWeight: '500',
+        letterSpacing: 0.15,
+        lineHeight: 34,
+    },
+    titleLarge: {
+        fontSize: 16,
+        fontWeight: '400',
+        letterSpacing: 0,
+        lineHeight: 32,
+    },
+    labelSmall: {
+        fontSize: 12,
+        fontWeight: '200',
+        letterSpacing: 0.9,
+        lineHeight: 16,
+    },
+    labelMedium: {
+        fontSize: 14,
+        fontWeight: '500',
+        letterSpacing: 0.5,
+        lineHeight: 16,
+    },
+    labelLarge: {
+        fontSize: 16,
+        fontWeight: '500',
+        lineHeight: 26,
+        letterSpacing: 0.1,
+    },
+    bodySmall: {
+        fontSize: 10,
+        fontWeight: '400',
+        letterSpacing: 0.4,
+        lineHeight: 22,
+    },
+    bodyMedium: {
+        fontSize: 11,
+        fontWeight: '400',
+        letterSpacing: 0.25,
+        lineHeight: 28,
+    },
+    bodyLarge: {
+        fontSize: 14,
+        fontWeight: '400',
+        letterSpacing: 0.15,
+        lineHeight: 24,
+    },
+};

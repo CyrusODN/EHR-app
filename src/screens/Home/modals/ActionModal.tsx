@@ -1,0 +1,270 @@
+import React, { useState } from 'react';
+import {
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    Modal,
+    TouchableWithoutFeedback,
+    Dimensions,
+    TextInput
+} from 'react-native';
+import Icon from 'react-native-vector-icons/Feather';
+import LinearGradient from 'react-native-linear-gradient';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import Feather from 'react-native-vector-icons/Feather';
+
+const { width, height } = Dimensions.get('window');
+
+const ActionModal = ({ visible, onClose, onView, onStart, onAddNote }) => {
+    const [showNoteInput, setShowNoteInput] = useState(false);
+    const [note, setNote] = useState('');
+
+    const handleAddNote = () => {
+        if (showNoteInput) {
+            // If note input is already shown, submit the note
+            if (note.trim()) {
+                onAddNote && onAddNote(note);
+                setNote('');
+                setShowNoteInput(false);
+            }
+        } else {
+            // Show note input
+            setShowNoteInput(true);
+        }
+    };
+
+    const handleCancel = () => {
+        setShowNoteInput(false);
+        setNote('');
+        onClose();
+    };
+
+    return (
+        <Modal
+            animationType='fade'
+            transparent={true}
+            visible={visible}
+            onRequestClose={onClose}
+        >
+            <TouchableWithoutFeedback onPress={onClose}>
+                <View style={styles.overlay}>
+                    <TouchableWithoutFeedback onPress={() => { }}>
+                        <View style={styles.modalContainer}>
+                            <View style={styles.header}>
+                                <Text style={styles.headerText}>Visit Options</Text>
+                                <TouchableOpacity
+                                    onPress={onClose}
+                                    style={styles.viewButton}>
+                                    <Feather name="x" size={18} color="black" />
+                                </TouchableOpacity>
+                            </View>
+
+                            <View style={styles.content}>
+                                {/* {showNoteInput ? (
+                                    <View style={styles.noteInputContainer}>
+                                        <TextInput
+                                            style={styles.noteInput}
+                                            placeholder="Enter your note here..."
+                                            multiline={true}
+                                            value={note}
+                                            onChangeText={setNote}
+                                            autoFocus={true}
+                                        />
+                                        <TouchableOpacity
+                                            style={styles.submitNoteButton}
+                                            onPress={handleAddNote}
+                                        >
+                                            <Text style={styles.submitNoteText}>Save Note</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                ) : ( */}
+                                <>
+                                    <TouchableOpacity
+                                        style={styles.actionButton}
+                                        onPress={onView}
+                                    >
+                                        <View style={styles.buttonContent}>
+                                            <View style={styles.viewButton}>
+                                                <Icon name="eye" size={18} color="#58a6b8" />
+                                            </View>
+                                            <View style={{ width: 5 }} />
+                                            <Text style={styles.actionButtonText}>View Details</Text>
+                                        </View>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        style={[styles.actionButton, { borderWidth: 0 }]}
+                                        onPress={onStart}
+                                    >
+                                        <LinearGradient
+                                            colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
+                                            start={{ x: 0, y: 0 }}
+                                            end={{ x: 1, y: 0 }}
+                                            style={{ height: "100%", width: "100%", alignItems: "center", justifyContent: "center" }}
+                                        >
+                                            <Text style={styles.startButtonText}>
+                                                Start Visit
+                                            </Text>
+                                        </LinearGradient>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        style={styles.actionButton}
+                                        onPress={handleAddNote}
+                                    >
+                                        <View style={styles.buttonContent}>
+                                            <View style={styles.viewButton}>
+                                                <Icon name="file-text" size={18} color="#58a6b8" />
+                                            </View>
+                                            <View style={{ width: 5 }} />
+
+                                            <Text style={styles.actionButtonText}>Add a Note</Text>
+                                        </View>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        style={[styles.actionButton]}
+                                        onPress={handleCancel}
+                                    >
+                                        <View style={styles.buttonContent}>
+                                            <View style={styles.viewButton}>
+                                                <Feather name="x" size={18} color="red" />
+                                            </View>
+                                            <View style={{ width: 5 }} />
+                                            <Text style={styles.cancelButtonText}>Cancel</Text>
+                                        </View>
+                                    </TouchableOpacity>
+                                </>
+                                {/* )} */}
+                            </View>
+                        </View>
+                    </TouchableWithoutFeedback>
+                </View>
+            </TouchableWithoutFeedback>
+        </Modal>
+    );
+};
+
+const styles = StyleSheet.create({
+    overlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'flex-end',
+    },
+    modalContainer: {
+        backgroundColor: 'white',
+        borderRadius: 20,
+        marginBottom: 30,
+        marginRight: 10,
+        width: '40%',
+        alignSelf: "flex-end",
+        alignItems: "center",
+    },
+    header: {
+        flexDirection: "row",
+        justifyContent: "space-around",
+        borderBottomWidth: 1,
+        borderBottomColor: '#e0e0e0',
+        paddingVertical: 15,
+        alignItems: 'center',
+        width: "95%",
+    },
+    headerText: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#333',
+    },
+    content: {
+        padding: 15,
+        width: "100%"
+    },
+    actionButton: {
+        height: 50,
+        width: '100%',
+        alignItems: "center",
+        justifyContent: "space-around",
+        marginBottom: 5,
+        borderRadius: 10,
+        backgroundColor: '#f8f8f8',
+        borderColor: "#4A90B9",
+        borderWidth: 1,
+        overflow: "hidden"
+    },
+    buttonContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: "center",
+        width: "100%",
+    },
+    actionButtonText: {
+        fontSize: 15,
+        color: '#333',
+    },
+    viewButton: {
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    startButton: {
+        borderRadius: 10,
+        overflow: 'hidden',
+    },
+    gradientBackground: {
+        paddingVertical: 10,
+        paddingHorizontal: 15,
+        borderRadius: 8,
+    },
+    startButtonText: {
+        color: 'white',
+        fontWeight: '600',
+        fontSize: 16,
+        textAlign: 'center',
+    },
+    iconContainer: {
+        width: 40,
+        height: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 20,
+        backgroundColor: '#f0f8fa',
+    },
+    cancelButton: {
+        backgroundColor: 'white',
+        borderWidth: 1,
+        borderColor: '#e0e0e0',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    cancelButtonText: {
+        fontSize: 16,
+        color: '#666',
+        fontWeight: '500',
+    },
+    noteInputContainer: {
+        marginBottom: 15,
+    },
+    noteInput: {
+        borderWidth: 1,
+        borderColor: '#e0e0e0',
+        borderRadius: 8,
+        padding: 12,
+        fontSize: 16,
+        minHeight: 120,
+        textAlignVertical: 'top',
+        backgroundColor: '#f9f9f9',
+        marginBottom: 15,
+    },
+    submitNoteButton: {
+        backgroundColor: '#58a6b8',
+        paddingVertical: 12,
+        borderRadius: 8,
+        alignItems: 'center',
+    },
+    submitNoteText: {
+        color: 'white',
+        fontWeight: '600',
+        fontSize: 16,
+    },
+});
+
+export default ActionModal;
