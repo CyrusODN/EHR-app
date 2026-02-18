@@ -24,7 +24,7 @@ import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-nat
 import { useNavigation } from '@react-navigation/native';
 
 
-const CreateVisitModal = ({ visible, onClose }) => {
+const CreateVisitModal = ({ visible, onClose }: { visible: boolean, onClose: () => void }) => {
     const navigation = useNavigation();
     const [date, setDate] = useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
@@ -170,7 +170,7 @@ const CreateVisitModal = ({ visible, onClose }) => {
                                     onClose()
                                     navigation.navigate('New-Patient');
                                 }}
-                                style={{ width: "100%" }} image={undefined} iconStyle={undefined} imageStyle={undefined}
+                                style={{ width: "100%" }} image={undefined} iconStyle={undefined} imageStyle={undefined} loading={false} disabled={false}
                             />
                         </View>
 
@@ -243,6 +243,8 @@ const CreateVisitModal = ({ visible, onClose }) => {
                             icon={<FontAwesome name="save" size={15} color='#4A90B9' />}
                             onPress={() => { }}
                             style={{ width: "49%" }} image={undefined} iconStyle={undefined} imageStyle={undefined}
+                            loading={false}
+                            disabled={false}
                         />
                         <PrimaryButton
                             label="Save and Start"
@@ -250,6 +252,8 @@ const CreateVisitModal = ({ visible, onClose }) => {
                             icon={<Ionicons name="arrow-forward" size={15} color="white" />}
                             onPress={() => { }}
                             style={{ width: "49%" }} image={undefined} iconStyle={undefined} imageStyle={undefined}
+                            loading={false}
+                            disabled={false}
                         />
 
                     </View>
@@ -259,7 +263,7 @@ const CreateVisitModal = ({ visible, onClose }) => {
                         filled={false}
                         icon={undefined}
                         onPress={onClose}
-                        style={{ alignSelf: "center", width: "92%" }} image={undefined} iconStyle={undefined} imageStyle={undefined}
+                        style={{ alignSelf: "center", width: "92%" }} image={undefined} iconStyle={undefined} imageStyle={undefined} loading={false} disabled={false}
                     />
 
                 </View>

@@ -17,7 +17,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Header from '../../component/header';
 import PrimaryButton from '../../component/button';
 import { useNavigation } from '@react-navigation/native';
-// import SlidingDrawerModal from '../Drawer';
+import SlidingDrawerModal from '../../Drawer';
 import { DashboardStatsCard } from './Stats';
 import ActionModal from './modals/ActionModal';
 import { useTranslation } from 'react-i18next';
@@ -120,9 +120,7 @@ const Dashboard = () => {
     return (
         <View style={styles.container}>
             {/* App Bar */}
-            <Header onMenuPress={() => { 
-                // setDrawerVisible(true) 
-             }} />
+            <Header onMenuPress={() => { setDrawerVisible(true) }} />
 
             <ScrollView
                 style={styles.scrollView}
@@ -149,8 +147,7 @@ const Dashboard = () => {
                     filled={false}
                     icon={<Feather name="user-plus" size={15} color="#4A90B9" />}
                     onPress={() => {
-                        // navigation.navigate('New-Patient');
-                        console.log('New Patient screen not implemented yet');
+                        navigation.navigate('New-Patient');
                     }}
                     style={undefined}
                     image={undefined}
@@ -330,17 +327,17 @@ const Dashboard = () => {
                     onClose={() => { setCreateVisitModalVisible(false) }}
                 />
 
-                {/* <SlidingDrawerModal
+                <SlidingDrawerModal
                     visible={drawerVisible}
                     onClose={() => { setDrawerVisible(false) }}
-                /> */}
+                />
 
                 <ActionModal
                     visible={showActionModal}
                     onClose={() => { setShowActionModal(false) }}
-                    onView={undefined}
-                    onStart={undefined}
-                    onAddNote={undefined}
+                    onView={() => { }}
+                    onStart={() => { }}
+                    onAddNote={() => { }}
                 />
             </ScrollView>
 

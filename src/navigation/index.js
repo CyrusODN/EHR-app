@@ -90,7 +90,7 @@ function AppNavigator() {
                     component={Screens.Dashboard}
                     options={{ gestureEnabled: false }}
                 />
-                {/* <Stack.Screen
+                <Stack.Screen
                     name="New-Patient"
                     component={Screens.NewPatientScreen}
                 />
@@ -111,17 +111,53 @@ function AppNavigator() {
                     component={Screens.SpotlightScreen}
                 />
                 <Stack.Screen
-                    name="AI-Assistant"
-                    component={Screens.AIAssistantScreen}
+                    name="Settings"
+                    component={Screens.Settings}
+                />
+                <Stack.Screen
+                    name="Facility-Statistics"
+                    component={Screens.FacilityStatistics}
+                />
+                <Stack.Screen
+                    name="Facility-Data"
+                    component={Screens.FacilityData}
+                />
+                <Stack.Screen
+                    name="Office-Certificates"
+                    component={Screens.OfficeCertificates}
+                />
+                <Stack.Screen
+                    name="Security"
+                    component={Screens.Security}
+                />
+                <Stack.Screen
+                    name="Subscription"
+                    component={Screens.Subscription}
+                />
+                <Stack.Screen
+                    name="Client-Portal"
+                    component={Screens.ClientPortal}
+                />
+                <Stack.Screen
+                    name="Profile"
+                    component={Screens.Profile}
+                />
+                <Stack.Screen
+                    name="Employees"
+                    component={Screens.Employees}
+                />
+                <Stack.Screen
+                    name="EWUS"
+                    component={Screens.EWUS}
                 />
                 <Stack.Screen
                     name="AI-Analysis"
                     component={Screens.AIAnalysis}
                 />
                 <Stack.Screen
-                    name="Settings"
-                    component={Screens.Settings}
-                /> */}
+                    name="AI-Assistant"
+                    component={Screens.AIAssistantScreen}
+                />
             </Stack.Navigator>
         </NavigationContainer>
     );

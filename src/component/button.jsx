@@ -8,14 +8,12 @@ const PrimaryButton = ({
     filled,
     onPress,
     style,
-    loading, 
-    disabled,
+    loading = false, 
+    disabled = false,
     icon,
     image,
     iconStyle,
     imageStyle
-    
-    
 }) => {
     const renderLeftElement = () => {
         if (icon) {

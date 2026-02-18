@@ -7,12 +7,12 @@ import { isDataExists } from '../utils/generic';
 
 const CustomTextInput = ({
     placeholder,
-    name,
+    name = undefined,
     value,
-    setState,
-    setValidationsState,
-    validationState,
-    isFormSubmitted,
+    setState = undefined,
+    setValidationsState = undefined,
+    validationState = undefined,
+    isFormSubmitted = undefined,
     multiline = false,
     numberOfLines = 1,
     icon,
@@ -20,6 +20,7 @@ const CustomTextInput = ({
     onRightPress,
     keyboardType,
     secureTextEntry = false,
+    onChangeText
 }) => {
     const { t } = useTranslation();
     const [validationErrors, setValidationErrors] = useState([]);
@@ -44,9 +45,12 @@ const CustomTextInput = ({
  
 
     const handleChangeText = (text) => {
-        setState(prev => ({ ...prev, [name]: text }));
-      
-        inputValidation(text);
+        if (onChangeText) {
+            onChangeText(text);
+        } else if (setState && name) {
+            setState(prev => ({ ...prev, [name]: text }));
+            inputValidation(text);
+        }
     };
 
  
