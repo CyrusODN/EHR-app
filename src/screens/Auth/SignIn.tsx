@@ -1,5 +1,14 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {View, Text, Image, StyleSheet, TouchableOpacity} from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from 'react-native';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -12,8 +21,10 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import Gap from '../../component/gap';
 import { useNavigation } from '@react-navigation/native';
 import CustomAlert from '../../component/customAlert';
+import LanguageSelector from '../../component/LanguageSelector';
 import userStore from '../../store/user';
-// import {Login, SocialSignUp} from '../../Services/Auth.Service';
+import {Login, SocialSignUp} from '../../Services/Auth.Service';
+import { validateInput } from '../../utils/inputValidations';
 
 // import {
 //   GoogleSignin,
@@ -32,7 +43,7 @@ const defaultValidationErrors = {
 
 const SignIn = () => {
   const {t} = useTranslation();
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
 
   const {setAuth, purgeAuth} = userStore();
 
@@ -44,7 +55,11 @@ const SignIn = () => {
   const [isFormSubmitted, setIsFormSubmitted] = useState(false);
   const [spinner, setSpinner] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [alertConfig, setAlertConfig] = useState({
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    message: string;
+    type: 'success' | 'warning' | 'error';
+  }>({
     visible: false,
     message: '',
     type: 'error',
@@ -53,83 +68,85 @@ const SignIn = () => {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const handleSignIn = async () => {
-    // try {
-      setSpinner(true);
+    setSpinner(true);
+    setIsFormSubmitted(false);
 
-      setIsFormSubmitted(true);
+    // Toggle isFormSubmitted to true on next tick to trigger visual validation in children
+    setTimeout(async () => {
+      try {
+        setIsFormSubmitted(true);
 
-      if (checkValidation()) {
+        if (checkValidation()) {
+          setSpinner(false);
+          return;
+        }
+
+        const payload = {
+          email: body.email.trim().toLowerCase(),
+          password: body.password,
+        };
+
+        const user = await Login(payload);
+
         setSpinner(false);
-        return;
+
+        if (user.requires2FA) {
+          navigation.navigate('Otp', {
+            email: body.email,
+            type: '2fa',
+          });
+          return;
+        }
+
+        // If user is not verified but we got data (depends on backend behavior)
+        // Some backends return success: false for unverified, check accordingly
+        
+        setAuth(user);
+
+        let successMessage = 'Login successful!';
+        if (typeof user === 'object') {
+          successMessage = (user as any).data || successMessage;
+        } else if (typeof user === 'string') {
+          successMessage = user;
+        }
+
+        setAlertConfig({
+          visible: true,
+          type: 'success',
+          message: successMessage,
+        });
+
+        // Navigate after successful login
+        setTimeout(() => {
+          navigation.navigate('ModuleSelection');
+        }, 1000);
+      } catch (error: any) {
+        setSpinner(false);
+        console.log('Error during sign in:', error);
+        setAlertConfig({
+          visible: true,
+          type: 'error',
+          message: error.message || 'Something went wrong. Please try again.',
+        });
       }
-
-      setTimeout(() => {
-        setSpinner(false);
-         navigation.navigate('ModuleSelection');
-      }, 1000);
-
-      // let payload = {
-      //   username: body.email,
-      //   password: body.password,
-      // };
-      // const user = await Login(payload);
-
-      // setSpinner(false);
-
-      // if (user.requires2FA) {
-      //   // Navigate to OTP screen with email and indicating this is for 2FA
-
-      //   navigation.navigate('Otp', {
-      //     email: body.email,
-      //     type: '2fa',
-      //   });
-
-      //   setAlertConfig({
-      //     visible: true,
-      //     type: 'success',
-      //     message:
-      //       'Registration successful! Please check your email for verification.',
-      //   });
-
-      //   return;
-      // }
-
-      // setAuth(user);
-
-      // setAlertConfig({
-      //   visible: true,
-      //   type: 'success',
-      //   message: 'Login successful!',
-      // });
-
-      // if (user.role == 'doctor') {
-      //   navigation.navigate('Dashboard');
-      // } else if (user.role == 'admin') {
-      //   navigation.navigate('Dashboard');
-      // }
-    // } catch (error) {
-    //   setSpinner(false);
-    //   setAlertConfig({
-    //     visible: true,
-    //     type: 'error',
-    //     message: error.message,
-    //   });
-    // }
+    }, 0);
   };
 
   const checkValidation = () => {
+    let hasError = false;
+    const newValidationErrors = { ...defaultValidationErrors };
+
     for (const field in body) {
-      if (body[field as keyof typeof body].length <= 0) {
-        return true;
-      }
-    }
-    for (const field in validationErrors) {
-      if (validationErrors[field as keyof typeof validationErrors]) {
-        return true;
+      const fieldName = field as keyof typeof body;
+      const errors = validateInput(body[fieldName], fieldName);
+      if (errors.length > 0) {
+        hasError = true;
+        (newValidationErrors as any)[fieldName] = true;
       }
     }
 
-    return false;
+    setValidationErrors(newValidationErrors);
+    return hasError;
   };
 
 //   const handleGoogleSignIn = async () => {
@@ -176,98 +193,118 @@ const SignIn = () => {
 //   }, []);
 
   return (
-    <View style={styles.container}>
-      {/* Logo */}
-      <Image
-        source={require('../../assets/images/logo.png')}
-        style={styles.logo}
-        resizeMode="contain"
-      />
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={{flex: 1, backgroundColor: '#fff'}}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}>
+        <View style={styles.container}>
+          {/* Logo */}
+          <Image
+            source={require('../../assets/images/logo.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
 
-      {/* Header */}
-      <Text style={styles.header}>{t('login.welcome_back')}</Text>
+          <LanguageSelector />
 
-      {/* Email Input */}
-      <CustomTextInput
-        placeholder={t('login.email_placeholder')}
-        name="email"
-        value={body.email}
-        setState={setBody}
-        setValidationsState={setValidationErrors}
-        validationState={validationErrors}
-        isFormSubmitted={isFormSubmitted}
-        icon={<Ionicons name="mail-outline" color="#777" size={20} />}
-        right={undefined}
-        onRightPress={undefined}
-        keyboardType={undefined}
-      />
+          {/* Header */}
+          <Text style={styles.header}>{t('login.welcome_back')}</Text>
 
-      <Gap height={hp(1)} />
+          {/* Email Input */}
+          <CustomTextInput
+            placeholder={t('login.email_placeholder')}
+            name="email"
+            value={body.email}
+            setState={setBody}
+            setValidationsState={setValidationErrors}
+            validationState={validationErrors}
+            isFormSubmitted={isFormSubmitted}
+            icon={<Ionicons name="mail-outline" color="#777" size={20} />}
+            right={undefined}
+            onRightPress={undefined}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
 
-      {/* Password Input */}
-      <CustomTextInput
-        placeholder={t('login.password_placeholder')}
-        name="password"
-        value={body.password}
-        setState={setBody}
-        setValidationsState={setValidationErrors}
-        validationState={validationErrors}
-        isFormSubmitted={isFormSubmitted}
-        icon={<Ionicons name="lock-closed-outline" color="#777" size={20} />}
-        right={isPasswordVisible ? <Ionicons name="eye-off-outline" size={20} color="#777" /> : <Ionicons name="eye-outline" size={20} color="#777" />}
-        onRightPress={() => setIsPasswordVisible(!isPasswordVisible)}
-        keyboardType={undefined}
-        secureTextEntry={!isPasswordVisible}
-      />
-      <Gap height={hp(1)} />
+          <Gap height={hp(1.5)} />
 
-      {/* Forgot Password Link */}
-      <TouchableOpacity onPress={() => navigation.navigate('Forget-Password')}>
-        <Text style={styles.forgotPasswordText}>
-          {t('login.forgot_password')}
-        </Text>
-      </TouchableOpacity>
+          {/* Password Input */}
+          <CustomTextInput
+            placeholder={t('login.password_placeholder')}
+            name="password"
+            value={body.password}
+            setState={setBody}
+            setValidationsState={setValidationErrors}
+            validationState={validationErrors}
+            isFormSubmitted={isFormSubmitted}
+            icon={<Ionicons name="lock-closed-outline" color="#777" size={20} />}
+            right={
+              isPasswordVisible ? (
+                <Ionicons name="eye-off-outline" size={20} color="#777" />
+              ) : (
+                <Ionicons name="eye-outline" size={20} color="#777" />
+              )
+            }
+            onRightPress={() => setIsPasswordVisible(!isPasswordVisible)}
+            keyboardType={undefined}
+            secureTextEntry={!isPasswordVisible}
+          />
 
-      {/* Sign In Button */}
-      {/* <PrimaryButton
-                label={t('login.login_button')}
-                filled
-                onPress={handleSignIn}
-                style={styles.primaryButton} icon={undefined} image={undefined} iconStyle={undefined} imageStyle={undefined} /> */}
+          {/* Forgot Password Link */}
+          <View style={{width: '100%', alignItems: 'flex-end', marginTop: hp(1)}}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Forget-Password')}>
+              <Text style={styles.forgotPasswordText}>
+                {t('login.forgot_password')}
+              </Text>
+            </TouchableOpacity>
+          </View>
 
-      <PrimaryButton
-        label={t('login.login_button')}
-        filled
-        onPress={handleSignIn}
-        style={styles.primaryButton}
-        loading={spinner}
-        disabled={spinner}
-        icon={undefined}
-        image={undefined}
-        iconStyle={undefined}
-        imageStyle={undefined}
-      />
+          <Gap height={hp(2)} />
 
-      {/* Google Sign In Button */}
-      <TouchableOpacity
-        style={styles.googleButton}
+          {/* Sign In Button */}
+          <PrimaryButton
+            label={t('login.login_button')}
+            filled
+            onPress={handleSignIn}
+            style={styles.primaryButton}
+            loading={spinner}
+            disabled={spinner}
+            icon={undefined}
+            image={undefined}
+            iconStyle={undefined}
+            imageStyle={undefined}
+          />
 
-        // onPress={handleGoogleSignIn}
-        >
-        <Image
-          source={require('../../assets/images/google-icon.png')}
-          style={styles.googleIcon}
-        />
-        <Text style={{color: 'black'}}>{t('login.continue_with_google')}</Text>
-      </TouchableOpacity>
+          <Gap height={hp(1)} />
 
-      {/* Sign Up Link */}
-      <TouchableOpacity onPress={() => navigation.navigate('Sign-Up')}>
-        <Text style={styles.signUpText}>
-          {t('login.no_account')}{' '}
-          <Text style={{color: 'blue'}}>{t('login.sign_up')}</Text>
-        </Text>
-      </TouchableOpacity>
+          {/* Google Sign In Button */}
+          <TouchableOpacity
+            style={styles.googleButton}
+            // onPress={handleGoogleSignIn}
+          >
+            <Image
+              source={require('../../assets/images/google-icon.png')}
+              style={styles.googleIcon}
+            />
+            <Text style={{color: 'black', fontWeight: '500'}}>{t('login.continue_with_google')}</Text>
+          </TouchableOpacity>
+
+          <Gap height={hp(2)} />
+
+          {/* Sign Up Link */}
+          <TouchableOpacity onPress={() => navigation.navigate('Sign-Up')}>
+            <Text style={styles.signUpText}>
+              {t('login.no_account')}{' '}
+              <Text style={{color: '#007AFF', fontWeight: 'bold'}}>{t('login.sign_up')}</Text>
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
 
       <CustomAlert
         visible={alertConfig.visible}
@@ -275,56 +312,63 @@ const SignIn = () => {
         message={alertConfig.message}
         onClose={handleCloseAlert}
       />
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingVertical: hp(2),
+  },
   container: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    padding: wp(5),
+    paddingHorizontal: wp(6),
     backgroundColor: '#fff',
   },
   logo: {
-    width: wp(40),
-    height: hp(10),
-    marginBottom: hp(2),
+    width: wp(50),
+    height: hp(12),
+    marginTop: hp(10),
+    marginBottom: hp(1),
   },
   header: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: 'bold',
+    color: '#1A1A1A',
     marginBottom: hp(3),
   },
   primaryButton: {
-    marginTop: hp(2),
     width: '100%',
+    height: 52,
+    borderRadius: 12,
   },
   googleButton: {
-    marginTop: hp(1),
     width: '100%',
     borderWidth: 1,
-    borderRadius: 5,
+    borderColor: '#E8EDF2',
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
-    height: 50,
+    height: 52,
+    backgroundColor: '#fff',
   },
   googleIcon: {
-    width: 20,
-    height: 20,
-    marginRight: 10,
+    width: 24,
+    height: 24,
+    marginRight: 12,
   },
   forgotPasswordText: {
-    marginTop: hp(1),
-    color: 'blue',
-    textAlign: 'right',
+    color: '#007AFF',
     fontSize: 14,
+    fontWeight: '500',
   },
   signUpText: {
-    marginTop: hp(2),
-    color: 'black',
+    color: '#666',
+    fontSize: 15,
   },
 });
 

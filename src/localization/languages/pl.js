@@ -1,4 +1,9 @@
 export const pl = {
+    validation: {
+        field_required: 'To pole jest wymagane',
+        invalid_email: 'Proszę wprowadzić prawidłowy adres e-mail',
+        password_min_length: 'Hasło musi mieć co najmniej 6 znaków',
+    },
     common: {
         search: 'Szukaj',
         cancel: 'Anuluj',

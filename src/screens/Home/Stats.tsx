@@ -146,7 +146,6 @@ const styles = StyleSheet.create({
     statsCard: {
         width: '95%',
         borderRadius: 10,
-        overflow: 'hidden',
         backgroundColor: 'white'
     },
     statsContent: {

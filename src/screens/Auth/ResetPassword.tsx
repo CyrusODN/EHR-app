@@ -1,5 +1,14 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { View, StyleSheet, Image, Text } from 'react-native';
+import React, {useCallback, useEffect, useState} from 'react';
+import {
+  View,
+  StyleSheet,
+  Image,
+  Text,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -9,7 +18,8 @@ import CustomTextInput from '../../component/customTextInput';
 import PrimaryButton from '../../component/button';
 import Gap from '../../component/gap';
 import CustomAlert from '../../component/customAlert';
-// import { ResetPass } from '../../Services/Auth.Service';
+import { ResetPass } from '../../Services/Auth.Service';
+import { validateInput } from '../../utils/inputValidations';
 
 
 
@@ -46,24 +56,41 @@ const ResetPassword = () => {
 
   
 
-    const [alertConfig, setAlertConfig] = useState({
+    const [alertConfig, setAlertConfig] = useState<{
+        visible: boolean;
+        message: string;
+        type: 'success' | 'warning' | 'error';
+    }>({
         visible: false,
         message: '',
         type: 'error'
     });
     const checkValidation = useCallback(() => {
-        if (!body.password || !body.confirmPassword) {
-            return true;
-        }
-        
-        if (body.password !== body.confirmPassword) {
+        let hasError = false;
+        const newValidationErrors = { ...defaultValidationErrors };
 
-        
-            return true;
+        for (const field in body) {
+            const fieldName = field as keyof typeof body;
+            const errors = validateInput(body[fieldName], fieldName);
+            if (errors.length > 0) {
+                hasError = true;
+                (newValidationErrors as any)[fieldName] = true;
+            }
         }
-    
-        return false;
-    }, [body.password, body.confirmPassword]);
+
+        if (body.password !== body.confirmPassword) {
+            hasError = true;
+            (newValidationErrors as any).confirmPassword = true;
+            setAlertConfig({
+                visible: true,
+                type: 'error',
+                message: t('reset_password.passwords_not_match')
+            });
+        }
+
+        setValidationErrors(newValidationErrors);
+        return hasError;
+    }, [body]);
 
     const handlePasswordToggle = useCallback(() => {
         setShowPassword(prev => !prev);
@@ -77,155 +104,153 @@ const ResetPassword = () => {
 
 
     const handleResetPassword = async () => {
+        setSpinner(true);
+        setIsFormSubmitted(false);
 
-        console.log("resetPasswordToken", resetPasswordToken)
-       
+        // Toggle isFormSubmitted to true on next tick to trigger visual validation in children
+        setTimeout(async () => {
+            try {
+                setIsFormSubmitted(true);
 
-        try {
+                if (checkValidation()) {
+                    setSpinner(false);
+                    return;
+                }
 
+                const payload = {
+                    email: email,
+                    password: body.password,
+                    resetPasswordToken: resetPasswordToken,
+                };
 
-            setSpinner(true);
-            setIsFormSubmitted(true);
+                const response = await ResetPass(payload);
 
-            if (checkValidation()) {
                 setSpinner(false);
-                // setAlertConfig({
-                //     visible: true,
-                //     type: 'error',
-                //     message: t('reset_password.passwords_dont_match')
-                // });
-                return;
-            }
 
-            // Mocking success for UI view
-            setTimeout(() => {
+                if (response) {
+                    let successMessage = 'Password reset successful!';
+
+                    if (typeof response === 'object') {
+                        successMessage = response.data || successMessage;
+                    } else if (typeof response === 'string') {
+                        successMessage = response;
+                    }
+
+                    setAlertConfig({
+                        visible: true,
+                        type: 'success',
+                        message: successMessage,
+                    });
+
+                    // Navigate to Sign-In screen after a short delay
+                    setTimeout(() => {
+                        navigation.reset({
+                            index: 0,
+                            routes: [{ name: 'Sign-In' }],
+                        });
+                    }, 2000);
+                }
+            } catch (error: any) {
                 setSpinner(false);
+                console.log('Error during reset password:', error);
                 setAlertConfig({
                     visible: true,
-                    type: 'success',
-                    message: 'Password reset successful! (UI Mode)'
+                    type: 'error',
+                    message: error.message || 'Something went wrong. Please try again.',
                 });
-
-                setTimeout(() => {
-                    navigation.reset({
-                        index: 0,
-                        routes: [{ name: 'Sign-In' }],
-                    });
-                }, 1500);
-            }, 1000);
-
-            // await ResetPass({
-            //     email: email,
-            //     password: body.password,
-            //     resetPasswordToken: resetPasswordToken,
-            // });
-
-            // setAlertConfig({
-            //     visible: true,
-            //     type: 'success',
-            //     message: 'Password reset successful!'
-            // });
-
-            // navigation.reset({
-            //     index: 0,
-            //     routes: [{ name: 'Sign-In' }],
-            // });
-
-         
-
-        } catch (error: any) {
-            setAlertConfig({
-                visible: true,
-                type: 'error',
-                message: error.message || 'Something went wrong. Please try again.'
-            });
-        } finally {
-            // setSpinner(false);
-        }
+            }
+        }, 0);
     };
 
     return (
-        <View style={styles.container}>
-            <Image source={require('../../assets/images/logo.png')} style={styles.logo} resizeMode="contain" />
-            
+        <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={{ flex: 1, backgroundColor: '#fff' }}>
+            <ScrollView
+                contentContainerStyle={styles.scrollContent}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}>
+                <View style={styles.container}>
+                    {/* Logo */}
+                    <Image
+                        source={require('../../assets/images/logo.png')}
+                        style={styles.logo}
+                        resizeMode="contain"
+                    />
 
+                    {/* Header */}
+                    <View style={{ width: '100%', alignItems: 'center' }}>
+                        <Text style={styles.header}>{t('reset_password.title')}</Text>
+                        <Text style={styles.header}>{t('reset_password.subtitle')}</Text>
+                    </View>
 
-              <Text style={styles.header}>{t('reset_password.title')}</Text>
-              <Text style={styles.header}>{t('reset_password.subtitle')}</Text>
+                    <Gap height={hp(4)} />
 
-            <Gap height={hp(4)} />
-          
+                    {/* New Password Input */}
+                    <CustomTextInput
+                        placeholder={t('reset_password.new_password_placeholder')}
+                        name="password"
+                        value={body.password}
+                        setState={setBody}
+                        setValidationsState={setValidationErrors}
+                        validationState={validationErrors}
+                        isFormSubmitted={isFormSubmitted}
+                        icon={<Ionicons name="lock-closed-outline" color="#777" size={20} />}
+                        right={showPassword ? <Ionicons name="eye-off-outline" size={20} color="#777" /> : <Ionicons name="eye-outline" size={20} color="#777" />}
+                        onRightPress={handlePasswordToggle}
+                        keyboardType={undefined}
+                        secureTextEntry={!showPassword}
+                    />
 
+                    <Gap height={hp(1)} />
 
-<CustomTextInput
-                 placeholder={t('reset_password.new_password_placeholder')}
-                name="password"
-                value={body.password}
-                setState={setBody}
-                setValidationsState={setValidationErrors}
-				validationState={validationErrors}
-                isFormSubmitted={isFormSubmitted}
-                icon={<Ionicons name="lock-closed-outline" color="#777" size={20} />}
-                right={showPassword ? <Ionicons name="eye-off-outline" size={20} color="#777" /> : <Ionicons name="eye-outline" size={20} color="#777" />}
-                onRightPress={handlePasswordToggle}
-                keyboardType={undefined}
-                secureTextEntry={!showPassword} />
+                    {/* Confirm Password Input */}
+                    <CustomTextInput
+                        placeholder={t('reset_password.confirm_password_placeholder')}
+                        name="confirmPassword"
+                        value={body.confirmPassword}
+                        setState={setBody}
+                        setValidationsState={setValidationErrors}
+                        validationState={validationErrors}
+                        isFormSubmitted={isFormSubmitted}
+                        icon={<Ionicons name="lock-closed-outline" color="#777" size={20} />}
+                        right={showConfirmPassword ? <Ionicons name="eye-off-outline" size={20} color="#777" /> : <Ionicons name="eye-outline" size={20} color="#777" />}
+                        onRightPress={handleConfirmPasswordToggle}
+                        keyboardType={undefined}
+                        secureTextEntry={!showConfirmPassword}
+                    />
 
+                    <Gap height={hp(3)} />
 
+                    {/* Reset Button */}
+                    <PrimaryButton
+                        label={t('reset_password.reset_button')}
+                        filled
+                        onPress={handleResetPassword}
+                        style={styles.primaryButton}
+                        loading={spinner}
+                        disabled={spinner}
+                        icon={undefined}
+                        image={undefined}
+                        iconStyle={undefined}
+                        imageStyle={undefined}
+                    />
 
-            <Gap height={hp(1)} />
+                    <Gap height={hp(2)} />
 
-
-            <CustomTextInput
-                   placeholder={t('reset_password.confirm_password_placeholder')}
-                name="confirmPassword"
-                value={body.confirmPassword}
-                setState={setBody}
-                setValidationsState={setValidationErrors}
-				validationState={validationErrors}
-                isFormSubmitted={isFormSubmitted}
-                icon={<Ionicons name="lock-closed-outline" color="#777" size={20} />}
-                right={showConfirmPassword ? <Ionicons name="eye-off-outline" size={20} color="#777" /> : <Ionicons name="eye-outline" size={20} color="#777" />}
-                onRightPress={handleConfirmPasswordToggle} 
-                keyboardType={undefined}
-                secureTextEntry={!showConfirmPassword} />
-
-           
-
-            <Gap height={hp(2)} />
-
-        
-
-
-<PrimaryButton
- label={t('reset_password.reset_button')}
-    filled
-    onPress={handleResetPassword}
-    style={styles.primaryButton}
-    loading={spinner}
-    disabled={spinner}
-    icon={undefined}
-    image={undefined}
-    iconStyle={undefined}
-    imageStyle={undefined}
-/>
-
-
-    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: hp(2) }}>
-                <Text style={styles.signInText}>
-                    {t('signup.have_account')}
-                </Text>
-                <Text
-                    onPress={() => {
-                        console.log('Sign In Link');
-                        navigation.navigate('Sign-In')
-                    }}
-                    style={{
-                        color: "blue"
-                    }} >
-                    {' ' + t('signup.sign_in')}
-                </Text>
-            </View>
+                    {/* Sign In Link */}
+                    <View style={styles.signInContainer}>
+                        <Text style={styles.signInText}>
+                            {t('signup.have_account')}
+                        </Text>
+                        <TouchableOpacity onPress={() => navigation.navigate('Sign-In')}>
+                            <Text style={styles.signInLink}>
+                                {' ' + t('signup.sign_in')}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </ScrollView>
 
             <CustomAlert
                 visible={alertConfig.visible}
@@ -233,33 +258,52 @@ const ResetPassword = () => {
                 message={alertConfig.message}
                 onClose={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
             />
-        </View>
+        </KeyboardAvoidingView>
     );
 };
 
 const styles = StyleSheet.create({
+    scrollContent: {
+        flexGrow: 1,
+        paddingVertical: hp(2),
+    },
     container: {
         flex: 1,
-        backgroundColor: '#fff',
         alignItems: 'center',
-        padding: 20,
+        paddingHorizontal: wp(6),
+        backgroundColor: '#fff',
     },
     logo: {
-        width: 150,
-        height: 150,
-        marginTop: hp(5),
-    },
-    primaryButton: {
-        width: '100%',
+        width: wp(50),
+        height: hp(12),
+        marginTop: hp(12),
+        marginBottom: hp(1),
     },
     header: {
         fontSize: 24,
         fontWeight: 'bold',
-        marginBottom: hp(1.5),
+        color: '#1A1A1A',
+        textAlign: 'center',
+    },
+    primaryButton: {
+        width: '100%',
+        height: 52,
+        borderRadius: 12,
+    },
+    signInContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     signInText: {
-        color: 'black',
-    }
+        color: '#666',
+        fontSize: 15,
+    },
+    signInLink: {
+        color: '#007AFF',
+        fontSize: 15,
+        fontWeight: 'bold',
+    },
 });
 
 export default ResetPassword;

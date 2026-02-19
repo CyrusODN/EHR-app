@@ -11,19 +11,12 @@ const devUrls = {
 };
 
 const prodUrls = {
- 
-  api_url: 'https://ehr.remedyai.com.pl//api',
-  file_url: 'https://ehr.remedyai.com.pl/',
-  front_end: 'https://ehr.remedyai.com.pl/',
-
-
-  // test urls
-  // api_url: "http://51.20.250.84/api",
-	// file_url: "http://51.20.250.84",
-	// front_end: "http://51.20.250.84",
+  api_url: 'https://ehr.remedius.ai/api',
+  file_url: 'https://ehr.remedius.ai/',
+  front_end: 'https://ehr.remedius.ai/',
 };
 
-const environment = devUrls;
+const environment = prodUrls;
 
 export const environmentUrls = {
   ...environment,

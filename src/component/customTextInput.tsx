@@ -1,18 +1,36 @@
-// components/CustomTextInput.js
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { View, TextInput, StyleSheet, TouchableOpacity, Text, KeyboardTypeOptions } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { validateInput } from '../utils/inputValidations';
-import { isDataExists } from '../utils/generic';
 
-const CustomTextInput = ({
+interface CustomTextInputProps {
+    placeholder: string;
+    name?: string;
+    value: string;
+    setState?: React.Dispatch<React.SetStateAction<any>>;
+    setValidationsState?: React.Dispatch<React.SetStateAction<any>>;
+    validationState?: any;
+    isFormSubmitted?: boolean;
+    multiline?: boolean;
+    numberOfLines?: number;
+    icon?: React.ReactNode;
+    right?: React.ReactNode;
+    onRightPress?: () => void;
+    keyboardType?: KeyboardTypeOptions;
+    secureTextEntry?: boolean;
+    onChangeText?: (text: string) => void;
+    autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+    autoCorrect?: boolean;
+}
+
+const CustomTextInput: React.FC<CustomTextInputProps> = ({
     placeholder,
-    name = undefined,
+    name = '',
     value,
-    setState = undefined,
-    setValidationsState = undefined,
-    validationState = undefined,
-    isFormSubmitted = undefined,
+    setState,
+    setValidationsState,
+    validationState,
+    isFormSubmitted,
     multiline = false,
     numberOfLines = 1,
     icon,
@@ -20,47 +38,46 @@ const CustomTextInput = ({
     onRightPress,
     keyboardType,
     secureTextEntry = false,
-    onChangeText
+    onChangeText,
+    autoCapitalize,
+    autoCorrect
 }) => {
     const { t } = useTranslation();
-    const [validationErrors, setValidationErrors] = useState([]);
+    const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
-    const inputValidation = (text) => {
-     
-        if (!!!setValidationsState) return;
-
+    const inputValidation = (text: string) => {
+        if (!setValidationsState || !name) return;
 
         const errors = validateInput(text, name);
-
-
-
         setValidationErrors(errors);
 
-        setValidationsState(prev => ({
+        setValidationsState((prev: any) => ({
             ...prev,
             [name]: errors.length > 0
         }));
     };
 
- 
-
-    const handleChangeText = (text) => {
+    const handleChangeText = (text: string) => {
         if (onChangeText) {
             onChangeText(text);
         } else if (setState && name) {
-            setState(prev => ({ ...prev, [name]: text }));
-            inputValidation(text);
+            setState((prev: any) => ({ ...prev, [name]: text }));
+            
+            // Clear validation errors when user starts typing
+            if (validationErrors.length > 0) {
+                setValidationErrors([]);
+                if (setValidationsState) {
+                    setValidationsState((prev: any) => ({ ...prev, [name]: false }));
+                }
+            }
         }
     };
 
- 
-
-    useEffect( () => {
-		if ( isFormSubmitted  ) {
-			setValidationErrors( [ "This field is required" ] );
-			setValidationsState( ( prev ) => ( { ...prev, [ name ]: true } ) );
-		}
-	}, [ isFormSubmitted ] );
+    useEffect(() => {
+        if (isFormSubmitted) {
+            inputValidation(value);
+        }
+    }, [isFormSubmitted]);
 
     return (
         <View style={styles.wrapper}>
@@ -84,6 +101,8 @@ const CustomTextInput = ({
                     numberOfLines={numberOfLines}
                     keyboardType={keyboardType || 'default'}
                     secureTextEntry={secureTextEntry}
+                    autoCapitalize={autoCapitalize}
+                    autoCorrect={autoCorrect}
                 />
                 {right && (
                     <TouchableOpacity
@@ -98,7 +117,7 @@ const CustomTextInput = ({
                 <View style={styles.errorWrapper}>
                     {validationErrors.map((error, index) => (
                         <Text key={index} style={styles.errorText}>
-                            {error}
+                            {t(error)}
                         </Text>
                     ))}
                 </View>
@@ -137,6 +156,7 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 12,
         fontSize: 14,
+        color: '#000',
     },
     multilineInput: {
         textAlignVertical: 'top',

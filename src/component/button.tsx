@@ -1,14 +1,27 @@
-import { Pressable, StyleSheet, Text, View, Image, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { StyleSheet, Text, View, Image, TouchableOpacity, ActivityIndicator, ViewStyle, TextStyle } from 'react-native'
 import React from 'react'
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen'
+import { heightPercentageToDP as hp } from 'react-native-responsive-screen'
 import LinearGradient from 'react-native-linear-gradient'
 
-const PrimaryButton = ({
+interface PrimaryButtonProps {
+    label: string;
+    filled?: boolean;
+    onPress: () => void;
+    style?: ViewStyle | ViewStyle[];
+    loading?: boolean;
+    disabled?: boolean;
+    icon?: React.ReactNode;
+    image?: any;
+    iconStyle?: ViewStyle;
+    imageStyle?: any;
+}
+
+const PrimaryButton: React.FC<PrimaryButtonProps> = ({
     label,
     filled,
     onPress,
     style,
-    loading = false, 
+    loading = false,
     disabled = false,
     icon,
     image,
@@ -18,13 +31,13 @@ const PrimaryButton = ({
     const renderLeftElement = () => {
         if (icon) {
             return (
-                <View style={[]}>
+                <View style={iconStyle}>
                     {icon}
                 </View>
             )
         } else if (image) {
             return (
-                <View style={[]}>
+                <View style={imageStyle}>
                     {typeof image === 'string' ? (
                         <Image
                             source={{ uri: image }}
@@ -49,62 +62,50 @@ const PrimaryButton = ({
         </View>
     );
 
-    const getButtonStyle = () => {
-        if (disabled) {
-            return {
-                opacity: 0.5,
-                backgroundColor: '#E0E0E0'
-            };
-        }
-        return {};
-    };
-
     return (
         <TouchableOpacity
-        style={[
-            styles.buttonContainer,
-            !filled && styles.outlineButton,
-            style,
-            disabled && styles.disabledButton
-        ]}
-        onPress={!disabled ? onPress : null}
-        disabled={disabled || loading}
-    >
-        {loading ? (
-            <ActivityIndicator color={filled ? '#fff' : '#007AFF'} />
-        ) : filled ? (
-            <LinearGradient
-                colors={disabled ? ['#CCCCCC', '#CCCCCC'] : ['#4A90B9', '#5BA6B6', '#68BFB3']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.gradientBackground}
-            >
-                {buttonContent}
-            </LinearGradient>
-        ) : (
-            buttonContent
-        )}
-    </TouchableOpacity>
+            style={[
+                styles.buttonContainer,
+                !filled && styles.outlineButton,
+                style,
+                disabled && styles.disabledButton
+            ]}
+            onPress={!disabled ? onPress : undefined}
+            disabled={disabled || loading}
+        >
+            {loading ? (
+                <ActivityIndicator color={filled ? '#fff' : '#007AFF'} />
+            ) : filled ? (
+                <LinearGradient
+                    colors={disabled ? ['#CCCCCC', '#CCCCCC'] : ['#4A90B9', '#5BA6B6', '#68BFB3']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.gradientBackground}
+                >
+                    {buttonContent}
+                </LinearGradient>
+            ) : (
+                buttonContent
+            )}
+        </TouchableOpacity>
     )
 }
 
 export default PrimaryButton
 
 const styles = StyleSheet.create({
-
     disabledButton: {
         borderColor: '#CCCCCC',
         backgroundColor: '#CCCCCC',
     },
-   
-
-    
     buttonContainer: {
         borderRadius: 5,
         width: '95%',
         height: 50,
         overflow: 'hidden',
-        marginBottom: hp(1)
+        marginBottom: hp(1),
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     gradientBackground: {
         width: '100%',

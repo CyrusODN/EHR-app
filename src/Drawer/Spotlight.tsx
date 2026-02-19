@@ -10,10 +10,10 @@ import {
 } from 'react-native';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import CustomTextInput from '../../src/component/customTextInput';
+import CustomTextInput from '../component/customTextInput';
 import { useNavigation } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
-import PrimaryButton from '../../src/component/button';
+import PrimaryButton from '../component/button';
 import { Searchbar } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Feather from 'react-native-vector-icons/Feather';

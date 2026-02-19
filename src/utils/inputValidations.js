@@ -3,7 +3,7 @@ export const validateInput = (value, name) => {
 
     // Check for empty value first
     if (!value || value.trim() === "") {
-        errors.push("This field is required");
+        errors.push("validation.field_required");
         return errors;
     }
 
@@ -13,13 +13,13 @@ export const validateInput = (value, name) => {
         
         // Test the email pattern
         if (!emailPattern.test(value)) {
-            errors.push("Please enter a valid email address");
+            errors.push("validation.invalid_email");
         }
     }
 
     if (name === "password" || name === "confirmPassword") {
-        if (value.length < 8) {
-            errors.push("Password must be at least 8 characters long");
+        if (value.length < 6) {
+            errors.push("validation.password_min_length");
         }
     }
 

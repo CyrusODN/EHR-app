@@ -1,9 +1,13 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Appbar } from 'react-native-paper';
 import Svg, { Defs, LinearGradient, Stop, G, Path } from 'react-native-svg';
 
-const Header = ({ onMenuPress }) => {
+interface HeaderProps {
+    onMenuPress: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ onMenuPress }) => {
     return (
         <Appbar.Header style={styles.appBar}>
             <View style={styles.logoContainer}>

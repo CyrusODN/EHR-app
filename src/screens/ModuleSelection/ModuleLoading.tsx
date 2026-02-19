@@ -20,13 +20,20 @@ const ModuleLoading = () => {
     const [loadingWidth, setLoadingWidth] = useState(0);
 
     useEffect(() => {
+        let timer: any;
+
         if (loadingWidth < 100) {
-            setLoadingWidth(prev => prev + 1);          
+            timer = setTimeout(() => {
+                setLoadingWidth(prev => prev + 1);
+            }, 30);
+        } else {
+            (navigation as any).navigate('Dashboard');
         }
-        else {
-            navigation.navigate('Dashboard');
-        }
-    }, [loadingWidth])
+
+        return () => {
+            if (timer) clearTimeout(timer);
+        };
+    }, [loadingWidth, navigation]);
 
     return (
         <View style={styles.container}>
@@ -38,10 +45,10 @@ const ModuleLoading = () => {
                     style={{ height: 20, width: 20 }}
                 />
             </View>
-            <View style={{ width: "55%" }}>
+            <View style={{ width: "80%" }}>
                 <View style={{
                     flexDirection: "row",
-                    alignItems: "center", marginVertical: hp(1), justifyContent: "space-between"
+                    alignItems: "center", marginVertical: hp(1), justifyContent: "center"
                 }}>
                     <LinearGradient
                         colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
@@ -49,31 +56,39 @@ const ModuleLoading = () => {
                         end={{ x: 1, y: 0 }}
                         style={{
                             height: 40, width: 40,
-                            marginEnd: 10, borderRadius: 10,
+                            marginEnd: 15, borderRadius: 10,
                             backgroundColor: "rgba(0,0,0,0.1)",
                             alignItems: "center", justifyContent: "center"
                         }}
                     >
                         <Image source={require('../../assets/images/brain.png')} style={{ height: 20, width: 20 }} />
                     </LinearGradient>
-                    <Text style={[styles.moduleTitle, { color: '#000000', fontSize: 18 }]}>Psychiatric Module</Text>
+                    <Text style={[styles.moduleTitle, { color: '#000000', fontSize: 20 }]}>Psychiatric Module</Text>
                 </View>
-                <Gap height={hp(1)} />
-                <LinearGradient
-                    colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={{
-                        height: 5, width: `${loadingWidth}%`,
-                        borderRadius: 5,
-                        alignSelf: "flex-start"
-                    }}
-                />
                 <Gap height={hp(2)} />
-                <View style={{ width: "100%", alignItems: "center", justifyContent: "center" }}>
-                    <Text style={{ color: "#000" }}>Initializing module...</Text>
+                {/* Progress Bar Track */}
+                <View style={{
+                    height: 8,
+                    width: '100%',
+                    backgroundColor: '#E5E5E5',
+                    borderRadius: 4,
+                    overflow: 'hidden'
+                }}>
+                    <LinearGradient
+                        colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={{
+                            height: '100%',
+                            width: `${Math.max(loadingWidth, 2)}%`,
+                            borderRadius: 4,
+                        }}
+                    />
                 </View>
-
+                <Gap height={hp(3)} />
+                <View style={{ width: "100%", alignItems: "center", justifyContent: "center" }}>
+                    <Text style={{ color: "#666", fontSize: 14 }}>Initializing module...</Text>
+                </View>
             </View>
         </View>
     );

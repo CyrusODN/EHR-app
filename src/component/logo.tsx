@@ -1,13 +1,17 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet } from 'react-native'
 import React from 'react'
 import Svg, { Defs, LinearGradient, Stop, G, Path } from 'react-native-svg';
 
-const LogoSvg = ({ size = 'large' }) => {
+interface LogoSvgProps {
+    size?: 'small' | 'large';
+}
+
+const LogoSvg: React.FC<LogoSvgProps> = ({ size = 'large' }) => {
     return (
         <Svg
             viewBox="0 0 5563 1373"
-            width={size == 'small' ? "60%" : "80%"}
-            height={size == 'small' ? "5%" : "10%"}
+            width={size === 'small' ? "60%" : "80%"}
+            height={size === 'small' ? "5%" : "10%"}
             aria-label="Remedy AI Logo"
         >
             <Defs>

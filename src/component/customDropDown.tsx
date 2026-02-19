@@ -1,11 +1,17 @@
-// components/CustomDropdown.js
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
 
-const CustomDropdown = ({
+interface CustomDropdownProps {
+    placeholder: string;
+    options: { label: string; value: string | number }[];
+    value: string | number | null;
+    onChange: (value: string | number) => void;
+    icon?: React.ReactNode;
+}
+
+const CustomDropdown: React.FC<CustomDropdownProps> = ({
     placeholder,
     options,
     value,

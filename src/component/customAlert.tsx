@@ -3,19 +3,25 @@ import { View, Text, Modal, TouchableOpacity, StyleSheet } from 'react-native';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import Feather from 'react-native-vector-icons/Feather';
 
-const CustomAlert = ({ visible, type = 'error', message, onClose }) => {
- 
+interface CustomAlertProps {
+    visible: boolean;
+    type?: 'success' | 'warning' | 'error';
+    message: string;
+    onClose: () => void;
+}
+
+const CustomAlert: React.FC<CustomAlertProps> = ({ visible, type = 'error', message, onClose }) => {
+  
   const handleClose = useCallback(() => {
-    console.log("enter in the handle close button ")
     if (onClose) {
       onClose();
     }
   }, [onClose]);
 
   useEffect(() => {
-    let timer;
+    let timer: any;
     if (visible) {
-      timer = setTimeout(handleClose, 300);
+      timer = setTimeout(handleClose, 3000); // 3 seconds is better than 0.3s for reading
     }
     return () => {
       if (timer) {
@@ -35,8 +41,6 @@ const CustomAlert = ({ visible, type = 'error', message, onClose }) => {
         return '#FF4444';
     }
   };
-
-
 
   return (
     <Modal
@@ -64,40 +68,38 @@ const CustomAlert = ({ visible, type = 'error', message, onClose }) => {
   );
 };
 
-// ...existing styles...
-            
-            const styles = StyleSheet.create({
-              modalContainer: {
-                flex: 1,
-                justifyContent: 'flex-start',
-                alignItems: 'center',
-                backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                paddingTop: hp(5),
-              },
-              alertContainer: {
-                backgroundColor: 'white',
-                borderRadius: 8,
-                padding: 16,
-                width: wp(90),
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                borderLeftWidth: 4,
-              },
-              contentContainer: {
-                flex: 1,
-                flexDirection: 'row',
-                alignItems: 'center',
-              },
-              message: {
-                marginLeft: 12,
-                fontSize: 14,
-                color: '#333',
-                flex: 1,
-              },
-              closeButton: {
-                padding: 4,
-              },
-            });
-            
-            export default CustomAlert;
+const styles = StyleSheet.create({
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    paddingTop: hp(5),
+  },
+  alertContainer: {
+    backgroundColor: 'white',
+    borderRadius: 8,
+    padding: 16,
+    width: wp(90),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderLeftWidth: 4,
+  },
+  contentContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  message: {
+    marginLeft: 12,
+    fontSize: 14,
+    color: '#333',
+    flex: 1,
+  },
+  closeButton: {
+    padding: 4,
+  },
+});
+
+export default CustomAlert;

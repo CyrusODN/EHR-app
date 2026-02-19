@@ -1,4 +1,9 @@
 export const en = {
+    validation: {
+        field_required: 'This field is required',
+        invalid_email: 'Please enter a valid email address',
+        password_min_length: 'Password must be at least 6 characters long',
+    },
     common: {
         search: 'Search',
         cancel: 'Cancel',

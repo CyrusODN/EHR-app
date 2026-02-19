@@ -32,10 +32,9 @@ function AppNavigator() {
                 });
         }
         catch (error) {
-
             console.log(error);
         }
-    });
+    }, []); // Added dependency array to prevent infinite loop
 
 
     useEffect(() => {
