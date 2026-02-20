@@ -12,35 +12,35 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import CustomDropdown from '../component/customDropDown';
-import PrimaryButton from '../component/button';
+import CustomDropdown from '../../component/customDropDown';
+import PrimaryButton from '../../component/button';
 import Feather from 'react-native-vector-icons/Feather';
-import Gap from '../component/gap';
+import Gap from '../../component/gap';
 import { useNavigation } from '@react-navigation/native';
 
 const EWUS = () => {
-    const navigation = useNavigation();
+    const navigation = useNavigation<any>();
     // State for switches and inputs
     const [autoInsuranceCheck, setAutoInsuranceCheck] = useState(true);
     const [eWUSSystem, setEWUSSystem] = useState(true);
     const [personnelCode, setPersonnelCode] = useState('11234590');
     const [login, setLogin] = useState('');
 
-    const [branch, setBranch] = useState('');
-    const [contractor, setContractor] = useState('');
+    const [branch, setBranch] = useState<string | number>('');
+    const [contractor, setContractor] = useState<string | number>('');
 
     // Departments
     const departments = [
         { label: 'Maritime (11)', value: 'Maritime (11)' },
-        { label: 'Masovian (12)', value: 'Masovian (12)' },
-        { label: 'Silesian (13)', value: 'Silesian (13)' }
+        { label: 'Masovian (07)', value: 'Masovian (07)' },
+        { label: 'Silesian (12)', value: 'Silesian (12)' }
     ];
 
     // Contractor Types
     const contractorTypes = [
         { label: 'Doctor', value: 'Doctor' },
-        { label: 'Nurse', value: 'Nurse' },
-        { label: 'Dentist', value: 'Dentist' }
+        { label: 'Clinic', value: 'Clinic' },
+        { label: 'Hospital', value: 'Hospital' }
     ];
 
     return (
@@ -94,7 +94,7 @@ const EWUS = () => {
                     <View style={styles.pickerContainer}>
                         <CustomDropdown
                             placeholder="Maritime(11)"
-                            options={['Maritime(11)', 'Masovian(07)', 'Silesian(12)']}
+                            options={departments}
                             value={branch}
                             onChange={setBranch}
                             icon={undefined}
@@ -108,7 +108,7 @@ const EWUS = () => {
                     <View style={styles.pickerContainer}>
                         <CustomDropdown
                             placeholder="Doctor"
-                            options={['Doctor', 'Clinic', 'Hospital']}
+                            options={contractorTypes}
                             value={contractor}
                             onChange={setContractor}
                             icon={undefined}

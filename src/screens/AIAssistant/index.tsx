@@ -3,7 +3,6 @@ import {
     View,
     Text,
     StyleSheet,
-    SafeAreaView,
     StatusBar,
     TouchableOpacity,
     ScrollView,
@@ -15,21 +14,18 @@ import {
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
-import PrimaryButton from '../component/button';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import PrimaryButton from '../../component/button';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import CustomTextInput from '../component/customTextInput';
-import Gap from '../component/gap';
-import CustomCheckbox from '../component/customCheckBox';
-import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
+import CustomTextInput from '../../component/customTextInput';
+import Gap from '../../component/gap';
+import CustomCheckbox from '../../component/customCheckBox';
 import Feather from 'react-native-vector-icons/Feather';
-import CustomDropdown from '../component/customDropDown';
-import AntDesign from 'react-native-vector-icons/AntDesign';
+import CustomDropdown from '../../component/customDropDown';
 
 const { width } = Dimensions.get('window');
 
 export const AIAssistantScreen = () => {
-    const navigation = useNavigation();
+    const navigation = useNavigation<any>();
     const [activeTab, setActiveTab] = useState('Documentation');
 
     // Chatbot Configurator State
@@ -66,8 +62,18 @@ export const AIAssistantScreen = () => {
         'Test Results'
     ];
 
-    const timeRangeOptions = ['Last Year', 'Last Month', 'Last Week', 'Last Quarter'];
-    const groupingOptions = ['Month', 'Week', 'Day', 'Year'];
+    const timeRangeOptions = [
+        { label: 'Last Year', value: 'Last Year' },
+        { label: 'Last Month', value: 'Last Month' },
+        { label: 'Last Week', value: 'Last Week' },
+        { label: 'Last Quarter', value: 'Last Quarter' }
+    ];
+    const groupingOptions = [
+        { label: 'Month', value: 'Month' },
+        { label: 'Week', value: 'Week' },
+        { label: 'Day', value: 'Day' },
+        { label: 'Year', value: 'Year' }
+    ];
 
     const handleDataSourceToggle = (source: string) => {
         if (selectedDataSources.includes(source)) {
@@ -180,9 +186,15 @@ export const AIAssistantScreen = () => {
 
                             <CustomDropdown
                                 placeholder="Choose Specialization"
-                                options={['Cardiology', 'Neurology', 'Dermatology', 'Pediatrics', 'General Practice']}
+                                options={[
+                                    { label: 'Cardiology', value: 'Cardiology' },
+                                    { label: 'Neurology', value: 'Neurology' },
+                                    { label: 'Dermatology', value: 'Dermatology' },
+                                    { label: 'Pediatrics', value: 'Pediatrics' },
+                                    { label: 'General Practice', value: 'General Practice' }
+                                ]}
                                 value={chatbotSpecialization}
-                                onChange={setChatbotSpecialization}
+                                onChange={(value) => setChatbotSpecialization(String(value))}
                                 icon={undefined}
                             />
                         </View>
@@ -352,7 +364,7 @@ export const AIAssistantScreen = () => {
                                 placeholder={timeRange}
                                 options={timeRangeOptions}
                                 value={timeRange}
-                                onChange={(value: string) => setTimeRange(value)}
+                                onChange={(value) => setTimeRange(String(value))}
                                 icon={undefined}
                             />
                         </View>
@@ -376,7 +388,7 @@ export const AIAssistantScreen = () => {
                                 placeholder={grouping}
                                 options={groupingOptions}
                                 value={grouping}
-                                onChange={(value: string) => setGrouping(value)}
+                                onChange={(value) => setGrouping(String(value))}
                                 icon={undefined}
                             />
                         </View>

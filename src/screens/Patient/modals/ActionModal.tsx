@@ -7,16 +7,21 @@ import {
     Modal,
     TouchableWithoutFeedback,
     Dimensions,
-    TextInput
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Feather';
-import LinearGradient from 'react-native-linear-gradient';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Feather from 'react-native-vector-icons/Feather';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
-const ActionModal = ({ visible, onClose, onView, onStart, onAddNote }) => {
+interface ActionModalProps {
+    visible: boolean;
+    onClose: () => void;
+    onView: () => void;
+    onStart: () => void;
+    onAddNote?: (note: string) => void;
+}
+
+
+const ActionModal = ({ visible, onClose, onView, onStart, onAddNote }: ActionModalProps) => {
     const [showNoteInput, setShowNoteInput] = useState(false);
     const [note, setNote] = useState('');
 
@@ -86,7 +91,7 @@ const ActionModal = ({ visible, onClose, onView, onStart, onAddNote }) => {
                                     >
                                         <View style={styles.buttonContent}>
                                             <View style={styles.viewButton}>
-                                                <Icon name="eye" size={18} color="#58a6b8" />
+                                                <Feather name="eye" size={18} color="#58a6b8" />
                                             </View>
                                             <View style={{ width: 5 }} />
                                             <Text style={styles.actionButtonText}>View Details</Text>
@@ -100,7 +105,7 @@ const ActionModal = ({ visible, onClose, onView, onStart, onAddNote }) => {
 
                                         <View style={styles.buttonContent}>
                                             <View style={styles.viewButton}>
-                                                <Icon name="calendar" size={18} color="#58a6b8" />
+                                                <Feather name="calendar" size={18} color="#58a6b8" />
                                             </View>
                                             <View style={{ width: 5 }} />
                                             <Text style={styles.actionButtonText}>
@@ -116,7 +121,7 @@ const ActionModal = ({ visible, onClose, onView, onStart, onAddNote }) => {
                                     >
                                         <View style={styles.buttonContent}>
                                             <View style={styles.viewButton}>
-                                                <Icon name="file-text" size={18} color="#58a6b8" />
+                                                <Feather name="file-text" size={18} color="#58a6b8" />
                                             </View>
                                             <View style={{ width: 5 }} />
 

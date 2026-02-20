@@ -12,16 +12,39 @@ import {
     Image
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Feather from 'react-native-vector-icons/Feather';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { useNavigation } from '@react-navigation/native';
-import PrimaryButton from '../component/button';
+import PrimaryButton from '../../component/button';
+
+interface ToggleItemProps {
+    icon: React.ReactNode;
+    title: string;
+    description?: string;
+    value: boolean;
+    onToggle: () => void;
+}
+
+interface SubToggleItemProps {
+    title: string;
+    description?: string;
+    value: boolean;
+    onToggle: () => void;
+    indented?: boolean;
+}
+
+interface ModuleCardProps {
+    children: React.ReactNode;
+}
+
+interface InfoBoxProps {
+    type?: string;
+    title?: string;
+    description: string;
+}
 
 // Toggle Item Component
-const ToggleItem = ({ icon, title, description, value, onToggle }) => (
+const ToggleItem = ({ icon, title, description, value, onToggle }: ToggleItemProps) => (
     <View style={styles.toggleItem}>
         <View style={styles.toggleItemContent}>
             <View style={styles.toggleIcon}>
@@ -42,7 +65,7 @@ const ToggleItem = ({ icon, title, description, value, onToggle }) => (
 );
 
 // Sub Toggle Item Component
-const SubToggleItem = ({ title, description, value, onToggle, indented = false }) => (
+const SubToggleItem = ({ title, description, value, onToggle, indented = false }: SubToggleItemProps) => (
     <View style={[styles.subToggleItem,]}>
         <View style={styles.subToggleTextContainer}>
             <Text style={styles.subToggleTitle}>{title}</Text>
@@ -58,7 +81,7 @@ const SubToggleItem = ({ title, description, value, onToggle, indented = false }
 );
 
 // Module Card Component
-const ModuleCard = ({ title, icon, children }) => {
+const ModuleCard = ({ children }: ModuleCardProps) => {
     return (
         <View style={styles.moduleCard}>
             {children}
@@ -67,7 +90,7 @@ const ModuleCard = ({ title, icon, children }) => {
 };
 
 // Info Box Component
-const InfoBox = ({ type, title, description }) => {
+const InfoBox = ({ type, title, description }: InfoBoxProps) => {
     const isWarning = type === 'warning';
 
     return (
@@ -123,18 +146,13 @@ const ClientPortal = () => {
     });
 
     // Handle toggle change
-    const handleToggle = (key) => {
+    const handleToggle = (key: string) => {
         setToggleStates({
             ...toggleStates,
-            [key]: !toggleStates[key]
+            [key]: !toggleStates[key as keyof typeof toggleStates]
         });
     };
 
-    // Handle save settings
-    const handleSaveSettings = () => {
-        console.log('Saving portal settings:', toggleStates);
-        // Implement save logic
-    };
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -303,7 +321,7 @@ const ClientPortal = () => {
                 {/* AI Assistant Module */}
                 <ModuleCard>
                     <ToggleItem
-                        icon={<Image source={require('../assets/images/brain-primary.png')} style={{ height: 20, width: 20 }} />}
+                        icon={<Image source={require('../../assets/images/brain-primary.png')} style={{ height: 20, width: 20 }} />}
                         title="AI Assistant"
                         description="Intelligent assistant supporting the patient"
                         value={toggleStates.aiAssistant}
@@ -371,7 +389,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#E8F4F8',
         borderRadius: 8,
         padding: 16,
-        marginVertical: 10        // margin: 16,
+        marginVertical: 10,        // margin: 16,
     },
     warnINfo: {
         color: "orange"

@@ -15,7 +15,7 @@ import {
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MedicalFilterForm from './Layout/filterForm';
-import Gap from '../component/gap';
+import Gap from '../../component/gap';
 import StatCard from './Layout/statCard';
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 import Feather from 'react-native-vector-icons/Feather';
@@ -41,7 +41,7 @@ const AIAnalysis = ({ }) => {
                     height: 45, width: 45, alignItems: "center", justifyContent: 'center',
                     borderRadius: 10
                 }}>
-                    <Image source={require('../assets/images/brain-primary.png')} style={{ height: 25, width: 25 }} />
+                    <Image source={require('../../assets/images/brain-primary.png')} style={{ height: 25, width: 25 }} />
                 </View>
                 <View style={{ width: wp(65) }}>
                     <Text style={styles.headerTitle}>Statistical analysis AI</Text>
@@ -83,12 +83,12 @@ const AIAnalysis = ({ }) => {
                 }} >
                     <StatCard
                         title={"Treatment effectiveness"}
-                        icon={<Image source={require("../assets/images/chartbeat.png")} style={{ height: 20, width: 20 }} />}
+                        icon={<Image source={require("../../assets/images/chartbeat.png")} style={{ height: 20, width: 20 }} />}
                         score={"78.5%"}
                         subtitle={"+5.2% vs\n previous period"} />
                     <StatCard
                         title={"Adherence"}
-                        icon={<Image source={require("../assets/images/adherenece.png")} style={{ height: 20, width: 20 }} />}
+                        icon={<Image source={require("../../assets/images/adherenece.png")} style={{ height: 20, width: 20 }} />}
                         score={"92.3%"}
                         subtitle={"+3.1% vs\n previous period"} />
                 </View>
@@ -113,12 +113,12 @@ const AIAnalysis = ({ }) => {
 
                 }}>
                     <View style={{ flexDirection: "row", width: "100%", alignItems: "center", justifyContent: "space-between" }} >
-                        <Image source={require('../assets/images/brain-primary.png')} style={{ height: 25, width: 25, alignSelf: "flex-start", marginTop: hp(0.5) }} />
+                        <Image source={require('../../assets/images/brain-primary.png')} style={{ height: 25, width: 25, alignSelf: "flex-start", marginTop: hp(0.5) }} />
                         <View style={{ width: wp(80) }}>
                             <Text style={styles.headerTitle}>Conclusions AI</Text>
                             <Gap height={hp(0.5)} />
                             <View style={{ flexDirection: "row" }} >
-                                <Image source={require('../assets/images/stars.png')} style={{ width: 20, height: 20, marginRight: 10 }} />
+                                <Image source={require('../../assets/images/stars.png')} style={{ width: 20, height: 20, marginRight: 10 }} />
                                 <Text style={styles.headerSubtitle}>
                                     Powered by advanced machine learning algorithms
                                 </Text>
@@ -136,7 +136,7 @@ const AIAnalysis = ({ }) => {
                         justifyContent: "space-between",
                         alignItems: "center", borderRadius: 10
                     }} >
-                        <Image source={require('../assets/images/chartbeat.png')} style={{ height: 20, width: 20, alignSelf: 'flex-start', marginTop: hp(0.5) }} />
+                        <Image source={require('../../assets/images/chartbeat.png')} style={{ height: 20, width: 20, alignSelf: 'flex-start', marginTop: hp(0.5) }} />
                         <Text style={{ width: "90%", color: "#4A90B9" }}>
                             Zaobserwowano 23% wzrost rozpoznań F32.1 (Epizod depresyjny umiarkowany) w grupie wiekowej 25-35 lat. Główne czynniki ryzyka: stres zawodowy, izolacja społeczna.
                         </Text>
@@ -165,7 +165,7 @@ const AIAnalysis = ({ }) => {
                         alignItems: "center", borderRadius: 10
                     }}>
                         <Image
-                            source={require('../assets/images/brain-purple.png')}
+                            source={require('../../assets/images/brain-purple.png')}
                             style={{ height: 20, width: 20, alignSelf: 'flex-start', marginTop: hp(0.5) }} />
                         <Text style={{ width: "90%", color: "#6b21a8" }}>
                             Pacjenci z kombinacją farmakoterapii i psychoterapii wykazują o 35% wyższą skuteczność leczenia w porównaniu do monoterapii.
@@ -247,7 +247,7 @@ const AIAnalysis = ({ }) => {
                     backgroundColor: "white", padding: 10, borderRadius: 10,
                 }}>
                     <View style={{ flexDirection: "row", width: "100%", alignItems: "center", justifyContent: "space-between" }} >
-                        <Image source={require('../assets/images/chartbeat.png')} style={{ height: 20, width: 20 }} />
+                        <Image source={require('../../assets/images/chartbeat.png')} style={{ height: 20, width: 20 }} />
                         <View style={{ width: wp(80) }}>
                             <Text style={{ fontSize: 16, fontWeight: "bold" }}>Treatment metrics</Text>
                         </View>

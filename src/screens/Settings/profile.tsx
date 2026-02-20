@@ -12,10 +12,16 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
-import PrimaryButton from '../component/button';
+import PrimaryButton from '../../component/button';
+
+interface NotificationToggleItemProps {
+    title: string;
+    value: boolean;
+    onToggle: () => void;
+}
 
 // Notification Toggle Item Component
-const NotificationToggleItem = ({ title, value, onToggle }) => (
+const NotificationToggleItem = ({ title, value, onToggle }: NotificationToggleItemProps) => (
     <View style={styles.notificationItem}>
         <Text style={styles.notificationTitle}>{title}</Text>
         <Switch
@@ -28,7 +34,7 @@ const NotificationToggleItem = ({ title, value, onToggle }) => (
 );
 
 const Profile = () => {
-    const navigation = useNavigation();
+    const navigation = useNavigation<any>();
 
     // State for notification toggles
     const [notificationStates, setNotificationStates] = useState({
@@ -38,10 +44,10 @@ const Profile = () => {
     });
 
     // Handle notification toggle change
-    const handleNotificationToggle = (key) => {
+    const handleNotificationToggle = (key: string) => {
         setNotificationStates({
             ...notificationStates,
-            [key]: !notificationStates[key]
+            [key]: !notificationStates[key as keyof typeof notificationStates]
         });
     };
 

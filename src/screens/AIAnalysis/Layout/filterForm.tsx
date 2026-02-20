@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Touchable, TouchableOpacity } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import CustomCheckbox from '../../component/customCheckBox';
-import CustomDropdown from '../../component/customDropDown';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import CustomCheckbox from '../../../component/customCheckBox';
+import CustomDropdown from '../../../component/customDropDown';
 
 const MedicalFilterForm = () => {
     // State for form values
-    const [timeRange, setTimeRange] = useState(null);
-    const [department, setDepartment] = useState(null);
-    const [doctor, setDoctor] = useState(null);
+    const [timeRange, setTimeRange] = useState<string | number | null>(null);
+    const [department, setDepartment] = useState<string | number | null>(null);
+    const [doctor, setDoctor] = useState<string | null>(null);
     const [metrics, setMetrics] = useState({
         visits: true,
         diagnoses: false
@@ -36,7 +35,7 @@ const MedicalFilterForm = () => {
     ];
 
     // Handle checkbox changes
-    const handleMetricChange = (metric, value) => {
+    const handleMetricChange = (metric: string, value: boolean) => {
         setMetrics(prev => ({
             ...prev,
             [metric]: value

@@ -14,11 +14,11 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import CustomTextInput from '../component/customTextInput';
-import CustomDropdown from '../component/customDropDown';
-import PrimaryButton from '../component/button';
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import Gap from '../component/gap';
+import CustomTextInput from '../../component/customTextInput';
+import CustomDropdown from '../../component/customDropDown';
+import PrimaryButton from '../../component/button';
+import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import Gap from '../../component/gap';
 import { useNavigation } from '@react-navigation/native';
 
 const NewPatientScreen = ({ }) => {
@@ -29,14 +29,14 @@ const NewPatientScreen = ({ }) => {
     const [pesel, setPesel] = useState('');
     const [dateOfBirth, setDateOfBirth] = useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
-    const [gender, setGender] = useState(null);
+    const [gender, setGender] = useState<string | number | null>(null);
     const [phone, setPhone] = useState('');
     const [street, setStreet] = useState('');
     const [houseNo, setHouseNo] = useState('');
     const [apartmentNo, setApartmentNo] = useState('');
     const [postalCode, setPostalCode] = useState('');
     const [city, setCity] = useState('');
-    const [insuranceType, setInsuranceType] = useState('NFZ');
+    const [insuranceType, setInsuranceType] = useState<string | number>('NFZ');
     const [insuranceNo, setInsuranceNo] = useState('');
 
     // Options for dropdowns

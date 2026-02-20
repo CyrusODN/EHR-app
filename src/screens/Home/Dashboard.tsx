@@ -17,7 +17,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Header from '../../component/header';
 import PrimaryButton from '../../component/button';
 import { useNavigation } from '@react-navigation/native';
-import SlidingDrawerModal from '../../Drawer';
+import SlidingDrawerModal from '../Drawer';
 import { DashboardStatsCard } from './Stats';
 import ActionModal from './modals/ActionModal';
 import { useTranslation } from 'react-i18next';
@@ -34,7 +34,7 @@ const Dashboard = () => {
         console.log("loggedInUser", loggedInUser);
 
     },[loggedInUser])
-    const navigation = useNavigation();
+    const navigation = useNavigation<any>();
     const currentMonth = 'April 2025';
     const totalPatients = '1393 total';
     const { colors } = useTheme();

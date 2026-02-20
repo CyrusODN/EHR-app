@@ -5,22 +5,18 @@ import {
     Text,
     StyleSheet,
     ScrollView,
-    TouchableOpacity,
-    Platform,
     SafeAreaView,
     StatusBar
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import CustomTextInput from '../component/customTextInput';
-import CustomDropdown from '../component/customDropDown';
-import PrimaryButton from '../component/button';
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import Gap from '../component/gap';
+import CustomTextInput from '../../component/customTextInput';
+import CustomDropdown from '../../component/customDropDown';
+import PrimaryButton from '../../component/button';
 import { useNavigation } from '@react-navigation/native';
 
 const FacilityData = () => {
-    const navigation = useNavigation();
+    const navigation = useNavigation<any>();
 
     // State variables for form fields
     const [name, setName] = useState('Individual Practice Dr. Cyrus Tahery');
@@ -28,7 +24,7 @@ const FacilityData = () => {
     const [nip, setNip] = useState('6612334698');
     const [bdo, setBdo] = useState('');
     const [registryNumber, setRegistryNumber] = useState('');
-    const [facilityType, setFacilityType] = useState('Individual practice');
+    const [facilityType, setFacilityType] = useState<string | number>('Individual practice');
     const [phone, setPhone] = useState('724733713');
     const [email, setEmail] = useState('DRCYRUSTAHERY@GMAIL.COM');
     const [website, setWebsite] = useState('');
@@ -43,8 +39,8 @@ const FacilityData = () => {
     const [workHoursFrom, setWorkHoursFrom] = useState({ hour: '14', minute: '00' });
     const [workHoursTo, setWorkHoursTo] = useState({ hour: '20', minute: '00' });
     const [visitDuration, setVisitDuration] = useState('15');
-    const [visitType, setVisitType] = useState('Private');
-    const [defaultReceptionMode, setDefaultReceptionMode] = useState('');
+    const [visitType, setVisitType] = useState<string | number>('Private');
+    const [defaultReceptionMode, setDefaultReceptionMode] = useState<string | number>('');
 
     // Options for dropdowns
     const facilityTypeOptions = [

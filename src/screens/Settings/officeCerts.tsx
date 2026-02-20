@@ -9,19 +9,54 @@ import {
     SafeAreaView,
     StatusBar,
     TextInput,
-    FlatList
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Feather from 'react-native-vector-icons/Feather';
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { useNavigation } from '@react-navigation/native';
-import PrimaryButton from '../component/button';
+import PrimaryButton from '../../component/button';
+
+interface Department {
+    id: string;
+    name: string;
+    address: string;
+    postalCode: string;
+    city: string;
+    phone: string;
+    email: string;
+}
+
+interface Office {
+    id: string;
+    title: string;
+    floor: string;
+    number: string;
+    type: string;
+    equipment: string;
+}
+
+interface DepartmentCardProps {
+    department: Department;
+    onEdit: (id: string) => void;
+    onDelete: (id: string) => void;
+}
+
+interface OfficeCardProps {
+    office: Office;
+    onEdit: (id: string) => void;
+    onDelete: (id: string) => void;
+}
+
+interface CertificateUploadSectionProps {
+    title: string;
+    placeholder: string;
+    onUpload: () => void;
+}
 
 // Department Card Component
-const DepartmentCard = ({ department, onEdit, onDelete }) => (
+const DepartmentCard = ({ department, onEdit, onDelete }: DepartmentCardProps) => (
     <View style={styles.departmentCard}>
         <View style={styles.departmentInfo}>
             <Text style={styles.departmentTitle}>{department.name}</Text>
@@ -43,7 +78,7 @@ const DepartmentCard = ({ department, onEdit, onDelete }) => (
 
 
 // Office Card Component
-const OfficeCard = ({ office, onEdit, onDelete }) => (
+const OfficeCard = ({ office, onEdit, onDelete }: OfficeCardProps) => (
     <View style={styles.officeCard}>
         <View style={styles.officeInfo}>
             <Text style={styles.officeTitle}>{office.title}</Text>
@@ -63,7 +98,7 @@ const OfficeCard = ({ office, onEdit, onDelete }) => (
 );
 
 // Certificate Upload Section Component
-const CertificateUploadSection = ({ title, placeholder, onUpload }) => (
+const CertificateUploadSection = ({ title, placeholder, onUpload }: CertificateUploadSectionProps) => (
     <View style={styles.certificateSection}>
         <Text style={styles.certificateLabel}>{title}</Text>
         {title === 'P1 Identifier' ? (
@@ -82,7 +117,7 @@ const CertificateUploadSection = ({ title, placeholder, onUpload }) => (
 );
 
 const OfficeCertificates = () => {
-    const navigation = useNavigation();
+    const navigation = useNavigation<any>();
 
     const [departments, setDepartments] = useState([
         {
@@ -108,45 +143,35 @@ const OfficeCertificates = () => {
         }
     ]);
 
-    // Handle add new office
-    const handleAddOffice = () => {
-        console.log('Add new office');
-        // Navigation to add office screen or show modal
-    };
 
     // Handle edit office
-    const handleEditOffice = (id) => {
+    const handleEditOffice = (id: string) => {
         console.log('Edit office with id:', id);
         // Navigate to edit screen or show modal
     };
 
     // Handle delete office
-    const handleDeleteOffice = (id) => {
+    const handleDeleteOffice = (id: string) => {
         console.log('Delete office with id:', id);
         // Show confirmation dialog and then delete
         setOffices(offices.filter(office => office.id !== id));
     };
 
     // Handle upload certificate
-    const handleUploadCertificate = (type) => {
+    const handleUploadCertificate = (type: string) => {
         console.log('Upload certificate of type:', type);
         // Show file picker
     };
 
-    //Handle add new department
-    const handleAddDepartment = () => {
-        console.log('Add new department');
-        // Navigation to add department screen or show modal
-    };
 
     // Handle edit department
-    const handleEditDepartment = (id) => {
+    const handleEditDepartment = (id: string) => {
         console.log('Edit department with id:', id);
         // Navigate to edit screen or show modal
     };
 
     // Handle delete department
-    const handleDeleteDepartment = (id) => {
+    const handleDeleteDepartment = (id: string) => {
         console.log('Delete department with id:', id);
         // Show confirmation dialog and then delete
         setDepartments(departments.filter(department => department.id !== id));

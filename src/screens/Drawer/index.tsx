@@ -13,23 +13,21 @@ import {
     Image
 } from 'react-native';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import Icon from 'react-native-vector-icons/Feather';
 import Feather from 'react-native-vector-icons/Feather';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import Gap from '../component/gap';
+import Gap from '../../component/gap';
 // import Svg, { Defs, LinearGradient, Stop, G, Path } from 'react-native-svg';
 const { width } = Dimensions.get('window');
 import LinearGradient from 'react-native-linear-gradient';
-import LogoSvg from '../component/logo';
+import LogoSvg from '../../component/logo';
 
 const SlidingDrawerModal = ({ visible, onClose }: { visible: boolean, onClose: () => void }) => {
     const slideAnim = useRef(new Animated.Value(-width)).current;
     const [modalVisible, setModalVisible] = useState(visible);
-    const navigation = useNavigation();
+    const navigation = useNavigation<any>();
 
     // Handle opening animation
     useEffect(() => {
@@ -84,7 +82,7 @@ const SlidingDrawerModal = ({ visible, onClose }: { visible: boolean, onClose: (
                             <LogoSvg size='small' />
 
                             <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-                                <Icon name="x" size={24} color="#000" />
+                                <Feather name="x" size={24} color="#000" />
                             </TouchableOpacity>
 
 
@@ -99,7 +97,7 @@ const SlidingDrawerModal = ({ visible, onClose }: { visible: boolean, onClose: (
                                             navigation.navigate("Search-Patient");
                                         }}
                                         style={styles.menuItem}>
-                                        <Icon name="search" size={20} color="#555" />
+                                        <Feather name="search" size={20} color="#555" />
                                         <Text style={styles.menuItemText}>Search patient</Text>
                                     </TouchableOpacity>
 
@@ -119,7 +117,7 @@ const SlidingDrawerModal = ({ visible, onClose }: { visible: boolean, onClose: (
                                             navigation.navigate("Patient-List")
                                         }}
                                         style={styles.menuItem}>
-                                        <Icon name="users" size={20} color="#555" />
+                                        <Feather name="users" size={20} color="#555" />
                                         <Text style={styles.menuItemText}>Patient list</Text>
                                     </TouchableOpacity>
 
@@ -129,7 +127,7 @@ const SlidingDrawerModal = ({ visible, onClose }: { visible: boolean, onClose: (
                                             navigation.navigate("Schedule-Visits")
                                         }}
                                         style={styles.menuItem}>
-                                        <Icon name="calendar" size={20} color="#555" />
+                                        <Feather name="calendar" size={20} color="#555" />
                                         <Text style={styles.menuItemText}>Scheduled visits</Text>
                                     </TouchableOpacity>
                                 </View>
@@ -139,7 +137,7 @@ const SlidingDrawerModal = ({ visible, onClose }: { visible: boolean, onClose: (
                                     <Text style={styles.sectionTitle}>Services</Text>
 
                                     <TouchableOpacity style={styles.menuItem}>
-                                        <Icon name="file-text" size={20} color="#555" />
+                                        <Feather name="file-text" size={20} color="#555" />
                                         <Text style={styles.menuItemText}>Documentation</Text>
                                     </TouchableOpacity>
 
@@ -172,17 +170,17 @@ const SlidingDrawerModal = ({ visible, onClose }: { visible: boolean, onClose: (
                                         }}
                                         style={styles.menuItem}>
                                         {/* <FontAwesome6 name="brain" size={20} color="#666" /> */}
-                                        <Image source={require('../assets/images/brain-dark.png')} style={{ height: 20, width: 20 }} />
+                                        <Image source={require('../../assets/images/brain-dark.png')} style={{ height: 20, width: 20 }} />
                                         <Text style={styles.menuItemText}>AI Analysis</Text>
                                     </TouchableOpacity>
 
                                     <TouchableOpacity style={styles.menuItem}>
-                                        <Icon name="clipboard" size={20} color="#555" />
+                                        <Feather name="clipboard" size={20} color="#555" />
                                         <Text style={styles.menuItemText}>Medical reports</Text>
                                     </TouchableOpacity>
 
                                     <TouchableOpacity style={styles.menuItem}>
-                                        <Icon name="credit-card" size={20} color="#555" />
+                                        <Feather name="credit-card" size={20} color="#555" />
                                         <Text style={styles.menuItemText}>Billing</Text>
                                     </TouchableOpacity>
                                 </View>
@@ -214,7 +212,7 @@ const SlidingDrawerModal = ({ visible, onClose }: { visible: boolean, onClose: (
                                                 alignItems: "center",
                                                 borderRadius: 5,
                                             }}>
-                                            <Image source={require('../assets/images/stars-white.png')} style={{ height: 20, width: 20 }} />
+                                            <Image source={require('../../assets/images/stars-white.png')} style={{ height: 20, width: 20 }} />
                                             <Text style={styles.spotlightText}>Spotlight</Text>
                                         </LinearGradient>
                                     </View>
@@ -226,7 +224,7 @@ const SlidingDrawerModal = ({ visible, onClose }: { visible: boolean, onClose: (
                                         style={styles.themeToggle}
                                         onPress={() => { }}
                                     >
-                                        <Icon name="moon" size={20} color="#555" />
+                                        <Feather name="moon" size={20} color="#555" />
                                     </TouchableOpacity>
                                     <TouchableOpacity
                                         style={styles.themeToggle}
@@ -236,13 +234,13 @@ const SlidingDrawerModal = ({ visible, onClose }: { visible: boolean, onClose: (
                                             console.log("Settings pressed");
                                         }}
                                     >
-                                        <Icon name="settings" size={20} color="#555" />
+                                        <Feather name="settings" size={20} color="#555" />
                                     </TouchableOpacity>
                                     <TouchableOpacity
                                         style={styles.themeToggle}
                                         onPress={() => { }}
                                     >
-                                        <Icon name="log-out" size={20} color="#555" />
+                                        <Feather name="log-out" size={20} color="#555" />
                                     </TouchableOpacity>
                                     <TouchableOpacity
                                         style={styles.themeToggle}

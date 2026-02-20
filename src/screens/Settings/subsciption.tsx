@@ -11,16 +11,43 @@ import {
     Image,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Feather from 'react-native-vector-icons/Feather';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { useNavigation } from '@react-navigation/native';
-import PrimaryButton from '../component/button';
+import PrimaryButton from '../../component/button';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import Gap from '../component/gap';
+import Gap from '../../component/gap';
 import LinearGradient from 'react-native-linear-gradient';
+
+interface AIFeature {
+    icon: string;
+    text: string;
+}
+
+interface Plan {
+    id: string;
+    userLimit: string;
+    price: string;
+    isBestOffer?: boolean;
+    isCurrentPlan?: boolean;
+    isAIPowered?: boolean;
+    aiFeatures?: AIFeature[];
+    additionalInfo?: string[];
+}
+
+interface PlanCardProps {
+    plan: Plan;
+    isSelected: boolean;
+    isAIPowered?: boolean;
+    onSelect: (planId: string) => void;
+    isCurrentPlan?: boolean;
+    isBestOffer?: boolean;
+}
+
+interface BulletPointProps {
+    text: string;
+}
 
 // Plan Card Component
 const PlanCard = ({
@@ -30,7 +57,7 @@ const PlanCard = ({
     onSelect,
     isCurrentPlan,
     isBestOffer
-}) => (
+}: PlanCardProps) => (
     <View style={[
         styles.planCard,
         isSelected && styles.selectedPlanCard,
@@ -66,7 +93,7 @@ const PlanCard = ({
 
         {plan.aiFeatures && (
             <View style={styles.featuresContainer}>
-                {plan.aiFeatures.map((feature, index) => (
+                {plan.aiFeatures.map((feature: AIFeature, index: number) => (
                     <View key={index} style={styles.featureRow}>
                         <FontAwesome5
                             name={feature.icon}
@@ -82,7 +109,7 @@ const PlanCard = ({
 
         {plan.additionalInfo && (
             <View style={styles.additionalInfoContainer}>
-                {plan.additionalInfo.map((info, index) => (
+                {plan.additionalInfo.map((info: string, index: number) => (
                     <Text key={index} style={[styles.additionalInfoText,
                     { color: "grey" }]}>{info}</Text>
                 ))}
@@ -110,7 +137,7 @@ const PlanCard = ({
 const SubscriptionInfo = () => (
     <View style={styles.infoContainer}>
         <View style={styles.infoIconContainer}>
-            <Image source={require("../assets/images/brain-primary.png")} style={{ height: 20, width: 20 }} />
+            <Image source={require("../../assets/images/brain-primary.png")} style={{ height: 20, width: 20 }} />
         </View>
         <View style={styles.infoContent}>
             <Text style={styles.infoTitle}>What is the AI Powered subscription?</Text>
@@ -131,7 +158,7 @@ const SubscriptionInfo = () => (
 );
 
 // Bullet Point Component
-const BulletPoint = ({ text }) => (
+const BulletPoint = ({ text }: BulletPointProps) => (
     <View style={styles.bulletPoint}>
         <View style={styles.bullet} />
         <Text style={styles.bulletText}>{text}</Text>
@@ -139,10 +166,10 @@ const BulletPoint = ({ text }) => (
 );
 
 const Subscription = () => {
-    const navigation = useNavigation();
+    const navigation = useNavigation<any>();
 
     // State variables
-    const [selectedPlanId, setSelectedPlanId] = useState(null);
+    const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
     const [nfzModuleSelected, setNfzModuleSelected] = useState(false);
 
     // Subscription info
@@ -258,24 +285,10 @@ const Subscription = () => {
     ];
 
     // Handle plan selection
-    const handleSelectPlan = (planId) => {
+    const handleSelectPlan = (planId: string) => {
         setSelectedPlanId(planId);
     };
 
-    // Handle NFZ module toggle
-    const handleNfzModuleToggle = () => {
-        setNfzModuleSelected(!nfzModuleSelected);
-    };
-
-    // Handle payment
-    const handlePayNow = () => {
-        console.log('Process payment');
-    };
-
-    // Handle cancel subscription
-    const handleCancelSubscription = () => {
-        console.log('Cancel subscription');
-    };
 
     return (
         <SafeAreaView style={styles.safeArea}>

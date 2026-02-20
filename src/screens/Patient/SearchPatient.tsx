@@ -5,7 +5,6 @@ import {
     Text,
     StyleSheet,
     TouchableOpacity,
-    SafeAreaView,
     StatusBar,
     ScrollView,
     TextInput,
@@ -13,13 +12,12 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
+
 import DateTimePicker from '@react-native-community/datetimepicker';
-import CustomTextInput from '../component/customTextInput';
-import CustomDropdown from '../component/customDropDown';
-import PrimaryButton from '../component/button';
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import Gap from '../component/gap';
+
+import CustomDropdown from '../../component/customDropDown';
+import PrimaryButton from '../../component/button';
+import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { useNavigation } from '@react-navigation/native';
 
 const SearchPatientScreen = () => {
@@ -36,7 +34,7 @@ const SearchPatientScreen = () => {
     const [lastVisitEndDate, setLastVisitEndDate] = useState(null);
     const [nextVisitStartDate, setNextVisitStartDate] = useState(null);
     const [nextVisitEndDate, setNextVisitEndDate] = useState(null);
-    const [gender, setGender] = useState('All');
+    const [gender, setGender] = useState<string | number>('All');
 
     // State for date pickers
     const [showDobStartPicker, setShowDobStartPicker] = useState(false);
@@ -100,12 +98,7 @@ const SearchPatientScreen = () => {
         setIsLongAbsent(false);
     };
 
-    // Apply filters
-    const applyFilters = () => {
-        // Logic to apply filters
-        console.log('Filters applied');
-        // Here you would typically make an API call with the filter parameters
-    };
+
 
     // Render checkbox
     const renderCheckbox = (isChecked: boolean, onToggle: any, label: string) => (

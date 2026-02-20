@@ -12,16 +12,40 @@ import {
     Switch
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Feather from 'react-native-vector-icons/Feather';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { useNavigation } from '@react-navigation/native';
-import PrimaryButton from '../component/button';
+import PrimaryButton from '../../component/button';
+
+interface ActivityLog {
+    id: string;
+    loginDate: string;
+    logoutDate: string;
+    user: string;
+    ipAddress: string;
+    deviceCode: string;
+}
+
+interface Patient {
+    id: string;
+    name: string;
+    address: string;
+    group: string;
+    pesel: string;
+    phone: string;
+}
+
+interface ActivityLogRowProps {
+    log: ActivityLog;
+}
+
+interface PatientRowProps {
+    patient: Patient;
+    onExport: (id: string) => void;
+}
 
 // Activity Log Row Component
-const ActivityLogRow = ({ log }) => (
+const ActivityLogRow = ({ log }: ActivityLogRowProps) => (
     <View style={styles.logRow}>
         <Text style={styles.logCell}>{log.loginDate}</Text>
         <Text style={styles.logCell}>{log.logoutDate || '-'}</Text>
@@ -32,7 +56,7 @@ const ActivityLogRow = ({ log }) => (
 );
 
 // Patient Row Component
-const PatientRow = ({ patient, onExport }) => (
+const PatientRow = ({ patient, onExport }: PatientRowProps) => (
     <View style={styles.patientRow}>
         <Text style={styles.patientCell}>{patient.name}</Text>
         <Text style={styles.patientCell}>{patient.address}</Text>
@@ -51,7 +75,7 @@ const PatientRow = ({ patient, onExport }) => (
 );
 
 const Security = () => {
-    const navigation = useNavigation();
+    const navigation = useNavigation<any>();
 
     // State variables
     const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
@@ -61,8 +85,6 @@ const Security = () => {
     const [searchPhone, setSearchPhone] = useState('');
     const [searchCard, setSearchCard] = useState('');
     const [searchEmployee, setSearchEmployee] = useState('');
-    const [recordsPerPage, setRecordsPerPage] = useState('10');
-    const [currentPage, setCurrentPage] = useState('1');
 
     // Sample data for patients
     const patients = [
@@ -105,7 +127,7 @@ const Security = () => {
     ];
 
     // Handle export patient data
-    const handleExportPatient = (patientId) => {
+    const handleExportPatient = (patientId: string) => {
         console.log('Exporting patient data for ID:', patientId);
     };
 

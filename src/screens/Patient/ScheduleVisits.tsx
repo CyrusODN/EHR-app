@@ -12,10 +12,10 @@ import {
 } from 'react-native';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { useNavigation } from '@react-navigation/native';
-import PrimaryButton from '../component/button';
+import PrimaryButton from '../../component/button';
 import Feather from 'react-native-vector-icons/Feather';
-import CustomTextInput from '../component/customTextInput';
-import Gap from '../component/gap';
+import CustomTextInput from '../../component/customTextInput';
+import Gap from '../../component/gap';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const { width } = Dimensions.get('window');

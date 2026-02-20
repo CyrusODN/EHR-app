@@ -1,5 +1,5 @@
 // components/Settings.js
-import React, { act, useState } from 'react';
+import React, { useState } from 'react';
 import {
     View,
     Text,
@@ -7,24 +7,11 @@ import {
     TouchableOpacity,
     StatusBar,
     ScrollView,
-    SafeAreaView
 } from 'react-native';
-import {
-    Appbar,
-    List,
-    Divider,
-    Switch,
-    Button,
-    Avatar,
-    Surface,
-    Card
-} from 'react-native-paper';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Feather from 'react-native-vector-icons/Feather';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { useNavigation } from '@react-navigation/native';
-import LinearGradient from 'react-native-linear-gradient';
 import FacilityStatistics from './facilityStats';
 import FacilityData from './facilityData';
 import OfficeCertificates from './officeCerts';
@@ -35,8 +22,15 @@ import Profile from './profile';
 import Employees from './employees';
 import EWUS from './ewUs';
 
+interface NavItemProps {
+    icon: React.ReactNode;
+    title: string;
+    index: number;
+    selected: number;
+    setSelected: (index: number) => void;
+}
 // Nav item component for consistent styling
-const NavItem = ({ icon, title, index, selected, setSelected }) => (
+const NavItem = ({ icon, title, index, selected, setSelected }: NavItemProps) => (
     <TouchableOpacity
         style={[styles.navItem, selected === index && styles.selectedNavItem]}
         onPress={
@@ -53,8 +47,7 @@ const NavItem = ({ icon, title, index, selected, setSelected }) => (
 );
 const Settings = () => {
 
-    const navigation = useNavigation();
-    const [active, setActive] = useState(1);
+    const navigation = useNavigation<any>();
     const [selected, setSelected] = useState(1);
 
     return (

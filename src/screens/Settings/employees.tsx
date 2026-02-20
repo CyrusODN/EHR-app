@@ -15,21 +15,28 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
-import CustomCheckbox from '../component/customCheckBox';
-import PrimaryButton from '../component/button';
+import CustomCheckbox from '../../component/customCheckBox';
+import PrimaryButton from '../../component/button';
+
+interface Employee {
+    id: string;
+    fullName: string;
+    login: string;
+    pwz: string;
+    isActive: boolean;
+}
 
 const Employees = () => {
-    const navigation = useNavigation();
+    const navigation = useNavigation<any>();
 
     // State for employee filters and data
     const [activeTab, setActiveTab] = useState('Lekarze, dentyści i felczerzy');
-    const [onlyActiveEmployees, setOnlyActiveEmployees] = useState(false);
     const [searchLastName, setSearchLastName] = useState('');
     const [searchFirstName, setSearchFirstName] = useState('');
     const [searchPWZ, setSearchPWZ] = useState('');
     const [checkDummy, setCheckDummy] = useState(false);
     // Sample employee data
-    const [employees, setEmployees] = useState([
+    const [employees] = useState<Employee[]>([
         {
             id: '1',
             fullName: 'Tahery Cyrus',
@@ -48,7 +55,7 @@ const Employees = () => {
     ];
 
     // Render employee row
-    const renderEmployeeRow = ({ item }) => (
+    const renderEmployeeRow = ({ item }: { item: Employee }) => (
         <View style={styles.employeeRow}>
             <View style={styles.employeeInfoContainer}>
                 <Text style={styles.employeeName}>{item.fullName}</Text>

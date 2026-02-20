@@ -8,18 +8,16 @@ import {
     ScrollView,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import Octicons from 'react-native-vector-icons/Octicons';
-
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Feather from 'react-native-vector-icons/Feather';
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import PrimaryButton from '../../component/button';
-import Gap from '../../component/gap';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import PrimaryButton from '../../../component/button';
 
-const PatientDetailsModal = ({ visible, onClose, patientData }) => {
+interface PatientDetailsModalProps {
+    visible: boolean;
+    onClose: () => void;
+    patientData?: any;
+}
+
+const PatientDetailsModal = ({ visible, onClose, patientData }: PatientDetailsModalProps) => {
     // Default patient data if not provided
     const patient = patientData || {
         name: "Jan Kowalski",
@@ -180,7 +178,7 @@ const PatientDetailsModal = ({ visible, onClose, patientData }) => {
                             <Feather name="bell" size={18} color="#777" style={styles.icon} />,
                             "Notifications:",
                             <View style={styles.notificationBadgesContainer}>
-                                {patient.portal?.notifications?.map((type, index) => (
+                                {patient.portal?.notifications?.map((type: string, index: number) => (
                                     <View key={index} style={{ marginRight: 5 }}>
                                         {renderNotificationBadge(type)}
                                     </View>
@@ -209,7 +207,7 @@ const PatientDetailsModal = ({ visible, onClose, patientData }) => {
 
                         {/* Authorized Persons */}
                         {renderSectionHeader("AUTHORIZED PERSONS AND LIST OF SHARED MEDICAL RECORDS")}
-                        {patient.authorizedPersons?.map((person, index) => (
+                        {patient.authorizedPersons?.map((person: any, index: number) => (
                             <View key={index}>
                                 {renderInfoRow(
                                     <Feather name="users" size={18} color="#777" style={styles.icon} />,
@@ -228,7 +226,7 @@ const PatientDetailsModal = ({ visible, onClose, patientData }) => {
 
                         {/* Consents */}
                         {renderSectionHeader("CONSENT TO PROCESS PERSONAL DATA")}
-                        {patient.consents?.map((consent, index) => (
+                        {patient.consents?.map((consent: any, index: number) => (
                             <View key={index} style={styles.consentContainer}>
                                 {renderConsent(consent)}
                             </View>

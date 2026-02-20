@@ -1,10 +1,17 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
-import Gap from '../../component/gap'
+import { heightPercentageToDP as hp } from 'react-native-responsive-screen'
+import Gap from '../../../component/gap'
 import Feather from 'react-native-vector-icons/Feather';
 
-const StatCard = ({ title, icon, score, subtitle }) => {
+interface StatCardProps {
+    title: string;
+    icon: React.ReactNode;
+    score: string | number;
+    subtitle: string;
+}
+
+const StatCard = ({ title, icon, score, subtitle }: StatCardProps) => {
     return (
         <View style={styles.container}>
             <View style={styles.headerContainer}>
