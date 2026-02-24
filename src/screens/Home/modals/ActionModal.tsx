@@ -1,269 +1,341 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
     View,
     Text,
     StyleSheet,
     TouchableOpacity,
-    Modal,
     TouchableWithoutFeedback,
+    Platform,
+    TextInput,
+    Animated,
     Dimensions,
-    TextInput
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Feather';
-import LinearGradient from 'react-native-linear-gradient';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 import Feather from 'react-native-vector-icons/Feather';
+import LinearGradient from 'react-native-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const { width, height } = Dimensions.get('window');
-
-const ActionModal = ({ visible, onClose, onView, onStart, onAddNote }) => {
+const ActionModal = ({ visible, onClose, onView, onStart, onAddNote }: {
+    visible: boolean;
+    onClose: () => void;
+    onView: () => void;
+    onStart: () => void;
+    onAddNote: (note?: string) => void;
+}) => {
+    const insets = useSafeAreaInsets();
     const [showNoteInput, setShowNoteInput] = useState(false);
     const [note, setNote] = useState('');
+    const [isMounted, setIsMounted] = useState(false);
+    const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+    const backdropOpacity = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+        if (visible) {
+            setIsMounted(true);
+            Animated.parallel([
+                Animated.spring(slideAnim, {
+                    toValue: 0,
+                    damping: 22,
+                    stiffness: 120,
+                    mass: 0.8,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(backdropOpacity, {
+                    toValue: 1,
+                    duration: 250,
+                    useNativeDriver: true,
+                }),
+            ]).start();
+        } else {
+            Animated.parallel([
+                Animated.timing(slideAnim, {
+                    toValue: SCREEN_HEIGHT,
+                    duration: 250,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(backdropOpacity, {
+                    toValue: 0,
+                    duration: 200,
+                    useNativeDriver: true,
+                }),
+            ]).start(() => {
+                setIsMounted(false);
+                setShowNoteInput(false);
+                setNote('');
+            });
+        }
+    }, [visible]);
+
+    const handleClose = () => {
+        onClose();
+    };
 
     const handleAddNote = () => {
         if (showNoteInput) {
-            // If note input is already shown, submit the note
             if (note.trim()) {
                 onAddNote && onAddNote(note);
                 setNote('');
                 setShowNoteInput(false);
             }
         } else {
-            // Show note input
             setShowNoteInput(true);
         }
     };
 
-    const handleCancel = () => {
-        setShowNoteInput(false);
-        setNote('');
-        onClose();
-    };
+    const actions = [
+        {
+            icon: 'eye',
+            label: 'View Details',
+            color: '#4A90B9',
+            bg: '#EBF5FA',
+            onPress: onView,
+        },
+        {
+            icon: 'file-text',
+            label: 'Add a Note',
+            color: '#8B5CF6',
+            bg: '#EDE9FE',
+            onPress: handleAddNote,
+        },
+    ];
+
+    if (!isMounted) return null;
 
     return (
-        <Modal
-            animationType='fade'
-            transparent={true}
-            visible={visible}
-            onRequestClose={onClose}
-        >
-            <TouchableWithoutFeedback onPress={onClose}>
-                <View style={styles.overlay}>
-                    <TouchableWithoutFeedback onPress={() => { }}>
-                        <View style={styles.modalContainer}>
-                            <View style={styles.header}>
-                                <Text style={styles.headerText}>Visit Options</Text>
-                                <TouchableOpacity
-                                    onPress={onClose}
-                                    style={styles.viewButton}>
-                                    <Feather name="x" size={18} color="black" />
-                                </TouchableOpacity>
-                            </View>
+        <View style={[StyleSheet.absoluteFill, { zIndex: 999, elevation: 999 }]}>
+            <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
+                <TouchableWithoutFeedback onPress={handleClose}>
+                    <View style={{ flex: 1 }} />
+                </TouchableWithoutFeedback>
+            </Animated.View>
 
-                            <View style={styles.content}>
-                                {/* {showNoteInput ? (
-                                    <View style={styles.noteInputContainer}>
-                                        <TextInput
-                                            style={styles.noteInput}
-                                            placeholder="Enter your note here..."
-                                            multiline={true}
-                                            value={note}
-                                            onChangeText={setNote}
-                                            autoFocus={true}
-                                        />
-                                        <TouchableOpacity
-                                            style={styles.submitNoteButton}
-                                            onPress={handleAddNote}
-                                        >
-                                            <Text style={styles.submitNoteText}>Save Note</Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                ) : ( */}
-                                <>
-                                    <TouchableOpacity
-                                        style={styles.actionButton}
-                                        onPress={onView}
-                                    >
-                                        <View style={styles.buttonContent}>
-                                            <View style={styles.viewButton}>
-                                                <Icon name="eye" size={18} color="#58a6b8" />
-                                            </View>
-                                            <View style={{ width: 5 }} />
-                                            <Text style={styles.actionButtonText}>View Details</Text>
-                                        </View>
-                                    </TouchableOpacity>
-
-                                    <TouchableOpacity
-                                        style={[styles.actionButton, { borderWidth: 0 }]}
-                                        onPress={onStart}
-                                    >
-                                        <LinearGradient
-                                            colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
-                                            start={{ x: 0, y: 0 }}
-                                            end={{ x: 1, y: 0 }}
-                                            style={{ height: "100%", width: "100%", alignItems: "center", justifyContent: "center" }}
-                                        >
-                                            <Text style={styles.startButtonText}>
-                                                Start Visit
-                                            </Text>
-                                        </LinearGradient>
-                                    </TouchableOpacity>
-
-                                    <TouchableOpacity
-                                        style={styles.actionButton}
-                                        onPress={handleAddNote}
-                                    >
-                                        <View style={styles.buttonContent}>
-                                            <View style={styles.viewButton}>
-                                                <Icon name="file-text" size={18} color="#58a6b8" />
-                                            </View>
-                                            <View style={{ width: 5 }} />
-
-                                            <Text style={styles.actionButtonText}>Add a Note</Text>
-                                        </View>
-                                    </TouchableOpacity>
-
-                                    <TouchableOpacity
-                                        style={[styles.actionButton]}
-                                        onPress={handleCancel}
-                                    >
-                                        <View style={styles.buttonContent}>
-                                            <View style={styles.viewButton}>
-                                                <Feather name="x" size={18} color="red" />
-                                            </View>
-                                            <View style={{ width: 5 }} />
-                                            <Text style={styles.cancelButtonText}>Cancel</Text>
-                                        </View>
-                                    </TouchableOpacity>
-                                </>
-                                {/* )} */}
-                            </View>
-                        </View>
-                    </TouchableWithoutFeedback>
+            <Animated.View
+                style={[
+                    styles.modalContainer,
+                    {
+                        paddingBottom: insets.bottom + 10,
+                        transform: [{ translateY: slideAnim }],
+                    },
+                ]}
+            >
+                {/* Drag Handle */}
+                <View style={styles.dragHandleContainer}>
+                    <View style={styles.dragHandle} />
                 </View>
-            </TouchableWithoutFeedback>
-        </Modal>
+
+                {/* Header */}
+                <View style={styles.header}>
+                    <Text style={styles.headerText}>Visit Actions</Text>
+                    <TouchableOpacity onPress={handleClose} style={styles.closeBtn}>
+                        <Feather name="x" size={18} color="#9CA3AF" />
+                    </TouchableOpacity>
+                </View>
+
+                <View style={styles.content}>
+                    {/* Start Visit - Gradient CTA */}
+                    <TouchableOpacity
+                        style={styles.startVisitBtn}
+                        onPress={onStart}
+                        activeOpacity={0.85}
+                    >
+                        <LinearGradient
+                            colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                            style={styles.startVisitGradient}
+                        >
+                            <Feather name="play" size={18} color="white" />
+                            <Text style={styles.startVisitText}>Start Visit</Text>
+                        </LinearGradient>
+                    </TouchableOpacity>
+
+                    {/* Action Buttons */}
+                    {actions.map((action, index) => (
+                        <TouchableOpacity
+                            key={index}
+                            style={styles.actionButton}
+                            onPress={action.onPress}
+                            activeOpacity={0.7}
+                        >
+                            <View style={[styles.actionIconBg, { backgroundColor: action.bg }]}>
+                                <Feather name={action.icon} size={16} color={action.color} />
+                            </View>
+                            <Text style={styles.actionText}>{action.label}</Text>
+                            <Feather name="chevron-right" size={16} color="#D1D5DB" />
+                        </TouchableOpacity>
+                    ))}
+
+                    {/* Note Input */}
+                    {showNoteInput && (
+                        <View style={styles.noteInputContainer}>
+                            <TextInput
+                                style={styles.noteInput}
+                                placeholder="Write your note here..."
+                                placeholderTextColor="#9CA3AF"
+                                multiline
+                                value={note}
+                                onChangeText={setNote}
+                                autoFocus
+                            />
+                            <TouchableOpacity style={styles.submitNoteBtn} onPress={handleAddNote}>
+                                <Text style={styles.submitNoteText}>Save Note</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+
+                    {/* Cancel */}
+                    <TouchableOpacity
+                        style={styles.cancelButton}
+                        onPress={handleClose}
+                        activeOpacity={0.7}
+                    >
+                        <Text style={styles.cancelText}>Cancel</Text>
+                    </TouchableOpacity>
+                </View>
+            </Animated.View>
+        </View>
     );
 };
 
 const styles = StyleSheet.create({
-    overlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'flex-end',
+    backdrop: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(0, 0, 0, 0.4)',
     },
     modalContainer: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
         backgroundColor: 'white',
-        borderRadius: 20,
-        marginBottom: 30,
-        marginRight: 10,
-        width: '40%',
-        alignSelf: "flex-end",
-        alignItems: "center",
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+    },
+    dragHandleContainer: {
+        alignItems: 'center',
+        paddingTop: 10,
+        paddingBottom: 4,
+    },
+    dragHandle: {
+        width: 36,
+        height: 4,
+        borderRadius: 2,
+        backgroundColor: '#D1D5DB',
     },
     header: {
-        flexDirection: "row",
-        justifyContent: "space-around",
-        borderBottomWidth: 1,
-        borderBottomColor: '#e0e0e0',
-        paddingVertical: 15,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
-        width: "95%",
+        paddingHorizontal: 20,
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F3F4F6',
     },
     headerText: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#333',
+        fontSize: 17,
+        fontWeight: '700',
+        color: '#1F2937',
+    },
+    closeBtn: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: '#F3F4F6',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     content: {
-        padding: 15,
-        width: "100%"
+        padding: 20,
     },
-    actionButton: {
-        height: 50,
-        width: '100%',
-        alignItems: "center",
-        justifyContent: "space-around",
-        marginBottom: 5,
-        borderRadius: 10,
-        backgroundColor: '#f8f8f8',
-        borderColor: "#4A90B9",
-        borderWidth: 1,
-        overflow: "hidden"
+    startVisitBtn: {
+        borderRadius: 14,
+        overflow: 'hidden',
+        marginBottom: 14,
+        ...Platform.select({
+            ios: {
+                shadowColor: '#4A90B9',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.25,
+                shadowRadius: 8,
+            },
+            android: { elevation: 4 },
+        }),
     },
-    buttonContent: {
+    startVisitGradient: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: "center",
-        width: "100%",
-    },
-    actionButtonText: {
-        fontSize: 15,
-        color: '#333',
-    },
-    viewButton: {
         justifyContent: 'center',
-        alignItems: 'center',
+        height: 54, // Use static height instead of padding
+        width: '100%',
+        gap: 10,
     },
-    startButton: {
-        borderRadius: 10,
-        overflow: 'hidden',
-    },
-    gradientBackground: {
-        paddingVertical: 10,
-        paddingHorizontal: 15,
-        borderRadius: 8,
-    },
-    startButtonText: {
+    startVisitText: {
         color: 'white',
-        fontWeight: '600',
+        fontWeight: '700',
         fontSize: 16,
-        textAlign: 'center',
     },
-    iconContainer: {
-        width: 40,
-        height: 40,
-        justifyContent: 'center',
+    actionButton: {
+        flexDirection: 'row',
         alignItems: 'center',
-        borderRadius: 20,
-        backgroundColor: '#f0f8fa',
-    },
-    cancelButton: {
-        backgroundColor: 'white',
+        paddingVertical: 13,
+        paddingHorizontal: 14,
+        borderRadius: 12,
+        backgroundColor: '#FAFBFC',
         borderWidth: 1,
-        borderColor: '#e0e0e0',
+        borderColor: '#F0F2F5',
+        marginBottom: 8,
+    },
+    actionIconBg: {
+        width: 36,
+        height: 36,
+        borderRadius: 10,
         justifyContent: 'center',
         alignItems: 'center',
+        marginRight: 12,
     },
-    cancelButtonText: {
-        fontSize: 16,
-        color: '#666',
+    actionText: {
+        flex: 1,
+        fontSize: 15,
         fontWeight: '500',
+        color: '#374151',
     },
     noteInputContainer: {
-        marginBottom: 15,
+        marginTop: 4,
+        marginBottom: 8,
     },
     noteInput: {
         borderWidth: 1,
-        borderColor: '#e0e0e0',
-        borderRadius: 8,
-        padding: 12,
-        fontSize: 16,
-        minHeight: 120,
+        borderColor: '#E5E7EB',
+        borderRadius: 12,
+        padding: 14,
+        fontSize: 14,
+        minHeight: 100,
         textAlignVertical: 'top',
-        backgroundColor: '#f9f9f9',
-        marginBottom: 15,
+        backgroundColor: '#FAFBFC',
+        color: '#1F2937',
+        marginBottom: 10,
     },
-    submitNoteButton: {
-        backgroundColor: '#58a6b8',
+    submitNoteBtn: {
+        backgroundColor: '#4A90B9',
         paddingVertical: 12,
-        borderRadius: 8,
+        borderRadius: 10,
         alignItems: 'center',
     },
     submitNoteText: {
         color: 'white',
         fontWeight: '600',
-        fontSize: 16,
+        fontSize: 14,
+    },
+    cancelButton: {
+        alignItems: 'center',
+        paddingVertical: 14,
+        marginTop: 4,
+    },
+    cancelText: {
+        color: '#9CA3AF',
+        fontSize: 14,
+        fontWeight: '500',
     },
 });
 

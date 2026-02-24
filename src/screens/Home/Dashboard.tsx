@@ -3,9 +3,8 @@ import {
     View, ScrollView,
     StyleSheet,
     TouchableOpacity,
-    Dimensions,
-    Animated,
-    BackHandler
+    BackHandler,
+    Platform,
 } from 'react-native';
 import { Text, Card, Searchbar, IconButton, useTheme } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -26,31 +25,24 @@ import userStore from '../../store/user';
 
 const Dashboard = () => {
     const { t } = useTranslation();
+    const { loggedInUser } = userStore();
 
-    const { loggedInUser} = userStore();
-
-    useEffect(()=>{
-
+    useEffect(() => {
         console.log("loggedInUser", loggedInUser);
+    }, [loggedInUser])
 
-    },[loggedInUser])
     const navigation = useNavigation<any>();
     const currentMonth = 'April 2025';
-    const totalPatients = '1393 total';
     const { colors } = useTheme();
-    const [selectedDate, setSelectedDate] = useState(new Date().getDate()); // Default to March 21, 2025
+    const [selectedDate, setSelectedDate] = useState(new Date().getDate());
     const [createVisitModalVisible, setCreateVisitModalVisible] = useState(false);
     const [drawerVisible, setDrawerVisible] = useState(false);
     const [showActionModal, setShowActionModal] = useState(false);
 
     useEffect(() => {
-        // Add event listener when component mounts
         const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
-            // Handle back press logic here
-            return true; // Return true to prevent default behavior (exit app)
+            return true;
         });
-
-        // Return cleanup function to remove event listener when component unmounts
         return () => backHandler.remove();
     }, []);
 
@@ -59,12 +51,9 @@ const Dashboard = () => {
         const days = [];
         const daysInMonth = new Date(2025, 3, 0).getDate();
 
-        // Previous month days (showing last week)
         for (let i = 24; i <= 28; i++) {
             days.push({ day: i, isCurrentMonth: false });
         }
-
-        // Current month days
         for (let i = 1; i <= daysInMonth; i++) {
             days.push({
                 day: i,
@@ -73,12 +62,9 @@ const Dashboard = () => {
                 isSelected: i === selectedDate
             });
         }
-
-        // Next month days (showing first week)
         for (let i = 1; i <= 6; i++) {
             days.push({ day: i, isCurrentMonth: false });
         }
-
         return days;
     };
 
@@ -89,6 +75,7 @@ const Dashboard = () => {
     };
 
     const days = getDaysInMonth();
+    const weekdays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
     const appointments = [
         {
@@ -114,111 +101,143 @@ const Dashboard = () => {
         },
     ];
 
-    // Map weekday headers
-    const weekdays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    const getStatusStyle = (status: string) => {
+        switch (status) {
+            case 'Scheduled':
+                return { bg: '#EFF6FF', text: '#2563EB', icon: 'clock' };
+            case 'In Progress':
+                return { bg: '#FEF3C7', text: '#D97706', icon: 'play-circle' };
+            case 'Completed':
+                return { bg: '#ECFDF5', text: '#059669', icon: 'check-circle' };
+            default:
+                return { bg: '#F3F4F6', text: '#6B7280', icon: 'circle' };
+        }
+    };
+
+    const getInitials = (name: string) => {
+        return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    };
 
     return (
         <View style={styles.container}>
-            {/* App Bar */}
             <Header onMenuPress={() => { setDrawerVisible(true) }} />
 
             <ScrollView
                 style={styles.scrollView}
-                contentContainerStyle={{ alignItems: "center" }}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
             >
-                {/* Dashboard Title */}
-                <View style={styles.titleContainer}>
-                    <Text style={styles.title}>{t('dashboard.title')}</Text>
-                    <Text style={styles.subtitle}>Overview of key information</Text>
+                {/* Welcome Section */}
+                <View style={styles.welcomeSection}>
+                    <View>
+                        <Text style={styles.greeting}>
+                            {t('dashboard.title')}
+                        </Text>
+                        <Text style={styles.subtitle}>Overview of key information</Text>
+                    </View>
                 </View>
 
-                <PrimaryButton
-                    label="New Visit"
-                    filled={true}
-                    icon={<FontAwesome6 name="plus" size={15} color="white" />}
-                    onPress={() => { setCreateVisitModalVisible(true) }}
-                    style={undefined} image={undefined} iconStyle={undefined} imageStyle={undefined}
-                    loading={false}
-                    disabled={false}
-                />
+                {/* Action Buttons */}
+                <View style={styles.actionButtonsRow}>
+                    <TouchableOpacity
+                        style={styles.newVisitBtn}
+                        onPress={() => setCreateVisitModalVisible(true)}
+                        activeOpacity={0.85}
+                    >
+                        <LinearGradient
+                            colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                            style={styles.gradientBtn}
+                        >
+                            <View style={styles.btnIconCircle}>
+                                <FontAwesome6 name="plus" size={12} color="#4A90B9" />
+                            </View>
+                            <Text style={styles.newVisitBtnText}>New Visit</Text>
+                        </LinearGradient>
+                    </TouchableOpacity>
 
-                <PrimaryButton
-                    label="New Patient"
-                    filled={false}
-                    icon={<Feather name="user-plus" size={15} color="#4A90B9" />}
-                    onPress={() => {
-                        navigation.navigate('New-Patient');
-                    }}
-                    style={undefined}
-                    image={undefined}
-                    iconStyle={undefined}
-                    imageStyle={undefined}
-                    loading={false}
-                    disabled={false}
-                />
+                    <TouchableOpacity
+                        style={styles.newPatientBtn}
+                        onPress={() => navigation.navigate('New-Patient')}
+                        activeOpacity={0.85}
+                    >
+                        <View style={styles.patientBtnIcon}>
+                            <Feather name="user-plus" size={14} color="#4A90B9" />
+                        </View>
+                        <Text style={styles.newPatientBtnText}>New Patient</Text>
+                    </TouchableOpacity>
+                </View>
 
                 {/* Search Bar */}
-                <Searchbar
-                    placeholder="Search patient"
-                    style={styles.searchBar}
-                    icon="magnify" value={''} />
+                <View style={styles.searchContainer}>
+                    <Feather name="search" size={18} color="#9CA3AF" style={{ marginLeft: 4 }} />
+                    <Searchbar
+                        placeholder="Search patient..."
+                        style={styles.searchBar}
+                        inputStyle={styles.searchInput}
+                        icon={() => null}
+                        value={''}
+                    />
+                </View>
 
                 {/* Dashboard Stats */}
                 <DashboardStatsCard />
 
+                <Gap height={6} />
 
                 {/* Calendar */}
-                <Card style={styles.calendarCard}>
-                    <Card.Content>
-                        <View style={styles.calendarHeader}>
-                            <Text style={styles.calendarTitle}>{currentMonth}</Text>
-                            <View style={styles.calendarNavigation}>
-                                <IconButton
-                                    icon="chevron-left"
-                                    size={20}
-                                    onPress={() => { }}
-                                />
-                                <IconButton
-                                    icon="chevron-right"
-                                    size={20}
-                                    onPress={() => { }}
-                                />
+                <View style={styles.calendarCard}>
+                    <View style={styles.calendarHeader}>
+                        <View style={styles.calendarHeaderLeft}>
+                            <View style={styles.calendarIconBg}>
+                                <Icon name="calendar-month" size={18} color="#4A90B9" />
                             </View>
+                            <Text style={styles.calendarTitle}>{currentMonth}</Text>
                         </View>
-
-                        {/* Weekday Headers */}
-                        <View style={styles.weekdayRow}>
-                            {weekdays.map((day, index) => (
-                                <Text key={index} style={styles.weekdayText}>
-                                    {day}
-                                </Text>
-                            ))}
+                        <View style={styles.calendarNavigation}>
+                            <TouchableOpacity style={styles.calendarNavBtn}>
+                                <Feather name="chevron-left" size={18} color="#6B7280" />
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.calendarNavBtn}>
+                                <Feather name="chevron-right" size={18} color="#6B7280" />
+                            </TouchableOpacity>
                         </View>
+                    </View>
 
-                        {/* Calendar Days Grid */}
-                        <View style={styles.calendarGrid}>
-                            {days.map((item, index) => (
-                                <TouchableOpacity
-                                    key={index}
-                                    style={[
-                                        styles.calendarDay,
-                                        item.isCurrentMonth ? styles.currentMonth : styles.otherMonth,
-                                        item.isToday ? styles.todayHighlight : null,
-                                    ]}
-                                    onPress={() => handleDateSelect(item)}
-                                >
-                                    {item.isSelected && item.isCurrentMonth ? (
-                                        <LinearGradient
-                                            colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
-                                            start={{ x: 0, y: 0 }}
-                                            end={{ x: 1, y: 0 }}
-                                            style={styles.selectedDateGradient}
-                                        >
-                                            <Text style={styles.selectedDateText}>
-                                                {item.day}
-                                            </Text>
-                                        </LinearGradient>
-                                    ) : (
+                    {/* Weekday Headers */}
+                    <View style={styles.weekdayRow}>
+                        {weekdays.map((day, index) => (
+                            <Text key={index} style={styles.weekdayText}>
+                                {day}
+                            </Text>
+                        ))}
+                    </View>
+
+                    {/* Calendar Days Grid */}
+                    <View style={styles.calendarGrid}>
+                        {days.map((item, index) => (
+                            <TouchableOpacity
+                                key={index}
+                                style={styles.calendarDay}
+                                onPress={() => handleDateSelect(item)}
+                            >
+                                {item.isSelected && item.isCurrentMonth ? (
+                                    <LinearGradient
+                                        colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
+                                        start={{ x: 0, y: 0 }}
+                                        end={{ x: 1, y: 0 }}
+                                        style={styles.selectedDateGradient}
+                                    >
+                                        <Text style={styles.selectedDateText}>
+                                            {item.day}
+                                        </Text>
+                                    </LinearGradient>
+                                ) : (
+                                    <View style={[
+                                        styles.dayContainer,
+                                        item.isToday && !item.isSelected ? styles.todayContainer : null,
+                                    ]}>
                                         <Text
                                             style={[
                                                 styles.calendarDayText,
@@ -228,124 +247,122 @@ const Dashboard = () => {
                                         >
                                             {item.day}
                                         </Text>
-                                    )}
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-                    </Card.Content>
-                </Card>
-
-                <Text style={styles.appointmentsTitle}>Visits for {selectedDate} April 2025</Text>
-
-                <View style={styles.tableContainer}>
-                    {/* Table scrollable body */}
-                    <ScrollView
-                        horizontal={true}
-                        showsHorizontalScrollIndicator={true}
-                        contentContainerStyle={styles.tableScrollContainer}
-                    >
-                        <View>
-                            <View style={styles.tableHeader}>
-                                <Text style={styles.timeCell}>Time</Text>
-                                <Text style={styles.patientCell}>Patient</Text>
-                                <Text style={styles.statusCell}>Status</Text>
-                                <Text style={styles.typeCell}>Type</Text>
-                                <Text style={styles.actionCell}>Actions</Text>
-                            </View>
-                            <View style={styles.tableBody}>
-                                {appointments.map((appointment, index) => (
-                                    <View key={index} style={styles.tableRow}>
-                                        <View style={[styles.tableCell, styles.timeCell]}>
-                                            <Text style={styles.timeText}>{appointment.time}</Text>
-                                        </View>
-
-                                        <View style={[styles.tableCell, styles.patientCell]}>
-                                            <Text style={styles.patientName} numberOfLines={1} ellipsizeMode="tail">
-                                                {appointment.patient}
-                                            </Text>
-                                            <Gap height={5} />
-                                            <Text style={styles.patientId} numberOfLines={1} ellipsizeMode="tail">
-                                                {appointment.patientId}
-                                            </Text>
-                                        </View>
-
-                                        <View style={[styles.tableCell, styles.statusCell]}>
-                                            <Text
-                                                style={[
-                                                    styles.statusText,
-                                                    appointment.status === 'Scheduled' ? styles.scheduledChip : null,
-                                                    appointment.status === 'In Progress' ? styles.inProgressChip : null,
-                                                    appointment.status === 'Completed' ? styles.completedChip : null,
-                                                ]}
-                                            >
-                                                {appointment.status}
-                                            </Text>
-                                        </View>
-
-                                        <View style={[styles.tableCell, styles.typeCell]}>
-                                            <View style={styles.typeContainer}>
-                                                <Icon name="stethoscope" size={16} color="#58a6b8" />
-                                                <Text style={styles.typeText}>{appointment.type}</Text>
-                                            </View>
-                                        </View>
-
-                                        <View style={[styles.tableCell, styles.actionCell]}>
-                                            {/* <TouchableOpacity style={styles.viewButton}>
-                                                <Icon name="eye" size={16} color="#58a6b8" />
-                                            </TouchableOpacity>
-
-                                            <TouchableOpacity style={styles.startButton}>
-                                                <LinearGradient
-                                                    colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
-                                                    start={{ x: 0, y: 0 }}
-                                                    end={{ x: 1, y: 0 }}
-                                                    style={styles.gradientBackground}
-                                                >
-                                                    <Text style={styles.startButtonText}>
-                                                        Start Visit
-                                                    </Text>
-                                                </LinearGradient>
-                                            </TouchableOpacity> */}
-
-                                            <TouchableOpacity
-                                                onPress={() => { setShowActionModal(true) }}
-                                                style={styles.moreButton}>
-                                                <Icon name="dots-vertical" size={16} color="#58a6b8" />
-                                            </TouchableOpacity>
-                                        </View>
                                     </View>
-                                ))}
-                            </View>
-                        </View>
-                    </ScrollView>
+                                )}
+                            </TouchableOpacity>
+                        ))}
+                    </View>
                 </View>
 
-                <Gap height={hp(10)} />
+                {/* Appointments Section */}
+                <View style={styles.appointmentsHeader}>
+                    <View>
+                        <Text style={styles.appointmentsTitle}>
+                            Today's Visits
+                        </Text>
+                        <Text style={styles.appointmentsSubtitle}>
+                            {selectedDate} April 2025 · {appointments.length} visits
+                        </Text>
+                    </View>
+                </View>
 
-                <CreateVisitModal
-                    visible={createVisitModalVisible}
-                    onClose={() => { setCreateVisitModalVisible(false) }}
-                />
+                {/* Appointment Cards */}
+                {appointments.map((appointment, index) => {
+                    const statusStyle = getStatusStyle(appointment.status);
+                    return (
+                        <TouchableOpacity
+                            key={index}
+                            style={styles.appointmentCard}
+                            activeOpacity={0.7}
+                            onPress={() => setShowActionModal(true)}
+                        >
+                            {/* Time Indicator */}
+                            <View style={styles.timeIndicator}>
+                                <View style={[styles.timeDot, { backgroundColor: statusStyle.text }]} />
+                                <Text style={styles.appointmentTime}>{appointment.time}</Text>
+                            </View>
 
-                <SlidingDrawerModal
-                    visible={drawerVisible}
-                    onClose={() => { setDrawerVisible(false) }}
-                />
+                            {/* Card Content */}
+                            <View style={styles.appointmentContent}>
+                                <View style={styles.appointmentTopRow}>
+                                    <View style={styles.patientInfo}>
+                                        <View style={styles.avatarContainer}>
+                                            <LinearGradient
+                                                colors={['#4A90B9', '#68BFB3']}
+                                                start={{ x: 0, y: 0 }}
+                                                end={{ x: 1, y: 1 }}
+                                                style={styles.avatar}
+                                            >
+                                                <Text style={styles.avatarText}>
+                                                    {getInitials(appointment.patient)}
+                                                </Text>
+                                            </LinearGradient>
+                                        </View>
+                                        <View style={styles.patientDetails}>
+                                            <Text style={styles.patientName} numberOfLines={1}>
+                                                {appointment.patient}
+                                            </Text>
+                                            <Text style={styles.patientId} numberOfLines={1}>
+                                                ID: {appointment.patientId}
+                                            </Text>
+                                        </View>
+                                    </View>
 
-                <ActionModal
-                    visible={showActionModal}
-                    onClose={() => { setShowActionModal(false) }}
-                    onView={() => { }}
-                    onStart={() => { }}
-                    onAddNote={() => { }}
-                />
+                                    <View style={styles.moreButton}>
+                                        <Icon name="dots-vertical" size={20} color="#9CA3AF" />
+                                    </View>
+                                </View>
+
+                                <View style={styles.appointmentBottomRow}>
+                                    <View style={[styles.statusChip, { backgroundColor: statusStyle.bg }]}>
+                                        <Feather name={statusStyle.icon} size={12} color={statusStyle.text} />
+                                        <Text style={[styles.statusText, { color: statusStyle.text }]}>
+                                            {appointment.status}
+                                        </Text>
+                                    </View>
+                                    <View style={styles.typeChip}>
+                                        <Icon name="stethoscope" size={13} color="#4A90B9" />
+                                        <Text style={styles.typeText}>{appointment.type}</Text>
+                                    </View>
+                                </View>
+                            </View>
+                        </TouchableOpacity>
+                    );
+                })}
+
+                <Gap height={hp(12)} />
+
             </ScrollView>
 
-            {/* FAB */}
-            <TouchableOpacity style={styles.fab}>
-                <Icon name="help-circle" size={24} color="#ffffff" />
-            </TouchableOpacity>
+            <CreateVisitModal
+                visible={createVisitModalVisible}
+                onClose={() => { setCreateVisitModalVisible(false) }}
+            />
 
+            <SlidingDrawerModal
+                visible={drawerVisible}
+                onClose={() => { setDrawerVisible(false) }}
+            />
+
+            <ActionModal
+                visible={showActionModal}
+                onClose={() => { setShowActionModal(false) }}
+                onView={() => { }}
+                onStart={() => { }}
+                onAddNote={() => { }}
+            />
+
+            {/* FAB */}
+            <TouchableOpacity style={styles.fab} activeOpacity={0.9}>
+                <LinearGradient
+                    colors={['#4A90B9', '#68BFB3']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.fabGradient}
+                >
+                    <Icon name="help-circle-outline" size={24} color="#ffffff" />
+                </LinearGradient>
+            </TouchableOpacity>
         </View>
     );
 };
@@ -353,81 +370,184 @@ const Dashboard = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f5f5f5',
+        backgroundColor: '#F3F6F8',
     },
     scrollView: {
         flex: 1,
     },
-    titleContainer: {
-        paddingVertical: 20,
-        width: '95%'
+    scrollContent: {
+        paddingHorizontal: wp(4),
     },
-    title: {
-        fontSize: 28,
-        fontWeight: 'bold',
+    // Welcome
+    welcomeSection: {
+        paddingTop: 20,
+        paddingBottom: 6,
+    },
+    greeting: {
+        fontSize: 26,
+        fontWeight: '800',
+        color: '#1F2937',
+        letterSpacing: -0.3,
     },
     subtitle: {
-        fontSize: 16,
-        color: '#757575',
-        marginTop: 4,
+        fontSize: 14,
+        color: '#9CA3AF',
+        marginTop: 3,
     },
-    searchBar: {
-        margin: 16,
-        borderRadius: 8,
-        backgroundColor: 'white',
-        elevation: 0,
-        width: '95%'
+    // Action Buttons
+    actionButtonsRow: {
+        flexDirection: 'row',
+        marginTop: 16,
+        marginBottom: 14,
+        gap: 10,
     },
-    statsCard: {
-        margin: 16,
-        borderRadius: 8,
-        width: '95%',
-        backgroundColor: 'white'
+    newVisitBtn: {
+        flex: 1,
+        height: 50,
+        borderRadius: 14,
+        overflow: 'hidden',
+        ...Platform.select({
+            ios: {
+                shadowColor: '#4A90B9',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.25,
+                shadowRadius: 8,
+            },
+            android: { elevation: 4 },
+        }),
     },
-    statsContent: {
+    gradientBtn: {
+        flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 8,
+        justifyContent: 'center',
     },
-    dashboardText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginLeft: 10,
+    btnIconCircle: {
+        width: 26,
+        height: 26,
+        borderRadius: 13,
+        backgroundColor: 'rgba(255,255,255,0.9)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 8,
     },
-    totalText: {
-        fontSize: 14,
-        color: '#757575',
-        marginLeft: 16,
+    newVisitBtnText: {
+        color: 'white',
+        fontSize: 15,
+        fontWeight: '700',
+    },
+    newPatientBtn: {
         flex: 1,
+        height: 50,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 14,
+        backgroundColor: '#fff',
+        borderWidth: 1.5,
+        borderColor: '#E0EBF0',
     },
+    patientBtnIcon: {
+        width: 26,
+        height: 26,
+        borderRadius: 13,
+        backgroundColor: '#EBF5F7',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 8,
+    },
+    newPatientBtnText: {
+        color: '#4A90B9',
+        fontSize: 15,
+        fontWeight: '600',
+    },
+    // Search
+    searchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        borderRadius: 14,
+        marginBottom: 14,
+        paddingLeft: 14,
+        borderWidth: 1,
+        borderColor: '#E8EDF2',
+    },
+    searchBar: {
+        flex: 1,
+        backgroundColor: 'transparent',
+        elevation: 0,
+        height: 48,
+    },
+    searchInput: {
+        fontSize: 14,
+    },
+    // Calendar
     calendarCard: {
-        margin: 16,
-        borderRadius: 8,
-        width: '95%',
-        backgroundColor: 'white'
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        padding: 16,
+        marginTop: 6,
+        marginBottom: 8,
+        ...Platform.select({
+            ios: {
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.06,
+                shadowRadius: 10,
+            },
+            android: { elevation: 2 },
+        }),
     },
     calendarHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingVertical: 8,
+        marginBottom: 12,
+    },
+    calendarHeaderLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    calendarIconBg: {
+        width: 32,
+        height: 32,
+        borderRadius: 9,
+        backgroundColor: '#EBF5FA',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 10,
     },
     calendarTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
+        fontSize: 17,
+        fontWeight: '700',
+        color: '#1F2937',
     },
     calendarNavigation: {
         flexDirection: 'row',
+        gap: 4,
+    },
+    calendarNavBtn: {
+        width: 32,
+        height: 32,
+        borderRadius: 9,
+        backgroundColor: '#F3F4F6',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     weekdayRow: {
         flexDirection: 'row',
         justifyContent: 'space-around',
         paddingVertical: 8,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F3F4F6',
+        marginBottom: 4,
     },
     weekdayText: {
         width: 30,
         textAlign: 'center',
-        color: '#757575',
+        color: '#9CA3AF',
+        fontSize: 12,
+        fontWeight: '600',
     },
     calendarGrid: {
         flexDirection: 'row',
@@ -439,181 +559,192 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    dayContainer: {
+        width: 34,
+        height: 34,
+        borderRadius: 17,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     calendarDayText: {
         textAlign: 'center',
-    },
-    currentMonth: {
-        backgroundColor: 'transparent',
-    },
-    otherMonth: {
-        backgroundColor: 'transparent',
+        fontSize: 13,
+        fontWeight: '500',
+        color: '#374151',
     },
     otherMonthText: {
-        color: '#BDBDBD',
+        color: '#D1D5DB',
     },
-    todayHighlight: {
-        backgroundColor: 'white',
+    todayContainer: {
+        backgroundColor: '#F0F7FA',
+        borderWidth: 1.5,
+        borderColor: '#4A90B9',
     },
     todayText: {
-        color: 'black',
+        color: '#4A90B9',
+        fontWeight: '700',
     },
     selectedDateGradient: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: 34,
+        height: 34,
+        borderRadius: 17,
         justifyContent: 'center',
         alignItems: 'center',
     },
     selectedDateText: {
         color: 'white',
-        fontWeight: 'bold',
+        fontWeight: '700',
+        fontSize: 13,
+    },
+    // Appointments
+    appointmentsHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 16,
+        marginBottom: 12,
     },
     appointmentsTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginVertical: 16,
-        width: "95%"
+        fontSize: 19,
+        fontWeight: '700',
+        color: '#1F2937',
     },
-    tableContainer: {
-        width: '95%',
-        backgroundColor: 'white',
-        borderRadius: 8,
-        marginBottom: 16,
-        // overflow: 'hidden',
+    appointmentsSubtitle: {
+        fontSize: 13,
+        color: '#9CA3AF',
+        marginTop: 2,
     },
-    tableHeader: {
+    appointmentCard: {
         flexDirection: 'row',
-        borderBottomWidth: 1,
-        borderBottomColor: '#f0f0f0',
-        backgroundColor: 'white',
-        paddingVertical: 12,
-        paddingHorizontal: 15,
+        backgroundColor: '#fff',
+        borderRadius: 14,
+        marginBottom: 10,
+        overflow: 'hidden',
+        ...Platform.select({
+            ios: {
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.05,
+                shadowRadius: 8,
+            },
+            android: { elevation: 1 },
+        }),
     },
-    tableScrollContainer: {
-        paddingBottom: 10,
-    },
-    tableBody: {
-        minWidth: '100%',
-    },
-    tableRow: {
-        flexDirection: 'row',
-        borderBottomWidth: 1,
-        borderBottomColor: '#f0f0f0',
-        paddingVertical: 10,
-        paddingHorizontal: 15,
-    },
-    tableCell: {
+    timeIndicator: {
+        width: 56,
+        alignItems: 'center',
         justifyContent: 'center',
+        paddingVertical: 16,
+        borderRightWidth: 1,
+        borderRightColor: '#F3F4F6',
     },
-    timeCell: {
-        width: 45,
-        marginRight: 10,
+    timeDot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        marginBottom: 6,
     },
-    patientCell: {
-        width: 110,
-        marginRight: 10,
+    appointmentTime: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#374151',
     },
-    statusCell: {
-        width: 80,
-        marginRight: 10,
-    },
-    typeCell: {
-        width: 60,
-        marginRight: 10,
-    },
-    actionCell: {
-        flexDirection: 'row',
+    appointmentContent: {
         flex: 1,
-        justifyContent: 'flex-end',
+        padding: 14,
+    },
+    appointmentTopRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+    },
+    patientInfo: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+    },
+    avatarContainer: {
+        marginRight: 10,
+    },
+    avatar: {
+        width: 38,
+        height: 38,
+        borderRadius: 12,
+        justifyContent: 'center',
         alignItems: 'center',
     },
-    timeText: {
-        fontSize: 14,
+    avatarText: {
+        color: 'white',
+        fontWeight: '700',
+        fontSize: 13,
+    },
+    patientDetails: {
+        flex: 1,
     },
     patientName: {
-        fontWeight: 'bold',
-        fontSize: 14,
+        fontWeight: '600',
+        fontSize: 15,
+        color: '#1F2937',
     },
     patientId: {
-        color: '#757575',
+        color: '#9CA3AF',
         fontSize: 12,
-    },
-    statusText: {
-        paddingVertical: 5,
-        paddingHorizontal: 10,
-        fontSize: 12,
-        borderRadius: 20,
-        textAlign: 'center',
-        // overflow: 'hidden',
-    },
-    scheduledChip: {
-        backgroundColor: '#dbeafe',
-        color: '#1e40af',
-    },
-    inProgressChip: {
-        backgroundColor: '#fef9c3',
-        color: '#854d0e',
-    },
-    completedChip: {
-        backgroundColor: '#dcfce7',
-        color: '#166534',
-    },
-    typeContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    typeText: {
-        marginLeft: 4,
-        fontSize: 12,
-    },
-    viewButton: {
-        borderColor: "#58a6b8",
-        borderWidth: 2,
-        height: 36,
-        width: 36,
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: 10,
-        marginRight: 8,
-    },
-    startButton: {
-        height: 36,
-        width: 80,
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: 10,
-        // overflow: "hidden",
-        marginRight: 8,
+        marginTop: 2,
     },
     moreButton: {
-        borderColor: "#58a6b8",
-        borderWidth: 2,
-        height: 36,
-        width: 36,
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: 10,
+        padding: 4,
     },
-    startButtonText: {
-        color: "white",
-        fontWeight: "bold",
+    appointmentBottomRow: {
+        flexDirection: 'row',
+        marginTop: 10,
+        gap: 8,
+    },
+    statusChip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 4,
+        paddingHorizontal: 10,
+        borderRadius: 20,
+        gap: 5,
+    },
+    statusText: {
         fontSize: 12,
+        fontWeight: '600',
     },
+    typeChip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 4,
+        paddingHorizontal: 10,
+        borderRadius: 20,
+        backgroundColor: '#EBF5FA',
+        gap: 5,
+    },
+    typeText: {
+        fontSize: 12,
+        color: '#4A90B9',
+        fontWeight: '500',
+    },
+    // FAB
     fab: {
         position: 'absolute',
         right: 16,
         bottom: hp(5),
+        borderRadius: 28,
+        ...Platform.select({
+            ios: {
+                shadowColor: '#4A90B9',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 8,
+            },
+            android: { elevation: 6 },
+        }),
+    },
+    fabGradient: {
         width: 56,
         height: 56,
         borderRadius: 28,
-        backgroundColor: '#58a6b8',
-        justifyContent: 'center',
-        alignItems: 'center',
-        elevation: 4,
-    },
-    gradientBackground: {
-        width: '100%',
-        height: '100%',
         justifyContent: 'center',
         alignItems: 'center',
     },

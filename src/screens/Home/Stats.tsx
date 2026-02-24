@@ -1,21 +1,15 @@
 import React, { useState, useRef } from 'react';
 import {
-    View, ScrollView,
+    View,
     StyleSheet,
     TouchableOpacity,
-    Dimensions,
-    Animated
+    Animated,
+    Platform,
 } from 'react-native';
-import { Text, Card, Searchbar, IconButton, useTheme } from 'react-native-paper';
+import { Text, Card, IconButton, useTheme } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Feather from 'react-native-vector-icons/Feather';
-import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
-import {
-    heightPercentageToDP as hp,
-    widthPercentageToDP as wp
-} from 'react-native-responsive-screen';
 
-// Replace the Card section in your Dashboard component with this implementation
 export const DashboardStatsCard = () => {
     const { colors } = useTheme();
     const [isExpanded, setIsExpanded] = useState(false);
@@ -26,20 +20,20 @@ export const DashboardStatsCard = () => {
 
     const toggleExpand = () => {
         const toValue = isExpanded ? 0 : 1;
-
         Animated.parallel([
-            Animated.timing(expandAnimation, {
+            Animated.spring(expandAnimation, {
                 toValue,
-                duration: 300,
+                damping: 18,
+                stiffness: 100,
                 useNativeDriver: false,
             }),
-            Animated.timing(rotateAnimation, {
+            Animated.spring(rotateAnimation, {
                 toValue,
-                duration: 300,
+                damping: 18,
+                stiffness: 100,
                 useNativeDriver: true,
             })
         ]).start();
-
         setIsExpanded(!isExpanded);
     };
 
@@ -53,154 +47,157 @@ export const DashboardStatsCard = () => {
         outputRange: ['0deg', '180deg']
     });
 
+    const statItems = [
+        { icon: 'account-multiple', label: "Today's Patients", value: '24', color: '#4A90B9' },
+        { icon: 'file-document-outline', label: 'Pending Reports', value: '8', color: '#F59E0B' },
+        { icon: 'calendar-clock', label: 'Scheduled Visits', value: '156', color: '#8B5CF6' },
+        { icon: 'check-circle-outline', label: 'Completed Visits', value: '1205', color: '#10B981' },
+    ];
+
     return (
-        <Card style={styles.statsCard}>
-            <Card.Content style={styles.statsContent}>
-                <View style={{
-                    backgroundColor: "rgba(90,167,179,0.1)",
-                    height: 40, width: 40, alignItems: "center", justifyContent: 'center',
-                    borderRadius: 10
-                }}>
-                    <Feather name="bar-chart-2" size={24} color="#58a6b8" />
+        <View style={styles.statsCard}>
+            <TouchableOpacity
+                onPress={toggleExpand}
+                activeOpacity={0.7}
+                style={styles.statsHeader}
+            >
+                <View style={styles.statsHeaderLeft}>
+                    <View style={styles.statsIconContainer}>
+                        <Feather name="bar-chart-2" size={18} color="#4A90B9" />
+                    </View>
+                    <View>
+                        <Text style={styles.dashboardText}>Dashboard</Text>
+                        <Text style={styles.totalText}>{totalPatients}</Text>
+                    </View>
                 </View>
-                <Text style={styles.dashboardText}>Dashboard</Text>
-                <Text style={styles.totalText}>{totalPatients}</Text>
-                <TouchableOpacity onPress={toggleExpand}>
-                    <Animated.View style={{ transform: [{ rotate: iconRotation }] }}>
-                        <IconButton
-                            icon="chevron-down"
-                            size={20}
-                            iconColor={colors.onSurfaceVariant}
-                        />
-                    </Animated.View>
-                </TouchableOpacity>
-            </Card.Content>
+                <Animated.View style={{ transform: [{ rotate: iconRotation }] }}>
+                    <View style={styles.expandBtn}>
+                        <Feather name="chevron-down" size={18} color="#6B7280" />
+                    </View>
+                </Animated.View>
+            </TouchableOpacity>
 
             <Animated.View style={[styles.expandableContent, { height: cardHeight }]}>
-                <View style={styles.statsRow}>
-                    <View style={styles.statsBox}>
-                        <View style={styles.statsIconContainer}>
-                            <Icon name="account-multiple" size={20} color="#58a6b8" />
-                        </View>
-                        <Text style={styles.statsLabel}>Today's Patients</Text>
-                        <Text style={styles.statsValue}>24</Text>
-                        <IconButton
-                            icon="chevron-right"
-                            size={16}
-                            style={styles.statsArrow}
-                            iconColor="#58a6b8"
-                        />
-                    </View>
-
-                    <View style={styles.statsBox}>
-                        <View style={styles.statsIconContainer}>
-                            <Icon name="file-document" size={20} color="#58a6b8" />
-                        </View>
-                        <Text style={styles.statsLabel}>Pending Reports</Text>
-                        <Text style={styles.statsValue}>8</Text>
-                        <IconButton
-                            icon="chevron-right"
-                            size={16}
-                            style={styles.statsArrow}
-                            iconColor="#58a6b8"
-                        />
-                    </View>
-                </View>
-
-                <View style={[styles.statsRow]}>
-                    <View style={styles.statsBox}>
-                        <View style={styles.statsIconContainer}>
-                            <Icon name="calendar" size={20} color="#58a6b8" />
-                        </View>
-                        <Text style={styles.statsLabel}>Scheduled Visits</Text>
-                        <Text style={styles.statsValue}>156</Text>
-                        <IconButton
-                            icon="chevron-right"
-                            size={16}
-                            style={styles.statsArrow}
-                            iconColor="#58a6b8"
-                        />
-                    </View>
-
-                    <View style={styles.statsBox}>
-                        <View style={styles.statsIconContainer}>
-                            <Icon name="check-circle" size={20} color="#58a6b8" />
-                        </View>
-                        <Text style={styles.statsLabel}>Completed Visits</Text>
-                        <Text style={styles.statsValue}>1205</Text>
-                        <IconButton
-                            icon="chevron-right"
-                            size={16}
-                            style={styles.statsArrow}
-                            iconColor="#58a6b8"
-                        />
-                    </View>
+                <View style={styles.statsGrid}>
+                    {statItems.map((item, index) => (
+                        <TouchableOpacity key={index} style={styles.statsBox} activeOpacity={0.7}>
+                            <View style={[styles.statIconBg, { backgroundColor: item.color + '15' }]}>
+                                <Icon name={item.icon} size={20} color={item.color} />
+                            </View>
+                            <Text style={styles.statsLabel}>{item.label}</Text>
+                            <View style={styles.statValueRow}>
+                                <Text style={styles.statsValue}>{item.value}</Text>
+                                <View style={styles.statsArrowBtn}>
+                                    <Feather name="arrow-right" size={12} color="#9CA3AF" />
+                                </View>
+                            </View>
+                        </TouchableOpacity>
+                    ))}
                 </View>
             </Animated.View>
-        </Card>
+        </View>
     );
 };
 
-// Add these styles to your existing StyleSheet
 const styles = StyleSheet.create({
     statsCard: {
-        width: '95%',
-        borderRadius: 10,
-        backgroundColor: 'white'
+        width: '100%',
+        borderRadius: 16,
+        backgroundColor: 'white',
+        overflow: 'hidden',
+        ...Platform.select({
+            ios: {
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.06,
+                shadowRadius: 10,
+            },
+            android: { elevation: 2 },
+        }),
     },
-    statsContent: {
+    statsHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 10,
+        justifyContent: 'space-between',
+        padding: 16,
+    },
+    statsHeaderLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    statsIconContainer: {
+        backgroundColor: '#EBF5FA',
+        height: 38,
+        width: 38,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 11,
+        marginRight: 12,
     },
     dashboardText: {
-        flex: 1,
-        marginLeft: 10,
         fontSize: 16,
-        fontWeight: '600',
+        fontWeight: '700',
+        color: '#1F2937',
     },
     totalText: {
-        color: '#777',
-        marginRight: 5,
-        fontSize: 14,
+        color: '#9CA3AF',
+        fontSize: 13,
+        marginTop: 1,
+    },
+    expandBtn: {
+        width: 32,
+        height: 32,
+        borderRadius: 9,
+        backgroundColor: '#F3F4F6',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     expandableContent: {
         overflow: 'hidden',
     },
-    statsRow: {
+    statsGrid: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        marginBottom: 16,
+        flexWrap: 'wrap',
+        paddingHorizontal: 12,
+        gap: 10,
     },
     statsBox: {
-        width: '48%',
-        backgroundColor: '#f9f9f9',
-        borderRadius: 8,
-        padding: 16,
-        position: 'relative',
+        width: '47.5%',
+        backgroundColor: '#FAFBFC',
+        borderRadius: 14,
+        padding: 14,
+        borderWidth: 1,
+        borderColor: '#F0F2F5',
     },
-    statsIconContainer: {
-        backgroundColor: 'rgba(90,167,179,0.1)',
+    statIconBg: {
         height: 36,
         width: 36,
         alignItems: 'center',
         justifyContent: 'center',
-        borderRadius: 8,
+        borderRadius: 10,
         marginBottom: 10,
     },
     statsLabel: {
-        fontSize: 14,
-        color: '#777',
-        marginBottom: 5,
+        fontSize: 13,
+        color: '#6B7280',
+        marginBottom: 6,
+    },
+    statValueRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
     },
     statsValue: {
-        fontSize: 22,
-        fontWeight: 'bold',
+        fontSize: 24,
+        fontWeight: '800',
+        color: '#1F2937',
     },
-    statsArrow: {
-        position: 'absolute',
-        right: 0,
-        bottom: 0,
-    }
+    statsArrowBtn: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        backgroundColor: '#F3F4F6',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
 });

@@ -21,7 +21,6 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import Gap from '../../component/gap';
 import { ForgotPassword } from '../../Services/Auth.Service';
 import CustomAlert from '../../component/customAlert';
-// import { ForgotPassword } from '../../Services/Auth.Service';
 import { validateInput } from '../../utils/inputValidations';
 
 const defaultBody = {
@@ -140,9 +139,10 @@ const checkValidation = () => {
     
 
     return (
-        <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={{ flex: 1, backgroundColor: '#fff' }}>
+        <View style={{flex: 1, backgroundColor: '#fff'}}>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={{ flex: 1 }}>
             <ScrollView
                 contentContainerStyle={styles.scrollContent}
                 keyboardShouldPersistTaps="handled"
@@ -206,6 +206,7 @@ const checkValidation = () => {
                     </TouchableOpacity>
                 </View>
             </ScrollView>
+            </KeyboardAvoidingView>
 
             <CustomAlert
                 visible={alertConfig.visible}
@@ -213,7 +214,7 @@ const checkValidation = () => {
                 message={alertConfig.message}
                 onClose={handleCloseAlert}
             />
-        </KeyboardAvoidingView>
+        </View>
     );
 };
 

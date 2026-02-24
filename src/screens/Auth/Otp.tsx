@@ -212,9 +212,10 @@ console.log("type", type)
     };
 
     return (
-        <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={{ flex: 1, backgroundColor: '#fff' }}>
+        <View style={{flex: 1, backgroundColor: '#fff'}}>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={{ flex: 1 }}>
             <ScrollView
                 contentContainerStyle={styles.scrollContent}
                 keyboardShouldPersistTaps="handled"
@@ -300,6 +301,7 @@ console.log("type", type)
                     </TouchableOpacity>
                 </View>
             </ScrollView>
+            </KeyboardAvoidingView>
 
             <CustomAlert
                 visible={alertConfig.visible}
@@ -307,7 +309,7 @@ console.log("type", type)
                 message={alertConfig.message}
                 onClose={handleCloseAlert}
             />
-        </KeyboardAvoidingView>
+        </View>
     );
 };
 

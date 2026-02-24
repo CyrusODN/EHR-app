@@ -163,9 +163,10 @@ const ResetPassword = () => {
     };
 
     return (
-        <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={{ flex: 1, backgroundColor: '#fff' }}>
+        <View style={{flex: 1, backgroundColor: '#fff'}}>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={{ flex: 1 }}>
             <ScrollView
                 contentContainerStyle={styles.scrollContent}
                 keyboardShouldPersistTaps="handled"
@@ -251,6 +252,7 @@ const ResetPassword = () => {
                     </View>
                 </View>
             </ScrollView>
+            </KeyboardAvoidingView>
 
             <CustomAlert
                 visible={alertConfig.visible}
@@ -258,7 +260,7 @@ const ResetPassword = () => {
                 message={alertConfig.message}
                 onClose={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
             />
-        </KeyboardAvoidingView>
+        </View>
     );
 };
 

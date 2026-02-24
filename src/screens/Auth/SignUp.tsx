@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert,
 } from 'react-native';
 import {
   widthPercentageToDP as wp,
@@ -23,6 +24,11 @@ import {useNavigation} from '@react-navigation/native';
 import CustomAlert from '../../component/customAlert';
 import { RegisterUser } from '../../Services/Auth.Service';
 import { validateInput } from '../../utils/inputValidations';
+import {
+  GoogleSignin,
+  statusCodes,
+  isSuccessResponse,
+} from '@react-native-google-signin/google-signin';
 
 const defaultBody = {
     email: '',
@@ -50,6 +56,7 @@ const [isFormSubmitted, setIsFormSubmitted] = useState(false);
 const [spinner, setSpinner] = useState(false);
 
 const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 const [alertConfig, setAlertConfig] = useState<{
     visible: boolean;
     message: string;
@@ -138,22 +145,120 @@ const checkValidation = () => {
         }, 0);
     };
 
-    const handleGoogleSignUp = () => {
-       
-        console.log('Google sign-up...');
+    const handleGoogleSignUp = async () => {
+        setIsGoogleLoading(true);
+        try {
+            let googleEmail = '';
+            let idToken = '';
+
+            try {
+                // Configure Google Sign-In
+                try {
+                    GoogleSignin.configure({
+                        webClientId:
+                            '383882848574-qkp6dliucskh28daelit50rtqevf1fhj.apps.googleusercontent.com',
+                        iosClientId:
+                            '383882848574-qkp6dliucskh28daelit50rtqevf1fhj.apps.googleusercontent.com',
+                    });
+                } catch (configErr) {
+                    console.warn('GoogleSignin configure error:', configErr);
+                }
+
+                // Check Play Services (Android)
+                try {
+                    await GoogleSignin.hasPlayServices({
+                        showPlayServicesUpdateDialog: true,
+                    });
+                } catch (_) {}
+
+                // Trigger Sign-In
+                try {
+                    const account = await GoogleSignin.signIn();
+                    console.log('Google Sign In Account:', JSON.stringify(account, null, 2));
+
+                    if (isSuccessResponse(account)) {
+                        idToken = account.data.idToken || '';
+                        googleEmail = account.data.user.email || '';
+                    }
+                } catch (error: any) {
+                    if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+                        console.log('User cancelled the sign-up flow');
+                        setIsGoogleLoading(false);
+                        return;
+                    } else if (error.code === statusCodes.IN_PROGRESS) {
+                        console.log('Sign in is in progress already');
+                        return;
+                    } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+                        setAlertConfig({ visible: true, type: 'error', message: 'Play services not available or outdated' });
+                        setIsGoogleLoading(false);
+                        return;
+                    } else {
+                        console.error('Google Sign-In Error:', error);
+                        throw error;
+                    }
+                }
+            } catch (err) {
+                console.warn('Google Sign In setup error:', err);
+            }
+
+            // Validate we got a token
+            if (!idToken) {
+                setIsGoogleLoading(false);
+                setAlertConfig({ visible: true, type: 'error', message: 'Error Signing In with Google' });
+                return;
+            }
+
+            // Prepare the payload for backend (API not ready yet)
+            const signupPayload = {
+                idToken,
+                email: googleEmail,
+                isSignup: true,
+            };
+
+            console.log(
+                '========== GOOGLE SIGN-UP PAYLOAD ==========',
+            );
+            console.log(JSON.stringify(signupPayload, null, 2));
+            console.log(
+                '=============================================',
+            );
+
+            // TODO: Replace with actual API call when backend is ready
+            // const resp = await googleMobileLogin(signupPayload);
+            // const payload = resp?.data?.data || resp?.data;
+            // const token = payload?.token || payload?.accessToken;
+
+            setAlertConfig({
+                visible: true,
+                type: 'success',
+                message: `Google Sign-Up successful!\nEmail: ${googleEmail}\n\nPayload logged to console. API integration pending.`,
+            });
+
+        } catch (error: any) {
+            console.error('Google Sign-Up FAILED:', error);
+            const message =
+                error?.response?.data?.message ||
+                error?.message ||
+                'Failed to initiate Google sign-up';
+            setAlertConfig({
+                visible: true,
+                type: 'error',
+                message,
+            });
+        } finally {
+            setIsGoogleLoading(false);
+        }
     };
 
     const handleCloseAlert = useCallback(() => {
         setAlertConfig(prev => ({ ...prev, visible: false }));
       }, []);
 
-   
-    
-
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={{flex: 1, backgroundColor: '#fff'}}>
+    <View style={{flex: 1, backgroundColor: '#fff'}}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{flex: 1}}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
@@ -263,13 +368,18 @@ const checkValidation = () => {
           <Gap height={hp(1)} />
 
           {/* Google Sign up Button */}
-          <TouchableOpacity style={styles.googleButton}>
+          <TouchableOpacity
+            style={[styles.googleButton, isGoogleLoading && {opacity: 0.6}]}
+            onPress={handleGoogleSignUp}
+            disabled={isGoogleLoading}
+            activeOpacity={0.7}
+          >
             <Image
               source={require('../../assets/images/google-icon.png')}
               style={styles.googleIcon}
             />
             <Text style={{color: 'black', fontWeight: '500'}}>
-              {t('login.continue_with_google')}
+              {isGoogleLoading ? 'Signing up...' : t('login.continue_with_google')}
             </Text>
           </TouchableOpacity>
 
@@ -295,6 +405,7 @@ const checkValidation = () => {
           </View>
         </View>
       </ScrollView>
+      </KeyboardAvoidingView>
 
       <CustomAlert
         visible={alertConfig.visible}
@@ -302,7 +413,7 @@ const checkValidation = () => {
         message={alertConfig.message}
         onClose={handleCloseAlert}
       />
-    </KeyboardAvoidingView>
+    </View>
   );
 };
 
