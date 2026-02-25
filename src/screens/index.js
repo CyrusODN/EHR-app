@@ -25,6 +25,7 @@ import ClientPortal from "./Settings/clientPortal";
 import Profile from "./Settings/profile";
 import Employees from "./Settings/employees";
 import EWUS from "./Settings/ewUs";
+import ReferralsScreen from "./Patient/Referrals";
 
 
 export const Screens = {
@@ -53,5 +54,6 @@ export const Screens = {
     Employees,
     EWUS,
     AIAnalysis,
-    AIAssistantScreen
+    AIAssistantScreen,
+    ReferralsScreen
 }

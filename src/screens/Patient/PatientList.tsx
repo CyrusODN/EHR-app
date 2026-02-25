@@ -5,28 +5,55 @@ import {
     Text,
     StyleSheet,
     TouchableOpacity,
-    SafeAreaView,
     StatusBar,
     FlatList,
-    ActivityIndicator
+    ActivityIndicator,
+    ScrollView,
+    Platform,
+    Modal
 } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import Feather from 'react-native-vector-icons/Feather';
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import Feather from 'react-native-vector-icons/Feather';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
-import { ScrollView } from 'react-native-gesture-handler';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import CustomDropdown from '../../component/customDropDown';
+import PrimaryButton from '../../component/button';
 import ActionModal from './modals/ActionModal';
 import PatientDetailsModal from './modals/PatientDetails';
 
 const PatientListScreen = () => {
-    const navigation = useNavigation();
+    const navigation = useNavigation<any>();
     const [patients, setPatients] = useState<any[]>([]);
+    const [selectedPatient, setSelectedPatient] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [showFilters, setShowFilters] = useState(false);
     const [showActionModal, setShowActionModal] = useState(false);
     const [showPatientDetailsModal, setShowPatientDetailsModal] = useState(false);
+
+    // State for filter inputs
+    const [dobStartDate, setDobStartDate] = useState<Date | null>(null);
+    const [dobEndDate, setDobEndDate] = useState<Date | null>(null);
+    const [gender, setGender] = useState<string | number>('All');
+    const [activePicker, setActivePicker] = useState<string | null>(null);
+
+    // State for checkboxes
+    const [hasPesel, setHasPesel] = useState(false);
+    const [hasDeclaration, setHasDeclaration] = useState(false);
+    const [isDeceased, setIsDeceased] = useState(false);
+    const [hasDebt, setHasDebt] = useState(false);
+    const [isActive, setIsActive] = useState(true);
+    const [isLongAbsent, setIsLongAbsent] = useState(false);
+
+    const genderOptions = [
+        { label: 'All', value: 'All' },
+        { label: 'Male', value: 'male' },
+        { label: 'Female', value: 'female' },
+        { label: 'Other', value: 'other' },
+    ];
 
     // Fetch patients (mock data for now)
     useEffect(() => {
@@ -80,9 +107,29 @@ const PatientListScreen = () => {
     }, []);
 
     // Format date for display (YYYY-MM-DD to more readable format)
-    const formatDate = (dateString: string) => {
-        const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: '2-digit', day: '2-digit' };
-        return new Date(dateString).toLocaleDateString('en-GB', options).replace(/\//g, '-');
+    const formatDate = (date: any) => {
+        if (!date) return 'dd/mm/yyyy';
+        if (typeof date === 'string') {
+            const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: '2-digit', day: '2-digit' };
+            return new Date(date).toLocaleDateString('en-GB', options).replace(/\//g, '-');
+        }
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    };
+
+    // Handle date change
+    const onDateChange = (event: any, selectedDate?: Date) => {
+        if (selectedDate && activePicker) {
+            switch (activePicker) {
+                case 'dobStart': setDobStartDate(selectedDate); break;
+                case 'dobEnd': setDobEndDate(selectedDate); break;
+            }
+            setActivePicker(null);
+        } else if (event.type === 'dismissed') {
+            setActivePicker(null);
+        }
     };
 
     // Handle patient actions
@@ -109,6 +156,19 @@ const PatientListScreen = () => {
         // Show more options (possibly with an ActionSheet or Modal)
     };
 
+    // Clear all filters
+    const clearFilters = () => {
+        setDobStartDate(null);
+        setDobEndDate(null);
+        setGender('All');
+        setHasPesel(false);
+        setHasDeclaration(false);
+        setIsDeceased(false);
+        setHasDebt(false);
+        setIsActive(true);
+        setIsLongAbsent(false);
+    };
+
     // Export patient list
     const handleExport = () => {
         console.log('Export patient list');
@@ -126,6 +186,19 @@ const PatientListScreen = () => {
         setShowFilters(!showFilters);
         // If implementing filters, you would show a modal or expand a section here
     };
+
+    // Render checkbox
+    const renderCheckbox = (isChecked: boolean, onToggle: any, label: string) => (
+        <TouchableOpacity
+            style={styles.checkboxContainer}
+            onPress={() => onToggle(!isChecked)}
+        >
+            <View style={[styles.checkbox, isChecked && styles.checkboxChecked]}>
+                {isChecked && <Ionicons name="checkmark" size={16} color="#fff" />}
+            </View>
+            <Text style={styles.checkboxLabel}>{label}</Text>
+        </TouchableOpacity>
+    );
 
     // Render status badge with appropriate color
     const renderStatusBadge = (status: string) => {
@@ -198,7 +271,10 @@ const PatientListScreen = () => {
                     </TouchableOpacity> */}
                     <TouchableOpacity
                         style={styles.actionButton}
-                        onPress={() => { setShowActionModal(true) }}
+                        onPress={() => { 
+                            setSelectedPatient(item);
+                            setShowActionModal(true); 
+                        }}
                     >
                         <Ionicons name="ellipsis-vertical" size={18} color="#4A90B9" />
                     </TouchableOpacity>
@@ -232,11 +308,11 @@ const PatientListScreen = () => {
     );
 
     return (
-        <View style={styles.safeArea}>
+        <SafeAreaView style={styles.safeArea}>
             <StatusBar barStyle="dark-content" backgroundColor="#F5F5F5" />
             <View style={{
                 width: "100%", backgroundColor: "white",
-                flexDirection: "row", justifyContent: "space-around", paddingTop: hp(7)
+                flexDirection: "row", justifyContent: "space-around", paddingTop: hp(2)
             }}>
                 <View style={styles.header}>
                     <Text style={styles.headerTitle}>Patient List</Text>
@@ -286,14 +362,82 @@ const PatientListScreen = () => {
                         style={{
                             marginLeft: 10, borderRadius: 8, flexDirection: "row", height: hp(5),
                             alignItems: "center",
-                            justifyContent: "center", width: wp(25)
+                            paddingHorizontal: 15,
+                            justifyContent: "center", minWidth: wp(25)
                         }}>
                         <Feather name="filter" size={20} color="white" />
                         <Text style={styles.filtersButtonText}>Filters</Text>
+                        <Ionicons 
+                            name={showFilters ? "chevron-up" : "chevron-down"} 
+                            size={16} 
+                            color="white" 
+                            style={{marginLeft: 5}} 
+                        />
                     </LinearGradient>
 
                 </TouchableOpacity>
             </View>
+
+            {/* Filter Section */}
+            {showFilters && (
+                <View style={styles.filtersContainer}>
+                    <View style={styles.filtersInner}>
+                        <View style={styles.filterRow}>
+                            <View style={[styles.filterGroup, { flex: 1.5 }]}>
+                                <Text style={styles.filterLabel}>Date of Birth</Text>
+                                <View style={styles.dateRangeContainer}>
+                                    <TouchableOpacity
+                                        style={styles.dateInput}
+                                        onPress={() => setActivePicker('dobStart')}
+                                    >
+                                        <Text style={styles.dateText}>{formatDate(dobStartDate)}</Text>
+                                        <MaterialCommunityIcons name="calendar-blank" size={18} color="#6B7280" />
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        style={styles.dateInput}
+                                        onPress={() => setActivePicker('dobEnd')}
+                                    >
+                                        <Text style={styles.dateText}>{formatDate(dobEndDate)}</Text>
+                                        <MaterialCommunityIcons name="calendar-blank" size={18} color="#6B7280" />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+
+                            <View style={[styles.filterGroup, { flex: 1, marginLeft: 15 }]}>
+                                <Text style={styles.filterLabel}>Gender</Text>
+                                <CustomDropdown
+                                    placeholder="Select gender"
+                                    options={genderOptions}
+                                    value={gender}
+                                    onChange={setGender}
+                                />
+                            </View>
+                        </View>
+
+                        <View style={styles.checkboxesSection}>
+                            <View style={styles.checkboxRow}>
+                                {renderCheckbox(hasPesel, setHasPesel, "Has PESEL")}
+                                {renderCheckbox(hasDeclaration, setHasDeclaration, "Has Declaration")}
+                                {renderCheckbox(isDeceased, setIsDeceased, "Deceased")}
+                                {renderCheckbox(hasDebt, setHasDebt, "Has Debt")}
+                                {renderCheckbox(isActive, setIsActive, "Active")}
+                                {renderCheckbox(isLongAbsent, setIsLongAbsent, "Long Absent")}
+                            </View>
+                        </View>
+
+                        <View style={styles.filterActions}>
+                            <TouchableOpacity style={styles.clearFiltersBtn} onPress={clearFilters}>
+                                <Ionicons name="close-outline" size={20} color="#4A90B9" />
+                                <Text style={styles.clearFiltersBtnText}>Clear filters</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.applyFiltersBtn} onPress={() => setShowFilters(false)}>
+                                <Ionicons name="funnel-outline" size={18} color="white" />
+                                <Text style={styles.applyFiltersBtnText}>Apply filters</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            )}
 
             {/* Patient List */}
             {loading ? (
@@ -332,7 +476,7 @@ const PatientListScreen = () => {
             <PatientDetailsModal
                 visible={showPatientDetailsModal}
                 onClose={() => { setShowPatientDetailsModal(false) }}
-                patientData={{
+                patientData={selectedPatient || {
                     id: 'P001',
                     name: 'Jan Kowalski',
                     pesel: '80010112345',
@@ -341,12 +485,61 @@ const PatientListScreen = () => {
                     status: 'Active'
                 }}
             />
+            {/* Date Picker Modal */}
+            {activePicker && (
+                Platform.OS === 'ios' ? (
+                    <Modal
+                        transparent={true}
+                        animationType="fade"
+                        visible={!!activePicker}
+                        onRequestClose={() => setActivePicker(null)}
+                    >
+                        <TouchableOpacity 
+                            style={styles.modalOverlay} 
+                            activeOpacity={1} 
+                            onPress={() => setActivePicker(null)}
+                        >
+                            <View style={styles.calendarModalContent}>
+                                <View style={styles.calendarHeader}>
+                                    <TouchableOpacity onPress={() => setActivePicker(null)}>
+                                        <Text style={styles.calendarCancelText}>Cancel</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={() => setActivePicker(null)}>
+                                        <Text style={styles.calendarConfirmText}>Done</Text>
+                                    </TouchableOpacity>
+                                </View>
+                                <DateTimePicker
+                                    value={
+                                        activePicker === 'dobStart' ? dobStartDate || new Date() :
+                                        dobEndDate || new Date()
+                                    }
+                                    mode="date"
+                                    display="inline"
+                                    onChange={onDateChange}
+                                    style={styles.iosPicker}
+                                />
+                            </View>
+                        </TouchableOpacity>
+                    </Modal>
+                ) : (
+                    <DateTimePicker
+                        value={
+                            activePicker === 'dobStart' ? dobStartDate || new Date() :
+                            dobEndDate || new Date()
+                        }
+                        mode="date"
+                        display="default"
+                        onChange={onDateChange}
+                    />
+                )
+            )}
+
             {/* Help Button */}
             <TouchableOpacity style={styles.helpButtonFloat}>
                 <Text style={styles.helpText}>?</Text>
             </TouchableOpacity>
 
-        </View >
+        </SafeAreaView >
     );
 };
 
@@ -518,6 +711,153 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
     },
+    // Filter Styles
+    filtersContainer: {
+        backgroundColor: 'white',
+        marginHorizontal: 15,
+        marginBottom: 10,
+        borderRadius: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 5,
+        elevation: 2,
+    },
+    filtersInner: {
+        padding: 15,
+    },
+    filterRow: {
+        flexDirection: 'row',
+        marginBottom: 15,
+    },
+    filterGroup: {
+        flex: 1,
+    },
+    filterLabel: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#344155',
+        marginBottom: 8,
+    },
+    dateRangeContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    dateInput: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+        borderRadius: 8,
+        paddingHorizontal: 10,
+        height: 42,
+        backgroundColor: '#F8FAFC',
+        marginHorizontal: 2,
+    },
+    dateText: {
+        fontSize: 13,
+        color: '#64748B',
+    },
+    checkboxesSection: {
+        marginBottom: 15,
+    },
+    checkboxRow: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 12,
+    },
+    checkboxContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginRight: 10,
+        marginBottom: 8,
+    },
+    checkbox: {
+        width: 18,
+        height: 18,
+        borderWidth: 1,
+        borderColor: '#CBD5E1',
+        borderRadius: 4,
+        marginRight: 8,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    checkboxChecked: {
+        backgroundColor: '#4A90B9',
+        borderColor: '#4A90B9',
+    },
+    checkboxLabel: {
+        fontSize: 13,
+        color: '#475569',
+    },
+    filterActions: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        gap: 10,
+        marginTop: 5,
+    },
+    clearFiltersBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        height: 40,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#4A90B9',
+    },
+    clearFiltersBtnText: {
+        color: '#4A90B9',
+        fontSize: 14,
+        fontWeight: '600',
+        marginLeft: 5,
+    },
+    applyFiltersBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        height: 40,
+        borderRadius: 8,
+        backgroundColor: '#4A90B9',
+    },
+    applyFiltersBtnText: {
+        color: 'white',
+        fontSize: 14,
+        fontWeight: '600',
+        marginLeft: 5,
+    },
+    // Calendar Modal Styles
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    calendarModalContent: {
+        width: '90%',
+        backgroundColor: 'white',
+        borderRadius: 20,
+        padding: 10,
+    },
+    calendarHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingHorizontal: 10,
+        paddingVertical: 10,
+    },
+    calendarCancelText: {
+        fontSize: 16,
+        color: '#6B7280',
+    },
+    calendarConfirmText: {
+        fontSize: 16,
+        color: '#4A90B9',
+        fontWeight: '600',
+    },
+    iosPicker: {
+        height: 350,
+    }
 });
 
 export default PatientListScreen;

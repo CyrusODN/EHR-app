@@ -9,6 +9,7 @@ import {
     SafeAreaView,
     StatusBar,
     TextInput,
+    Dimensions
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -17,16 +18,11 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import Feather from 'react-native-vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
 import PrimaryButton from '../../component/button';
+import CustomTextInput from '../../component/customTextInput';
+import CustomDropdown from '../../component/customDropDown';
+import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 
-interface Department {
-    id: string;
-    name: string;
-    address: string;
-    postalCode: string;
-    city: string;
-    phone: string;
-    email: string;
-}
+
 
 interface Office {
     id: string;
@@ -35,12 +31,6 @@ interface Office {
     number: string;
     type: string;
     equipment: string;
-}
-
-interface DepartmentCardProps {
-    department: Department;
-    onEdit: (id: string) => void;
-    onDelete: (id: string) => void;
 }
 
 interface OfficeCardProps {
@@ -54,28 +44,6 @@ interface CertificateUploadSectionProps {
     placeholder: string;
     onUpload: () => void;
 }
-
-// Department Card Component
-const DepartmentCard = ({ department, onEdit, onDelete }: DepartmentCardProps) => (
-    <View style={styles.departmentCard}>
-        <View style={styles.departmentInfo}>
-            <Text style={styles.departmentTitle}>{department.name}</Text>
-            <Text style={styles.departmentDetail}>{department.address}</Text>
-            <Text style={styles.departmentDetail}>{department.postalCode} {department.city}</Text>
-            <Text style={styles.departmentDetail}>{department.phone}</Text>
-            <Text style={styles.departmentDetail}>{department.email}</Text>
-        </View>
-        <View style={styles.departmentActions}>
-            <TouchableOpacity onPress={() => onEdit(department.id)} style={styles.iconButton}>
-                <Feather name="edit-2" size={20} color="#4A90B9" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => onDelete(department.id)} style={styles.iconButton}>
-                <Feather name="trash-2" size={20} color="#FF6B6B" />
-            </TouchableOpacity>
-        </View>
-    </View>
-);
-
 
 // Office Card Component
 const OfficeCard = ({ office, onEdit, onDelete }: OfficeCardProps) => (
@@ -119,18 +87,6 @@ const CertificateUploadSection = ({ title, placeholder, onUpload }: CertificateU
 const OfficeCertificates = () => {
     const navigation = useNavigation<any>();
 
-    const [departments, setDepartments] = useState([
-        {
-            id: '1',
-            name: 'Department Gdańsk',
-            address: 'ul. Przykładowa 1',
-            postalCode: '80-001',
-            city: 'Gdańsk',
-            phone: '+48 123 456 789',
-            email: 'gdansk@example.com'
-        }
-    ]);
-
     // Sample office data
     const [offices, setOffices] = useState([
         {
@@ -142,7 +98,6 @@ const OfficeCertificates = () => {
             equipment: 'Couch, Desk, Computer'
         }
     ]);
-
 
     // Handle edit office
     const handleEditOffice = (id: string) => {
@@ -163,18 +118,39 @@ const OfficeCertificates = () => {
         // Show file picker
     };
 
+    const [showAddForm, setShowAddForm] = useState(false);
+    const [officeName, setOfficeName] = useState('');
+    const [floor, setFloor] = useState('');
+    const [number, setNumber] = useState('');
+    const [type, setType] = useState<string | number>('');
+    const [equipment, setEquipment] = useState('');
 
-    // Handle edit department
-    const handleEditDepartment = (id: string) => {
-        console.log('Edit department with id:', id);
-        // Navigate to edit screen or show modal
+    const officeTypeOptions = [
+        { label: 'Medical office', value: 'Medical office' },
+        { label: 'Therapy office', value: 'Therapy office' },
+        { label: 'Diagnostic office', value: 'Diagnostic office' },
+    ];
+
+    const handleAddOffice = () => {
+        const newOffice = {
+            id: Math.random().toString(),
+            title: officeName,
+            floor: floor,
+            number: number,
+            type: String(type),
+            equipment: equipment
+        };
+        setOffices([...offices, newOffice]);
+        resetForm();
     };
 
-    // Handle delete department
-    const handleDeleteDepartment = (id: string) => {
-        console.log('Delete department with id:', id);
-        // Show confirmation dialog and then delete
-        setDepartments(departments.filter(department => department.id !== id));
+    const resetForm = () => {
+        setOfficeName('');
+        setFloor('');
+        setNumber('');
+        setType('');
+        setEquipment('');
+        setShowAddForm(false);
     };
 
     return (
@@ -192,45 +168,6 @@ const OfficeCertificates = () => {
             </View>
 
             <ScrollView style={styles.container}>
-                {/* Departments Section */}
-                <View style={styles.section}>
-                    <View style={styles.sectionHeader}>
-                        <View style={styles.sectionTitleContainer}>
-                            <View style={styles.iconContainer}>
-                                <Ionicons name="location-outline" size={24} color="#4A90B9" />
-                            </View>
-                            <Text style={styles.sectionTitle}>Departments</Text>
-                        </View>
-
-                        <PrimaryButton
-                            label="Add department"
-                            filled={true}
-                            onPress={() => { }}
-                            style={{ width: "45%" }}
-                            icon={<Ionicons name="add" size={18} color="white" />}
-                            image={undefined}
-                            iconStyle={undefined}
-                            imageStyle={undefined}
-                            loading={false}
-                            disabled={false}
-                        />
-                    </View>
-
-                    {/* Departments List */}
-                    <View style={styles.departmentList}>
-                        {departments.map(department => (
-                            <DepartmentCard
-                                key={department.id}
-                                department={department}
-                                onEdit={handleEditDepartment}
-                                onDelete={handleDeleteDepartment}
-                            />
-                        ))}
-                    </View>
-                </View>
-            </ScrollView>
-
-            <ScrollView style={styles.container}>
                 {/* Offices Section */}
                 <View style={styles.section}>
                     <View style={styles.sectionHeader}>
@@ -242,11 +179,11 @@ const OfficeCertificates = () => {
                         </View>
 
                         <PrimaryButton
-                            label={"Add office"}
+                            label={showAddForm ? "Hide Form" : "Add office"}
                             filled={true}
-                            onPress={() => { }}
+                            onPress={() => setShowAddForm(!showAddForm)}
                             style={{ width: "40%" }}
-                            icon={<Ionicons name="add" size={18} color="white" />}
+                            icon={<Ionicons name={showAddForm ? "remove" : "add"} size={18} color="white" />}
                             image={undefined}
                             iconStyle={undefined}
                             imageStyle={undefined}
@@ -254,6 +191,86 @@ const OfficeCertificates = () => {
                             disabled={false}
                         />
                     </View>
+
+                    {showAddForm && (
+                        <View style={styles.addOfficeForm}>
+                            <View style={styles.rowContainer}>
+                                <View style={styles.halfField}>
+                                    <Text style={styles.label}>
+                                        <Text style={styles.required}>* </Text>Office Name
+                                    </Text>
+                                    <CustomTextInput
+                                        placeholder="Office Name"
+                                        value={officeName}
+                                        onChangeText={setOfficeName}
+                                    />
+                                </View>
+                                <View style={styles.halfField}>
+                                    <Text style={styles.label}>
+                                        <Text style={styles.required}>* </Text>Floor
+                                    </Text>
+                                    <CustomTextInput
+                                        placeholder="Floor"
+                                        value={floor}
+                                        onChangeText={setFloor}
+                                        keyboardType="numeric"
+                                    />
+                                </View>
+                            </View>
+
+                            <View style={styles.rowContainer}>
+                                <View style={styles.halfField}>
+                                    <Text style={styles.label}>
+                                        <Text style={styles.required}>* </Text>Number
+                                    </Text>
+                                    <CustomTextInput
+                                        placeholder="Office Number"
+                                        value={number}
+                                        onChangeText={setNumber}
+                                        keyboardType="numeric"
+                                    />
+                                </View>
+                                <View style={styles.halfField}>
+                                    <Text style={styles.label}>
+                                        <Text style={styles.required}>* </Text>Office Type
+                                    </Text>
+                                    <CustomDropdown
+                                        placeholder="Select Type"
+                                        options={officeTypeOptions}
+                                        value={type}
+                                        onChange={setType}
+                                    />
+                                </View>
+                            </View>
+
+                            <View style={styles.formField}>
+                                <Text style={styles.label}>Equipment</Text>
+                                <CustomTextInput
+                                    placeholder="Equipment list (one per line)"
+                                    value={equipment}
+                                    onChangeText={setEquipment}
+                                    multiline={true}
+                                    numberOfLines={4}
+                                />
+                            </View>
+
+                            <View style={styles.formFooter}>
+                                <PrimaryButton
+                                    label="Cancel"
+                                    filled={false}
+                                    onPress={resetForm}
+                                    style={{ width: "30%", height: hp(5.5), marginBottom: 0 }}
+                                />
+                                <PrimaryButton
+                                    label="Save"
+                                    filled={true}
+                                    onPress={handleAddOffice}
+                                    style={{ width: "30%", height: hp(5.5), marginBottom: 0 }}
+                                    icon={<FontAwesome name="save" size={16} color="white" />}
+                                />
+                            </View>
+                        </View>
+                    )}
 
                     {/* Office List */}
                     <View style={styles.officeList}>
@@ -428,13 +445,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
     },
-    departmentList: {
-        padding: 16,
-    },
-    iconButton: {
-        padding: 8,
-        marginLeft: 8,
-    },
     certificatesContainer: {
         padding: 16,
     },
@@ -469,54 +479,57 @@ const styles = StyleSheet.create({
         marginLeft: 10,
         fontSize: 16,
     },
-    helpButtonFloat: {
-        position: 'absolute',
-        bottom: 20,
-        right: 20,
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        backgroundColor: '#4A90B9',
-        justifyContent: 'center',
-        alignItems: 'center',
-        elevation: 5,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 3,
+    iconButton: {
+        padding: 8,
+        marginLeft: 8,
     },
-    helpText: {
-        color: 'white',
-        fontSize: 20,
-        fontWeight: 'bold',
+    addOfficeForm: {
+        padding: 20,
+        margin: 16,
+        borderWidth: 1,
+        borderColor: '#E0E0E0',
+        borderRadius: 12,
+        backgroundColor: '#FFFFFF',
     },
-    departmentCard: {
+    rowContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        borderWidth: 1,
-        borderColor: '#EEEEEE',
-        borderRadius: 8,
-        padding: 16,
-        marginBottom: 12,
+        marginBottom: 15,
     },
-    departmentInfo: {
-        flex: 1,
+    halfField: {
+        width: '48%',
     },
-    departmentTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#333333',
-        marginBottom: 4,
+    formField: {
+        marginBottom: 15,
     },
-    departmentDetail: {
+    label: {
         fontSize: 14,
-        color: '#666666',
-        marginBottom: 2,
+        fontWeight: '600',
+        color: '#333',
+        marginBottom: 8,
     },
-    departmentActions: {
+    required: {
+        color: '#FF6B6B',
+    },
+    formFooter: {
         flexDirection: 'row',
-        alignItems: "flex-start",
-    }
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+        marginTop: 10,
+        gap: 15,
+    },
+    cancelBtn: {
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 8,
+        borderWidth: 1.5,
+        borderColor: '#4A90B9',
+    },
+    cancelBtnText: {
+        color: '#4A90B9',
+        fontWeight: '700',
+        fontSize: 14,
+    },
 });
 
 export default OfficeCertificates;

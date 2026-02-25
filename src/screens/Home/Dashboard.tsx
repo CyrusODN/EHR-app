@@ -22,6 +22,7 @@ import ActionModal from './modals/ActionModal';
 import { useTranslation } from 'react-i18next';
 import CreateVisitModal from './modals/createVisit';
 import userStore from '../../store/user';
+import { Modal } from 'react-native';
 
 const Dashboard = () => {
     const { t } = useTranslation();
@@ -35,9 +36,11 @@ const Dashboard = () => {
     const currentMonth = 'April 2025';
     const { colors } = useTheme();
     const [selectedDate, setSelectedDate] = useState(new Date().getDate());
+    const [viewDate, setViewDate] = useState(new Date()); // Date being viewed in calendar
     const [createVisitModalVisible, setCreateVisitModalVisible] = useState(false);
     const [drawerVisible, setDrawerVisible] = useState(false);
     const [showActionModal, setShowActionModal] = useState(false);
+    const [calendarModalVisible, setCalendarModalVisible] = useState(false);
 
     useEffect(() => {
         const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
@@ -49,20 +52,36 @@ const Dashboard = () => {
     // Generate calendar days
     const getDaysInMonth = () => {
         const days = [];
-        const daysInMonth = new Date(2025, 3, 0).getDate();
+        const year = viewDate.getFullYear();
+        const month = viewDate.getMonth();
+        
+        // Days in current month
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        // First day of original month (0-6, 0 is Sunday)
+        const firstDayOfMonth = new Date(year, month, 1).getDay();
+        // Adjust for Monday start (0=Mon, 6=Sun)
+        const startOffset = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
 
-        for (let i = 24; i <= 28; i++) {
-            days.push({ day: i, isCurrentMonth: false });
+        // Previous month days for padding
+        const prevMonthLastDay = new Date(year, month, 0).getDate();
+        for (let i = startOffset - 1; i >= 0; i--) {
+            days.push({ day: prevMonthLastDay - i, isCurrentMonth: false });
         }
+
+        // Current month days
+        const today = new Date();
         for (let i = 1; i <= daysInMonth; i++) {
             days.push({
                 day: i,
                 isCurrentMonth: true,
-                isToday: i === 21,
-                isSelected: i === selectedDate
+                isToday: i === today.getDate() && month === today.getMonth() && year === today.getFullYear(),
+                isSelected: i === selectedDate && month === new Date().getMonth() && year === new Date().getFullYear() // simplified selection logic
             });
         }
-        for (let i = 1; i <= 6; i++) {
+
+        // Next month days for padding
+        const remainingCells = 42 - days.length;
+        for (let i = 1; i <= remainingCells; i++) {
             days.push({ day: i, isCurrentMonth: false });
         }
         return days;
@@ -73,6 +92,16 @@ const Dashboard = () => {
             setSelectedDate(day.day);
         }
     };
+
+    const handlePrevMonth = () => {
+        setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1));
+    };
+
+    const handleNextMonth = () => {
+        setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1));
+    };
+
+    const currentMonthDisplay = viewDate.toLocaleString('default', { month: 'long', year: 'numeric' });
 
     const days = getDaysInMonth();
     const weekdays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
@@ -129,12 +158,29 @@ const Dashboard = () => {
             >
                 {/* Welcome Section */}
                 <View style={styles.welcomeSection}>
-                    <View>
+                    <View style={{ flex: 1 }}>
                         <Text style={styles.greeting}>
                             {t('dashboard.title')}
                         </Text>
                         <Text style={styles.subtitle}>Overview of key information</Text>
                     </View>
+                    <TouchableOpacity 
+                        style={styles.calendarTriggerBtn}
+                        onPress={() => setCalendarModalVisible(true)}
+                        activeOpacity={0.8}
+                    >
+                        <LinearGradient
+                            colors={['#4A90B9', '#68BFB3']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={styles.calendarTriggerGradient}
+                        >
+                            <Icon name="calendar-month-outline" size={26} color="white" />
+                        </LinearGradient>
+                        <View style={styles.dateBadge}>
+                            <Text style={styles.dateBadgeText}>{selectedDate}</Text>
+                        </View>
+                    </TouchableOpacity>
                 </View>
 
                 {/* Action Buttons */}
@@ -171,9 +217,10 @@ const Dashboard = () => {
 
                 {/* Search Bar */}
                 <View style={styles.searchContainer}>
-                    <Feather name="search" size={18} color="#9CA3AF" style={{ marginLeft: 4 }} />
+                    <Feather name="search" size={18} color="#9CA3AF" style={{ marginLeft: 2 }} />
                     <Searchbar
-                        placeholder="Search patient..."
+                        placeholder={t('nav.patients.search') + '...'}
+                        placeholderTextColor="#9CA3AF"
                         style={styles.searchBar}
                         inputStyle={styles.searchInput}
                         icon={() => null}
@@ -186,73 +233,100 @@ const Dashboard = () => {
 
                 <Gap height={6} />
 
-                {/* Calendar */}
-                <View style={styles.calendarCard}>
-                    <View style={styles.calendarHeader}>
-                        <View style={styles.calendarHeaderLeft}>
-                            <View style={styles.calendarIconBg}>
-                                <Icon name="calendar-month" size={18} color="#4A90B9" />
-                            </View>
-                            <Text style={styles.calendarTitle}>{currentMonth}</Text>
-                        </View>
-                        <View style={styles.calendarNavigation}>
-                            <TouchableOpacity style={styles.calendarNavBtn}>
-                                <Feather name="chevron-left" size={18} color="#6B7280" />
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.calendarNavBtn}>
-                                <Feather name="chevron-right" size={18} color="#6B7280" />
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-
-                    {/* Weekday Headers */}
-                    <View style={styles.weekdayRow}>
-                        {weekdays.map((day, index) => (
-                            <Text key={index} style={styles.weekdayText}>
-                                {day}
-                            </Text>
-                        ))}
-                    </View>
-
-                    {/* Calendar Days Grid */}
-                    <View style={styles.calendarGrid}>
-                        {days.map((item, index) => (
-                            <TouchableOpacity
-                                key={index}
-                                style={styles.calendarDay}
-                                onPress={() => handleDateSelect(item)}
-                            >
-                                {item.isSelected && item.isCurrentMonth ? (
-                                    <LinearGradient
-                                        colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
-                                        start={{ x: 0, y: 0 }}
-                                        end={{ x: 1, y: 0 }}
-                                        style={styles.selectedDateGradient}
-                                    >
-                                        <Text style={styles.selectedDateText}>
-                                            {item.day}
-                                        </Text>
-                                    </LinearGradient>
-                                ) : (
-                                    <View style={[
-                                        styles.dayContainer,
-                                        item.isToday && !item.isSelected ? styles.todayContainer : null,
-                                    ]}>
-                                        <Text
-                                            style={[
-                                                styles.calendarDayText,
-                                                !item.isCurrentMonth ? styles.otherMonthText : null,
-                                                item.isToday && !item.isSelected ? styles.todayText : null,
-                                            ]}
-                                        >
-                                            {item.day}
-                                        </Text>
+                 <Gap height={6} />
+                
+                {/* Calendar Modal */}
+                <Modal
+                    visible={calendarModalVisible}
+                    transparent={true}
+                    animationType="fade"
+                    onRequestClose={() => setCalendarModalVisible(false)}
+                >
+                    <TouchableOpacity 
+                        style={styles.modalOverlay} 
+                        activeOpacity={1} 
+                        onPress={() => setCalendarModalVisible(false)}
+                    >
+                        <View style={styles.calendarModalContent}>
+                            <View style={styles.calendarCardModal}>
+                                <View style={styles.calendarHeader}>
+                                    <View style={styles.calendarHeaderLeft}>
+                                        <View style={styles.calendarIconBg}>
+                                            <Icon name="calendar-month" size={18} color="#4A90B9" />
+                                        </View>
+                                        <Text style={styles.calendarTitle}>{currentMonthDisplay}</Text>
                                     </View>
-                                )}
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                </View>
+                                    <View style={styles.calendarNavigation}>
+                                        <TouchableOpacity style={styles.calendarNavBtn} onPress={handlePrevMonth}>
+                                            <Feather name="chevron-left" size={18} color="#6B7280" />
+                                        </TouchableOpacity>
+                                        <TouchableOpacity style={styles.calendarNavBtn} onPress={handleNextMonth}>
+                                            <Feather name="chevron-right" size={18} color="#6B7280" />
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+
+                                {/* Weekday Headers */}
+                                <View style={styles.weekdayRow}>
+                                    {weekdays.map((day, index) => (
+                                        <Text key={index} style={styles.weekdayText}>
+                                            {day}
+                                        </Text>
+                                    ))}
+                                </View>
+
+                                {/* Calendar Days Grid */}
+                                <View style={styles.calendarGrid}>
+                                    {days.map((item, index) => (
+                                        <TouchableOpacity
+                                            key={index}
+                                            style={styles.calendarDay}
+                                            onPress={() => {
+                                                handleDateSelect(item);
+                                                setCalendarModalVisible(false);
+                                            }}
+                                        >
+                                            {item.isSelected && item.isCurrentMonth ? (
+                                                <LinearGradient
+                                                    colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
+                                                    start={{ x: 0, y: 0 }}
+                                                    end={{ x: 1, y: 0 }}
+                                                    style={styles.selectedDateGradient}
+                                                >
+                                                    <Text style={styles.selectedDateText}>
+                                                        {item.day}
+                                                    </Text>
+                                                </LinearGradient>
+                                            ) : (
+                                                <View style={[
+                                                    styles.dayContainer,
+                                                    item.isToday && !item.isSelected ? styles.todayContainer : null,
+                                                ]}>
+                                                    <Text
+                                                        style={[
+                                                            styles.calendarDayText,
+                                                            !item.isCurrentMonth ? styles.otherMonthText : null,
+                                                            item.isToday && !item.isSelected ? styles.todayText : null,
+                                                        ]}
+                                                    >
+                                        {item.day}
+                                                    </Text>
+                                                </View>
+                                            )}
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+
+                                <TouchableOpacity 
+                                    style={styles.closeCalendarBtn}
+                                    onPress={() => setCalendarModalVisible(false)}
+                                >
+                                    <Text style={styles.closeCalendarText}>Close</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </TouchableOpacity>
+                </Modal>
 
                 {/* Appointments Section */}
                 <View style={styles.appointmentsHeader}>
@@ -382,6 +456,9 @@ const styles = StyleSheet.create({
     welcomeSection: {
         paddingTop: 20,
         paddingBottom: 6,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
     },
     greeting: {
         fontSize: 26,
@@ -393,6 +470,88 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#9CA3AF',
         marginTop: 3,
+    },
+    calendarTriggerBtn: {
+        width: 52,
+        height: 52,
+        borderRadius: 16,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        borderWidth: 1.5,
+        borderColor: '#EBF5F7',
+        ...Platform.select({
+            ios: {
+                shadowColor: '#4A90B9',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.1,
+                shadowRadius: 8,
+            },
+            android: { elevation: 3 },
+        }),
+    },
+    calendarTriggerGradient: {
+        width: '100%',
+        height: '100%',
+        borderRadius: 14,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    dateBadge: {
+        position: 'absolute',
+        top: -5,
+        right: -5,
+        backgroundColor: '#FF6B6B',
+        borderRadius: 10,
+        minWidth: 20,
+        height: 20,
+        paddingHorizontal: 4,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 2,
+        borderColor: '#fff',
+    },
+    dateBadgeText: {
+        color: 'white',
+        fontSize: 10,
+        fontWeight: '800',
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    calendarModalContent: {
+        width: '100%',
+        maxWidth: 400,
+    },
+    calendarCardModal: {
+        backgroundColor: '#fff',
+        borderRadius: 24,
+        padding: 20,
+        ...Platform.select({
+            ios: {
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 10 },
+                shadowOpacity: 0.2,
+                shadowRadius: 20,
+            },
+            android: { elevation: 10 },
+        }),
+    },
+    closeCalendarBtn: {
+        marginTop: 20,
+        backgroundColor: '#F3F4F6',
+        paddingVertical: 12,
+        borderRadius: 14,
+        alignItems: 'center',
+    },
+    closeCalendarText: {
+        color: '#4B5563',
+        fontWeight: '700',
+        fontSize: 15,
     },
     // Action Buttons
     actionButtonsRow: {
@@ -468,18 +627,23 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         borderRadius: 14,
         marginBottom: 14,
-        paddingLeft: 14,
+        paddingHorizontal: wp(2.5),
         borderWidth: 1,
         borderColor: '#E8EDF2',
+        height: 50,
     },
     searchBar: {
         flex: 1,
         backgroundColor: 'transparent',
         elevation: 0,
-        height: 48,
+        height: '100%',
+        justifyContent: 'center',
     },
     searchInput: {
         fontSize: 14,
+        paddingLeft: 0,
+        marginLeft: -29,
+        minHeight: 0,
     },
     // Calendar
     calendarCard: {

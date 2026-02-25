@@ -75,6 +75,7 @@ const MedicalFilterForm = () => {
                     {doctorOptions.map((item, index) => {
                         return (
                             <TouchableOpacity
+                                key={index}
                                 onPress={() => {
                                     setDoctor(prev => prev == item.value ? null : item.value)
                                 }}

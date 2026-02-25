@@ -10,8 +10,8 @@ const LogoSvg: React.FC<LogoSvgProps> = ({ size = 'large' }) => {
     return (
         <Svg
             viewBox="0 0 5563 1373"
-            width={size === 'small' ? "60%" : "80%"}
-            height={size === 'small' ? "5%" : "10%"}
+            width={size === 'small' ? 140 : 220}
+            height={size === 'small' ? 35 : 55}
             aria-label="Remedy AI Logo"
         >
             <Defs>

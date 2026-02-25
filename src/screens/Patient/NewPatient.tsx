@@ -7,7 +7,8 @@ import {
     ScrollView,
     TouchableOpacity,
     Platform,
-    StatusBar
+    StatusBar,
+    Modal
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -27,15 +28,27 @@ const NewPatientScreen = ({ }) => {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [pesel, setPesel] = useState('');
-    const [dateOfBirth, setDateOfBirth] = useState(new Date());
+    const [dateOfBirth, setDateOfBirth] = useState<Date | null>(null);
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [gender, setGender] = useState<string | number | null>(null);
     const [phone, setPhone] = useState('');
+    const [middleName, setMiddleName] = useState('');
+    const [maidenName, setMaidenName] = useState('');
+    const [alternativePhone, setAlternativePhone] = useState('');
+    const [email, setEmail] = useState('');
+    const [placeOfBirth, setPlaceOfBirth] = useState('');
+    const [documentType, setDocumentType] = useState<string | number | null>(null);
+    const [bloodType, setBloodType] = useState<string | number | null>(null);
+    const [internalCardNo, setInternalCardNo] = useState('');
+    const [foreigner, setForeigner] = useState<string | number | null>(null);
     const [street, setStreet] = useState('');
     const [houseNo, setHouseNo] = useState('');
     const [apartmentNo, setApartmentNo] = useState('');
     const [postalCode, setPostalCode] = useState('');
     const [city, setCity] = useState('');
+    const [country, setCountry] = useState<string | number | null>(null);
+    const [voivodeship, setVoivodeship] = useState<string | number | null>(null);
+    const [municipalityTeryt, setMunicipalityTeryt] = useState('');
     const [insuranceType, setInsuranceType] = useState<string | number>('NFZ');
     const [insuranceNo, setInsuranceNo] = useState('');
 
@@ -49,18 +62,76 @@ const NewPatientScreen = ({ }) => {
     const insuranceOptions = [
         { label: 'NFZ', value: 'NFZ' },
         { label: 'Private', value: 'Private' },
-        { label: 'International', value: 'International' },
+        { label: 'None', value: 'None' },
+    ];
+
+    const documentTypeOptions = [
+        { label: 'Residence Card', value: 'residence_card' },
+        { label: 'ID Card', value: 'id_card' },
+        { label: 'EHIC', value: 'ehic' },
+        { label: 'EU/EOG National ID', value: 'eu_eog_id' },
+        { label: "Foreign Driver's License", value: 'foreign_license' },
+        { label: 'Other', value: 'other' },
+        { label: 'None (Infant)', value: 'none_infant' },
+        { label: 'None (NN)', value: 'none_nn' },
+        { label: 'None (NW - Child under 6 months)', value: 'none_nw' },
+    ];
+
+    const bloodTypeOptions = [
+        { label: 'A+', value: 'A+' },
+        { label: 'A-', value: 'A-' },
+        { label: 'B+', value: 'B+' },
+        { label: 'B-', value: 'B-' },
+        { label: 'AB+', value: 'AB+' },
+        { label: 'AB-', value: 'AB-' },
+        { label: 'O+', value: 'O+' },
+        { label: 'O-', value: 'O-' },
+    ];
+
+    const foreignerOptions = [
+        { label: 'Yes', value: 'yes' },
+        { label: 'No', value: 'no' },
+    ];
+
+    const countryOptions = [
+        { label: 'Poland', value: 'poland' },
+        { label: 'Germany', value: 'germany' },
+        { label: 'United Kingdom', value: 'uk' },
+        { label: 'France', value: 'france' },
+    ];
+
+    const voivodeshipOptions = [
+        { label: 'Mazowieckie', value: 'mazowieckie' },
+        { label: 'Dolnośląskie', value: 'dolnoslaskie' },
+        { label: 'Kujawsko-pomorskie', value: 'kujawsko-pomorskie' },
+        { label: 'Lubelskie', value: 'lubelskie' },
+        { label: 'Lubuskie', value: 'lubuskie' },
+        { label: 'Łódzkie', value: 'lodzkie' },
+        { label: 'Małopolskie', value: 'malopolskie' },
+        { label: 'Opolskie', value: 'opolskie' },
+        { label: 'Podkarpackie', value: 'podkarpackie' },
+        { label: 'Podlaskie', value: 'podlaskie' },
+        { label: 'Pomorskie', value: 'pomorskie' },
+        { label: 'Śląskie', value: 'slaskie' },
+        { label: 'Świętokrzyskie', value: 'swietokrzyskie' },
+        { label: 'Warmińsko-mazurskie', value: 'warminsko-mazurskie' },
+        { label: 'Wielkopolskie', value: 'wielkopolskie' },
+        { label: 'Zachodniopomorskie', value: 'zachodniopomorskie' },
     ];
 
     // Handle date change
     const handleDateChange = (event: any, selectedDate?: Date) => {
-        const currentDate = selectedDate || dateOfBirth;
-        setShowDatePicker(Platform.OS === 'ios');
-        setDateOfBirth(currentDate);
+        if (Platform.OS === 'android') {
+            setShowDatePicker(false);
+        }
+        if (selectedDate) {
+            setDateOfBirth(selectedDate);
+        }
     };
 
     // Format date for display
-    const formatDate = (date: Date) => {
+    const formatDate = (date: Date | null) => {
+        if (!date) return 'Select date';
         const day = date.getDate().toString().padStart(2, '0');
         const month = (date.getMonth() + 1).toString().padStart(2, '0');
         const year = date.getFullYear();
@@ -77,11 +148,23 @@ const NewPatientScreen = ({ }) => {
             dateOfBirth,
             gender,
             phone,
+            middleName,
+            maidenName,
+            alternativePhone,
+            email,
+            placeOfBirth,
+            documentType,
+            bloodType,
+            internalCardNo,
+            foreigner,
             street,
             houseNo,
             apartmentNo,
             postalCode,
             city,
+            country,
+            voivodeship,
+            municipalityTeryt,
             insuranceType,
             insuranceNo
         });
@@ -145,23 +228,54 @@ const NewPatientScreen = ({ }) => {
                                     keyboardType="numeric" icon={undefined} right={undefined} onRightPress={undefined} />
                             </View>
 
-                            <View style={styles.formField}>
+                             <View style={styles.formField}>
                                 <Text style={styles.label}>Date of Birth</Text>
                                 <TouchableOpacity
                                     style={styles.datePickerButton}
                                     onPress={() => setShowDatePicker(true)}
                                 >
-                                    <Text>{formatDate(dateOfBirth)}</Text>
-                                    <MaterialCommunityIcons name="calendar-blank" size={18} color="grey" />
+                                    <Text style={{ color: dateOfBirth ? '#000' : 'grey' }}>
+                                        {formatDate(dateOfBirth)}
+                                    </Text>
+                                    <MaterialCommunityIcons name="calendar-month" size={20} color="#4A90B9" />
                                 </TouchableOpacity>
-                                {showDatePicker && (
-                                    <DateTimePicker
-                                        value={dateOfBirth}
-                                        mode="date"
-                                        display="default"
-                                        onChange={handleDateChange}
-                                    />
-                                )}
+
+                                <Modal
+                                    visible={showDatePicker}
+                                    transparent={true}
+                                    animationType="fade"
+                                    onRequestClose={() => setShowDatePicker(false)}
+                                >
+                                    <TouchableOpacity 
+                                        style={styles.modalOverlay} 
+                                        activeOpacity={1} 
+                                        onPress={() => setShowDatePicker(false)}
+                                    >
+                                        <View style={styles.datePickerContainer}>
+                                            <View style={styles.datePickerHeader}>
+                                                <Text style={styles.datePickerTitle}>Select Date of Birth</Text>
+                                                <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                                                    <Ionicons name="close" size={24} color="#666" />
+                                                </TouchableOpacity>
+                                            </View>
+                                            <DateTimePicker
+                                                value={dateOfBirth || new Date()}
+                                                mode="date"
+                                                display={Platform.OS === 'ios' ? 'inline' : 'calendar'}
+                                                onChange={handleDateChange}
+                                                maximumDate={new Date()}
+                                            />
+                                            {Platform.OS === 'ios' && (
+                                                <TouchableOpacity 
+                                                    style={styles.confirmButton}
+                                                    onPress={() => setShowDatePicker(false)}
+                                                >
+                                                    <Text style={styles.confirmButtonText}>Confirm</Text>
+                                                </TouchableOpacity>
+                                            )}
+                                        </View>
+                                    </TouchableOpacity>
+                                </Modal>
                             </View>
 
                             <View style={styles.formField}>
@@ -180,6 +294,90 @@ const NewPatientScreen = ({ }) => {
                                     value={phone}
                                     onChangeText={setPhone}
                                     keyboardType="phone-pad" icon={undefined} right={undefined} onRightPress={undefined} />
+                            </View>
+
+                            <View style={styles.rowContainer}>
+                                <View style={styles.halfField}>
+                                    <Text style={styles.label}>Middle Name</Text>
+                                    <CustomTextInput
+                                        placeholder="Enter middle name"
+                                        value={middleName}
+                                        onChangeText={setMiddleName} icon={undefined} right={undefined} onRightPress={undefined} keyboardType={undefined} />
+                                </View>
+                                <View style={styles.halfField}>
+                                    <Text style={styles.label}>Maiden Name</Text>
+                                    <CustomTextInput
+                                        placeholder="Enter maiden name"
+                                        value={maidenName}
+                                        onChangeText={setMaidenName} icon={undefined} right={undefined} onRightPress={undefined} keyboardType={undefined} />
+                                </View>
+                            </View>
+
+                            <View style={styles.rowContainer}>
+                                <View style={styles.halfField}>
+                                    <Text style={styles.label}>Alternative Phone</Text>
+                                    <CustomTextInput
+                                        placeholder="Enter alternative phone"
+                                        value={alternativePhone}
+                                        onChangeText={setAlternativePhone}
+                                        keyboardType="phone-pad" icon={undefined} right={undefined} onRightPress={undefined} />
+                                </View>
+                                <View style={styles.halfField}>
+                                    <Text style={styles.label}>Email</Text>
+                                    <CustomTextInput
+                                        placeholder="Enter email address"
+                                        value={email}
+                                        onChangeText={setEmail}
+                                        keyboardType="email-address" icon={undefined} right={undefined} onRightPress={undefined} />
+                                </View>
+                            </View>
+
+                            <View style={styles.rowContainer}>
+                                <View style={styles.halfField}>
+                                    <Text style={styles.label}>Place of Birth</Text>
+                                    <CustomTextInput
+                                        placeholder="Enter place of birth"
+                                        value={placeOfBirth}
+                                        onChangeText={setPlaceOfBirth} icon={undefined} right={undefined} onRightPress={undefined} keyboardType={undefined} />
+                                </View>
+                                <View style={styles.halfField}>
+                                    <Text style={styles.label}>Document Type</Text>
+                                    <CustomDropdown
+                                        placeholder="Select document type"
+                                        options={documentTypeOptions}
+                                        value={documentType}
+                                        onChange={setDocumentType} icon={undefined} />
+                                </View>
+                            </View>
+
+                            <View style={styles.rowContainer}>
+                                <View style={styles.halfField}>
+                                    <Text style={styles.label}>Blood Type</Text>
+                                    <CustomDropdown
+                                        placeholder="Select blood type"
+                                        options={bloodTypeOptions}
+                                        value={bloodType}
+                                        onChange={setBloodType} icon={undefined} />
+                                </View>
+                                <View style={styles.halfField}>
+                                    <Text style={styles.label}>Internal Card No.</Text>
+                                    <CustomTextInput
+                                        placeholder="Enter internal card no."
+                                        value={internalCardNo}
+                                        onChangeText={setInternalCardNo} icon={undefined} right={undefined} onRightPress={undefined} keyboardType={undefined} />
+                                </View>
+                            </View>
+
+                            <View style={styles.rowContainer}>
+                                <View style={styles.halfField}>
+                                    <Text style={styles.label}>Foreigner</Text>
+                                    <CustomDropdown
+                                        placeholder="Select"
+                                        options={foreignerOptions}
+                                        value={foreigner}
+                                        onChange={setForeigner} icon={undefined} />
+                                </View>
+                                <View style={styles.halfField} />
                             </View>
                         </View>
 
@@ -227,6 +425,33 @@ const NewPatientScreen = ({ }) => {
                                     placeholder="Enter city name"
                                     value={city}
                                     onChangeText={setCity} icon={undefined} right={undefined} onRightPress={undefined} keyboardType={undefined} />
+                            </View>
+
+                            <View style={styles.rowContainer}>
+                                <View style={styles.halfField}>
+                                    <Text style={styles.label}>Voivodeship</Text>
+                                    <CustomDropdown
+                                        placeholder="Select voivodeship"
+                                        options={voivodeshipOptions}
+                                        value={voivodeship}
+                                        onChange={setVoivodeship} icon={undefined} />
+                                </View>
+                                <View style={styles.halfField}>
+                                    <Text style={styles.label}>* Country</Text>
+                                    <CustomDropdown
+                                        placeholder="Select country"
+                                        options={countryOptions}
+                                        value={country}
+                                        onChange={setCountry} icon={undefined} />
+                                </View>
+                            </View>
+                            <Gap height={hp(1)} />
+                            <View style={styles.formField}>
+                                <Text style={styles.label}>Municipality TERYT</Text>
+                                <CustomTextInput
+                                    placeholder="Enter municipality TERYT"
+                                    value={municipalityTeryt}
+                                    onChangeText={setMunicipalityTeryt} icon={undefined} right={undefined} onRightPress={undefined} keyboardType={undefined} />
                             </View>
                         </View>
 
@@ -416,6 +641,47 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.3,
         shadowRadius: 3,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 10,
+    },
+    datePickerContainer: {
+        backgroundColor: 'white',
+        borderRadius: 20,
+        paddingBottom: 20,
+        width: '95%',
+        overflow: 'hidden',
+        maxWidth: 400,
+    },
+    datePickerHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f0f0f0',
+    },
+    datePickerTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#333',
+    },
+    confirmButton: {
+        backgroundColor: '#4A90B9',
+        marginHorizontal: 16,
+        marginTop: 10,
+        padding: 14,
+        borderRadius: 12,
+        alignItems: 'center',
+    },
+    confirmButtonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: '700',
     },
 });
 

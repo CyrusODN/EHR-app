@@ -6,7 +6,8 @@ import {
     StyleSheet,
     ScrollView,
     SafeAreaView,
-    StatusBar
+    StatusBar,
+    TouchableOpacity
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -41,6 +42,7 @@ const FacilityData = () => {
     const [visitDuration, setVisitDuration] = useState('15');
     const [visitType, setVisitType] = useState<string | number>('Private');
     const [defaultReceptionMode, setDefaultReceptionMode] = useState<string | number>('');
+    const [consentText, setConsentText] = useState('');
 
     // Options for dropdowns
     const facilityTypeOptions = [
@@ -57,10 +59,9 @@ const FacilityData = () => {
     ];
 
     const receptionModeOptions = [
-        { label: 'Select', value: '' },
-        { label: 'Appointment only', value: 'Appointment only' },
-        { label: 'Walk-in', value: 'Walk-in' },
-        { label: 'Both', value: 'Both' },
+        { label: 'In Person', value: 'In Person' },
+        { label: 'Online', value: 'Online' },
+        { label: 'Telephone', value: 'Telephone' },
     ];
 
     // Handle save facility data
@@ -88,7 +89,8 @@ const FacilityData = () => {
             workHoursTo,
             visitDuration,
             visitType,
-            defaultReceptionMode
+            defaultReceptionMode,
+            consentText
         });
 
         // Navigate back or to another screen
@@ -440,6 +442,35 @@ const FacilityData = () => {
                                     icon={undefined}
                                 />
                             </View>
+
+                            <View style={styles.formField}>
+                                <Text style={styles.label}>Facility logo</Text>
+                                <TouchableOpacity style={styles.chooseFileBtn}>
+                                    <View style={styles.chooseFileInner}>
+                                        <Ionicons name="share-outline" size={18} color="#4A90B9" />
+                                        <Text style={styles.chooseFileText}>CHOOSE FILE</Text>
+                                    </View>
+                                </TouchableOpacity>
+                            </View>
+
+                            <View style={styles.formField}>
+                                <Text style={styles.label}>Personal data processing consent text (change default)</Text>
+                                <CustomTextInput
+                                    placeholder=""
+                                    value={consentText}
+                                    onChangeText={setConsentText}
+                                    multiline={true}
+                                    numberOfLines={6}
+                                    icon={undefined}
+                                    right={undefined}
+                                    onRightPress={undefined}
+                                    keyboardType={undefined}
+                                />
+                            </View>
+
+                            <View style={{ alignItems: 'flex-end', marginTop: 10 }}>
+                                <Text style={styles.requiredNote}>* Required field</Text>
+                            </View>
                         </View>
 
                         <View style={styles.buttonContainer}>
@@ -558,6 +589,30 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 20,
         fontWeight: 'bold',
+    },
+    chooseFileBtn: {
+        borderWidth: 1.5,
+        borderColor: '#4A90B9',
+        borderRadius: 8,
+        paddingVertical: 10,
+        paddingHorizontal: 15,
+        alignSelf: 'flex-start',
+        marginTop: 5,
+    },
+    chooseFileInner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+    },
+    chooseFileText: {
+        color: '#4A90B9',
+        fontWeight: '600',
+        fontSize: 14,
+    },
+    requiredNote: {
+        color: '#777777',
+        fontSize: 12,
+        fontStyle: 'italic',
     },
 });
 

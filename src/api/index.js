@@ -24,26 +24,33 @@ axios.defaults.timeout = defaultTimeout;
 
 axios.interceptors.request.use(
   async config => {
-    const idToken = await AsyncStorage.getItem('token');
-    if (idToken) config.headers.Authorization = `Bearer ${idToken}`;
+    // Import store dynamically to avoid circular dependencies if any
+    const userStore = require('../store/user').default;
+    const token = userStore.getState().token;
+    
+    if (token) config.headers.Authorization = `Bearer ${token}`;
 
     config.timeoutErrorMessage = ErrorMessages.timeoutMessage;
     return config;
   },
   error => {
-    Promise.reject(error);
+    return Promise.reject(error);
   },
 );
 
 axios.interceptors.response.use(
   (response) => {
-  
     if (response.status === HttpStatusCode.Ok) {
       return response?.data?.data || response?.data;
     }
     throw new Error(response?.data?.message || ErrorMessages.generalMessage);
   },
   (error) => {
+    if (error.response?.status === 401) {
+      const userStore = require('../store/user').default;
+      userStore.getState().purgeAuth();
+    }
+
     if (error.response?.data?.message) {
       return Promise.reject(new Error(error.response.data.message));
     }

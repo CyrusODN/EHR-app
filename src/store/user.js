@@ -13,17 +13,21 @@ const userStore = create(
         patientBasicInformation: null,
         token: null,
         isAuthenticated: false,
+        sessionExpiresAt: null,
   
         // Auth actions
         setToken: (payload) => 
           set(() => ({ token: payload, isAuthenticated: !!payload })),
         
-        setAuth: (payload) => 
+        setAuth: (payload) => {
+          const expirationTime = Date.now() + 24 * 60 * 60 * 1000;
           set(() => ({ 
             loggedInUser: payload, 
             token: payload.token,
-            isAuthenticated: true 
-          })),
+            isAuthenticated: true,
+            sessionExpiresAt: expirationTime
+          }));
+        },
   
         setPatientBasicInformation: (payload) => 
           set(() => ({ patientBasicInformation: payload })),
@@ -33,7 +37,8 @@ const userStore = create(
             loggedInUser: null, 
             token: null, 
             isAuthenticated: false,
-            patientBasicInformation: null 
+            patientBasicInformation: null,
+            sessionExpiresAt: null
           })),
       }),
       {
@@ -44,6 +49,7 @@ const userStore = create(
           loggedInUser: state.loggedInUser,
           patientBasicInformation: state.patientBasicInformation,
           isAuthenticated: state.isAuthenticated,
+          sessionExpiresAt: state.sessionExpiresAt,
         }),
       }
     )

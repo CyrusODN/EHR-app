@@ -15,26 +15,34 @@ export const DashboardStatsCard = () => {
     const [isExpanded, setIsExpanded] = useState(false);
     const expandAnimation = useRef(new Animated.Value(0)).current;
     const rotateAnimation = useRef(new Animated.Value(0)).current;
-
+    const isAnimating = useRef(false);
     const totalPatients = '1393 total';
 
     const toggleExpand = () => {
-        const toValue = isExpanded ? 0 : 1;
-        Animated.parallel([
-            Animated.spring(expandAnimation, {
-                toValue,
-                damping: 18,
-                stiffness: 100,
-                useNativeDriver: false,
-            }),
-            Animated.spring(rotateAnimation, {
-                toValue,
-                damping: 18,
-                stiffness: 100,
-                useNativeDriver: true,
-            })
-        ]).start();
-        setIsExpanded(!isExpanded);
+        if (isAnimating.current) return;
+        isAnimating.current = true;
+
+        setIsExpanded(prev => {
+            const nextState = !prev;
+            const toValue = nextState ? 1 : 0;
+
+            Animated.parallel([
+                Animated.timing(expandAnimation, {
+                    toValue,
+                    duration: 300,
+                    useNativeDriver: false,
+                }),
+                Animated.timing(rotateAnimation, {
+                    toValue,
+                    duration: 300,
+                    useNativeDriver: true,
+                })
+            ]).start(() => {
+                isAnimating.current = false;
+            });
+
+            return nextState;
+        });
     };
 
     const cardHeight = expandAnimation.interpolate({

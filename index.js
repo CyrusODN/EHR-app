@@ -10,6 +10,7 @@ import {
 } from 'react-native-paper';
 import { LightTheme } from './src/constants/colors/lightTheme';
 import { fontConfig } from './src/constants/fonts';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 
 export default function Main() {
@@ -18,9 +19,11 @@ export default function Main() {
         fonts: configureFonts({ config: fontConfig })
     }
     return (
-        <PaperProvider theme={theme}>
-            <App />
-        </PaperProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+            <PaperProvider theme={theme}>
+                <App />
+            </PaperProvider>
+        </GestureHandlerRootView>
     )
 }
 

@@ -95,8 +95,8 @@ const Settings = () => {
 
                     />
                     <NavItem
-                        icon={<Feather name="settings" size={20} color="#4A90B9" />}
-                        title="Settings"
+                        icon={<Feather name="map-pin" size={20} color="#4A90B9" />}
+                        title="Offices"
                         index={3}
                         selected={selected}
                         setSelected={setSelected}

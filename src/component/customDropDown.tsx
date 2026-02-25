@@ -9,6 +9,8 @@ interface CustomDropdownProps {
     value: string | number | null;
     onChange: (value: string | number) => void;
     icon?: React.ReactNode;
+    search?: boolean;
+    searchPlaceholder?: string;
 }
 
 const CustomDropdown: React.FC<CustomDropdownProps> = ({
@@ -16,7 +18,9 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
     options,
     value,
     onChange,
-    icon
+    icon,
+    search = false,
+    searchPlaceholder
 }) => {
     const { t } = useTranslation();
 
@@ -43,7 +47,8 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
                 labelField="label"
                 valueField="value"
                 placeholder={placeholder}
-                searchPlaceholder={t('common.search')}
+                search={search}
+                searchPlaceholder={searchPlaceholder || t('common.search')}
                 value={value}
                 onChange={item => {
                     onChange(item.value);

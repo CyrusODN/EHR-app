@@ -92,6 +92,20 @@ const CreateVisitModal = ({ visible, onClose }: { visible: boolean, onClose: () 
     const [isEVisit, setIsEVisit] = useState(false);
     const [isPrescriptionOnly, setIsPrescriptionOnly] = useState(false);
     const [isReferral, setIsReferral] = useState(false);
+    const [doctor, setDoctor] = useState<string | null>(null);
+    const [patient, setPatient] = useState<string | null>(null);
+
+    const doctorOptions = [
+        { label: 'Dr. John Doe', value: 'dr_john' },
+        { label: 'Dr. Sarah Smith', value: 'dr_sarah' },
+        { label: 'Dr. Michael Chen', value: 'dr_michael' },
+    ];
+
+    const patientOptions = [
+        { label: 'Alice Williams', value: 'alice' },
+        { label: 'Bob Miller', value: 'bob' },
+        { label: 'Charlie Brown', value: 'charlie' },
+    ];
 
     const officeOptions = [
         { label: 'Office 1', value: 'office1' },
@@ -270,6 +284,33 @@ const CreateVisitModal = ({ visible, onClose }: { visible: boolean, onClose: () 
                         showsVerticalScrollIndicator={false}
                         keyboardShouldPersistTaps="handled"
                     >
+                         {/* Patient Section */}
+                        <SectionHeader
+                            icon={<Feather name="user" size={16} color="#4A90B9" />}
+                            title="Patient"
+                        />
+                        <View style={styles.card}>
+                            <CustomDropdown
+                                placeholder="Search patient (min. 3 characters)..."
+                                options={patientOptions}
+                                value={patient}
+                                onChange={(v: any) => setPatient(v)}
+                                search={true}
+                                icon={<Feather name="search" color="#4A90B9" size={18} />}
+                            />
+                            <Gap height={12} />
+                            <PrimaryButton
+                                label="New Patient"
+                                filled={false}
+                                icon={<Feather name="user-plus" size={14} color="#4A90B9" />}
+                                onPress={() => {
+                                    handleClose();
+                                    navigation.navigate('New-Patient');
+                                }}
+                                style={{ width: "100%", height: 45 }} image={undefined} iconStyle={undefined} imageStyle={undefined} loading={false} disabled={false}
+                            />
+                        </View>
+
                         {/* Date & Time Section */}
                         <SectionHeader
                             icon={<MaterialCommunityIcons name="calendar-clock" size={16} color="#4A90B9" />}
@@ -410,30 +451,7 @@ const CreateVisitModal = ({ visible, onClose }: { visible: boolean, onClose: () 
                                 </View>
                             )}
                         </View>
-
-                        {/* Patient Section */}
-                        <SectionHeader
-                            icon={<Feather name="user" size={16} color="#4A90B9" />}
-                            title="Patient"
-                        />
-                        <View style={styles.card}>
-                            <CustomTextInput
-                                multiline
-                                placeholder="Search patient (min. 3 characters)..."
-                                icon={<Feather name="search" color="#9CA3AF" size={16} />}
-                                value={''} onChangeText={() => {}} right={undefined} onRightPress={undefined} keyboardType={undefined} />
-                            <Gap height={12} />
-                            <PrimaryButton
-                                label="New Patient"
-                                filled={false}
-                                icon={<Feather name="user-plus" size={14} color="#4A90B9" />}
-                                onPress={() => {
-                                    handleClose();
-                                    navigation.navigate('New-Patient');
-                                }}
-                                style={{ width: "100%" }} image={undefined} iconStyle={undefined} imageStyle={undefined} loading={false} disabled={false}
-                            />
-                        </View>
+           
 
                         {/* Visit Details Section */}
                         <SectionHeader
@@ -441,6 +459,15 @@ const CreateVisitModal = ({ visible, onClose }: { visible: boolean, onClose: () 
                             title="Visit Details"
                         />
                         <View style={styles.card}>
+                            <Text style={styles.label}>Doctor</Text>
+                            <CustomDropdown
+                                placeholder="Select doctor"
+                                options={doctorOptions}
+                                value={doctor}
+                                onChange={(v: any) => setDoctor(v)}
+                                icon={<FontAwesome6 name="user-doctor" size={16} color="#4A90B9" />}
+                            />
+                            <Gap height={14} />
                             <Text style={styles.label}>Office</Text>
                             <CustomDropdown
                                 placeholder="Select office"
@@ -518,25 +545,21 @@ const CreateVisitModal = ({ visible, onClose }: { visible: boolean, onClose: () 
 
                 {/* Bottom Action Buttons */}
                 <View style={styles.bottomActions}>
-                    <TouchableOpacity onPress={handleClose} style={styles.cancelBtn}>
-                        <Text style={styles.cancelBtnText}>Cancel</Text>
-                    </TouchableOpacity>
                     <View style={styles.primaryActions}>
                         <PrimaryButton
-                            label="Save"
+                            label="Cancel"
                             filled={false}
-                            icon={<FontAwesome name="save" size={14} color='#4A90B9' />}
-                            onPress={handleSave}
-                            style={{ flex: 1, marginRight: 8 }} image={undefined} iconStyle={undefined} imageStyle={undefined}
+                            onPress={handleClose}
+                            style={{ flex: 0.8, marginRight: 16 }}
                             loading={false}
-                            disabled={false}
+                            disabled={false} image={undefined} imageStyle={undefined}
                         />
                         <PrimaryButton
-                            label="Save & Start"
+                            label="Schedule Visit"
                             filled={true}
-                            icon={<Ionicons name="arrow-forward" size={14} color="white" />}
+                            icon={<Ionicons name="calendar-outline" size={14} color="white" />}
                             onPress={handleSave}
-                            style={{ flex: 1 }} image={undefined} iconStyle={undefined} imageStyle={undefined}
+                            style={{ flex: 1.5 }} image={undefined} iconStyle={undefined} imageStyle={undefined}
                             loading={false}
                             disabled={false}
                         />
@@ -643,7 +666,7 @@ const styles = StyleSheet.create({
     card: {
         backgroundColor: 'white',
         borderRadius: 14,
-        padding: 16,
+        padding: 12,
         marginBottom: 16,
         ...Platform.select({
             ios: {
@@ -809,16 +832,6 @@ const styles = StyleSheet.create({
     primaryActions: {
         flexDirection: 'row',
         marginBottom: 6,
-    },
-    cancelBtn: {
-        alignItems: 'center',
-        paddingVertical: 10,
-        marginBottom: 4,
-    },
-    cancelBtnText: {
-        fontSize: 14,
-        color: '#9CA3AF',
-        fontWeight: '500',
     },
 });
 

@@ -1,4 +1,3 @@
-import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
     StyleSheet,
@@ -11,14 +10,14 @@ import {
     Platform,
     Image,
 } from 'react-native';
-
+import { useNavigation } from '@react-navigation/native';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import Feather from 'react-native-vector-icons/Feather';
 import MedicalFilterForm from './Layout/filterForm';
 import Gap from '../../component/gap';
 import StatCard from './Layout/statCard';
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
-import Feather from 'react-native-vector-icons/Feather';
 import MedicalCharts from './Layout/medicalCharts';
 
 
@@ -351,13 +350,14 @@ const styles = StyleSheet.create({
         width: '95%', alignSelf: "center"
     },
     headerTitle: {
-        fontSize: 24,
+        fontSize: 20,
         fontWeight: 'bold',
         color: '#333',
-        marginLeft: 2
+        marginLeft: 2,
+        marginTop: hp(2)
     },
     headerSubtitle: {
-        fontSize: 16,
+        fontSize: 14,
         color: '#777',
     },
     backButton: {

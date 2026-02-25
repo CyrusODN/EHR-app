@@ -8,7 +8,8 @@ import {
     StatusBar,
     ScrollView,
     TextInput,
-    Platform
+    Platform,
+    Modal
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -28,21 +29,16 @@ const SearchPatientScreen = () => {
 
     // State for filter inputs
     const [searchText, setSearchText] = useState('');
-    const [dobStartDate, setDobStartDate] = useState(null);
-    const [dobEndDate, setDobEndDate] = useState(null);
-    const [lastVisitStartDate, setLastVisitStartDate] = useState(null);
-    const [lastVisitEndDate, setLastVisitEndDate] = useState(null);
-    const [nextVisitStartDate, setNextVisitStartDate] = useState(null);
-    const [nextVisitEndDate, setNextVisitEndDate] = useState(null);
+    const [dobStartDate, setDobStartDate] = useState<Date | null>(null);
+    const [dobEndDate, setDobEndDate] = useState<Date | null>(null);
+    const [lastVisitStartDate, setLastVisitStartDate] = useState<Date | null>(null);
+    const [lastVisitEndDate, setLastVisitEndDate] = useState<Date | null>(null);
+    const [nextVisitStartDate, setNextVisitStartDate] = useState<Date | null>(null);
+    const [nextVisitEndDate, setNextVisitEndDate] = useState<Date | null>(null);
     const [gender, setGender] = useState<string | number>('All');
 
     // State for date pickers
-    const [showDobStartPicker, setShowDobStartPicker] = useState(false);
-    const [showDobEndPicker, setShowDobEndPicker] = useState(false);
-    const [showLastVisitStartPicker, setShowLastVisitStartPicker] = useState(false);
-    const [showLastVisitEndPicker, setShowLastVisitEndPicker] = useState(false);
-    const [showNextVisitStartPicker, setShowNextVisitStartPicker] = useState(false);
-    const [showNextVisitEndPicker, setShowNextVisitEndPicker] = useState(false);
+    const [activePicker, setActivePicker] = useState<string | null>(null);
 
     // State for checkboxes
     const [hasPesel, setHasPesel] = useState(false);
@@ -69,10 +65,19 @@ const SearchPatientScreen = () => {
     };
 
     // Handle date change
-    const handleDateChange = (event: any, selectedDate: any, setDateFunction: any, setShowPickerFunction: any) => {
-        setShowPickerFunction(Platform.OS === 'ios');
-        if (selectedDate) {
-            setDateFunction(selectedDate);
+    const onDateChange = (event: any, selectedDate?: Date) => {
+        if (selectedDate && activePicker) {
+            switch (activePicker) {
+                case 'dobStart': setDobStartDate(selectedDate); break;
+                case 'dobEnd': setDobEndDate(selectedDate); break;
+                case 'lastVisitStart': setLastVisitStartDate(selectedDate); break;
+                case 'lastVisitEnd': setLastVisitEndDate(selectedDate); break;
+                case 'nextVisitStart': setNextVisitStartDate(selectedDate); break;
+                case 'nextVisitEnd': setNextVisitEndDate(selectedDate); break;
+            }
+            setActivePicker(null);
+        } else if (event.type === 'dismissed') {
+            setActivePicker(null);
         }
     };
 
@@ -172,7 +177,7 @@ const SearchPatientScreen = () => {
                                 <View style={styles.dateRangeContainer}>
                                     <TouchableOpacity
                                         style={styles.dateInput}
-                                        onPress={() => setShowDobStartPicker(true)}
+                                        onPress={() => setActivePicker('dobStart')}
                                     >
                                         <Text style={styles.dateText}>
                                             {formatDate(dobStartDate)}
@@ -182,7 +187,7 @@ const SearchPatientScreen = () => {
 
                                     <TouchableOpacity
                                         style={styles.dateInput}
-                                        onPress={() => setShowDobEndPicker(true)}
+                                        onPress={() => setActivePicker('dobEnd')}
                                     >
                                         <Text style={styles.dateText}>
                                             {formatDate(dobEndDate)}
@@ -206,7 +211,7 @@ const SearchPatientScreen = () => {
                                 <View style={styles.dateRangeContainer}>
                                     <TouchableOpacity
                                         style={styles.dateInput}
-                                        onPress={() => setShowLastVisitStartPicker(true)}
+                                        onPress={() => setActivePicker('lastVisitStart')}
                                     >
                                         <Text style={styles.dateText}>
                                             {formatDate(lastVisitStartDate)}
@@ -216,7 +221,7 @@ const SearchPatientScreen = () => {
 
                                     <TouchableOpacity
                                         style={styles.dateInput}
-                                        onPress={() => setShowLastVisitEndPicker(true)}
+                                        onPress={() => setActivePicker('lastVisitEnd')}
                                     >
                                         <Text style={styles.dateText}>
                                             {formatDate(lastVisitEndDate)}
@@ -230,7 +235,7 @@ const SearchPatientScreen = () => {
                                 <View style={styles.dateRangeContainer}>
                                     <TouchableOpacity
                                         style={styles.dateInput}
-                                        onPress={() => setShowNextVisitStartPicker(true)}
+                                        onPress={() => setActivePicker('nextVisitStart')}
                                     >
                                         <Text style={styles.dateText}>
                                             {formatDate(nextVisitStartDate)}
@@ -240,7 +245,7 @@ const SearchPatientScreen = () => {
 
                                     <TouchableOpacity
                                         style={styles.dateInput}
-                                        onPress={() => setShowNextVisitEndPicker(true)}
+                                        onPress={() => setActivePicker('nextVisitEnd')}
                                     >
                                         <Text style={styles.dateText}>
                                             {formatDate(nextVisitEndDate)}
@@ -311,54 +316,61 @@ const SearchPatientScreen = () => {
                     <Text style={styles.helpText}>?</Text>
                 </TouchableOpacity>
 
-                {/* Date Pickers */}
-                {showDobStartPicker && (
-                    <DateTimePicker
-                        value={dobStartDate || new Date()}
-                        mode="date"
-                        display="default"
-                        onChange={(event: any, date?: any) => handleDateChange(event, date, setDobStartDate, setShowDobStartPicker)}
-                    />
-                )}
-                {showDobEndPicker && (
-                    <DateTimePicker
-                        value={dobEndDate || new Date()}
-                        mode="date"
-                        display="default"
-                        onChange={(event: any, date?: any) => handleDateChange(event, date, setDobEndDate, setShowDobEndPicker)}
-                    />
-                )}
-                {showLastVisitStartPicker && (
-                    <DateTimePicker
-                        value={lastVisitStartDate || new Date()}
-                        mode="date"
-                        display="default"
-                        onChange={(event: any, date?: any) => handleDateChange(event, date, setLastVisitStartDate, setShowLastVisitStartPicker)}
-                    />
-                )}
-                {showLastVisitEndPicker && (
-                    <DateTimePicker
-                        value={lastVisitEndDate || new Date()}
-                        mode="date"
-                        display="default"
-                        onChange={(event: any, date?: any) => handleDateChange(event, date, setLastVisitEndDate, setShowLastVisitEndPicker)}
-                    />
-                )}
-                {showNextVisitStartPicker && (
-                    <DateTimePicker
-                        value={nextVisitStartDate || new Date()}
-                        mode="date"
-                        display="default"
-                        onChange={(event: any, date?: any) => handleDateChange(event, date, setNextVisitStartDate, setShowNextVisitStartPicker)}
-                    />
-                )}
-                {showNextVisitEndPicker && (
-                    <DateTimePicker
-                        value={nextVisitEndDate || new Date()}
-                        mode="date"
-                        display="default"
-                        onChange={(event: any, date?: any) => handleDateChange(event, date, setNextVisitEndDate, setShowNextVisitEndPicker)}
-                    />
+                {/* Date Picker Modal */}
+                {activePicker && (
+                    Platform.OS === 'ios' ? (
+                        <Modal
+                            transparent={true}
+                            animationType="fade"
+                            visible={!!activePicker}
+                            onRequestClose={() => setActivePicker(null)}
+                        >
+                            <TouchableOpacity 
+                                style={styles.modalOverlay} 
+                                activeOpacity={1} 
+                                onPress={() => setActivePicker(null)}
+                            >
+                                <View style={styles.calendarModalContent}>
+                                    <View style={styles.calendarHeader}>
+                                        <TouchableOpacity onPress={() => setActivePicker(null)}>
+                                            <Text style={styles.calendarCancelText}>Cancel</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity onPress={() => setActivePicker(null)}>
+                                            <Text style={styles.calendarConfirmText}>Done</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                    <DateTimePicker
+                                        value={
+                                            activePicker === 'dobStart' ? dobStartDate || new Date() :
+                                            activePicker === 'dobEnd' ? dobEndDate || new Date() :
+                                            activePicker === 'lastVisitStart' ? lastVisitStartDate || new Date() :
+                                            activePicker === 'lastVisitEnd' ? lastVisitEndDate || new Date() :
+                                            activePicker === 'nextVisitStart' ? nextVisitStartDate || new Date() :
+                                            nextVisitEndDate || new Date()
+                                        }
+                                        mode="date"
+                                        display="inline"
+                                        onChange={onDateChange}
+                                        style={styles.iosPicker}
+                                    />
+                                </View>
+                            </TouchableOpacity>
+                        </Modal>
+                    ) : (
+                        <DateTimePicker
+                            value={
+                                activePicker === 'dobStart' ? dobStartDate || new Date() :
+                                activePicker === 'dobEnd' ? dobEndDate || new Date() :
+                                activePicker === 'lastVisitStart' ? lastVisitStartDate || new Date() :
+                                activePicker === 'lastVisitEnd' ? lastVisitEndDate || new Date() :
+                                activePicker === 'nextVisitStart' ? nextVisitStartDate || new Date() :
+                                nextVisitEndDate || new Date()
+                            }
+                            mode="date"
+                            display="default"
+                            onChange={onDateChange}
+                        />
+                    )
                 )}
             </View>
         </View>
@@ -577,6 +589,42 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 20,
         fontWeight: 'bold',
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    calendarModalContent: {
+        backgroundColor: 'white',
+        borderRadius: 20,
+        padding: 10,
+        width: '90%',
+        maxWidth: 400,
+    },
+    calendarHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingHorizontal: 15,
+        paddingVertical: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F3F4F6',
+        marginBottom: 10,
+    },
+    calendarCancelText: {
+        fontSize: 16,
+        color: '#6B7280',
+        fontWeight: '500',
+    },
+    calendarConfirmText: {
+        fontSize: 16,
+        color: '#4A90B9',
+        fontWeight: '600',
+    },
+    iosPicker: {
+        height: 350,
+        width: '100%',
     },
 });
 
