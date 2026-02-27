@@ -25,7 +25,7 @@ const ModuleLoading = () => {
         if (loadingWidth < 100) {
             timer = setTimeout(() => {
                 setLoadingWidth(prev => prev + 1);
-            }, 30);
+            }, 7);
         } else {
             (navigation as any).navigate('Dashboard');
         }
@@ -68,7 +68,7 @@ const ModuleLoading = () => {
                 <Gap height={hp(2)} />
                 {/* Progress Bar Track */}
                 <View style={{
-                    height: 8,
+                    height: 6,
                     width: '100%',
                     backgroundColor: '#E5E5E5',
                     borderRadius: 4,

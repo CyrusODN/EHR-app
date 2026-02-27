@@ -177,6 +177,10 @@ function AppNavigator() {
                             name="Referrals"
                             component={Screens.ReferralsScreen}
                         />
+                        <Stack.Screen
+                            name="PatientProfile"
+                            component={Screens.PatientProfile}
+                        />
                     </>
                 )}
             </Stack.Navigator>

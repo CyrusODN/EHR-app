@@ -15,6 +15,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import { GetPatients, DeletePatient } from '../../Services/Patient.Service';
+import { Alert } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -24,6 +26,7 @@ import CustomDropdown from '../../component/customDropDown';
 import PrimaryButton from '../../component/button';
 import ActionModal from './modals/ActionModal';
 import PatientDetailsModal from './modals/PatientDetails';
+import CustomAlert from '../../component/customAlert';
 
 const PatientListScreen = () => {
     const navigation = useNavigation<any>();
@@ -33,6 +36,25 @@ const PatientListScreen = () => {
     const [showFilters, setShowFilters] = useState(false);
     const [showActionModal, setShowActionModal] = useState(false);
     const [showPatientDetailsModal, setShowPatientDetailsModal] = useState(false);
+    
+    // Pagination state
+    const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(10);
+    const [totalItems, setTotalItems] = useState(0);
+
+    const [alertConfig, setAlertConfig] = useState<any>({
+        visible: false,
+        type: 'success',
+        message: '',
+    });
+
+    const showAlert = (type: 'success' | 'error' | 'warning', message: string) => {
+        setAlertConfig({
+            visible: true,
+            type,
+            message,
+        });
+    };
 
     // State for filter inputs
     const [dobStartDate, setDobStartDate] = useState<Date | null>(null);
@@ -55,56 +77,47 @@ const PatientListScreen = () => {
         { label: 'Other', value: 'other' },
     ];
 
-    // Fetch patients (mock data for now)
-    useEffect(() => {
-        // Simulate API call
-        setTimeout(() => {
-            const mockPatients = [
-                {
-                    id: 'P001',
-                    name: 'Jan Kowalski',
-                    pesel: '80010112345',
-                    dateOfBirth: '1980-01-01',
-                    lastVisit: '2024-03-01',
-                    status: 'Active'
-                },
-                {
-                    id: 'P002',
-                    name: 'Maria Nowak',
-                    pesel: '75020223456',
-                    dateOfBirth: '1975-02-02',
-                    lastVisit: '2024-02-15',
-                    status: 'Active'
-                },
-                {
-                    id: 'P003',
-                    name: 'Adam Wiśniewski',
-                    pesel: '90030334567',
-                    dateOfBirth: '1990-03-03',
-                    lastVisit: '2024-01-20',
-                    status: 'Inactive'
-                },
-                {
-                    id: 'P004',
-                    name: 'Ewa Kamińska',
-                    pesel: '85040445678',
-                    dateOfBirth: '1985-04-04',
-                    lastVisit: '2023-12-10',
-                    status: 'Active'
-                },
-                {
-                    id: 'P005',
-                    name: 'Piotr Lewandowski',
-                    pesel: '70050556789',
-                    dateOfBirth: '1970-05-05',
-                    lastVisit: '2023-11-25',
-                    status: 'Deceased'
-                }
-            ];
-            setPatients(mockPatients);
+    // Fetch patients from API
+    const fetchPatients = async () => {
+        setLoading(true);
+        const queryParams = {
+            page: page,
+            limit: limit,
+            skip: (page - 1) * limit
+        };
+
+        console.log('Initiating GetPatients request with params:', JSON.stringify(queryParams, null, 2));
+
+        try {
+            const response = await GetPatients(queryParams) as any;
+            console.log('GetPatients Response:', JSON.stringify(response, null, 2));
+
+            if (response) {
+                // Determine the correct data source based on common API patterns
+                const patientData = Array.isArray(response) 
+                    ? response 
+                    : (response.data || response.patients || []);
+                
+                const count = response.total !== undefined 
+                    ? response.total 
+                    : (Array.isArray(response) ? response.length : (patientData.length));
+                
+                setPatients(patientData);
+                setTotalItems(count);
+            } else {
+                console.error('Failed to fetch patients: Response was empty');
+            }
+        } catch (error: any) {
+            console.error('Error in fetchPatients:', error);
+            // Optionally show error to user via alert
+        } finally {
             setLoading(false);
-        }, 1000);
-    }, []);
+        }
+    };
+
+    useEffect(() => {
+        fetchPatients();
+    }, [page, limit]);
 
     // Format date for display (YYYY-MM-DD to more readable format)
     const formatDate = (date: any) => {
@@ -149,6 +162,44 @@ const PatientListScreen = () => {
         console.log(`Schedule visit for patient ${patientId}`);
         // Navigate to schedule visit
         // navigation.navigate('ScheduleVisit', { patientId });
+    };
+
+    const handleDeletePatient = async (patient: any) => {
+        setShowActionModal(false);
+        const patientId = patient._id;
+        
+        Alert.alert(
+            "Delete Patient",
+            `Are you sure you want to delete ${patient.name || (patient.firstName ? `${patient.firstName} ${patient.lastName}` : 'this patient')}?`,
+            [
+                { text: "Cancel", style: "cancel" },
+                { 
+                    text: "Delete", 
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            setLoading(true);
+                            console.log(`Initiating DeletePatient request for ID: ${patientId}`);
+                            
+                            const response = (await DeletePatient(patientId)) as any;
+                            console.log('DeletePatient Response:', JSON.stringify(response, null, 2));
+                            
+                            if (response) {
+                                showAlert('success', response.data?.message || 'Patient and all related data deleted successfully');
+                                fetchPatients();
+                            } else {
+                                showAlert('error', 'Failed to delete patient');
+                            }
+                        } catch (error: any) {
+                            console.error('Error deleting patient:', error);
+                            showAlert('error', error.message || 'An error occurred while deleting patient');
+                        } finally {
+                            setLoading(false);
+                        }
+                    }
+                }
+            ]
+        );
     };
 
     const handleMoreOptions = (patientId: string) => {
@@ -205,22 +256,24 @@ const PatientListScreen = () => {
         let backgroundColor;
         let textColor = '#FFFFFF';
 
-        switch (status) {
-            case 'Active':
-                backgroundColor = '#dcfce7';
-                textColor = '#166534';
+        const normalizedStatus = status?.toLowerCase() || '';
+
+        switch (normalizedStatus) {
+            case 'active':
+                backgroundColor = '#DCFCE7'; // Light green
+                textColor = '#166534';       // Dark green text
                 break;
-            case 'Inactive':
-                backgroundColor = '#fef9c3';
-                textColor = '#854d0e';
+            case 'inactive':
+                backgroundColor = '#FEF9C3'; // Light yellow
+                textColor = '#854D0E';
                 break;
-            case 'Deceased':
-                backgroundColor = '#eeeeee';
-                textColor = 'grey';
+            case 'deceased':
+                backgroundColor = '#F1F5F9'; // Light slate/grey
+                textColor = '#475569';
                 break;
             default:
-                backgroundColor = '#E0E0E0';
-                textColor = '#000000';
+                backgroundColor = '#F3F4F6';
+                textColor = '#374151';
         }
 
         return (
@@ -235,17 +288,19 @@ const PatientListScreen = () => {
         <View style={styles.patientCard}>
             <View style={styles.patientRow}>
                 <View style={styles.patientInfo}>
-                    <Text style={styles.patientName}>{item.name}</Text>
-                    <Text style={styles.patientId}>ID: {item.id}</Text>
+                    <Text style={styles.patientName} numberOfLines={1}>
+                        {item.name || `${item.firstName} ${item.lastName}`}
+                    </Text>
+                    <Text style={styles.patientId}>ID: {item.id || item._id?.substring(0, 8)}</Text>
                 </View>
                 <View style={styles.patientDetail}>
-                    <Text style={styles.detailValue}>{item.pesel}</Text>
+                    <Text style={styles.detailValue}>{item.pesel || 'N/A'}</Text>
                 </View>
                 <View style={styles.patientDetail}>
-                    <Text style={styles.detailValue}>{formatDate(item.dateOfBirth)}</Text>
+                    <Text style={styles.detailValue}>{formatDate(item.dateOfBirth || item.dob)}</Text>
                 </View>
                 <View style={styles.patientDetail}>
-                    <Text style={styles.detailValue}>{formatDate(item.lastVisit)}</Text>
+                    <Text style={styles.detailValue}>{item.referral || 'N/A'}</Text>
                 </View>
                 <View style={[styles.patientDetail, { width: wp(20) }]}>
                     {renderStatusBadge(item.status)}
@@ -296,7 +351,7 @@ const PatientListScreen = () => {
                 <Text style={styles.headerText}>DATE OF BIRTH</Text>
             </View>
             <View style={styles.headerCell}>
-                <Text style={styles.headerText}>LAST VISIT</Text>
+                <Text style={styles.headerText}>REFERRAL</Text>
             </View>
             <View style={[styles.headerCell, {}]}>
                 <Text style={[styles.headerText, {}]}>STATUS</Text>
@@ -447,14 +502,47 @@ const PatientListScreen = () => {
                 </View>
             ) : (
                 <ScrollView horizontal>
-                    <FlatList
-                        data={patients}
-                        keyExtractor={(item) => item.id}
-                        renderItem={renderPatientItem}
-                        ListHeaderComponent={renderListHeader}
-                        contentContainerStyle={styles.listContent}
-                        showsVerticalScrollIndicator={false}
-                    />
+                    <View>
+                        <FlatList
+                            data={patients}
+                            keyExtractor={(item, index) => item.id || item._id || index.toString()}
+                            renderItem={renderPatientItem}
+                            ListHeaderComponent={renderListHeader}
+                            contentContainerStyle={styles.listContent}
+                            showsVerticalScrollIndicator={false}
+                        />
+                        {/* Pagination component */}
+                        <View style={styles.paginationWrapper}>
+                            <Text style={styles.paginationText}>
+                                {totalItems > 0 ? ((page - 1) * limit) + 1 : 0}-{Math.min(page * limit, totalItems)} of {totalItems} items
+                            </Text>
+                            
+                            <TouchableOpacity 
+                                style={styles.paginationArrow}
+                                onPress={() => page > 1 && setPage(page - 1)}
+                                disabled={page === 1}
+                            >
+                                <Feather name="chevron-left" size={20} color={page === 1 ? "#E2E8F0" : "#4A90B9"} />
+                            </TouchableOpacity>
+                            
+                            <View style={styles.pageNumberBox}>
+                                <Text style={styles.pageNumberText}>{page}</Text>
+                            </View>
+                            
+                            <TouchableOpacity 
+                                style={styles.paginationArrow}
+                                onPress={() => (page * limit) < totalItems && setPage(page + 1)}
+                                disabled={(page * limit) >= totalItems}
+                            >
+                                <Feather name="chevron-right" size={20} color={(page * limit) >= totalItems ? "#E2E8F0" : "#4A90B9"} />
+                            </TouchableOpacity>
+                            
+                            <TouchableOpacity style={styles.pageSizeSelector}>
+                                <Text style={styles.pageSizeText}>{limit} / page</Text>
+                                <Feather name="chevron-down" size={16} color="#CBD5E1" />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
 
             )}
@@ -470,6 +558,13 @@ const PatientListScreen = () => {
                 onStart={() => {
                     setShowActionModal(false);
                     navigation.navigate('Schedule-Visits');
+                }}
+                onDelete={() => {
+                    if (selectedPatient) handleDeletePatient(selectedPatient);
+                }}
+                onPatientProfile={() => {
+                    setShowActionModal(false);
+                    navigation.navigate('PatientProfile', { patientData: selectedPatient });
                 }}
                 onAddNote={() => { }}
             />
@@ -534,11 +629,12 @@ const PatientListScreen = () => {
                 )
             )}
 
-            {/* Help Button */}
-            <TouchableOpacity style={styles.helpButtonFloat}>
-                <Text style={styles.helpText}>?</Text>
-            </TouchableOpacity>
-
+            <CustomAlert
+                visible={alertConfig.visible}
+                type={alertConfig.type}
+                message={alertConfig.message}
+                onClose={() => setAlertConfig({ ...alertConfig, visible: false })}
+            />
         </SafeAreaView >
     );
 };
@@ -857,7 +953,57 @@ const styles = StyleSheet.create({
     },
     iosPicker: {
         height: 350,
-    }
+    },
+    paginationWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        paddingHorizontal: 20,
+        paddingVertical: 15,
+        backgroundColor: 'white',
+        borderTopWidth: 1,
+        borderTopColor: '#E0E0E0',
+        minWidth: wp(100)
+    },
+    paginationText: {
+        fontSize: 14,
+        color: '#333333',
+        marginRight: 15,
+    },
+    paginationArrow: {
+        padding: 5,
+        marginHorizontal: 5,
+    },
+    pageNumberBox: {
+        width: 32,
+        height: 32,
+        borderWidth: 1,
+        borderColor: '#4A90B9',
+        borderRadius: 6,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginHorizontal: 5,
+    },
+    pageNumberText: {
+        color: '#4A90B9',
+        fontSize: 14,
+        fontWeight: '500',
+    },
+    pageSizeSelector: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#E0E0E0',
+        borderRadius: 8,
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        marginLeft: 15,
+    },
+    pageSizeText: {
+        fontSize: 14,
+        color: '#333333',
+        marginRight: 10,
+    },
 });
 
 export default PatientListScreen;

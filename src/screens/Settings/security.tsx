@@ -7,6 +7,7 @@ import {
     ScrollView,
     TouchableOpacity,
     StatusBar,
+    Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -15,20 +16,42 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { useNavigation } from '@react-navigation/native';
 import PrimaryButton from '../../component/button';
+import userStore from '../../store/user';
+import { Enable2FA } from '../../Services/User.Service';
 
 const Security = () => {
     const navigation = useNavigation<any>();
+    const { loggedInUser } = userStore() as any;
 
     // State variables
     const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
     const [trustDevicesEnabled, setTrustDevicesEnabled] = useState(false);
 
     // Handle save changes
-    const handleSave = () => {
-        console.log('Saving security settings:', {
-            twoFactorEnabled,
-            trustDevicesEnabled
-        });
+    const handleSave = async () => {
+        try {
+            const userId = loggedInUser?.id || loggedInUser?._id;
+            
+            if (!userId) {
+                Alert.alert("Error", "User not identified. Please try logging in again.");
+                return;
+            }
+
+            const payload = {
+                allowTrustedDevices: trustDevicesEnabled,
+                twoFA: twoFactorEnabled,
+                userId: userId
+            };
+
+            const response = await Enable2FA(payload);
+            
+            console.log('2FA Update result:', response);
+            Alert.alert("Success", "Security settings updated successfully.");
+            
+        } catch (error: any) {
+            console.error('Failed to update security settings:', error);
+            Alert.alert("Error", error?.message || "Something went wrong while updating settings.");
+        }
     };
 
     return (

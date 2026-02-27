@@ -17,11 +17,13 @@ interface ActionModalProps {
     onClose: () => void;
     onView: () => void;
     onStart: () => void;
+    onDelete: () => void;
+    onPatientProfile: () => void;
     onAddNote?: (note: string) => void;
 }
 
 
-const ActionModal = ({ visible, onClose, onView, onStart, onAddNote }: ActionModalProps) => {
+const ActionModal = ({ visible, onClose, onView, onStart, onDelete, onPatientProfile, onAddNote }: ActionModalProps) => {
     const [showNoteInput, setShowNoteInput] = useState(false);
     const [note, setNote] = useState('');
 
@@ -99,6 +101,19 @@ const ActionModal = ({ visible, onClose, onView, onStart, onAddNote }: ActionMod
                                     </TouchableOpacity>
 
                                     <TouchableOpacity
+                                        style={styles.actionButton}
+                                        onPress={onPatientProfile}
+                                    >
+                                        <View style={styles.buttonContent}>
+                                            <View style={styles.viewButton}>
+                                                <Feather name="user" size={18} color="#58a6b8" />
+                                            </View>
+                                            <View style={{ width: 8 }} />
+                                            <Text style={styles.actionButtonText}>Patient Profile</Text>
+                                        </View>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
                                         style={[styles.actionButton]}
                                         onPress={onStart}
                                     >
@@ -115,17 +130,17 @@ const ActionModal = ({ visible, onClose, onView, onStart, onAddNote }: ActionMod
 
                                     </TouchableOpacity>
 
+
                                     <TouchableOpacity
-                                        style={styles.actionButton}
-                                        onPress={handleAddNote}
+                                        style={[styles.actionButton, styles.deleteButton]}
+                                        onPress={onDelete}
                                     >
                                         <View style={styles.buttonContent}>
                                             <View style={styles.viewButton}>
-                                                <Feather name="file-text" size={18} color="#58a6b8" />
+                                                <Feather name="trash-2" size={18} color="#FF3B30" />
                                             </View>
-                                            <View style={{ width: 5 }} />
-
-                                            <Text style={styles.actionButtonText}>Add a Note</Text>
+                                            <View style={{ width: 8 }} />
+                                            <Text style={[styles.actionButtonText, styles.deleteButtonText]}>Delete Patient</Text>
                                         </View>
                                     </TouchableOpacity>
 
@@ -155,17 +170,23 @@ const ActionModal = ({ visible, onClose, onView, onStart, onAddNote }: ActionMod
 const styles = StyleSheet.create({
     overlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'flex-end',
+        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     modalContainer: {
         backgroundColor: 'white',
         borderRadius: 20,
-        marginBottom: 30,
-        marginRight: 10,
-        width: '42%',
-        alignSelf: "flex-end",
-        alignItems: "center",
+        width: '65%',
+        paddingVertical: 10,
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 10,
+        elevation: 10,
     },
     header: {
         flexDirection: "row",
@@ -203,8 +224,17 @@ const styles = StyleSheet.create({
         width: "100%",
     },
     actionButtonText: {
-        fontSize: 15,
-        color: '#333',
+        fontSize: 16,
+        color: '#1A1C1E',
+        fontWeight: '500',
+    },
+    deleteButton: {
+        backgroundColor: '#FFF5F5',
+        borderColor: '#FFE4E4',
+    },
+    deleteButtonText: {
+        color: '#FF3B30',
+        fontWeight: '600',
     },
     viewButton: {
         justifyContent: 'center',

@@ -21,6 +21,8 @@ import PrimaryButton from '../../component/button';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import Gap from '../../component/gap';
 import { useNavigation } from '@react-navigation/native';
+import { CreatePatient } from '../../Services/Patient.Service';
+import CustomAlert from '../../component/customAlert';
 
 const NewPatientScreen = ({ }) => {
     const navigation = useNavigation();
@@ -49,8 +51,18 @@ const NewPatientScreen = ({ }) => {
     const [country, setCountry] = useState<string | number | null>(null);
     const [voivodeship, setVoivodeship] = useState<string | number | null>(null);
     const [municipalityTeryt, setMunicipalityTeryt] = useState('');
-    const [insuranceType, setInsuranceType] = useState<string | number>('NFZ');
+    const [insuranceType, setInsuranceType] = useState<string | number>('nfz');
     const [insuranceNo, setInsuranceNo] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [alertConfig, setAlertConfig] = useState<{
+        visible: boolean;
+        type: 'success' | 'warning' | 'error';
+        message: string;
+    }>({
+        visible: false,
+        type: 'success',
+        message: '',
+    });
 
     // Options for dropdowns
     const genderOptions = [
@@ -138,39 +150,71 @@ const NewPatientScreen = ({ }) => {
         return `${day}/${month}/${year}`;
     };
 
-    // Handle save patient
-    const handleSavePatient = () => {
-        // Save patient logic
-        console.log({
-            firstName,
-            lastName,
-            pesel,
-            dateOfBirth,
-            gender,
-            phone,
-            middleName,
-            maidenName,
-            alternativePhone,
-            email,
-            placeOfBirth,
-            documentType,
-            bloodType,
-            internalCardNo,
-            foreigner,
-            street,
-            houseNo,
-            apartmentNo,
-            postalCode,
-            city,
-            country,
-            voivodeship,
-            municipalityTeryt,
-            insuranceType,
-            insuranceNo
+    const showAlert = (type: 'success' | 'warning' | 'error', message: string) => {
+        setAlertConfig({
+            visible: true,
+            type,
+            message,
         });
-        // Navigate back or to another screen
-        if (navigation && navigation.goBack) {
-            navigation.goBack();
+    };
+
+    const hideAlert = () => {
+        setAlertConfig(prev => ({ ...prev, visible: false }));
+    };
+
+    // Handle save patient
+    const handleSavePatient = async () => {
+        setLoading(true);
+        console.log('Initiating Create Patient request...');
+        try {
+            const payload = {
+                firstName,
+                lastName,
+                pesel,
+                dob: dateOfBirth ? dateOfBirth.toISOString() : null,
+                gender: gender || "",
+                phone,
+                middleName,
+                maidenName,
+                alternativePhone,
+                email,
+                birthPlace: placeOfBirth,
+                documentType: documentType || "",
+                bloodType: bloodType || "",
+                internalCardNumber: internalCardNo,
+                isForeigner: foreigner === 'yes',
+                street,
+                houseNumber: houseNo,
+                apartmentNumber: apartmentNo,
+                postalCode,
+                city,
+                country: country || "",
+                voivodeship: voivodeship || "",
+                municipalityTeryt,
+                insuranceType: insuranceType.toString().toLowerCase(),
+                insuranceNumber: insuranceNo
+            };
+
+            console.log('Create Patient Payload:', JSON.stringify(payload, null, 2));
+
+            const response = (await CreatePatient(payload)) as any;
+            console.log('Create Patient Response:', JSON.stringify(response, null, 2));
+
+            if (response) {
+                const successMessage = typeof response === 'string' ? response : (response.data || 'Patient created successfully!');
+                showAlert('success', successMessage);
+                setTimeout(() => {
+                    hideAlert();
+                    navigation.goBack();
+                }, 2000);
+            } else {
+                showAlert('error', 'Failed to create patient');
+            }
+        } catch (error: any) {
+            showAlert('error', error.message || 'An error occurred while creating patient');
+            console.error(error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -485,8 +529,8 @@ const NewPatientScreen = ({ }) => {
                                 icon={<FontAwesome name="save" size={16} color="white" />}
                                 onPress={handleSavePatient}
                                 style={{ width: "100%" }} 
-                                loading={false} 
-                                disabled={false}
+                                loading={loading} 
+                                disabled={loading}
                                 image={undefined}
                                 iconStyle={undefined}
                                 imageStyle={undefined}
@@ -500,6 +544,12 @@ const NewPatientScreen = ({ }) => {
                     <Text style={styles.helpText}>?</Text>
                 </TouchableOpacity>
             </View>
+            <CustomAlert
+                visible={alertConfig.visible}
+                type={alertConfig.type}
+                message={alertConfig.message}
+                onClose={hideAlert}
+            />
         </SafeAreaView>
     );
 };

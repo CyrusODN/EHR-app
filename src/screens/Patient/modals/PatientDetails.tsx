@@ -18,67 +18,34 @@ interface PatientDetailsModalProps {
 }
 
 const PatientDetailsModal = ({ visible, onClose, patientData }: PatientDetailsModalProps) => {
-    // Default patient data if not provided
-    const patient = patientData || {
-        name: "Jan Kowalski",
-        pesel: "80010112345",
-        id: "P001",
-        birthDate: "1980-01-01",
-        address: "ul. Przykładowa 1, 00-001 Warszawa",
-        insurance: {
-            type: "NFZ",
-            number: "NFZ123456789",
-            validUntil: "2024-12-31"
-        },
-        portal: {
-            active: true,
-            notifications: ["Email", "SMS"]
-        },
-        employer: {
-            name: "Firma XYZ Sp. z o.o.",
-            address: "ul. Biznesowa 10, 00-001 Warszawa",
-            phone: "+48 22 123 45 67"
-        },
-        authorizedPersons: [
-            {
-                name: "Anna Kowalska",
-                relation: "Żona",
-                idCard: "ABC123456",
-                validUntil: "2025-12-31"
-            }
-        ],
-        consents: [
-            {
-                type: "Przetwarzanie danych osobowych",
-                granted: true,
-                date: "2024-01-15"
-            },
-            {
-                type: "Udostępnianie dokumentacji medycznej",
-                granted: true,
-                date: "2024-01-15"
-            }
-        ]
-    };
+    if (!patientData) return null;
+
+    const patient = patientData;
+    const personalData = patient.personalData || {};
 
     const renderSectionHeader = (title: string) => (
         <Text style={styles.sectionHeader}>{title}</Text>
     );
 
-    const renderInfoRow = (icon: any, label: string, value: any, isSubItem: boolean = false, rightComponent: any = null) => (
-        <View style={[styles.infoRow, isSubItem && styles.subItem]}>
-            {icon}
-            <View
-                style={styles.infoTextContainer}
-            >
-                <Text style={styles.infoLabel}>{label}</Text>
-                {typeof value === 'string' ? (
-                    <Text style={styles.infoValue}>{value}</Text>
-                ) : value}
+    const renderInfoRow = (icon: any, label: string, value: any, isSubItem: boolean = false, rightComponent: any = null) => {
+        // Safe check to avoid rendering objects like {} which cause React errors
+        const isRenderable = typeof value === 'string' || typeof value === 'number' || React.isValidElement(value);
+        
+        return (
+            <View style={[styles.infoRow, isSubItem && styles.subItem]}>
+                {icon}
+                <View style={styles.infoTextContainer}>
+                    <Text style={styles.infoLabel}>{label}</Text>
+                    {isRenderable ? (
+                        typeof value === 'object' ? value : <Text style={styles.infoValue}>{value}</Text>
+                    ) : (
+                        <Text style={styles.infoValue}>N/A</Text>
+                    )}
+                </View>
+                {rightComponent}
             </View>
-            {rightComponent}
-        </View>
-    );
+        );
+    };
 
     const renderNotificationBadge = (type: string) => {
         const isEmail = type === "Email";
@@ -92,12 +59,17 @@ const PatientDetailsModal = ({ visible, onClose, patientData }: PatientDetailsMo
     const renderConsent = (consent: any) => (
         <View style={styles.consentRow}>
             <View style={styles.consentTextContainer}>
-                <Text style={styles.consentLabel}>{consent.type}</Text>
+                <Text style={styles.consentLabel}>{consent.title || consent.type}</Text>
             </View>
             <View style={styles.consentStatus}>
-                <Feather name="check-circle" size={18} color="#4CAF50" />
-                <Text style={styles.consentValue}>Granted</Text>
-                <Text style={styles.consentDate}>({consent.date})</Text>
+                <Feather 
+                    name={consent.granted ? "check-circle" : "x-circle"} 
+                    size={18} 
+                    color={consent.granted ? "#4CAF50" : "#EF4444"} 
+                />
+                <Text style={[styles.consentValue, { color: consent.granted ? "#4CAF50" : "#EF4444" }]}>
+                    {consent.granted ? "Granted" : "Not Granted"}
+                </Text>
             </View>
         </View>
     );
@@ -117,13 +89,13 @@ const PatientDetailsModal = ({ visible, onClose, patientData }: PatientDetailsMo
                             <View style={styles.patientAvatar}>
                                 <Feather name="user" size={28} color="#68BFB3" />
                             </View>
-                            <View>
-                                <Text style={styles.patientName}>{patient.name}</Text>
-                                <Text style={styles.patientId}>PESEL: {patient.pesel}   ID: {patient.id}</Text>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.patientName}>{patient.name} {patient.lastName}</Text>
+                                <Text style={styles.patientId}>PESEL: {patient.pesel}   ID: {patient.slug || patient._id?.substring(0, 8)}</Text>
                             </View>
                         </View>
                         <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                            <Ionicons name="close" size={24} color="black" />
+                            <Ionicons name="close" size={20} color="#666" />
                         </TouchableOpacity>
                     </View>
 
@@ -138,7 +110,7 @@ const PatientDetailsModal = ({ visible, onClose, patientData }: PatientDetailsMo
                         {renderInfoRow(
                             <Feather name="calendar" size={18} color="#777" style={styles.icon} />,
                             "Date of birth:",
-                            patient.birthDate
+                            patient.dob ? new Date(patient.dob).toLocaleDateString() : 'N/A'
                         )}
 
                         {/* Address */}
@@ -146,7 +118,7 @@ const PatientDetailsModal = ({ visible, onClose, patientData }: PatientDetailsMo
                         {renderInfoRow(
                             <Feather name="map-pin" size={18} color="#777" style={styles.icon} />,
                             "",
-                            patient.address
+                            `${personalData.street || ''} ${personalData.houseNumber || ''}${personalData.apartmentNumber ? '/' + personalData.apartmentNumber : ''}, ${personalData.postalCode || ''} ${personalData.city || ''}, ${personalData.country || ''}`.trim() || 'N/A'
                         )}
 
                         {/* Insurance */}
@@ -154,17 +126,12 @@ const PatientDetailsModal = ({ visible, onClose, patientData }: PatientDetailsMo
                         {renderInfoRow(
                             <Feather name="shield" size={18} color="#777" style={styles.icon} />,
                             "Type:",
-                            patient.insurance?.type || "N/A"
+                            patient.insuranceType || "N/A"
                         )}
                         {renderInfoRow(
                             null,
                             "Number:",
-                            patient.insurance?.number || "N/A",
-                        )}
-                        {renderInfoRow(
-                            null,
-                            "Valid until:",
-                            patient.insurance?.validUntil || "N/A",
+                            patient.insuranceNumber || "N/A",
                         )}
 
                         {/* Patient Portal */}
@@ -191,23 +158,23 @@ const PatientDetailsModal = ({ visible, onClose, patientData }: PatientDetailsMo
                         {renderInfoRow(
                             <Feather name="briefcase" size={18} color="#777" style={styles.icon} />,
                             "",
-                            patient.employer?.name || "N/A"
+                            personalData.employer?.name || "N/A"
                         )}
                         {renderInfoRow(
                             null,
                             "",
-                            patient.employer?.address || "N/A",
+                            typeof personalData.employer?.address === 'string' ? personalData.employer.address : "N/A",
                             true
                         )}
                         {renderInfoRow(
                             <Feather name="phone" size={18} color="#777" style={styles.icon} />,
                             "",
-                            patient.employer?.phone || "N/A"
+                            personalData.employer?.phone || "N/A"
                         )}
 
                         {/* Authorized Persons */}
                         {renderSectionHeader("AUTHORIZED PERSONS AND LIST OF SHARED MEDICAL RECORDS")}
-                        {patient.authorizedPersons?.map((person: any, index: number) => (
+                        {personalData.authorizedPersons?.length > 0 ? personalData.authorizedPersons.map((person: any, index: number) => (
                             <View key={index}>
                                 {renderInfoRow(
                                     <Feather name="users" size={18} color="#777" style={styles.icon} />,
@@ -222,15 +189,19 @@ const PatientDetailsModal = ({ visible, onClose, patientData }: PatientDetailsMo
                                     `${person.idCard}  (valid until: ${person.validUntil})`
                                 )}
                             </View>
-                        ))}
-
+                        )) : (
+                            <Text style={[styles.infoValue, { paddingHorizontal: 47, paddingVertical: 10, color: '#777' }]}>No authorized persons</Text>
+                        )}
+  
                         {/* Consents */}
                         {renderSectionHeader("CONSENT TO PROCESS PERSONAL DATA")}
-                        {patient.consents?.map((consent: any, index: number) => (
+                        {personalData.consents?.length > 0 ? personalData.consents.map((consent: any, index: number) => (
                             <View key={index} style={styles.consentContainer}>
                                 {renderConsent(consent)}
                             </View>
-                        ))}
+                        )) : (
+                            <Text style={[styles.infoValue, { paddingHorizontal: 15, paddingVertical: 10, color: '#777' }]}>No consents provided</Text>
+                        )}
                     </ScrollView>
 
                     {/* Bottom Buttons */}
@@ -275,52 +246,63 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     modalView: {
-        width: '90%',
-        maxHeight: '88%',
+        width: '92%',
+        maxHeight: '80%',
         backgroundColor: 'white',
-        borderRadius: 10,
-        padding: 0,
+        borderRadius: 20,
+        overflow: 'hidden',
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
-            height: 2,
+            height: 4,
         },
-        shadowOpacity: 0.25,
-        shadowRadius: 4,
-        elevation: 5,
+        shadowOpacity: 0.3,
+        shadowRadius: 5,
+        elevation: 8,
     },
     header: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: 15,
-        borderBottomWidth: 1,
-        borderBottomColor: '#e0e0e0',
+        padding: 20,
+        paddingTop: 25,
+        position: 'relative',
     },
     patientHeaderLeft: {
         flexDirection: 'row',
         alignItems: 'center',
+        flex: 1,
+        paddingRight: 40,
     },
     patientAvatar: {
-        width: 50,
-        height: 50,
-        borderRadius: 15,
-        backgroundColor: '#dbeafe',
+        width: 56,
+        height: 56,
+        borderRadius: 18,
+        backgroundColor: '#F0F9F8',
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 12,
+        marginRight: 15,
     },
     patientName: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
+        fontSize: 20,
+        fontWeight: '700',
+        color: '#1A1C1E',
+        marginBottom: 4,
     },
     patientId: {
-        fontSize: 14,
-        color: '#777',
+        fontSize: 13,
+        color: '#6B7280',
+        lineHeight: 18,
     },
     closeButton: {
-        padding: 5,
+        position: 'absolute',
+        top: 15,
+        right: 15,
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: '#F3F4F6',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 10,
     },
     scrollView: {
         // maxHeight: '70%',
