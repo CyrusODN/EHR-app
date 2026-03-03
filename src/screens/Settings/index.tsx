@@ -21,6 +21,7 @@ import ClientPortal from './clientPortal';
 import Profile from './profile';
 import Employees from './employees';
 import EWUS from './ewUs';
+import CustomAlert from '../../component/customAlert';
 
 interface NavItemProps {
     icon: React.ReactNode;
@@ -49,6 +50,11 @@ const Settings = () => {
 
     const navigation = useNavigation<any>();
     const [selected, setSelected] = useState(1);
+    const [alertConfig, setAlertConfig] = useState<any>({
+        visible: false,
+        type: 'success',
+        message: '',
+    });
 
     return (
         <View style={styles.safeArea}>
@@ -155,12 +161,18 @@ const Settings = () => {
                                 : selected == 5 ? <Subscription />
                                     : selected == 6 ? <ClientPortal />
                                         : selected == 7 ? <Profile />
-                                            : selected == 8 ? <Employees />
+                                            : selected == 8 ? <Employees onAlert={(config: any) => setAlertConfig(config)} />
                                                 : selected == 9 ? <EWUS />
                                                     : <></>
                 }
             </ScrollView>
 
+            <CustomAlert
+                visible={alertConfig.visible}
+                type={alertConfig.type}
+                message={alertConfig.message}
+                onClose={() => setAlertConfig({ ...alertConfig, visible: false })}
+            />
 
         </View>
     );

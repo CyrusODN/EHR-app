@@ -1,5 +1,6 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
@@ -7,7 +8,8 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { GetFacilityStatistics } from '../../Services/settingServices';
 
 // Stat Card component for consistent styling
 const StatCard = ({ icon, title, value }: any) => (
@@ -22,41 +24,83 @@ const StatCard = ({ icon, title, value }: any) => (
     </View>
 );
 
+interface FacilityStatsData {
+    doctors: number;
+    nurses: number;
+    receptionists: number;
+    patients: number;
+    departments: number;
+    offices: number;
+}
+
 const FacilityStatistics = () => {
     const navigation = useNavigation();
-    // Stats data
-    const stats = [
+    const [statsData, setStatsData] = useState<FacilityStatsData | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const fetchStatistics = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const response: any = await GetFacilityStatistics();
+            console.log("Facility stats response:", response);
+            // The axios interceptor returns response.data.data, 
+            // so response should be { data: { doctors, nurses, ... } }
+            if (response?.data) {
+                setStatsData(response.data);
+            } else if (response?.doctors !== undefined) {
+                // In case the interceptor unwraps further
+                setStatsData(response);
+            }
+        } catch (err: any) {
+            console.log("Error fetching facility stats:", err);
+            setError(err?.message || 'Failed to fetch statistics');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Fetch stats every time the screen comes into focus
+    useFocusEffect(
+        useCallback(() => {
+            fetchStatistics();
+        }, [])
+    );
+
+    // Build stats array from fetched data
+    const stats = statsData ? [
         {
             title: 'Departments',
-            value: '3',
+            value: String(statsData.departments ?? 0),
             icon: <FontAwesome5 name="building" size={24} color="#4A90B9" />
         },
         {
             title: 'Doctors',
-            value: '2',
+            value: String(statsData.doctors ?? 0),
             icon: <Feather name="users" size={24} color="#4A99b9" />
         },
         {
             title: 'Offices',
-            value: '3',
+            value: String(statsData.offices ?? 0),
             icon: <MaterialIcons name="meeting-room" size={24} color="green" />
         },
         {
             title: 'Nurses',
-            value: '0',
+            value: String(statsData.nurses ?? 0),
             icon: <Feather name="users" size={24} color="#9370DB" />
         },
         {
             title: 'Patients',
-            value: '1615',
+            value: String(statsData.patients ?? 0),
             icon: <Feather name="users" size={24} color="blue" />
         },
         {
             title: 'Receptionists',
-            value: '1',
+            value: String(statsData.receptionists ?? 0),
             icon: <MaterialCommunityIcons name="account-cog-outline" size={24} color="#FFA500" />
         },
-    ];
+    ] : [];
 
     return (
         <SafeAreaView style={styles.container}>
@@ -71,17 +115,38 @@ const FacilityStatistics = () => {
                 <Text style={styles.headerTitle}>Facility Statistics</Text>
             </View>
 
+            {/* Loading State */}
+            {loading && (
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#4A90B9" />
+                    <Text style={styles.loadingText}>Loading statistics...</Text>
+                </View>
+            )}
+
+            {/* Error State */}
+            {!loading && error && (
+                <View style={styles.errorContainer}>
+                    <Ionicons name="alert-circle-outline" size={48} color="#FF6B6B" />
+                    <Text style={styles.errorText}>{error}</Text>
+                    <TouchableOpacity style={styles.retryButton} onPress={fetchStatistics}>
+                        <Text style={styles.retryButtonText}>Retry</Text>
+                    </TouchableOpacity>
+                </View>
+            )}
+
             {/* Stats Cards */}
-            <ScrollView style={styles.scrollView}>
-                {stats.map((stat, index) => (
-                    <StatCard
-                        key={index}
-                        icon={stat.icon}
-                        title={stat.title}
-                        value={stat.value}
-                    />
-                ))}
-            </ScrollView>
+            {!loading && !error && (
+                <ScrollView style={styles.scrollView}>
+                    {stats.map((stat, index) => (
+                        <StatCard
+                            key={index}
+                            icon={stat.icon}
+                            title={stat.title}
+                            value={stat.value}
+                        />
+                    ))}
+                </ScrollView>
+            )}
         </SafeAreaView>
     );
 };
@@ -126,11 +191,6 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         borderColor: "#ccc",
         borderWidth: 1
-        // shadowColor: '#000',
-        // shadowOffset: { width: 0, height: 2 },
-        // shadowOpacity: 0.1,
-        // shadowRadius: 4,
-        // elevation: 2,
     },
     iconContainer: {
         width: 50,
@@ -153,6 +213,42 @@ const styles = StyleSheet.create({
         fontSize: 28,
         fontWeight: 'bold',
         color: '#333333',
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'white',
+    },
+    loadingText: {
+        marginTop: 12,
+        fontSize: 16,
+        color: '#666666',
+    },
+    errorContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'white',
+        padding: 20,
+    },
+    errorText: {
+        marginTop: 12,
+        fontSize: 16,
+        color: '#666666',
+        textAlign: 'center',
+    },
+    retryButton: {
+        marginTop: 20,
+        paddingHorizontal: 24,
+        paddingVertical: 10,
+        backgroundColor: '#4A90B9',
+        borderRadius: 8,
+    },
+    retryButtonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: '600',
     },
 });
 

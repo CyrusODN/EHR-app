@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
     View,
     Text,
@@ -7,26 +7,52 @@ import {
     TouchableOpacity,
     TextInput,
     Switch,
-    ScrollView
+    ScrollView,
+    Modal
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import CustomCheckbox from '../../component/customCheckBox';
 import PrimaryButton from '../../component/button';
+import AddDoctorModal from './modals/AddDoctorModal';
+import EditEmployeeModal from './modals/EditEmployeeModal';
+import ManagePermissionsModal from './modals/ManagePermissionsModal';
+import { ActivityIndicator } from 'react-native';
+import { GetEmployees, SetEmployeeStatus, GetMyPermissions, GiveDirectorPrivilege, GetGroupPermissions, UpdateGroupPermissions, DeleteEmployee } from '../../Services/settingServices';
+import { useEffect } from 'react';
+
+
+
 
 interface Employee {
     id: string;
-    fullName: string;
-    login: string;
+    name: string;
+    lastName: string;
+    email: string;
+    pesel: string;
     pwz: string;
-    isActive: boolean;
+    status: string;
+    role: string;
+    individualPermissions?: string[];
+    assignedOffices?: any[];
+    isElevated?: boolean;
 }
 
-const Employees = () => {
+interface EmployeesProps {
+    onAlert?: (config: { visible: boolean; type: string; message: string }) => void;
+}
+
+const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
     const navigation = useNavigation<any>();
+
+    const showAlert = (type: string, message: string) => {
+        if (onAlert) {
+            onAlert({ visible: true, type, message });
+        }
+    };
 
     const [activeTab, setActiveTab] = useState('Doctors, Dentists, and Paramedics');
     const [searchLastName, setSearchLastName] = useState('');
@@ -35,23 +61,143 @@ const Employees = () => {
     const [onlyActive, setOnlyActive] = useState(false);
     const [recordsPerPage, setRecordsPerPage] = useState(10);
     const [showRecordsPicker, setShowRecordsPicker] = useState(false);
+    const [showAddDoctorModal, setShowAddDoctorModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+    const [showPermissionsModal, setShowPermissionsModal] = useState(false);
+    const [permissionsEmployee, setPermissionsEmployee] = useState<Employee | null>(null);
+    const [employees, setEmployees] = useState<Employee[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalRecords, setTotalRecords] = useState(0);
+    const [myPermissions, setMyPermissions] = useState<string[]>([]);
+    const [groupPermissions, setGroupPermissions] = useState<string[]>([]);
+    const [showGroupPermissionsModal, setShowGroupPermissionsModal] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [deleteEmployee, setDeleteEmployeeTarget] = useState<Employee | null>(null);
+    const [deleting, setDeleting] = useState(false);
     const recordsOptions = [10, 25, 50];
-
-    const [employees] = useState<Employee[]>([
-        {
-            id: '1',
-            fullName: 'Tahery Cyrus',
-            login: 'cyrus_tahery6',
-            pwz: '3883164',
-            isActive: true
-        }
-    ]);
 
     const employeeTabs = [
         'Doctors, Dentists, and Paramedics',
         'Nurses and Midwives',
         'Receptionists',
     ];
+
+    const roleMapping: { [key: string]: string } = {
+        'Doctors, Dentists, and Paramedics': 'doctor',
+        'Nurses and Midwives': 'nurse',
+        'Receptionists': 'receptionist',
+    };
+
+    const fetchEmployees = async () => {
+        setLoading(true);
+        try {
+            const params = {
+                page: currentPage,
+                limit: recordsPerPage,
+                role: roleMapping[activeTab] || 'doctor'
+            };
+            const result = await GetEmployees(params);
+            if (result?.data) {
+                setEmployees(result.data.users || []);
+                setTotalRecords(result.data.totalCount || 0);
+            }
+        } catch (error: any) {
+            console.error('Fetch Employees Error:', error);
+            showAlert('error', 'Failed to fetch employees.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleToggleStatus = async (employeeId: string, currentStatus: string) => {
+        try {
+            const response = await SetEmployeeStatus(employeeId);
+            if (response) {
+                showAlert('success', 'Status updated successfully.');
+                fetchEmployees();
+            }
+        } catch (error: any) {
+            console.error('Toggle Status Error:', error);
+            showAlert('error', error.message || 'Failed to update status.');
+        }
+    };
+
+    useEffect(() => {
+        fetchEmployees();
+    }, [activeTab, currentPage, recordsPerPage]);
+
+    const handleToggleDirectorPrivilege = async (employeeId: string, currentIsElevated: boolean) => {
+        try {
+            const newElevated = !currentIsElevated;
+            const response = await GiveDirectorPrivilege(employeeId, newElevated);
+            if (response) {
+                showAlert('success', newElevated ? 'Director privilege granted.' : 'Director privilege revoked.');
+                fetchEmployees();
+            }
+        } catch (error: any) {
+            console.error('Toggle Director Privilege Error:', error);
+            showAlert('error', error.message || 'Failed to update director privilege.');
+        }
+    };
+
+    const handleDeleteEmployee = async () => {
+        if (!deleteEmployee) return;
+        setDeleting(true);
+        try {
+            const response = await DeleteEmployee(deleteEmployee.id);
+            if (response) {
+                setShowDeleteConfirm(false);
+                setDeleteEmployeeTarget(null);
+                showAlert('success', 'Employee deleted successfully.');
+                fetchEmployees();
+            }
+        } catch (error: any) {
+            console.error('Delete Employee Error:', error);
+            showAlert('error', error.message || 'Failed to delete employee.');
+        } finally {
+            setDeleting(false);
+        }
+    };
+
+    useFocusEffect(
+        useCallback(() => {
+            const fetchMyPermissions = async () => {
+                try {
+                    const result = await GetMyPermissions();
+                    if (result?.data) {
+                        setMyPermissions(result.data.permissions || []);
+                    }
+                } catch (error: any) {
+                    console.error('Fetch My Permissions Error:', error);
+                }
+            };
+            fetchMyPermissions();
+        }, [])
+    );
+
+    const fetchGroupPermissions = async (role: string) => {
+        try {
+            const result = await GetGroupPermissions(role);
+            if (result?.data) {
+                setGroupPermissions(result.data.permissions || result.data || []);
+            }
+        } catch (error: any) {
+            console.error('Fetch Group Permissions Error:', error);
+        }
+    };
+
+    useEffect(() => {
+        const role = roleMapping[activeTab] || 'doctor';
+        fetchGroupPermissions(role);
+    }, [activeTab]);
+
+    const handleDoctorModalSubmit = (doctorData: any) => {
+        console.log('New Doctor Data:', doctorData);
+        setShowAddDoctorModal(false);
+        fetchEmployees(); // Refresh list after adding
+    };
 
     return (
         <SafeAreaView style={styles.safeArea} edges={['bottom']}>
@@ -104,7 +250,7 @@ const Employees = () => {
                             <PrimaryButton
                                 label="GROUP PERMISSIONS"
                                 filled={false}
-                                onPress={() => { }}
+                                onPress={() => setShowGroupPermissionsModal(true)}
                                 style={styles.outlineBtn}
                             />
                             <PrimaryButton
@@ -117,7 +263,7 @@ const Employees = () => {
                         <PrimaryButton
                             label="+ Add Doctor/Dentist/Paramedic"
                             filled={true}
-                            onPress={() => { }}
+                            onPress={() => setShowAddDoctorModal(true)}
                             style={styles.addBtn}
                         />
                     </View>
@@ -179,30 +325,63 @@ const Employees = () => {
                                 <Text style={[styles.tableHeaderCell, { width: 180 }]}>LAST NAME AND FIRST NAME</Text>
                                 <Text style={[styles.tableHeaderCell, { width: 140 }]}>LOGIN</Text>
                                 <Text style={[styles.tableHeaderCell, { width: 120 }]}>PWZ/PESEL</Text>
-                                <Text style={[styles.tableHeaderCell, { width: 120 }]}>STATUS</Text>
-                                <Text style={[styles.tableHeaderCell, { width: 100, textAlign: 'right' }]}>ACTIONS</Text>
+                                <Text style={[styles.tableHeaderCell, { width: 140 }]}>ACTIVATION STATUS</Text>
+                                <Text style={[styles.tableHeaderCell, { width: 220, textAlign: 'right' }]}>ACTIONS</Text>
                             </View>
 
                             {/* Employee Rows */}
-                            {employees.length > 0 ? (
+                            {loading ? (
+                                <View style={styles.loadingWrapper}>
+                                    <ActivityIndicator size="large" color="#4A90B9" />
+                                    <Text style={styles.loadingText}>Loading employees...</Text>
+                                </View>
+                            ) : employees.length > 0 ? (
                                 employees.map((item) => (
                                     <View key={item.id} style={styles.tableRow}>
-                                        <Text style={[styles.tableCell, styles.tableCellName, { width: 180 }]}>{item.fullName}</Text>
-                                        <Text style={[styles.tableCell, { width: 140 }]}>{item.login}</Text>
-                                        <Text style={[styles.tableCell, { width: 120 }]}>{item.pwz}</Text>
-                                        <View style={{ width: 120 }}>
-                                            <View style={[styles.statusBadge, item.isActive ? styles.statusActive : styles.statusInactive]}>
-                                                <Text style={[styles.statusBadgeText, item.isActive ? styles.statusActiveText : styles.statusInactiveText]}>
-                                                    {item.isActive ? 'Active' : 'Inactive'}
-                                                </Text>
-                                            </View>
+                                        <Text style={[styles.tableCell, styles.tableCellName, { width: 180 }]}>
+                                            {`${item.lastName} ${item.name}`}
+                                        </Text>
+                                        <View style={{ width: 140 }}>
+                                            <Text style={styles.tableCell}>NA</Text>
+                                            <Text style={[styles.statusSubText, item.status === 'active' ? styles.statusActiveTextRow : styles.statusInactiveTextRow]}>
+                                                {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                                            </Text>
                                         </View>
-                                        <View style={{ width: 100, flexDirection: 'row', justifyContent: 'flex-end', gap: 8 }}>
-                                            <TouchableOpacity style={styles.rowActionBtn}>
-                                                <Ionicons name="create-outline" size={20} color="#4A90B9" />
+                                        <Text style={[styles.tableCell, { width: 120 }]}>{item.pwz || item.pesel}</Text>
+                                        <View style={{ width: 140, alignItems: 'center', justifyContent: 'center' }}>
+                                            <Switch
+                                                trackColor={{ false: '#E2E8F0', true: '#4A90B9' }}
+                                                thumbColor={'#f4f3f4'}
+                                                ios_backgroundColor="#E2E8F0"
+                                                onValueChange={() => handleToggleStatus(item.id, item.status)}
+                                                value={item.status === 'active'}
+                                                style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
+                                            />
+                                        </View>
+                                        <View style={{ width: 220, flexDirection: 'row', justifyContent: 'flex-end', gap: 8 }}>
+                                            <TouchableOpacity style={styles.rowActionBtnBlue} onPress={() => {
+                                                setPermissionsEmployee(item);
+                                                setShowPermissionsModal(true);
+                                            }}>
+                                                <Feather name="user-check" size={18} color="#4A90B9" />
                                             </TouchableOpacity>
-                                            <TouchableOpacity style={styles.rowActionBtn}>
-                                                <Ionicons name="trash-outline" size={20} color="#FF6B6B" />
+                                            <TouchableOpacity style={styles.rowActionBtnBlue} onPress={() => {
+                                                setSelectedEmployee(item);
+                                                setShowEditModal(true);
+                                            }}>
+                                                <Feather name="edit-3" size={18} color="#4A90B9" />
+                                            </TouchableOpacity>
+                                            <TouchableOpacity
+                                                style={item.isElevated ? styles.rowActionBtnElevated : styles.rowActionBtnBlue}
+                                                onPress={() => handleToggleDirectorPrivilege(item.id, !!item.isElevated)}
+                                            >
+                                                <Feather name="shield" size={18} color={item.isElevated ? '#FFFFFF' : '#4A90B9'} />
+                                            </TouchableOpacity>
+                                            <TouchableOpacity style={styles.rowActionBtnRed} onPress={() => {
+                                                setDeleteEmployeeTarget(item);
+                                                setShowDeleteConfirm(true);
+                                            }}>
+                                                <Feather name="trash-2" size={18} color="#FF6B6B" />
                                             </TouchableOpacity>
                                         </View>
                                     </View>
@@ -250,21 +429,134 @@ const Employees = () => {
                         </View>
                         <Text style={styles.paginationInfo}>records per page</Text>
                         <View style={styles.paginationControls}>
-                            <TouchableOpacity style={styles.paginationBtn}>
+                            <TouchableOpacity 
+                                style={[styles.paginationBtn, currentPage === 1 && { opacity: 0.5 }]}
+                                disabled={currentPage === 1}
+                                onPress={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                            >
                                 <Text style={styles.paginationBtnText}>Prev</Text>
                             </TouchableOpacity>
                             <View style={styles.pageNumber}>
-                                <Text style={styles.pageNumberText}>1</Text>
+                                <Text style={styles.pageNumberText}>{currentPage}</Text>
                             </View>
-                            <TouchableOpacity style={styles.paginationBtn}>
+                            <TouchableOpacity 
+                                style={[styles.paginationBtn, (currentPage * recordsPerPage) >= totalRecords && { opacity: 0.5 }]}
+                                disabled={(currentPage * recordsPerPage) >= totalRecords}
+                                onPress={() => setCurrentPage(prev => prev + 1)}
+                            >
                                 <Text style={styles.paginationBtnText}>Next</Text>
                             </TouchableOpacity>
                         </View>
-                        {/* <Text style={styles.paginationTotal}>total results: {employees.length}</Text> */}
+                        <Text style={styles.paginationTotal}>Total results: {totalRecords}</Text>
                     </View>
                 </View>
 
             </ScrollView>
+
+            <AddDoctorModal
+                visible={showAddDoctorModal}
+                onClose={() => setShowAddDoctorModal(false)}
+                onAdd={handleDoctorModalSubmit}
+                onAlert={onAlert}
+            />
+            <EditEmployeeModal
+                visible={showEditModal}
+                onClose={() => {
+                    setShowEditModal(false);
+                    setSelectedEmployee(null);
+                }}
+                onSave={() => {
+                    setShowEditModal(false);
+                    setSelectedEmployee(null);
+                    fetchEmployees();
+                    showAlert('success', 'Employee updated successfully.');
+                }}
+                employee={selectedEmployee}
+            />
+            <ManagePermissionsModal
+                visible={showPermissionsModal}
+                onClose={() => {
+                    setShowPermissionsModal(false);
+                    setPermissionsEmployee(null);
+                }}
+                onSave={() => {
+                    setShowPermissionsModal(false);
+                    setPermissionsEmployee(null);
+                    fetchEmployees();
+                    showAlert('success', 'Permissions updated successfully.');
+                }}
+                employeeId={permissionsEmployee?.id || null}
+                employeeName={permissionsEmployee ? `${permissionsEmployee.name} ${permissionsEmployee.lastName}` : ''}
+                initialPermissions={permissionsEmployee?.individualPermissions || []}
+            />
+            <ManagePermissionsModal
+                visible={showGroupPermissionsModal}
+                onClose={() => setShowGroupPermissionsModal(false)}
+                onSave={() => {
+                    setShowGroupPermissionsModal(false);
+                    const role = roleMapping[activeTab] || 'doctor';
+                    fetchGroupPermissions(role);
+                    fetchEmployees();
+                    showAlert('success', 'Group permissions updated successfully.');
+                }}
+                employeeId={null}
+                initialPermissions={groupPermissions}
+                title="Manage Group Permissions"
+                onSavePermissions={async (permissions) => {
+                    const role = roleMapping[activeTab] || 'doctor';
+                    return await UpdateGroupPermissions({ role, permissions });
+                }}
+            />
+
+            {/* Delete Confirmation Modal */}
+            <Modal
+                visible={showDeleteConfirm}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => {
+                    setShowDeleteConfirm(false);
+                    setDeleteEmployeeTarget(null);
+                }}
+            >
+                <View style={styles.deleteModalOverlay}>
+                    <View style={styles.deleteModalContent}>
+                        <View style={styles.deleteIconContainer}>
+                            <Feather name="alert-triangle" size={32} color="#FF6B6B" />
+                        </View>
+                        <Text style={styles.deleteModalTitle}>Delete Employee</Text>
+                        <Text style={styles.deleteModalMessage}>
+                            Are you sure you want to delete{' '}
+                            <Text style={{ fontWeight: '700' }}>
+                                {deleteEmployee ? `${deleteEmployee.name} ${deleteEmployee.lastName}` : ''}
+                            </Text>
+                            ? This action cannot be undone.
+                        </Text>
+                        <View style={styles.deleteModalButtons}>
+                            <TouchableOpacity
+                                style={styles.deleteModalCancelBtn}
+                                onPress={() => {
+                                    setShowDeleteConfirm(false);
+                                    setDeleteEmployeeTarget(null);
+                                }}
+                            >
+                                <Text style={styles.deleteModalCancelText}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.deleteModalDeleteBtn, deleting && { opacity: 0.6 }]}
+                                onPress={handleDeleteEmployee}
+                                disabled={deleting}
+                            >
+                                {deleting ? (
+                                    <ActivityIndicator size="small" color="#FFFFFF" />
+                                ) : (
+                                    <Text style={styles.deleteModalDeleteText}>Delete</Text>
+                                )}
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
         </SafeAreaView>
     );
 };
@@ -297,6 +589,17 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         color: '#111827',
+    },
+    loadingWrapper: {
+        paddingVertical: 50,
+        alignItems: 'center',
+        justifyContent: 'center',
+        minWidth: 660,
+    },
+    loadingText: {
+        marginTop: 10,
+        fontSize: 14,
+        color: '#6B7280',
     },
     card: {
         backgroundColor: '#FFFFFF',
@@ -489,10 +792,36 @@ const styles = StyleSheet.create({
     statusInactiveText: {
         color: '#9B1C1C',
     },
-    rowActionBtn: {
-        padding: 6,
-        borderRadius: 6,
-        backgroundColor: '#F9FAFB',
+    statusSubText: {
+        fontSize: 12,
+        marginTop: 2,
+    },
+    statusActiveTextRow: {
+        color: '#10B981',
+    },
+    statusInactiveTextRow: {
+        color: '#6B7280',
+    },
+    rowActionBtnBlue: {
+        padding: 8,
+        borderRadius: 8,
+        borderWidth: 1.5,
+        borderColor: '#4A90B9',
+        backgroundColor: '#FFFFFF',
+    },
+    rowActionBtnElevated: {
+        padding: 8,
+        borderRadius: 8,
+        borderWidth: 1.5,
+        borderColor: '#4A90B9',
+        backgroundColor: '#4A90B9',
+    },
+    rowActionBtnRed: {
+        padding: 8,
+        borderRadius: 8,
+        borderWidth: 1.5,
+        borderColor: '#FF6B6B',
+        backgroundColor: '#FFFFFF',
     },
     emptyState: {
         paddingVertical: 40,
@@ -598,6 +927,72 @@ const styles = StyleSheet.create({
     recordsPickerItemTextActive: {
         color: '#4A90B9',
         fontWeight: '700',
+    },
+    deleteModalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    deleteModalContent: {
+        width: wp(85),
+        backgroundColor: '#FFFFFF',
+        borderRadius: 20,
+        padding: 28,
+        alignItems: 'center',
+    },
+    deleteIconContainer: {
+        width: 64,
+        height: 64,
+        borderRadius: 32,
+        backgroundColor: '#FEF2F2',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    deleteModalTitle: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: '#1E293B',
+        marginBottom: 8,
+    },
+    deleteModalMessage: {
+        fontSize: 15,
+        color: '#64748B',
+        textAlign: 'center',
+        lineHeight: 22,
+        marginBottom: 24,
+    },
+    deleteModalButtons: {
+        flexDirection: 'row',
+        gap: 12,
+        width: '100%',
+    },
+    deleteModalCancelBtn: {
+        flex: 1,
+        paddingVertical: 14,
+        borderRadius: 12,
+        borderWidth: 1.5,
+        borderColor: '#E2E8F0',
+        backgroundColor: '#FFFFFF',
+        alignItems: 'center',
+    },
+    deleteModalCancelText: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#64748B',
+    },
+    deleteModalDeleteBtn: {
+        flex: 1,
+        paddingVertical: 14,
+        borderRadius: 12,
+        backgroundColor: '#FF6B6B',
+        alignItems: 'center',
+    },
+    deleteModalDeleteText: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#FFFFFF',
     },
 });
 

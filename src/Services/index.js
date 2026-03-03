@@ -6,6 +6,7 @@ export * from './DoctorSetting.Service';
 export * from './Visit.Service';
 export * from './Upload.Service';
 export * from './Facility.Service';
+export * from './settingServices';
 
 
 

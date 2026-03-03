@@ -2,6 +2,6 @@
   "extends": "@react-native/typescript-config",
   "compilerOptions": {
   },
-  "include": ["**/*.ts", "**/*.tsx"],
+  "include": ["**/*.ts", "**/*.tsx", "src/Services/DashboardServices.js"],
   "exclude": ["**/node_modules", "**/Pods"]
 }

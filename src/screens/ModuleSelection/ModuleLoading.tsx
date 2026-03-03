@@ -25,7 +25,7 @@ const ModuleLoading = () => {
         if (loadingWidth < 100) {
             timer = setTimeout(() => {
                 setLoadingWidth(prev => prev + 1);
-            }, 7);
+            }, 5);
         } else {
             (navigation as any).navigate('Dashboard');
         }

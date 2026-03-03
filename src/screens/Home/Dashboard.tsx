@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
     View, ScrollView,
     StyleSheet,
     TouchableOpacity,
     BackHandler,
     Platform,
+    ActivityIndicator,
 } from 'react-native';
 import { Text, Card, Searchbar, IconButton, useTheme } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -15,13 +16,14 @@ import Gap from '../../component/gap';
 import LinearGradient from 'react-native-linear-gradient';
 import Header from '../../component/header';
 import PrimaryButton from '../../component/button';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import SlidingDrawerModal from '../Drawer';
 import { DashboardStatsCard } from './Stats';
 import ActionModal from './modals/ActionModal';
 import { useTranslation } from 'react-i18next';
 import CreateVisitModal from './modals/createVisit';
 import userStore from '../../store/user';
+import { GetDashboardVisits } from '../../Services/DashboardServices';
 import { Modal } from 'react-native';
 
 const Dashboard = () => {
@@ -41,6 +43,13 @@ const Dashboard = () => {
     const [drawerVisible, setDrawerVisible] = useState(false);
     const [showActionModal, setShowActionModal] = useState(false);
     const [calendarModalVisible, setCalendarModalVisible] = useState(false);
+
+    // Visit data from API
+    const [visits, setVisits] = useState<any[]>([]);
+    const [scheduleVisits, setScheduleVisits] = useState<any[]>([]);
+    const [completedVisits, setCompletedVisits] = useState<any[]>([]);
+    const [todaysPatients, setTodaysPatients] = useState<any[]>([]);
+    const [visitsLoading, setVisitsLoading] = useState(false);
 
     useEffect(() => {
         const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
@@ -101,33 +110,84 @@ const Dashboard = () => {
         setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1));
     };
 
+    // Format the currently selected full date as YYYY-MM-DD for the API
+    const getFormattedSelectedDate = useCallback(() => {
+        const year = viewDate.getFullYear();
+        const month = viewDate.getMonth();
+        const d = new Date(year, month, selectedDate);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+    }, [viewDate, selectedDate]);
+
+    // Fetch visits from API
+    const fetchVisits = useCallback(async () => {
+        try {
+            setVisitsLoading(true);
+            const dateStr = getFormattedSelectedDate();
+            const response: any = await GetDashboardVisits(dateStr);
+            console.log('Dashboard visits response:', response);
+
+            if (response) {
+                setScheduleVisits(response.scheduleVisits || []);
+                setCompletedVisits(response.completedVisits || []);
+                setTodaysPatients(response.todaysPatients || []);
+                setVisits(response.visits || []);
+            }
+        } catch (err) {
+            console.log('Error fetching dashboard visits:', err);
+        } finally {
+            setVisitsLoading(false);
+        }
+    }, [getFormattedSelectedDate]);
+
+    // Re-fetch visits when screen is focused
+    useFocusEffect(
+        useCallback(() => {
+            fetchVisits();
+        }, [fetchVisits])
+    );
+
+    // Also re-fetch when date selection changes
+    useEffect(() => {
+        fetchVisits();
+    }, [selectedDate, viewDate]);
+
     const currentMonthDisplay = viewDate.toLocaleString('default', { month: 'long', year: 'numeric' });
 
     const days = getDaysInMonth();
     const weekdays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
+    // Combine all visits for display (scheduled + completed + visits)
     const appointments = [
-        {
-            time: '10:00',
-            patient: 'Anna Kowalska',
-            patientId: '85061512345',
+        ...scheduleVisits.map((v: any) => ({
+            time: v.time || v.startTime || '--:--',
+            patient: v.patientId?.firstName
+                ? `${v.patientId.firstName} ${v.patientId.lastName || ''}`
+                : v.patientName || 'Unknown Patient',
+            patientId: v.patientId?._id || v.patientId || '',
             status: 'Scheduled',
-            type: 'Follow-up',
-        },
-        {
-            time: '11:30',
-            patient: 'Jan Nowak',
-            patientId: '90032212345',
-            status: 'In Progress',
-            type: 'Follow-up',
-        },
-        {
-            time: '13:00',
-            patient: 'Maria Wiśniewska',
-            patientId: '78120312345',
+            type: v.type || v.visitType || 'Visit',
+        })),
+        ...completedVisits.map((v: any) => ({
+            time: v.time || v.startTime || '--:--',
+            patient: v.patientId?.firstName
+                ? `${v.patientId.firstName} ${v.patientId.lastName || ''}`
+                : v.patientName || 'Unknown Patient',
+            patientId: v.patientId?._id || v.patientId || '',
             status: 'Completed',
-            type: 'Follow-up',
-        },
+            type: v.type || v.visitType || 'Visit',
+        })),
+        ...visits.map((v: any) => ({
+            time: v.time || v.startTime || '--:--',
+            patient: v.patientId?.firstName
+                ? `${v.patientId.firstName} ${v.patientId.lastName || ''}`
+                : v.patientName || 'Unknown Patient',
+            patientId: v.patientId?._id || v.patientId || '',
+            status: v.status || 'Scheduled',
+            type: v.type || v.visitType || 'Visit',
+        })),
     ];
 
     const getStatusStyle = (status: string) => {
@@ -229,7 +289,11 @@ const Dashboard = () => {
                 </View>
 
                 {/* Dashboard Stats */}
-                <DashboardStatsCard />
+                <DashboardStatsCard
+                    todaysPatients={todaysPatients.length}
+                    scheduledVisits={scheduleVisits.length}
+                    completedVisits={completedVisits.length}
+                />
 
                 <Gap height={6} />
 
@@ -335,13 +399,30 @@ const Dashboard = () => {
                             Today's Visits
                         </Text>
                         <Text style={styles.appointmentsSubtitle}>
-                            {selectedDate} April 2025 · {appointments.length} visits
+                            {getFormattedSelectedDate()} · {appointments.length} visits
                         </Text>
                     </View>
                 </View>
 
+                {/* Loading State */}
+                {visitsLoading && (
+                    <View style={styles.visitsLoadingContainer}>
+                        <ActivityIndicator size="small" color="#4A90B9" />
+                        <Text style={styles.visitsLoadingText}>Loading visits...</Text>
+                    </View>
+                )}
+
+                {/* Empty State */}
+                {!visitsLoading && appointments.length === 0 && (
+                    <View style={styles.emptyVisitsContainer}>
+                        <Icon name="calendar-blank-outline" size={48} color="#D1D5DB" />
+                        <Text style={styles.emptyVisitsTitle}>No visits found</Text>
+                        <Text style={styles.emptyVisitsSubtitle}>There are no visits scheduled for this date</Text>
+                    </View>
+                )}
+
                 {/* Appointment Cards */}
-                {appointments.map((appointment, index) => {
+                {!visitsLoading && appointments.map((appointment, index) => {
                     const statusStyle = getStatusStyle(appointment.status);
                     return (
                         <TouchableOpacity
@@ -911,6 +992,36 @@ const styles = StyleSheet.create({
         borderRadius: 28,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    // Visits loading / empty states
+    visitsLoadingContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingVertical: 30,
+        gap: 10,
+    },
+    visitsLoadingText: {
+        fontSize: 14,
+        color: '#9CA3AF',
+    },
+    emptyVisitsContainer: {
+        alignItems: 'center',
+        paddingVertical: 40,
+        backgroundColor: '#fff',
+        borderRadius: 14,
+        marginBottom: 10,
+    },
+    emptyVisitsTitle: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#6B7280',
+        marginTop: 12,
+    },
+    emptyVisitsSubtitle: {
+        fontSize: 13,
+        color: '#9CA3AF',
+        marginTop: 4,
     },
 });
 

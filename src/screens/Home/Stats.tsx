@@ -10,13 +10,24 @@ import { Text, Card, IconButton, useTheme } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Feather from 'react-native-vector-icons/Feather';
 
-export const DashboardStatsCard = () => {
+interface DashboardStatsCardProps {
+    todaysPatients?: number;
+    scheduledVisits?: number;
+    completedVisits?: number;
+}
+
+export const DashboardStatsCard = ({
+    todaysPatients = 0,
+    scheduledVisits = 0,
+    completedVisits = 0,
+}: DashboardStatsCardProps) => {
     const { colors } = useTheme();
     const [isExpanded, setIsExpanded] = useState(false);
     const expandAnimation = useRef(new Animated.Value(0)).current;
     const rotateAnimation = useRef(new Animated.Value(0)).current;
     const isAnimating = useRef(false);
-    const totalPatients = '1393 total';
+    const total = todaysPatients + scheduledVisits + completedVisits;
+    const totalPatients = `${total} total`;
 
     const toggleExpand = () => {
         if (isAnimating.current) return;
@@ -56,10 +67,10 @@ export const DashboardStatsCard = () => {
     });
 
     const statItems = [
-        { icon: 'account-multiple', label: "Today's Patients", value: '24', color: '#4A90B9' },
-        { icon: 'file-document-outline', label: 'Pending Reports', value: '8', color: '#F59E0B' },
-        { icon: 'calendar-clock', label: 'Scheduled Visits', value: '156', color: '#8B5CF6' },
-        { icon: 'check-circle-outline', label: 'Completed Visits', value: '1205', color: '#10B981' },
+        { icon: 'account-multiple', label: "Today's Patients", value: String(todaysPatients), color: '#4A90B9' },
+        { icon: 'file-document-outline', label: 'Pending Reports', value: '0', color: '#F59E0B' },
+        { icon: 'calendar-clock', label: 'Scheduled Visits', value: String(scheduledVisits), color: '#8B5CF6' },
+        { icon: 'check-circle-outline', label: 'Completed Visits', value: String(completedVisits), color: '#10B981' },
     ];
 
     return (

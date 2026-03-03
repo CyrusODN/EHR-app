@@ -27,6 +27,9 @@ import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-nat
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
+import { GetVisitRequirements } from '../../../Services/DoctorSetting.Service';
+import { GetPatients } from '../../../Services/Patient.Service';
+import { GetEmployees } from '../../../Services/settingServices';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -95,37 +98,109 @@ const CreateVisitModal = ({ visible, onClose }: { visible: boolean, onClose: () 
     const [doctor, setDoctor] = useState<string | null>(null);
     const [patient, setPatient] = useState<string | null>(null);
 
-    const doctorOptions = [
-        { label: 'Dr. John Doe', value: 'dr_john' },
-        { label: 'Dr. Sarah Smith', value: 'dr_sarah' },
-        { label: 'Dr. Michael Chen', value: 'dr_michael' },
-    ];
-
-    const patientOptions = [
-        { label: 'Alice Williams', value: 'alice' },
-        { label: 'Bob Miller', value: 'bob' },
-        { label: 'Charlie Brown', value: 'charlie' },
-    ];
-
-    const officeOptions = [
-        { label: 'Office 1', value: 'office1' },
-        { label: 'Office 2', value: 'office2' },
-        { label: 'Office 3', value: 'office3' },
-    ];
-
-    const typeOptions = [
+    // Dynamic dropdown options from API
+    const [doctorOptions, setDoctorOptions] = useState<{ label: string; value: string }[]>([]);
+    const [patientOptions, setPatientOptions] = useState<{ label: string; value: string }[]>([]);
+    const [officeOptions, setOfficeOptions] = useState<{ label: string; value: string }[]>([]);
+    const [typeOptions, setTypeOptions] = useState<{ label: string; value: string }[]>([
         { label: 'Private', value: 'Private' },
         { label: 'Public', value: 'Public' },
         { label: 'Insurance', value: 'Insurance' },
-    ];
+    ]);
+    const [specializationOptions, setSpecializationOptions] = useState<{ label: string; value: string }[]>([]);
 
-    const specializationOptions = [
-        { label: 'General', value: 'general' },
-        { label: 'Cardiology', value: 'cardiology' },
-        { label: 'Dermatology', value: 'dermatology' },
-        { label: 'Neurology', value: 'neurology' },
-        { label: 'Orthopedics', value: 'orthopedics' },
-    ];
+    // Fetch all dropdown data on mount
+    useEffect(() => {
+        // Fetch visit requirements (offices, specializations, types)
+        const fetchRequirements = async () => {
+            try {
+                const res: any = await GetVisitRequirements();
+                console.log('Visit requirements raw:', JSON.stringify(res));
+
+                // Offices
+                const offices = res?.offices || res?.data?.offices || [];
+                if (Array.isArray(offices) && offices.length > 0) {
+                    setOfficeOptions(offices.map((o: any) => ({
+                        label: o.name || o.officeName || o.label || `Office`,
+                        value: String(o._id || o.id || o.value),
+                    })));
+                }
+
+                // Specializations
+                const specs = res?.specializations || res?.data?.specializations || [];
+                if (Array.isArray(specs) && specs.length > 0) {
+                    setSpecializationOptions(specs.map((s: any) => ({
+                        label: typeof s === 'string' ? s : (s.name || s.label || ''),
+                        value: typeof s === 'string' ? s : String(s._id || s.id || s.value),
+                    })));
+                }
+
+                // Types (override defaults if API provides them)
+                const types = res?.types || res?.data?.types;
+                if (Array.isArray(types) && types.length > 0) {
+                    setTypeOptions(types.map((t: any) => ({
+                        label: typeof t === 'string' ? t : (t.name || t.label || ''),
+                        value: typeof t === 'string' ? t : String(t._id || t.id || t.value),
+                    })));
+                }
+
+                // Doctors (if provided in requirements)
+                const doctors = res?.doctors || res?.data?.doctors;
+                if (Array.isArray(doctors) && doctors.length > 0) {
+                    setDoctorOptions(doctors.map((d: any) => ({
+                        label: `Dr. ${d.firstName || ''} ${d.lastName || ''}`.trim(),
+                        value: String(d._id || d.id),
+                    })));
+                }
+            } catch (err) {
+                console.log('Error fetching visit requirements:', err);
+            }
+        };
+
+        // Always fetch doctors from employees API
+        const fetchDoctors = async () => {
+            try {
+                const res: any = await GetEmployees({ role: 'doctor', page: 1, limit: 100 });
+                console.log('Doctors raw:', JSON.stringify(res));
+                // Could be res.employees, res.data.employees, res.data, or res itself as array
+                const employees = res?.employees || res?.data?.employees || res?.data || (Array.isArray(res) ? res : []);
+                if (Array.isArray(employees) && employees.length > 0) {
+                    setDoctorOptions(prev => {
+                        // Only set if not already populated by requirements
+                        if (prev.length > 0) return prev;
+                        return employees.map((d: any) => ({
+                            label: `Dr. ${d.firstName || ''} ${d.lastName || ''}`.trim(),
+                            value: String(d._id || d.id),
+                        }));
+                    });
+                }
+            } catch (err) {
+                console.log('Error fetching doctors:', err);
+            }
+        };
+
+        // Fetch patients
+        const fetchPatients = async () => {
+            try {
+                const res: any = await GetPatients({ page: 1, limit: 50 });
+                console.log('Patients raw:', JSON.stringify(res));
+                // Could be res.patients, res.data.patients, res.data, or res itself as array
+                const patients = res?.patients || res?.data?.patients || res?.data || (Array.isArray(res) ? res : []);
+                if (Array.isArray(patients) && patients.length > 0) {
+                    setPatientOptions(patients.map((p: any) => ({
+                        label: `${p.firstName || ''} ${p.lastName || ''}`.trim() || p.name || 'Patient',
+                        value: String(p._id || p.id),
+                    })));
+                }
+            } catch (err) {
+                console.log('Error fetching patients:', err);
+            }
+        };
+
+        fetchRequirements();
+        fetchDoctors();
+        fetchPatients();
+    }, []);
 
 
     const handleDateChange = (_event: any, selectedDate?: Date) => {
