@@ -19,7 +19,9 @@ import {useNavigation, useRoute} from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import PrimaryButton from '../../component/button';
 import Gap from '../../component/gap';
-import { VerifyOtp, ResendOtp } from '../../Services/Auth.Service';
+import { VerifyOtp, ResendOtp, Verify2FA } from '../../Services/Auth.Service';
+import userStore from '../../store/user';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import CustomAlert from '../../component/customAlert';
 
 // Define stack param list if not already defined globally
@@ -40,6 +42,7 @@ const Otp = () => {
     const navigation = useNavigation<any>();
     const {email, type} = route?.params || {};
     const [spinner, setSpinner] = useState(false);
+    const { setAuth } = userStore();
     
     
     const [otp, setOtp] = useState<string[]>(['', '', '', '', '', '']);
@@ -122,21 +125,41 @@ console.log("type", type)
                 return;
             }
 
-            const payload = {
-                email: email,
-                otp: enteredOtp,
-                type: type,
-            };
-
-            const response = await VerifyOtp(payload);
+            let response: any;
+            if (type === '2fa') {
+                let deviceId = await AsyncStorage.getItem('stable_device_id');
+                if (!deviceId) {
+                    deviceId = "mobile_device_" + Math.random().toString(36).substring(2, 15) + "_" + Date.now();
+                    await AsyncStorage.setItem('stable_device_id', deviceId);
+                }
+                const payload = {
+                    email: email,
+                    token: enteredOtp,
+                    deviceId: deviceId,
+                    rememberDevice: false
+                };
+                response = await Verify2FA(payload);
+            } else {
+                const payload = {
+                    email: email,
+                    otp: enteredOtp,
+                    type: type,
+                };
+                response = await VerifyOtp(payload);
+            }
 
             setSpinner(false);
 
             if (response) {
                 let successMessage = 'Verification successful!';
                 
+                // If it's a successful 2FA login, update the store
+                if (type === '2fa' && response) {
+                   setAuth(response);
+                }
+
                 if (typeof response === 'object') {
-                    successMessage = response.data || successMessage;
+                    successMessage = response.message || response.data || successMessage;
                 } else if (typeof response === 'string') {
                     successMessage = response;
                 }
@@ -147,19 +170,20 @@ console.log("type", type)
                     message: successMessage,
                 });
 
-                // Navigate based on type after a short delay
-                setTimeout(() => {
-                    if (type === "registration") {
-                        navigation.navigate('Sign-In');
-                    } else if (type === "reset-password") {
-                        navigation.navigate('Reset-Password', {
-                            email: email,
-                            resetPasswordToken: (response as any)?.data?.resetPasswordToken || (response as any)?.resetPasswordToken,
-                        });
-                    } else {
-                        navigation.navigate('Sign-In');
-                    }
-                }, 2000);
+                if (type === "registration") {
+                    navigation.navigate('Sign-In');
+                } else if (type === "reset-password") {
+                    navigation.navigate('Reset-Password', {
+                        email: email,
+                        resetPasswordToken: (response as any)?.data?.resetPasswordToken || (response as any)?.resetPasswordToken,
+                    });
+                } else if (type === '2fa') {
+                    // No need for explicit navigation here. 
+                    // setAuth(response) triggers isAuthenticated change, 
+                    // which causes the AppNavigator to swap stacks automatically.
+                } else {
+                    navigation.navigate('Sign-In');
+                }
             }
         } catch (error: any) {
             setSpinner(false);

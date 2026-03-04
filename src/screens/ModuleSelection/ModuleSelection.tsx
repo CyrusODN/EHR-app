@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, Image, ViewBase } from 'react-native';
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { Card, useTheme } from 'react-native-paper';
 import LogoSvg from '../../component/logo';
 import Gap from '../../component/gap';
@@ -7,6 +7,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useNavigation } from '@react-navigation/native';
+import userStore from '../../store/user';
 import {
     heightPercentageToDP as hp,
     widthPercentageToDP as wp
@@ -17,6 +18,7 @@ const ModuleSelection = () => {
 
     const { colors } = useTheme();
     const navigation = useNavigation();
+    const setSelectedModule = userStore((state: any) => state.setSelectedModule);
 
 
     return (
@@ -31,7 +33,8 @@ const ModuleSelection = () => {
 
                 {/* Psychiatry Card */}
                 <TouchableOpacity onPress={() => {
-                    navigation.navigate('Module-Loading')
+                    setSelectedModule('Psychiatry');
+                    (navigation as any).navigate('Module-Loading')
                 }}
                     style={styles.cardWrapper}>
                     <Card style={styles.card}>
@@ -186,8 +189,6 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         flexDirection: "row",
         alignItems: 'center',
-        color: 'white',
-
     },
 });
 

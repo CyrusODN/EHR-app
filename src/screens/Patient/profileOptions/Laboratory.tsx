@@ -9,44 +9,66 @@ import {
     Modal,
     LayoutAnimation,
     Platform,
-    UIManager
+    UIManager,
+    ActivityIndicator
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
+import { GetPatientMedicalRecord, UpdatePatientMedicalRecord } from '../../../Services/PatientRecord.Service';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const FormInput = ({ label, placeholder, required = false, isDropdown = false, hasCalendar = false, multiline = false }: any) => (
+const FormInput = ({ label, placeholder, required = false, isDropdown = false, hasCalendar = false, multiline = false, value, onChangeText, onPress }: any) => (
     <View style={styles.inputGroup}>
         <View style={styles.labelRow}>
             {required && <Text style={styles.requiredStar}>* </Text>}
             <Text style={styles.inputLabel}>{label}</Text>
         </View>
-        <View style={[styles.inputWrapper, multiline && styles.textAreaWrapper]}>
+        <TouchableOpacity 
+            activeOpacity={isDropdown || hasCalendar ? 0.7 : 1}
+            onPress={(isDropdown || hasCalendar) ? onPress : undefined}
+            style={[styles.inputWrapper, multiline && styles.textAreaWrapper]}
+        >
             <TextInput 
                 style={[styles.textInput, multiline && styles.textArea]}
                 placeholder={placeholder}
                 placeholderTextColor="#cbd5e1"
-                editable={!isDropdown}
+                editable={!isDropdown && !hasCalendar}
                 multiline={multiline}
+                value={value}
+                onChangeText={onChangeText}
+                pointerEvents={(isDropdown || hasCalendar) ? 'none' : 'auto'}
             />
             {isDropdown && <Feather name="chevron-down" size={16} color="#cbd5e1" />}
-            {hasCalendar && <Feather name="calendar" size={16} color="#cbd5e1" style={{ position: 'absolute', right: 12 }} />}
-        </View>
+            {hasCalendar && <Feather name="calendar" size={16} color="#4A90B9" />}
+        </TouchableOpacity>
     </View>
 );
 
-const SubmitButton = ({ title, color = ['#68BFB4', '#4DA1C0'], onPress, style }: any) => (
-    <TouchableOpacity style={[styles.submitButtonContainer, style]} onPress={onPress}>
+const SubmitButton = ({ title, icon, color = ['#68BFB4', '#4DA1C0'], onPress, style, loading = false }: any) => (
+    <TouchableOpacity 
+        style={[styles.submitButtonContainer, style, loading && { opacity: 0.7 }]} 
+        onPress={loading ? undefined : onPress}
+    >
         <LinearGradient
             colors={color}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.gradientButton}
         >
-            <Text style={styles.submitButtonText}>{title}</Text>
+            <View style={styles.buttonContent}>
+                {loading ? (
+                    <ActivityIndicator size="small" color="#ffffff" />
+                ) : (
+                    <>
+                        {icon && <Feather name={icon} size={16} color="#ffffff" style={{ marginRight: 8 }} />}
+                        <Text style={styles.submitButtonText}>{title}</Text>
+                    </>
+                )}
+            </View>
         </LinearGradient>
     </TouchableOpacity>
 );
@@ -58,11 +80,157 @@ const ActionOutlineButton = ({ title, icon, onPress }: any) => (
     </TouchableOpacity>
 );
 
-const Laboratory = ({ patientData }: { patientData: any }) => {
+const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (type: string, msg: string) => void }) => {
+    const [labData, setLabData] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
     const [expanded, setExpanded] = useState(true);
     const [searchText, setSearchText] = useState('');
     const [showResultsModal, setShowResultsModal] = useState(false);
     const [showParameterModal, setShowParameterModal] = useState(false);
+    const [showDatePicker, setShowDatePicker] = useState(false);
+
+    const [newTest, setNewTest] = useState<any>({
+        testName: '',
+        orderDate: new Date(),
+        labReferenceNumber: '',
+        parameters: []
+    });
+
+    const [tempParameter, setTempParameter] = useState({
+        name: '',
+        range: '',
+        unit: '',
+        value: ''
+    });
+
+    const formatDateDisplay = (dateVal: any) => {
+        if (!dateVal) return '';
+        try {
+            const date = new Date(dateVal);
+            if (isNaN(date.getTime())) return dateVal;
+            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+        } catch (e) { return dateVal; }
+    };
+
+    const handleNewTestChange = (field: string, value: any) => {
+        setNewTest((prev: any) => ({ ...prev, [field]: value }));
+    };
+
+    const handleTempParamChange = (field: string, value: any) => {
+        setTempParameter(prev => ({ ...prev, [field]: value }));
+    };
+
+    const addParameterRecord = () => {
+        if (!tempParameter.name || !tempParameter.value) return;
+        setNewTest((prev: any) => ({
+            ...prev,
+            parameters: [...prev.parameters, { ...tempParameter }]
+        }));
+        setTempParameter({ name: '', range: '', unit: '', value: '' });
+        setShowParameterModal(false);
+    };
+
+    const removeParameter = (index: number) => {
+        setNewTest((prev: any) => ({
+            ...prev,
+            parameters: prev.parameters.filter((_: any, i: number) => i !== index)
+        }));
+    };
+
+    const handleSaveResult = async () => {
+        const patientId = patientData?.id || patientData?._id;
+        if (!patientId) return;
+
+        if (!newTest.testName || !newTest.labReferenceNumber) {
+            if (onAlert) onAlert('error', 'Please enter test name and reference number');
+            return;
+        }
+
+        const dateStr = newTest.orderDate instanceof Date 
+            ? newTest.orderDate.toISOString().split('T')[0] 
+            : new Date().toISOString().split('T')[0];
+
+        const payload = {
+            patientId,
+            testResults: {
+                id: Date.now().toString(),
+                name: newTest.testName,
+                orderDate: dateStr,
+                labReference: newTest.labReferenceNumber,
+                parameters: (newTest.parameters || []).map((p: any) => ({
+                    id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+                    name: p.name,
+                    normalRange: p.range,
+                    unit: p.unit,
+                    value: p.value,
+                    isAbnormal: false
+                }))
+            }
+        };
+
+        console.log("Saving lab result payload:", JSON.stringify(payload, null, 2));
+        setIsSaving(true);
+        try {
+            const res = await UpdatePatientMedicalRecord(payload);
+            console.log("Lab result update response:", res);
+            if (res) {
+                // Success - Close modal first
+                setShowResultsModal(false);
+                
+                // Show Alert in parent
+                if (onAlert) onAlert('success', 'Laboratory result added successfully');
+                
+                // Reset form
+                setNewTest({
+                    testName: '',
+                    orderDate: new Date(),
+                    labReferenceNumber: '',
+                    parameters: []
+                });
+                
+                // Refresh data from server to get new list
+                const refreshedResponse: any = await GetPatientMedicalRecord(patientId);
+                if (refreshedResponse) setLabData(refreshedResponse);
+            }
+        } catch (error) {
+            console.error("Save lab result error:", error);
+            if (onAlert) onAlert('error', 'Failed to update laboratory records');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    React.useEffect(() => {
+        const fetchLabData = async () => {
+            try {
+                const patientId = patientData?.id || patientData?._id;
+                if (!patientId) {
+                    setLoading(false);
+                    return;
+                }
+                const response: any = await GetPatientMedicalRecord(patientId);
+                if (response) {
+                    setLabData(response);
+                }
+            } catch (error) {
+                console.log("Fetch lab data error:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchLabData();
+    }, [patientData]);
+
+    if (loading) {
+        return (
+            <View style={{ flex: 1, paddingVertical: 40, alignItems: 'center', justifyContent: 'center' }}>
+                <ActivityIndicator size="large" color="#4A90B9" />
+                <Text style={{ marginTop: 15, color: '#64748b' }}>Fetching lab records...</Text>
+            </View>
+        );
+    }
 
     const toggleExpand = () => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -77,7 +245,7 @@ const Laboratory = ({ patientData }: { patientData: any }) => {
             onRequestClose={() => setShowResultsModal(false)}
         >
             <View style={styles.modalOverlay}>
-                <View style={[styles.modalContent, { width: '90%' }]}>
+                <View style={[styles.modalContent, { width: '96%' }]}>
                     <View style={styles.modalHeader}>
                         <Text style={styles.modalTitle}>Add Lab Results</Text>
                         <TouchableOpacity onPress={() => setShowResultsModal(false)}>
@@ -89,37 +257,103 @@ const Laboratory = ({ patientData }: { patientData: any }) => {
                         <Text style={styles.modalSubheading}>Basic Information</Text>
                         <View style={styles.row}>
                             <View style={{ flex: 1, marginRight: 8 }}>
-                                <FormInput label="Test Name" required placeholder="e.g. Blood Morphology, Lipid Profile" />
+                                <FormInput 
+                                    label="Test Name" 
+                                    required 
+                                    placeholder="e.g. Blood Morphology, Lipid Profile" 
+                                    value={newTest.testName}
+                                    onChangeText={(val: string) => handleNewTestChange('testName', val)}
+                                />
                             </View>
                             <View style={{ flex: 1 }}>
-                                <FormInput label="Order Date" required placeholder="Select date" hasCalendar isDropdown />
+                                <FormInput 
+                                    label="Order Date" 
+                                    required 
+                                    placeholder="Select date" 
+                                    hasCalendar 
+                                    isDropdown 
+                                    value={formatDateDisplay(newTest.orderDate)}
+                                    onPress={() => setShowDatePicker(true)}
+                                />
                             </View>
                         </View>
-                        <FormInput label="Lab Reference Number" required placeholder="e.g. LAB/2024/001" />
+                        
+                        {showDatePicker && (
+                            <View style={styles.datePickerContainer}>
+                                <View style={styles.datePickerHeader}>
+                                    <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                                        <Text style={styles.datePickerDone}>Done</Text>
+                                    </TouchableOpacity>
+                                </View>
+                                <DateTimePicker
+                                    value={newTest.orderDate || new Date()}
+                                    mode="date"
+                                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                    onChange={(event, date) => {
+                                        if (Platform.OS === 'android') setShowDatePicker(false);
+                                        if (date) handleNewTestChange('orderDate', date);
+                                    }}
+                                />
+                            </View>
+                        )}
+
+                        <FormInput 
+                            label="Lab Reference Number" 
+                            required 
+                            placeholder="e.g. LAB/2024/001" 
+                            value={newTest.labReferenceNumber}
+                            onChangeText={(val: string) => handleNewTestChange('labReferenceNumber', val)}
+                        />
 
                         <View style={styles.parametersHeader}>
                             <Text style={styles.modalSubheading}>Test Parameters</Text>
                             <ActionOutlineButton 
                                 title="Add Parameter" 
                                 icon="plus" 
-                                onPress={() => setShowParameterModal(true)} 
+                                onPress={() => {
+                                    setTempParameter({ name: '', range: '', unit: '', value: '' });
+                                    setShowParameterModal(true);
+                                }} 
                             />
                         </View>
 
-                        <View style={styles.emptyBox}>
-                            <Text style={styles.emptyBoxText}>No parameters added. Click 'Add Parameter' to start.</Text>
-                        </View>
+                        {newTest.parameters?.length > 0 ? (
+                            newTest.parameters.map((p: any, idx: number) => (
+                                <View key={idx} style={styles.addedParamItem}>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={styles.addedParamName}>{p.name}</Text>
+                                        <Text style={styles.addedParamDetail}>{p.value} {p.unit} ({p.range})</Text>
+                                    </View>
+                                    <TouchableOpacity onPress={() => removeParameter(idx)}>
+                                        <Feather name="trash-2" size={16} color="#ef4444" />
+                                    </TouchableOpacity>
+                                </View>
+                            ))
+                        ) : (
+                            <View style={styles.emptyBox}>
+                                <Text style={styles.emptyBoxText}>No parameters added. Click 'Add Parameter' to start.</Text>
+                            </View>
+                        )}
                     </ScrollView>
 
                     <View style={styles.modalFooter}>
                         <TouchableOpacity 
                             style={styles.cancelOutlineButton} 
                             onPress={() => setShowResultsModal(false)}
+                            disabled={isSaving}
                         >
                             <Text style={styles.cancelOutlineText}>Cancel</Text>
                         </TouchableOpacity>
-                        <SubmitButton title="Add Result" style={{ width: 110 }} />
+                        <SubmitButton 
+                            title="Add Result" 
+                            icon="plus" 
+                            style={{ width: 150 }} 
+                            onPress={handleSaveResult}
+                            loading={isSaving}
+                        />
                     </View>
+                    
+                    {renderAddParameterModal()}
                 </View>
             </View>
         </Modal>
@@ -133,7 +367,7 @@ const Laboratory = ({ patientData }: { patientData: any }) => {
             onRequestClose={() => setShowParameterModal(false)}
         >
             <View style={styles.modalOverlay}>
-                <View style={[styles.modalContent, { width: '85%' }]}>
+                <View style={[styles.modalContent, { width: '96%' }]}>
                     <View style={styles.modalHeader}>
                         <Text style={styles.modalTitle}>Add Parameter</Text>
                         <TouchableOpacity onPress={() => setShowParameterModal(false)}>
@@ -143,19 +377,35 @@ const Laboratory = ({ patientData }: { patientData: any }) => {
 
                     <View style={styles.row}>
                         <View style={{ flex: 1, marginRight: 8 }}>
-                            <FormInput label="Parameter Name" required placeholder="" />
+                            <FormInput 
+                                label="Parameter Name" required placeholder="" 
+                                value={tempParameter.name}
+                                onChangeText={(val: string) => handleTempParamChange('name', val)}
+                            />
                         </View>
                         <View style={{ flex: 1 }}>
-                            <FormInput label="Normal Range" required placeholder="e.g. 4.0-10.0, <200, >40" />
+                            <FormInput 
+                                label="Normal Range" required placeholder="e.g. 4.0-10.0, <200, >40" 
+                                value={tempParameter.range}
+                                onChangeText={(val: string) => handleTempParamChange('range', val)}
+                            />
                         </View>
                     </View>
 
                     <View style={styles.row}>
                         <View style={{ flex: 1, marginRight: 8 }}>
-                            <FormInput label="Unit" required placeholder="e.g. g/dL, 10^3/μL" />
+                            <FormInput 
+                                label="Unit" required placeholder="e.g. g/dL, 10^3/μL" 
+                                value={tempParameter.unit}
+                                onChangeText={(val: string) => handleTempParamChange('unit', val)}
+                            />
                         </View>
                         <View style={{ flex: 1 }}>
-                            <FormInput label="Value" required placeholder="" />
+                            <FormInput 
+                                label="Value" required placeholder="" 
+                                value={tempParameter.value}
+                                onChangeText={(val: string) => handleTempParamChange('value', val)}
+                            />
                         </View>
                     </View>
 
@@ -166,8 +416,9 @@ const Laboratory = ({ patientData }: { patientData: any }) => {
                         >
                             <Text style={styles.cancelOutlineText}>Cancel</Text>
                         </TouchableOpacity>
-                        <SubmitButton title="Add Parameter" style={{ width: 140 }} />
+                        <SubmitButton title="Add Parameter" icon="plus" onPress={addParameterRecord} style={{ width: 160 }} />
                     </View>
+
                 </View>
             </View>
         </Modal>
@@ -176,7 +427,6 @@ const Laboratory = ({ patientData }: { patientData: any }) => {
     return (
         <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
             {renderAddResultsModal()}
-            {renderAddParameterModal()}
             
             <View style={styles.card}>
                 <TouchableOpacity 
@@ -212,9 +462,51 @@ const Laboratory = ({ patientData }: { patientData: any }) => {
                             />
                         </View>
 
-                        <View style={styles.emptyContainer}>
-                            <Text style={styles.emptyText}>No lab results found</Text>
-                        </View>
+                        {(() => {
+                            const filteredResults = labData?.testResults?.filter((result: any) => 
+                                (result.testName || '').toLowerCase().includes(searchText.toLowerCase()) ||
+                                (result.labReferenceNumber || '').toLowerCase().includes(searchText.toLowerCase())
+                            ) || [];
+
+                            return filteredResults.length > 0 ? (
+                                filteredResults.map((result: any, index: number) => (
+                                    <View key={index} style={styles.resultItem}>
+                                        <View style={styles.resultHeader}>
+                                            <Text style={styles.resultName}>{result.testName || 'Laboratory Test'}</Text>
+                                            <View style={styles.resultInfoRow}>
+                                                <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 15 }}>
+                                                    <Feather name="calendar" size={14} color="#94a3b8" style={{ marginRight: 5 }} />
+                                                    <Text style={styles.resultInfoText}>{formatDateDisplay(result.orderDate)}</Text>
+                                                </View>
+                                                <Text style={styles.resultInfoText}>Order number: {result.labReferenceNumber || 'N/A'}</Text>
+                                            </View>
+                                        </View>
+                                        
+                                        <View style={styles.resultContent}>
+                                            {result.parameters?.length > 0 ? (
+                                                result.parameters.map((p: any, pIdx: number) => (
+                                                    <View key={pIdx} style={[styles.parameterRow, pIdx === result.parameters.length - 1 && { marginBottom: 0 }]}>
+                                                        <View style={{ flex: 1 }}>
+                                                            <Text style={styles.parameterName}>{p.name}</Text>
+                                                            <Text style={styles.parameterRange}>Normal range: {p.range || p.normalRange || 'N/A'}</Text>
+                                                        </View>
+                                                        <Text style={styles.parameterValue}>{p.value} {p.unit}</Text>
+                                                    </View>
+                                                ))
+                                            ) : (
+                                                <Text style={styles.emptyParamsText}>No parameters recorded for this test.</Text>
+                                            )}
+                                        </View>
+                                    </View>
+                                ))
+                            ) : (
+                                <View style={styles.emptyContainer}>
+                                    <Text style={styles.emptyText}>
+                                        {searchText ? 'No lab results match your search' : 'No lab results found'}
+                                    </Text>
+                                </View>
+                            );
+                        })()}
                     </View>
                 )}
             </View>
@@ -286,7 +578,7 @@ const styles = StyleSheet.create({
     },
     addResultsBtn: {
         flex: 0,
-        minWidth: 120,
+        minWidth: 150,
     },
     emptyContainer: {
         backgroundColor: '#f8fafc',
@@ -305,7 +597,8 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0,0,0,0.5)',
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 20
+        padding: 20,
+        zIndex: 1000
     },
     modalContent: {
         backgroundColor: '#ffffff',
@@ -426,12 +719,18 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingHorizontal: 12
+    },
+    buttonContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
     },
     submitButtonText: {
         color: '#ffffff',
         fontSize: 14,
-        fontWeight: '600'
+        fontWeight: '600',
+        textAlign: 'center'
     },
     outlineButton: {
         flexDirection: 'row',
@@ -447,6 +746,108 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: '#58a6b8',
         marginLeft: 6
+    },
+    resultItem: {
+        backgroundColor: '#ffffff',
+        borderWidth: 1,
+        borderColor: '#f1f5f9',
+        borderRadius: 12,
+        marginBottom: 16,
+        overflow: 'hidden',
+    },
+    resultHeader: {
+        backgroundColor: '#F8FAFC',
+        padding: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f1f5f9',
+    },
+    resultName: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#1e293b',
+        marginBottom: 4,
+    },
+    resultInfoRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    resultInfoText: {
+        fontSize: 12,
+        color: '#94a3b8',
+    },
+    resultContent: {
+        padding: 12,
+    },
+    parameterRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: 16,
+    },
+    parameterName: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#1e293b',
+    },
+    parameterRange: {
+        fontSize: 12,
+        color: '#94a3b8',
+        marginTop: 2,
+    },
+    parameterValue: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#1e293b',
+    },
+    emptyParamsText: {
+        fontSize: 12,
+        color: '#94a3b8',
+        fontStyle: 'italic',
+        textAlign: 'center',
+    },
+    datePickerContainer: {
+        backgroundColor: '#f8fafc',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        marginTop: 4,
+        marginBottom: 8,
+        overflow: 'hidden',
+    },
+    datePickerHeader: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+        paddingHorizontal: 14,
+        paddingVertical: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#e2e8f0',
+        backgroundColor: '#ffffff',
+    },
+    datePickerDone: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#58a6b8',
+    },
+    addedParamItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#ffffff',
+        borderWidth: 1,
+        borderColor: '#f1f5f9',
+        borderRadius: 8,
+        padding: 10,
+        marginBottom: 8,
+    },
+    addedParamName: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#1e293b',
+    },
+    addedParamDetail: {
+        fontSize: 12,
+        color: '#64748b',
+        marginTop: 2,
     }
 });
 

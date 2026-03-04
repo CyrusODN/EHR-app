@@ -4,10 +4,13 @@ import { throwServerError } from "../utils/custom_errors";
 const MODEL_NAME = "/personal-data";
 
 export async function GetPatientPersonalData(patientId) {
+    console.log("GetPatientPersonalData PatientId Sent:", patientId);
 	try {
-		const result = await getRequest(`${MODEL_NAME}/${patientId}`,);
+		const result = await getRequest(`${MODEL_NAME}/${patientId}`);
+        console.log("GetPatientPersonalData API Response:", JSON.stringify(result, null, 4));
 		return result;
 	} catch (err) {
+        console.log("GetPatientPersonalData API Error:", JSON.stringify(err, null, 4));
 		return throwServerError(err);
 	}
 }

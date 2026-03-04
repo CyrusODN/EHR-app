@@ -37,11 +37,12 @@ const Dashboard = () => {
     const navigation = useNavigation<any>();
     const currentMonth = 'April 2025';
     const { colors } = useTheme();
-    const [selectedDate, setSelectedDate] = useState(new Date().getDate());
-    const [viewDate, setViewDate] = useState(new Date()); // Date being viewed in calendar
+    const [selectedDate, setSelectedDate] = useState(new Date()); // The Date for which we are showing visits
+    const [viewDate, setViewDate] = useState(new Date()); // The month being viewed in the calendar modal
     const [createVisitModalVisible, setCreateVisitModalVisible] = useState(false);
     const [drawerVisible, setDrawerVisible] = useState(false);
     const [showActionModal, setShowActionModal] = useState(false);
+    const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
     const [calendarModalVisible, setCalendarModalVisible] = useState(false);
 
     // Visit data from API
@@ -83,8 +84,12 @@ const Dashboard = () => {
             days.push({
                 day: i,
                 isCurrentMonth: true,
-                isToday: i === today.getDate() && month === today.getMonth() && year === today.getFullYear(),
-                isSelected: i === selectedDate && month === new Date().getMonth() && year === new Date().getFullYear() // simplified selection logic
+                isSelected: i === selectedDate.getDate() && 
+                            month === selectedDate.getMonth() && 
+                            year === selectedDate.getFullYear(),
+                isToday: i === today.getDate() && 
+                         month === today.getMonth() && 
+                         year === today.getFullYear(),
             });
         }
 
@@ -98,7 +103,8 @@ const Dashboard = () => {
 
     const handleDateSelect = (day: any) => {
         if (day.isCurrentMonth) {
-            setSelectedDate(day.day);
+            const newSelectedDate = new Date(viewDate.getFullYear(), viewDate.getMonth(), day.day);
+            setSelectedDate(newSelectedDate);
         }
     };
 
@@ -110,16 +116,28 @@ const Dashboard = () => {
         setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1));
     };
 
+    const isToday = (date: Date) => {
+        const today = new Date();
+        return date.getDate() === today.getDate() &&
+            date.getMonth() === today.getMonth() &&
+            date.getFullYear() === today.getFullYear();
+    };
+
+    const formatHeaderDate = (date: Date) => {
+        return date.toLocaleDateString('en-GB', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+    };
+
     // Format the currently selected full date as YYYY-MM-DD for the API
     const getFormattedSelectedDate = useCallback(() => {
-        const year = viewDate.getFullYear();
-        const month = viewDate.getMonth();
-        const d = new Date(year, month, selectedDate);
-        const yyyy = d.getFullYear();
-        const mm = String(d.getMonth() + 1).padStart(2, '0');
-        const dd = String(d.getDate()).padStart(2, '0');
+        const yyyy = selectedDate.getFullYear();
+        const mm = String(selectedDate.getMonth() + 1).padStart(2, '0');
+        const dd = String(selectedDate.getDate()).padStart(2, '0');
         return `${yyyy}-${mm}-${dd}`;
-    }, [viewDate, selectedDate]);
+    }, [selectedDate]);
 
     // Fetch visits from API
     const fetchVisits = useCallback(async () => {
@@ -152,43 +170,28 @@ const Dashboard = () => {
     // Also re-fetch when date selection changes
     useEffect(() => {
         fetchVisits();
-    }, [selectedDate, viewDate]);
+    }, [selectedDate]);
 
     const currentMonthDisplay = viewDate.toLocaleString('default', { month: 'long', year: 'numeric' });
 
     const days = getDaysInMonth();
     const weekdays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
-    // Combine all visits for display (scheduled + completed + visits)
-    const appointments = [
-        ...scheduleVisits.map((v: any) => ({
-            time: v.time || v.startTime || '--:--',
-            patient: v.patientId?.firstName
+    // Display only visits from the 'visits' array as it is filtered by date
+    const appointments = visits.map((v: any) => ({
+        id: v.id || v._id,
+        time: v.time || v.startTime || '--:--',
+        patient: v.patient?.name
+            ? v.patient.name
+            : v.patientId?.firstName
                 ? `${v.patientId.firstName} ${v.patientId.lastName || ''}`
                 : v.patientName || 'Unknown Patient',
-            patientId: v.patientId?._id || v.patientId || '',
-            status: 'Scheduled',
-            type: v.type || v.visitType || 'Visit',
-        })),
-        ...completedVisits.map((v: any) => ({
-            time: v.time || v.startTime || '--:--',
-            patient: v.patientId?.firstName
-                ? `${v.patientId.firstName} ${v.patientId.lastName || ''}`
-                : v.patientName || 'Unknown Patient',
-            patientId: v.patientId?._id || v.patientId || '',
-            status: 'Completed',
-            type: v.type || v.visitType || 'Visit',
-        })),
-        ...visits.map((v: any) => ({
-            time: v.time || v.startTime || '--:--',
-            patient: v.patientId?.firstName
-                ? `${v.patientId.firstName} ${v.patientId.lastName || ''}`
-                : v.patientName || 'Unknown Patient',
-            patientId: v.patientId?._id || v.patientId || '',
-            status: v.status || 'Scheduled',
-            type: v.type || v.visitType || 'Visit',
-        })),
-    ];
+        patientId: v.patient?.id || v.patient?._id || v.patientId?._id || v.patientId || '',
+        patientSlug: v.patient?.slug || '',
+        patientData: v.patient,
+        status: v.status || (v.startTime ? 'Scheduled' : 'Completed'), // Default based on fields if missing
+        type: v.type || v.visitType || 'Visit',
+    }));
 
     const getStatusStyle = (status: string) => {
         switch (status) {
@@ -238,7 +241,7 @@ const Dashboard = () => {
                             <Icon name="calendar-month-outline" size={26} color="white" />
                         </LinearGradient>
                         <View style={styles.dateBadge}>
-                            <Text style={styles.dateBadgeText}>{selectedDate}</Text>
+                            <Text style={styles.dateBadgeText}>{selectedDate.getDate()}</Text>
                         </View>
                     </TouchableOpacity>
                 </View>
@@ -396,7 +399,7 @@ const Dashboard = () => {
                 <View style={styles.appointmentsHeader}>
                     <View>
                         <Text style={styles.appointmentsTitle}>
-                            Today's Visits
+                            {isToday(selectedDate) ? "Today's Visits" : `Visits for ${formatHeaderDate(selectedDate)}`}
                         </Text>
                         <Text style={styles.appointmentsSubtitle}>
                             {getFormattedSelectedDate()} · {appointments.length} visits
@@ -429,7 +432,10 @@ const Dashboard = () => {
                             key={index}
                             style={styles.appointmentCard}
                             activeOpacity={0.7}
-                            onPress={() => setShowActionModal(true)}
+                            onPress={() => {
+                                setSelectedAppointment(appointment);
+                                setShowActionModal(true);
+                            }}
                         >
                             {/* Time Indicator */}
                             <View style={styles.timeIndicator}>
@@ -457,9 +463,9 @@ const Dashboard = () => {
                                             <Text style={styles.patientName} numberOfLines={1}>
                                                 {appointment.patient}
                                             </Text>
-                                            <Text style={styles.patientId} numberOfLines={1}>
-                                                ID: {appointment.patientId}
-                                            </Text>
+                                             <Text style={styles.patientId} numberOfLines={1}>
+                                                 ID: {appointment.patientSlug || appointment.patientId}
+                                             </Text>
                                         </View>
                                     </View>
 
@@ -502,9 +508,21 @@ const Dashboard = () => {
             <ActionModal
                 visible={showActionModal}
                 onClose={() => { setShowActionModal(false) }}
-                onView={() => { }}
-                onStart={() => { }}
-                onAddNote={() => { }}
+                onView={() => {
+                    setShowActionModal(false);
+                    if (selectedAppointment) {
+                        navigation.navigate('PatientProfile', {
+                            patientId: selectedAppointment.patientId,
+                            patientData: selectedAppointment.patientData // passing patient details if already available
+                        });
+                    }
+                }}
+                onStart={() => { 
+                    setShowActionModal(false);
+                }}
+                onAddNote={() => { 
+                    setShowActionModal(false);
+                }}
             />
 
             {/* FAB */}

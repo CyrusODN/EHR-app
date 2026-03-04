@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Feather from 'react-native-vector-icons/Feather';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import CustomAlert from '../../component/customAlert';
 
 // Import tab screens
 import PersonalData from './profileOptions/PersonalData';
@@ -29,6 +30,9 @@ const PatientProfile = () => {
     
     // In mobile, we might want fewer tabs or a more compact way to show them
     const [activeTab, setActiveTab] = useState('Personal Data');
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertType, setAlertType] = useState<'success' | 'error' | 'warning'>('success');
+    const [alertMessage, setAlertMessage] = useState('');
 
     const tabs = [
         'Personal Data',
@@ -123,8 +127,14 @@ const PatientProfile = () => {
         </View>
     );
 
+    const handleAlert = (type: 'success' | 'error' | 'warning', message: string) => {
+        setAlertType(type);
+        setAlertMessage(message);
+        setAlertVisible(true);
+    };
+
     const renderActiveContent = () => {
-        const props = { patientData };
+        const props = { patientData, onAlert: handleAlert };
         switch (activeTab) {
             case 'Personal Data': return <PersonalData {...props} />;
             case 'Medical Data': return <MedicalData {...props} />;
@@ -139,6 +149,12 @@ const PatientProfile = () => {
 
     return (
         <SafeAreaView style={styles.safeArea}>
+            <CustomAlert
+                visible={alertVisible}
+                type={alertType}
+                message={alertMessage}
+                onClose={() => setAlertVisible(false)}
+            />
             <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
             <View style={styles.container}>
                 {renderHeader()}

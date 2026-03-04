@@ -14,6 +14,7 @@ const userStore = create(
         token: null,
         isAuthenticated: false,
         sessionExpiresAt: null,
+        selectedModule: null,
   
         // Auth actions
         setToken: (payload) => 
@@ -31,6 +32,9 @@ const userStore = create(
   
         setPatientBasicInformation: (payload) => 
           set(() => ({ patientBasicInformation: payload })),
+
+        setSelectedModule: (moduleName) =>
+          set(() => ({ selectedModule: moduleName })),
   
         purgeAuth: () => 
           set(() => ({ 
@@ -38,7 +42,8 @@ const userStore = create(
             token: null, 
             isAuthenticated: false,
             patientBasicInformation: null,
-            sessionExpiresAt: null
+            sessionExpiresAt: null,
+            selectedModule: null
           })),
       }),
       {
@@ -50,6 +55,7 @@ const userStore = create(
           patientBasicInformation: state.patientBasicInformation,
           isAuthenticated: state.isAuthenticated,
           sessionExpiresAt: state.sessionExpiresAt,
+          selectedModule: state.selectedModule,
         }),
       }
     )

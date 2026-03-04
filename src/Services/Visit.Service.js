@@ -13,12 +13,27 @@ export async function GetDoctorSettings() {
 }
 
 export async function GetVisits(queryParams) {
+    console.log("GetVisits QueryParams Sent:", JSON.stringify(queryParams, null, 4));
 	try {
-		const result = await getRequest(`${MODEL_NAME}`,queryParams);
+		const result = await getRequest(`${MODEL_NAME}`, queryParams);
+        console.log("GetVisits API Response:", JSON.stringify(result, null, 4));
 		return result;
 	} catch (err) {
+        console.log("GetVisits API Error:", JSON.stringify(err, null, 4));
 		return throwServerError(err);
 	}
+}
+
+export async function GetPatientVisits(patientId) {
+    console.log("GetPatientVisits PatientId Sent:", patientId);
+    try {
+        const result = await getRequest(`${MODEL_NAME}/${patientId}`);
+        console.log("GetPatientVisits API Response:", JSON.stringify(result, null, 4));
+        return result;
+    } catch (err) {
+        console.log("GetPatientVisits API Error:", JSON.stringify(err, null, 4));
+        return throwServerError(err);
+    }
 }
 
 export async function CreateVisit(payload){

@@ -12,10 +12,10 @@ export async function GetFacilityStatistics() {
     console.log("GetFacilityStatistics called");
     try {
         const result = await getRequest('/facility/statistics');
-        console.log("GetFacilityStatistics response:", result);
+        console.log("GetFacilityStatistics API Response:", JSON.stringify(result, null, 4));
         return result;
     } catch (err) {
-        console.log("GetFacilityStatistics error:", err);
+        console.log("GetFacilityStatistics API Error:", JSON.stringify(err, null, 4));
         return throwServerError(err);
     }
 }
@@ -33,10 +33,10 @@ export async function GetMyPermissions() {
     console.log("GetMyPermissions called");
     try {
         const result = await getRequest(`${MODEL_NAME}/my-permissions`);
-        console.log("GetMyPermissions response:", result);
+        console.log("GetMyPermissions API Response:", JSON.stringify(result, null, 4));
         return result;
     } catch (err) {
-        console.log("GetMyPermissions error:", err);
+        console.log("GetMyPermissions API Error:", JSON.stringify(err, null, 4));
         return throwServerError(err);
     }
 }
@@ -47,23 +47,23 @@ export async function GetDirectorSetting() {
     console.log("GetDirectorSetting called");
     try {
         const result = await getRequest('/director-setting');
-        console.log("GetDirectorSetting response:", result);
+        console.log("GetDirectorSetting API Response:", JSON.stringify(result, null, 4));
         return result;
     } catch (err) {
-        console.log("GetDirectorSetting error:", err);
+        console.log("GetDirectorSetting API Error:", JSON.stringify(err, null, 4));
         return throwServerError(err);
     }
 }
 
 //Get Employees
 export async function GetEmployees(params) {
-    console.log("GetEmployees params:", params);
+    console.log("GetEmployees Payload Sent:", JSON.stringify(params, null, 4));
     try {
         const result = await getRequest(`${MODEL_NAME}/employee`, params);
-        console.log("GetEmployees response:", result);
+        console.log("GetEmployees API Response:", JSON.stringify(result, null, 4));
         return result;
     } catch (err) {
-        console.log("GetEmployees error:", err);
+        console.log("GetEmployees API Error:", JSON.stringify(err, null, 4));
         return throwServerError(err);
     }
 }

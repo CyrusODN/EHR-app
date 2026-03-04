@@ -9,10 +9,12 @@ import {
     Modal,
     LayoutAnimation,
     Platform,
-    UIManager
+    UIManager,
+    ActivityIndicator
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
+import { GetPatientMedicalRecord } from '../../../Services/PatientRecord.Service';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -37,29 +39,70 @@ const FormInput = ({ label, placeholder, required = false, isDropdown = false, m
     </View>
 );
 
-const SubmitButton = ({ title, color = ['#68BFB4', '#4DA1C0'], onPress, style, disabled = false }: any) => (
+const SubmitButton = ({ title, icon, color = ['#68BFB4', '#4DA1C0'], onPress, style, disabled = false, loading = false }: any) => (
     <TouchableOpacity 
-        style={[styles.submitButtonContainer, style, disabled && styles.disabledButton]} 
-        onPress={onPress}
-        disabled={disabled}
+        style={[styles.submitButtonContainer, style, disabled && styles.disabledButton, loading && { opacity: 0.7 }]} 
+        onPress={disabled || loading ? undefined : onPress}
+        disabled={disabled || loading}
     >
         <LinearGradient
-            colors={disabled ? ['#f1f5f9', '#f1f5f9'] : color}
+            colors={disabled ? ['#B0B0B0', '#D3D3D3'] : color}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.gradientButton}
         >
-            <Text style={[styles.submitButtonText, disabled && styles.disabledButtonText]}>{title}</Text>
+            <View style={styles.buttonContent}>
+                {loading ? (
+                    <ActivityIndicator size="small" color="#ffffff" />
+                ) : (
+                    <>
+                        {icon && <Feather name={icon} size={16} color="#ffffff" style={{ marginRight: 8 }} />}
+                        <Text style={[styles.submitButtonText, disabled && styles.disabledButtonText]}>{title}</Text>
+                    </>
+                )}
+            </View>
         </LinearGradient>
     </TouchableOpacity>
 );
 
 const Documents = ({ patientData }: { patientData: any }) => {
+    const [docData, setDocData] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
     const [expanded, setExpanded] = useState(true);
     const [searchText, setSearchText] = useState('');
     const [showUploadModal, setShowUploadModal] = useState(false);
     const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState('');
+
+    React.useEffect(() => {
+        const fetchDocData = async () => {
+            try {
+                const patientId = patientData?.id || patientData?._id;
+                if (!patientId) {
+                    setLoading(false);
+                    return;
+                }
+                const response: any = await GetPatientMedicalRecord(patientId);
+                if (response) {
+                    setDocData(response);
+                }
+            } catch (error) {
+                console.log("Fetch doc data error:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchDocData();
+    }, [patientData]);
+
+    if (loading) {
+        return (
+            <View style={{ flex: 1, paddingVertical: 40, alignItems: 'center', justifyContent: 'center' }}>
+                <ActivityIndicator size="large" color="#4A90B9" />
+                <Text style={{ marginTop: 15, color: '#64748b' }}>Fetching documents...</Text>
+            </View>
+        );
+    }
 
     const toggleExpand = () => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -193,9 +236,35 @@ const Documents = ({ patientData }: { patientData: any }) => {
                             />
                         </View>
 
-                        <View style={styles.emptyContainer}>
-                            <Text style={styles.emptyText}>No documents found</Text>
-                        </View>
+                        {(() => {
+                            const filteredDocs = docData?.medicalDocuments?.filter((doc: any) => 
+                                (doc.name || doc.fileName || '').toLowerCase().includes(searchText.toLowerCase()) ||
+                                (doc.category || '').toLowerCase().includes(searchText.toLowerCase())
+                            ) || [];
+
+                            return filteredDocs.length > 0 ? (
+                                filteredDocs.map((doc: any, index: number) => (
+                                    <View key={index} style={styles.docItem}>
+                                        <View style={styles.docIconCircle}>
+                                            <Feather name="file" size={20} color="#58a6b8" />
+                                        </View>
+                                        <View style={{ flex: 1, marginLeft: 12 }}>
+                                            <Text style={styles.docName}>{doc.name || doc.fileName || 'Untitled Document'}</Text>
+                                            <Text style={styles.docMeta}>{doc.category || 'General'} • {doc.date ? new Date(doc.date).toLocaleDateString() : 'No date'}</Text>
+                                        </View>
+                                        <TouchableOpacity style={styles.downloadBtn}>
+                                            <Feather name="download" size={18} color="#94a3b8" />
+                                        </TouchableOpacity>
+                                    </View>
+                                ))
+                            ) : (
+                                <View style={styles.emptyContainer}>
+                                    <Text style={styles.emptyText}>
+                                        {searchText ? 'No documents match your search' : 'No documents found'}
+                                    </Text>
+                                </View>
+                            );
+                        })()}
                     </View>
                 )}
             </View>
@@ -267,7 +336,8 @@ const styles = StyleSheet.create({
     },
     newDocBtn: {
         flex: 0,
-        minWidth: 120,
+        minWidth: 145,
+        height: 44,
     },
     emptyContainer: {
         backgroundColor: '#f8fafc',
@@ -415,15 +485,18 @@ const styles = StyleSheet.create({
         fontWeight: '600'
     },
     submitButtonContainer: {
-        height: 38,
         borderRadius: 8,
         overflow: 'hidden'
     },
+    buttonContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100%',
+        width: '100%',
+    },
     gradientButton: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 16
     },
     submitButtonText: {
         color: '#ffffff',
@@ -462,6 +535,37 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#1e293b',
         fontWeight: '500',
+    },
+    docItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#ffffff',
+        borderWidth: 1,
+        borderColor: '#f1f5f9',
+        borderRadius: 12,
+        padding: 12,
+        marginBottom: 12,
+    },
+    docIconCircle: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#f0f9f8',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    docName: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#1e293b',
+    },
+    docMeta: {
+        fontSize: 12,
+        color: '#94a3b8',
+        marginTop: 2,
+    },
+    downloadBtn: {
+        padding: 8,
     }
 });
 

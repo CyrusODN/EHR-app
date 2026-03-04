@@ -17,7 +17,7 @@ function AppNavigator() {
     const [showSplash, setShowSplash] = useState(true);
     const { setLanguage } = useLanguageStore();
     const { t } = useTranslation();
-    const { isAuthenticated, sessionExpiresAt, purgeAuth } = userStore();
+    const { isAuthenticated, sessionExpiresAt, purgeAuth, selectedModule } = userStore();
 
     useEffect(() => {
         try {
@@ -92,14 +92,22 @@ function AppNavigator() {
                     </>
                 ) : (
                     <>
-                        <Stack.Screen
-                            name="ModuleSelection"
-                            component={Screens.ModuleSelection}
-                        />
+                        {!selectedModule ? (
+                            <Stack.Screen
+                                name="ModuleSelection"
+                                component={Screens.ModuleSelection}
+                            />
+                        ) : null}
                         <Stack.Screen
                             name="Module-Loading"
                             component={Screens.ModuleLoading}
                         />
+                        {selectedModule ? (
+                            <Stack.Screen
+                                name="ModuleSelection"
+                                component={Screens.ModuleSelection}
+                            />
+                        ) : null}
                         <Stack.Screen
                             name="Dashboard"
                             component={Screens.Dashboard}

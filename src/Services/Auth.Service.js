@@ -133,3 +133,15 @@ export async function ResendOtp(payload) {
 		return throwServerError(err);
 	}
 }
+
+export async function Verify2FA(payload) {
+    console.log("Verify2FA Payload Sent:", JSON.stringify(payload, null, 4));
+    try {
+        const result = await postRequest(`${MODEL_NAME}/verify-2fa`, payload);
+        console.log("Verify2FA API Response:", JSON.stringify(result, null, 4));
+        return result;
+    } catch (err) {
+        console.log("Verify2FA API Error:", JSON.stringify(err, null, 4));
+        return throwServerError(err);
+    }
+}
