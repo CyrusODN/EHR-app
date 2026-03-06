@@ -79,7 +79,7 @@ const Settings = () => {
                     <Ionicons name="arrow-back" size={20} color="#4A90B9" />
                 </TouchableOpacity>
             </View>
-            <View style={{ width: "96%", alignSelf: 'flex-end', marginTop: hp(1) }}>
+            <View style={{ width: "96%", alignSelf: 'flex-end' }}>
                 {/* Navigation Menu */}
                 <ScrollView
                     horizontal
@@ -155,12 +155,12 @@ const Settings = () => {
             {/* Settings Content */}
             <ScrollView style={styles.content}>
                 {selected == 1 ? <FacilityStatistics />
-                    : selected == 2 ? <FacilityData />
-                        : selected == 3 ? <OfficeCertificates />
+                    : selected == 2 ? <FacilityData onAlert={(config: any) => setAlertConfig(config)} />
+                        : selected == 3 ? <OfficeCertificates onAlert={(config: any) => setAlertConfig(config)} />
                             : selected == 4 ? <Security />
                                 : selected == 5 ? <Subscription />
                                     : selected == 6 ? <ClientPortal />
-                                        : selected == 7 ? <Profile />
+                                        : selected == 7 ? <Profile onAlert={(config: any) => setAlertConfig(config)} />
                                             : selected == 8 ? <Employees onAlert={(config: any) => setAlertConfig(config)} />
                                                 : selected == 9 ? <EWUS />
                                                     : <></>
@@ -181,7 +181,7 @@ const Settings = () => {
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#F5F5F5',
+        backgroundColor: '#FFFFFF',
     },
     header: {
         paddingHorizontal: 10,
@@ -246,7 +246,6 @@ const styles = StyleSheet.create({
     },
     content: {
         flex: 1,
-        padding: 16,
     },
     settingsSection: {
         marginBottom: 16,

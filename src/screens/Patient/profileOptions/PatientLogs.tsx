@@ -46,23 +46,42 @@ const formatActivityType = (type: string) => {
 const formatSummary = (log: any) => {
     const { type, details } = log;
     if (type === 'visit_scheduled') {
-        return `date: ${details.date}, startTime: ${details.startTime}, endTime: ${details.endTime.slice(0, 1)}...`;
+        return `Date: ${details.date}, Time: ${details.startTime}`;
     }
-    if (type === 'medical_record_accessed') {
+    if (type === 'medical_record_accessed' || type === 'profile_viewed') {
         return 'Viewed Medical Information';
     }
-    if (type === 'profile_viewed') {
-        return `section: ${details.section}, dataType: ${details.dataType.slice(0, 12)}...`;
+    if (type === 'medical_data_updated') {
+        const fields = details?.fieldsUpdated?.[0] || 'medical data';
+        return `Updated ${fields.replace(/([A-Z])/g, ' $1').toLowerCase()}`;
     }
-    return JSON.stringify(details);
+    if (type === 'patient_record_updated' || type === 'personal_data_updated') {
+        // Return stringified details without braces for a cleaner look
+        return JSON.stringify(details).replace(/[{}]/g, '');
+    }
+    return typeof details === 'string' ? details : JSON.stringify(details);
 };
 
 const getIcon = (type: string) => {
     switch (type) {
-        case 'visit_scheduled': return 'calendar';
+        case 'medical_data_updated': return 'edit-3';
         case 'medical_record_accessed':
         case 'profile_viewed': return 'eye';
+        case 'patient_record_updated': return 'activity';
+        case 'personal_data_updated': return 'user';
+        case 'visit_scheduled': return 'calendar';
         default: return 'info';
+    }
+};
+
+const getIconColor = (type: string) => {
+    switch (type) {
+        case 'medical_data_updated': return '#22c55e'; // Green
+        case 'personal_data_updated': return '#3b82f6'; // Blue
+        case 'medical_record_accessed':
+        case 'profile_viewed': return '#64748b'; // Slate
+        case 'patient_record_updated': return '#64748b'; // Slate
+        default: return '#94a3b8';
     }
 };
 
@@ -74,7 +93,7 @@ const PatientLogs = ({ patientData }: { patientData: any }) => {
     const [selectedCategory, setSelectedCategory] = useState('All Categories');
     const [showDropdown, setShowDropdown] = useState(false);
 
-    const categories = ['All Categories', 'System', 'Visits'];
+    const categories = ['All Categories', 'Medical', 'Other', 'Personal', 'System'];
 
     const toggleExpand = () => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -111,10 +130,16 @@ const PatientLogs = ({ patientData }: { patientData: any }) => {
         if (selectedCategory === 'All Categories') return matchesSearch;
         
         let categoryMatch = false;
+        const logType = log.type.toLowerCase();
+        
         if (selectedCategory === 'System') {
-            categoryMatch = ['medical_record_accessed', 'profile_viewed'].includes(log.type);
-        } else if (selectedCategory === 'Visits') {
-            categoryMatch = (log.type === 'visit_scheduled');
+            categoryMatch = ['medical_record_accessed', 'profile_viewed'].includes(logType);
+        } else if (selectedCategory === 'Medical') {
+            categoryMatch = ['medical_data_updated', 'visit_scheduled', 'prescription_added'].includes(logType);
+        } else if (selectedCategory === 'Personal') {
+            categoryMatch = ['personal_data_updated'].includes(logType);
+        } else if (selectedCategory === 'Other') {
+            categoryMatch = ['patient_record_updated'].includes(logType);
         }
         
         return matchesSearch && categoryMatch;
@@ -176,8 +201,10 @@ const PatientLogs = ({ patientData }: { patientData: any }) => {
                                                         }}
                                                     >
                                                         <View style={styles.dropdownItemContent}>
-                                                            {selectedCategory === cat && (
-                                                                <Feather name="check" size={14} color="#fff" style={styles.checkIcon} />
+                                                            {selectedCategory === cat ? (
+                                                                <Feather name="check" size={16} color="#fff" style={styles.checkIcon} />
+                                                            ) : (
+                                                                <View style={styles.checkPlaceholder} />
                                                             )}
                                                             <Text style={[
                                                                 styles.dropdownItemText,
@@ -223,8 +250,8 @@ const PatientLogs = ({ patientData }: { patientData: any }) => {
                                                 return (
                                                     <View key={log.id || index} style={[styles.tableRow, index === filteredLogs.length - 1 && { borderBottomWidth: 0 }]}>
                                                         <View style={{ width: 180, flexDirection: 'row', alignItems: 'center' }}>
-                                                            <Feather name="chevron-right" size={14} color="#94a3b8" style={{ marginRight: 8 }} />
-                                                            <Feather name={getIcon(log.type) as any} size={14} color="#a855f7" style={{ marginRight: 8 }} />
+                                                            <Feather name="chevron-right" size={14} color="#94a3b8" style={{ marginRight: 8, opacity: 0.5 }} />
+                                                            <Feather name={getIcon(log.type) as any} size={15} color={getIconColor(log.type)} style={{ marginRight: 10 }} />
                                                             <Text style={styles.activityType}>{formatActivityType(log.type)}</Text>
                                                         </View>
                                                         <View style={{ width: 140 }}>
@@ -410,17 +437,20 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     dropdownItemText: {
-        fontSize: 14,
+        fontSize: 15,
         color: '#fff',
-        marginLeft: 24, // Space for check icon
+        fontWeight: '500',
     },
     selectedDropdownItemText: {
-        marginLeft: 0, // No margin when check icon is present
-        fontWeight: '600',
+        fontWeight: '700',
     },
     checkIcon: {
-        marginRight: 8,
+        marginRight: 10,
+        width: 16,
     },
+    checkPlaceholder: {
+        width: 26, // width of icon + margin
+    }
 });
 
 export default PatientLogs;

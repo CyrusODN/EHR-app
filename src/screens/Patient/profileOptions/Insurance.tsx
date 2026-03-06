@@ -11,6 +11,8 @@ import {
     UIManager
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
+import { GetPatientPersonalData } from '../../../Services/PersonalData.Service';
+import { ActivityIndicator } from 'react-native';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -26,10 +28,39 @@ const ActionOutlineButton = ({ title, icon, onPress }: any) => (
 const Insurance = ({ patientData }: { patientData: any }) => {
     const [expanded, setExpanded] = useState(true);
     const [searchText, setSearchText] = useState('');
+    const [personalData, setPersonalData] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+
+    React.useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const patientId = patientData?.id || patientData?._id;
+                if (patientId) {
+                    const res = await GetPatientPersonalData(patientId);
+                    setPersonalData(res);
+                }
+            } catch (error) {
+                console.log("Error fetching insurance data:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, [patientData]);
 
     const toggleExpand = () => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         setExpanded(!expanded);
+    };
+
+    const formatDate = (dateString: string) => {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-GB', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
     };
 
     return (
@@ -66,9 +97,46 @@ const Insurance = ({ patientData }: { patientData: any }) => {
                             </View>
                         </View>
 
-                        <View style={styles.emptyContainer}>
-                            <Text style={styles.emptyText}>No insurance history</Text>
-                        </View>
+                        {loading ? (
+                            <View style={{ padding: 20, alignItems: 'center' }}>
+                                <ActivityIndicator color="#58a6b8" />
+                            </View>
+                        ) : personalData?.privateInsurers?.length > 0 ? (
+                            personalData.privateInsurers
+                                .filter((item: any) => item.name?.toLowerCase().includes(searchText.toLowerCase()))
+                                .map((item: any, index: number) => (
+                                    <View key={index} style={styles.insuranceCard}>
+                                        <View style={styles.cardTop}>
+                                            <View style={styles.insurerHeader}>
+                                                <View style={styles.shieldIcon}>
+                                                    <Feather name="shield" size={16} color="#58a6b8" />
+                                                </View>
+                                                <Text style={styles.insurerName}>{item.name}</Text>
+                                            </View>
+                                            <View style={styles.dateRangeRow}>
+                                                <Feather name="calendar" size={14} color="#94a3b8" />
+                                                <Text style={styles.dateRangeText}>
+                                                    {formatDate(item.startDate)} - {formatDate(item.validUntil)}
+                                                </Text>
+                                            </View>
+                                        </View>
+                                        <View style={styles.cardDetails}>
+                                            <View style={styles.detailCol}>
+                                                <Text style={styles.detailLabel}>Insurer:</Text>
+                                                <Text style={styles.detailValue}>{item.name}</Text>
+                                            </View>
+                                            <View style={styles.detailCol}>
+                                                <Text style={styles.detailLabel}>Policy Number:</Text>
+                                                <Text style={styles.detailValue}>{item.policyNumber}</Text>
+                                            </View>
+                                        </View>
+                                    </View>
+                                ))
+                        ) : (
+                            <View style={styles.emptyContainer}>
+                                <Text style={styles.emptyText}>No insurance history</Text>
+                            </View>
+                        )}
                     </View>
                 )}
             </View>
@@ -168,6 +236,68 @@ const styles = StyleSheet.create({
         fontSize: 13,
         color: '#64748b',
         fontWeight: '500',
+    },
+    insuranceCard: {
+        backgroundColor: '#f8fafc',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#f1f5f9',
+        overflow: 'hidden',
+        marginBottom: 12,
+    },
+    cardTop: {
+        padding: 16,
+    },
+    insurerHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    shieldIcon: {
+        width: 32,
+        height: 32,
+        borderRadius: 8,
+        backgroundColor: '#ffffff',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 10,
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+    },
+    insurerName: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: '#1e293b',
+    },
+    dateRangeRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    dateRangeText: {
+        fontSize: 12,
+        color: '#94a3b8',
+        fontWeight: '500',
+    },
+    cardDetails: {
+        flexDirection: 'row',
+        backgroundColor: '#ffffff',
+        padding: 16,
+        borderTopWidth: 1,
+        borderTopColor: '#f1f5f9',
+    },
+    detailCol: {
+        flex: 1,
+    },
+    detailLabel: {
+        fontSize: 12,
+        color: '#94a3b8',
+        marginBottom: 4,
+    },
+    detailValue: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#1e293b',
     },
 });
 

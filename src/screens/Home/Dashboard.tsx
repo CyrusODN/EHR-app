@@ -498,6 +498,7 @@ const Dashboard = () => {
             <CreateVisitModal
                 visible={createVisitModalVisible}
                 onClose={() => { setCreateVisitModalVisible(false) }}
+                onSaveSuccess={fetchVisits}
             />
 
             <SlidingDrawerModal

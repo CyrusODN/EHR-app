@@ -155,7 +155,7 @@ const ClientPortal = () => {
 
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
             <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
             <ScrollView style={styles.container}>
                 {/* Header */}
@@ -351,7 +351,7 @@ const ClientPortal = () => {
                         loading={false} disabled={false} />
                 </View>
             </ScrollView>
-        </SafeAreaView>
+        </View>
     );
 };
 
@@ -362,13 +362,16 @@ const styles = StyleSheet.create({
     },
     container: {
         flex: 1,
-        backgroundColor: '#F5F5F5',
+        backgroundColor: '#FFFFFF',
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 16,
+        paddingHorizontal: 20,
+        paddingVertical: 15,
         backgroundColor: '#FFFFFF',
+        borderBottomWidth: 1,
+        borderBottomColor: '#F1F5F9',
     },
     headerIconContainer: {
         width: 40,
@@ -420,8 +423,6 @@ const styles = StyleSheet.create({
     },
     moduleCard: {
         backgroundColor: '#FFFFFF',
-        borderRadius: 8,
-        // margin: 16,
         marginTop: 8,
         padding: 16,
         shadowColor: '#000',

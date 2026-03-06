@@ -30,10 +30,11 @@ import LinearGradient from 'react-native-linear-gradient';
 import { GetVisitRequirements } from '../../../Services/DoctorSetting.Service';
 import { GetPatients } from '../../../Services/Patient.Service';
 import { GetEmployees } from '../../../Services/settingServices';
+import { CreateVisit } from '../../../Services/Visit.Service';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-const CreateVisitModal = ({ visible, onClose }: { visible: boolean, onClose: () => void }) => {
+const CreateVisitModal = ({ visible, onClose, onSaveSuccess }: { visible: boolean, onClose: () => void, onSaveSuccess?: () => void }) => {
     const navigation = useNavigation<any>();
     const insets = useSafeAreaInsets();
     const timeFromCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -97,6 +98,7 @@ const CreateVisitModal = ({ visible, onClose }: { visible: boolean, onClose: () 
     const [isReferral, setIsReferral] = useState(false);
     const [doctor, setDoctor] = useState<string | null>(null);
     const [patient, setPatient] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
 
     // Dynamic dropdown options from API
     const [doctorOptions, setDoctorOptions] = useState<{ label: string; value: string }[]>([]);
@@ -285,13 +287,42 @@ const CreateVisitModal = ({ visible, onClose }: { visible: boolean, onClose: () 
         onClose();
     };
 
-    const handleSave = () => {
-        console.log({
-            date, timeFrom, timeTo, office, type,
-            specialization, isEVisit, isPrescriptionOnly,
-            isReferral, notes
-        });
-        handleClose();
+    const handleSave = async () => {
+        if (!patient || !doctor || !office) {
+            console.log("Missing required fields", { patient, doctor, office });
+            // You might want to show an alert here
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const payload = {
+                date: date.toISOString().split('T')[0],
+                startTime: timeFrom.toTimeString().split(' ')[0].substring(0, 5),
+                endTime: timeTo.toTimeString().split(' ')[0].substring(0, 5),
+                officeId: office,
+                visitType: type.toLowerCase(),
+                specialization: specialization,
+                notes: notes,
+                isOnline: isEVisit,
+                isPrescription: isPrescriptionOnly,
+                isReferral: isReferral,
+                doctor: doctor,
+                patient: patient
+            };
+            console.log("CreateVisitModal: Saving visit with payload:", payload);
+            const res: any = await CreateVisit(payload);
+            const data = res?.data || res;
+            if (res?.success || data) {
+                console.log("CreateVisitModal: Visit created successfully");
+                if (onSaveSuccess) onSaveSuccess();
+                handleClose();
+            }
+        } catch (err) {
+            console.error("CreateVisitModal: Error saving visit", err);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const SectionHeader = ({ icon, title, iconColor = '#4A90B9' }: any) => (
@@ -635,8 +666,8 @@ const CreateVisitModal = ({ visible, onClose }: { visible: boolean, onClose: () 
                             icon={<Ionicons name="calendar-outline" size={14} color="white" />}
                             onPress={handleSave}
                             style={{ flex: 1.5 }} image={undefined} iconStyle={undefined} imageStyle={undefined}
-                            loading={false}
-                            disabled={false}
+                            loading={loading}
+                            disabled={loading}
                         />
                     </View>
                 </View>

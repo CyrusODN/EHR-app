@@ -21,6 +21,8 @@ interface CustomTextInputProps {
     onChangeText?: (text: string) => void;
     autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
     autoCorrect?: boolean;
+    editable?: boolean;
+    style?: any;
 }
 
 const CustomTextInput: React.FC<CustomTextInputProps> = ({
@@ -40,7 +42,9 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
     secureTextEntry = false,
     onChangeText,
     autoCapitalize,
-    autoCorrect
+    autoCorrect,
+    editable = true,
+    style
 }) => {
     const { t } = useTranslation();
     const [validationErrors, setValidationErrors] = useState<string[]>([]);
@@ -84,7 +88,8 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
             <View style={[
                 styles.container,
                 multiline && styles.multilineContainer,
-                validationErrors.length > 0 && styles.errorContainer
+                validationErrors.length > 0 && styles.errorContainer,
+                style
             ]}>
                 {icon && (
                     <View style={styles.iconContainer}>
@@ -103,6 +108,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
                     secureTextEntry={secureTextEntry}
                     autoCapitalize={autoCapitalize}
                     autoCorrect={autoCorrect}
+                    editable={editable}
                 />
                 {right && (
                     <TouchableOpacity

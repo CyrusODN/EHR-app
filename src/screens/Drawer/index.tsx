@@ -331,7 +331,14 @@ const SlidingDrawerModal = ({ visible, onClose }: { visible: boolean, onClose: (
                                 >
                                     <View style={styles.avatarContainer}>
                                         <View style={styles.avatarCircle}>
-                                            <Feather name="user" size={26} color="#4A90B9" />
+                                            {loggedInUser?.profileImage ? (
+                                                <Image 
+                                                    source={{ uri: loggedInUser.profileImage }} 
+                                                    style={styles.avatarImage} 
+                                                />
+                                            ) : (
+                                                <Feather name="user" size={26} color="#4A90B9" />
+                                            )}
                                         </View>
                                         <View style={styles.statusDot} />
                                     </View>
@@ -547,6 +554,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderWidth: 1,
         borderColor: '#E0F2FE',
+        overflow: 'hidden',
+    },
+    avatarImage: {
+        width: 52,
+        height: 52,
+        borderRadius: 26,
     },
     statusDot: {
         position: 'absolute',

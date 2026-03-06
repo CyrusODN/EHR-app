@@ -14,7 +14,10 @@ import {
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
-import { GetPatientMedicalRecord } from '../../../Services/PatientRecord.Service';
+import DocumentPicker from 'react-native-document-picker';
+import { GetPatientMedicalRecord, UpdatePatientMedicalRecord } from '../../../Services/PatientRecord.Service';
+import { uploadFileOnServer } from '../../../Services/Upload.Service';
+import userStore from '../../../store/user';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -65,35 +68,159 @@ const SubmitButton = ({ title, icon, color = ['#68BFB4', '#4DA1C0'], onPress, st
     </TouchableOpacity>
 );
 
-const Documents = ({ patientData }: { patientData: any }) => {
+const Documents = ({ patientData, onAlert }: { patientData: any, onAlert: any }) => {
     const [docData, setDocData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [expanded, setExpanded] = useState(true);
     const [searchText, setSearchText] = useState('');
     const [showUploadModal, setShowUploadModal] = useState(false);
     const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+    
+    // Upload state
     const [selectedCategory, setSelectedCategory] = useState('');
+    const [selectedFile, setSelectedFile] = useState<any>(null);
+    const [description, setDescription] = useState('');
+    const [queuedDocs, setQueuedDocs] = useState<any[]>([]);
+    const [isUploading, setIsUploading] = useState(false);
+
+    const fetchDocData = async () => {
+        try {
+            const patientId = patientData?.id || patientData?._id;
+            if (!patientId) {
+                setLoading(false);
+                return;
+            }
+            const response: any = await GetPatientMedicalRecord(patientId);
+            if (response) {
+                setDocData(response);
+            }
+        } catch (error) {
+            console.log("Fetch doc data error:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     React.useEffect(() => {
-        const fetchDocData = async () => {
-            try {
-                const patientId = patientData?.id || patientData?._id;
-                if (!patientId) {
-                    setLoading(false);
-                    return;
-                }
-                const response: any = await GetPatientMedicalRecord(patientId);
-                if (response) {
-                    setDocData(response);
-                }
-            } catch (error) {
-                console.log("Fetch doc data error:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchDocData();
     }, [patientData]);
+
+    const toggleExpand = () => {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setExpanded(!expanded);
+    };
+
+    const handlePickDocument = async () => {
+        try {
+            const res = await DocumentPicker.pick({
+                type: [DocumentPicker.types.allFiles],
+            });
+            setSelectedFile(res[0]);
+        } catch (err) {
+            if (DocumentPicker.isCancel(err)) {
+                // User cancelled the picker
+            } else {
+                throw err;
+            }
+        }
+    };
+
+    const addToQueue = () => {
+        if (!selectedFile || !selectedCategory) {
+            onAlert('warning', 'Please select a file and a category');
+            return;
+        }
+        
+        const newDoc = {
+            file: selectedFile,
+            category: selectedCategory,
+            description: description,
+            id: Date.now().toString()
+        };
+        
+        setQueuedDocs([...queuedDocs, newDoc]);
+        setSelectedFile(null);
+        setDescription('');
+    };
+
+    const removeFromQueue = (id: string) => {
+        setQueuedDocs(queuedDocs.filter(doc => doc.id !== id));
+    };
+
+    const handleUploadAll = async () => {
+        if (queuedDocs.length === 0) return;
+        
+        const loggedInUser: any = userStore.getState().loggedInUser;
+        const authorName = loggedInUser?.name || `${loggedInUser?.firstName || ''} ${loggedInUser?.lastName || ''}`.trim() || "System";
+
+        setIsUploading(true);
+        try {
+            const uploadedDocs = [];
+            console.log("Documents.tsx: Starting upload process for", queuedDocs.length, "documents");
+            
+            for (const doc of queuedDocs) {
+                console.log("Documents.tsx: Uploading file:", doc.file.name);
+                const uploadRes: any = await uploadFileOnServer(doc.file);
+                console.log("Documents.tsx: Upload service raw response:", JSON.stringify(uploadRes, null, 2));
+                
+                // Handle different response formats (object or array)
+                const fileData = Array.isArray(uploadRes) ? uploadRes[0] : uploadRes;
+                
+                if (fileData && fileData.url) {
+                    console.log("Documents.tsx: File uploaded successfully, URL:", fileData.url);
+                    uploadedDocs.push({
+                        url: fileData.url,
+                        title: doc.file.name,
+                        tags: [doc.category.toLowerCase()],
+                        description: doc.description,
+                        author: authorName,
+                        date: new Date().toISOString(),
+                        patientId: patientData?.id || patientData?._id
+                    });
+                } else {
+                    console.warn("Documents.tsx: Upload succeeded but no URL found in response for", doc.file.name);
+                }
+            }
+
+            if (uploadedDocs.length === 0) {
+                throw new Error("No documents were successfully uploaded to the server.");
+            }
+
+            const existingDocs = docData?.documents || docData?.medicalDocuments || [];
+            const payload = {
+                patientId: patientData?.id || patientData?._id,
+                documents: [...existingDocs, ...uploadedDocs]
+            };
+
+            console.log("Documents.tsx: Updating patient record with payload:", JSON.stringify(payload, null, 2));
+            const updateRes: any = await UpdatePatientMedicalRecord(payload);
+            console.log("Documents.tsx: Medical record update response:", JSON.stringify(updateRes, null, 2));
+            
+            // The interceptor might return response.data.data which could be a string on success
+            const isSuccess = updateRes && (
+                updateRes.success === true || 
+                updateRes.data || 
+                (typeof updateRes === 'string' && updateRes.includes('successfully'))
+            );
+
+            if (isSuccess) {
+                console.log("Documents.tsx: Success confirmed! Closing modal and refreshing.");
+                setShowUploadModal(false);
+                onAlert('success', 'Patient medical record updated successfully!');
+                setQueuedDocs([]);
+                fetchDocData(); // Refresh data
+            } else {
+                console.warn("Documents.tsx: Server returned success:false or missing status");
+                onAlert('error', updateRes?.message || 'Failed to update medical record');
+            }
+        } catch (error: any) {
+            console.error("Documents.tsx: Critical error in handleUploadAll:", error);
+            onAlert('error', error?.message || 'An error occurred during upload');
+        } finally {
+            console.log("Documents.tsx: Process finished, setting loading to false");
+            setIsUploading(false);
+        }
+    };
 
     if (loading) {
         return (
@@ -103,11 +230,6 @@ const Documents = ({ patientData }: { patientData: any }) => {
             </View>
         );
     }
-
-    const toggleExpand = () => {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        setExpanded(!expanded);
-    };
 
     const renderUploadModal = () => (
         <Modal 
@@ -166,7 +288,7 @@ const Documents = ({ patientData }: { patientData: any }) => {
                         </View>
                         
                         <Text style={styles.inputLabel}>Document File</Text>
-                        <TouchableOpacity style={styles.uploadArea}>
+                        <TouchableOpacity style={styles.uploadArea} onPress={handlePickDocument}>
                             <View style={styles.uploadIconContainer}>
                                 <Feather name="inbox" size={32} color="#58a6b8" />
                             </View>
@@ -176,22 +298,83 @@ const Documents = ({ patientData }: { patientData: any }) => {
                             </Text>
                         </TouchableOpacity>
 
-                        <FormInput label="Description" placeholder="Enter document description here..." multiline />
+                        {selectedFile && (
+                            <View style={styles.selectedFilePreview}>
+                                <Feather name="paperclip" size={16} color="#475569" />
+                                <Text style={styles.selectedFileName}>{selectedFile.name}</Text>
+                            </View>
+                        )}
+
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.inputLabel}>Description</Text>
+                            <View style={[styles.inputWrapper, styles.textAreaWrapper]}>
+                                <TextInput 
+                                    style={[styles.textInput, styles.textArea]}
+                                    placeholder="Enter document description here..."
+                                    placeholderTextColor="#cbd5e1"
+                                    multiline
+                                    value={description}
+                                    onChangeText={setDescription}
+                                />
+                            </View>
+                        </View>
                         
-                        <TouchableOpacity style={styles.dashedAddButton}>
+                        <TouchableOpacity 
+                            style={styles.dashedAddButton} 
+                            onPress={addToQueue}
+                        >
                             <Feather name="plus" size={16} color="#94a3b8" />
                             <Text style={styles.dashedAddText}>Add Document</Text>
                         </TouchableOpacity>
+
+                        {queuedDocs.length > 0 && (
+                            <View style={styles.queueContainer}>
+                                <View style={styles.queueHeaderRow}>
+                                    <View style={styles.queueHeaderLine} />
+                                    <Text style={styles.queueHeaderText}>Documents to Upload</Text>
+                                    <View style={styles.queueHeaderLine} />
+                                </View>
+                                {queuedDocs.map((item) => (
+                                    <View key={item.id} style={styles.queuedItem}>
+                                        <View style={styles.queuedItemInfo}>
+                                            <Text style={styles.queuedItemName}>{item.file.name}</Text>
+                                            <Text style={styles.queuedItemCategory}>{item.category}</Text>
+                                            <Text style={styles.queuedItemDescription}>{item.description}</Text>
+                                        </View>
+                                        <View style={styles.queuedItemActions}>
+                                            <TouchableOpacity style={styles.queuedActionBtn}>
+                                                <Feather name="edit-2" size={16} color="#475569" />
+                                            </TouchableOpacity>
+                                            <TouchableOpacity 
+                                                style={styles.queuedActionBtn}
+                                                onPress={() => removeFromQueue(item.id)}
+                                            >
+                                                <Feather name="trash-2" size={16} color="#ef4444" />
+                                            </TouchableOpacity>
+                                        </View>
+                                    </View>
+                                ))}
+                            </View>
+                        )}
                     </ScrollView>
 
                     <View style={styles.modalFooter}>
                         <TouchableOpacity 
                             style={styles.cancelOutlineButton} 
-                            onPress={() => setShowUploadModal(false)}
+                            onPress={() => {
+                                setShowUploadModal(false);
+                                setQueuedDocs([]);
+                            }}
                         >
                             <Text style={styles.cancelOutlineText}>Cancel</Text>
                         </TouchableOpacity>
-                        <SubmitButton title="Upload Documents" disabled={true} style={{ width: 140 }} />
+                        <SubmitButton 
+                            title="Upload Documents" 
+                            disabled={queuedDocs.length === 0} 
+                            onPress={handleUploadAll}
+                            loading={isUploading}
+                            style={{ width: 140 }} 
+                        />
                     </View>
                 </View>
             </View>
@@ -237,24 +420,47 @@ const Documents = ({ patientData }: { patientData: any }) => {
                         </View>
 
                         {(() => {
-                            const filteredDocs = docData?.medicalDocuments?.filter((doc: any) => 
-                                (doc.name || doc.fileName || '').toLowerCase().includes(searchText.toLowerCase()) ||
-                                (doc.category || '').toLowerCase().includes(searchText.toLowerCase())
+                            const filteredDocs = (docData?.documents || docData?.medicalDocuments || [])?.filter((doc: any) => 
+                                (doc.name || doc.fileName || doc.title || '').toLowerCase().includes(searchText.toLowerCase()) ||
+                                (doc.category || (doc.tags && doc.tags[0]) || '').toLowerCase().includes(searchText.toLowerCase())
                             ) || [];
 
                             return filteredDocs.length > 0 ? (
                                 filteredDocs.map((doc: any, index: number) => (
                                     <View key={index} style={styles.docItem}>
-                                        <View style={styles.docIconCircle}>
-                                            <Feather name="file" size={20} color="#58a6b8" />
+                                        <View style={styles.docItemTop}>
+                                            <View style={styles.docIconCircle}>
+                                                <Feather name="file-text" size={18} color="#58a6b8" />
+                                            </View>
+                                            <View style={{ flex: 1, marginLeft: 12 }}>
+                                                <Text style={styles.docName}>{doc.title || doc.name || doc.fileName || 'Untitled Document'}</Text>
+                                                <View style={styles.docSubMeta}>
+                                                    <View style={styles.metaItem}>
+                                                        <Feather name="calendar" size={12} color="#94a3b8" />
+                                                        <Text style={styles.docMetaText}>
+                                                            {doc.date ? new Date(doc.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'No date'}
+                                                        </Text>
+                                                    </View>
+                                                    <Text style={styles.docMetaText}>  Author: {doc.author || 'System'}</Text>
+                                                </View>
+                                            </View>
+                                            <TouchableOpacity style={styles.viewBtn}>
+                                                <Feather name="eye" size={18} color="#58a6b8" />
+                                            </TouchableOpacity>
                                         </View>
-                                        <View style={{ flex: 1, marginLeft: 12 }}>
-                                            <Text style={styles.docName}>{doc.name || doc.fileName || 'Untitled Document'}</Text>
-                                            <Text style={styles.docMeta}>{doc.category || 'General'} • {doc.date ? new Date(doc.date).toLocaleDateString() : 'No date'}</Text>
+                                        
+                                        <View style={styles.docItemBottom}>
+                                            <Text style={styles.docDescription} numberOfLines={2}>
+                                                {doc.description || 'No description provided for this document.'}
+                                            </Text>
+                                            <View style={styles.tagContainer}>
+                                                {((doc.tags || [doc.category]) || ['General']).map((tag: string, tid: number) => (
+                                                    <View key={tid} style={styles.tagPill}>
+                                                        <Text style={styles.tagText}>{tag}</Text>
+                                                    </View>
+                                                ))}
+                                            </View>
                                         </View>
-                                        <TouchableOpacity style={styles.downloadBtn}>
-                                            <Feather name="download" size={18} color="#94a3b8" />
-                                        </TouchableOpacity>
                                     </View>
                                 ))
                             ) : (
@@ -537,8 +743,6 @@ const styles = StyleSheet.create({
         fontWeight: '500',
     },
     docItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
         backgroundColor: '#ffffff',
         borderWidth: 1,
         borderColor: '#f1f5f9',
@@ -566,6 +770,131 @@ const styles = StyleSheet.create({
     },
     downloadBtn: {
         padding: 8,
+    },
+    selectedFilePreview: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#f1f5f9',
+        padding: 10,
+        borderRadius: 8,
+        marginBottom: 20,
+    },
+    selectedFileName: {
+        fontSize: 13,
+        color: '#475569',
+        marginLeft: 8,
+        fontWeight: '500',
+    },
+    queueContainer: {
+        marginTop: 20,
+        marginBottom: 20,
+    },
+    queueHeaderRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    queueHeaderLine: {
+        flex: 1,
+        height: 1,
+        backgroundColor: '#f1f5f9',
+    },
+    queueHeaderText: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#64748b',
+        marginHorizontal: 12,
+    },
+    queuedItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#ffffff',
+        padding: 12,
+        borderRadius: 8,
+        marginBottom: 10,
+        borderWidth: 1,
+        borderColor: '#f1f5f9',
+    },
+    queuedItemInfo: {
+        flex: 1,
+    },
+    queuedItemName: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#1e293b',
+    },
+    queuedItemCategory: {
+        fontSize: 12,
+        color: '#64748b',
+        marginTop: 2,
+    },
+    queuedItemDescription: {
+        fontSize: 12,
+        color: '#94a3b8',
+        marginTop: 4,
+    },
+    queuedItemActions: {
+        flexDirection: 'row',
+        gap: 8,
+    },
+    queuedActionBtn: {
+        padding: 6,
+    },
+    docItemTop: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+    docSubMeta: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        marginTop: 4,
+    },
+    metaItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    docMetaText: {
+        fontSize: 12,
+        color: '#94a3b8',
+        marginLeft: 4,
+    },
+    viewBtn: {
+        width: 36,
+        height: 36,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#58a6b8',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    docItemBottom: {
+        borderTopWidth: 1,
+        borderTopColor: '#f8fafc',
+        paddingTop: 12,
+    },
+    docDescription: {
+        fontSize: 13,
+        color: '#64748b',
+        lineHeight: 18,
+        marginBottom: 12,
+    },
+    tagContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+    },
+    tagPill: {
+        backgroundColor: '#f1f5f9',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 12,
+    },
+    tagText: {
+        fontSize: 11,
+        color: '#64748b',
+        fontWeight: '500',
     }
 });
 

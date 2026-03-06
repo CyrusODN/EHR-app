@@ -29,6 +29,11 @@ const userStore = create(
             sessionExpiresAt: expirationTime
           }));
         },
+
+        updateUser: (user) =>
+          set((state) => ({
+            loggedInUser: state.loggedInUser ? { ...state.loggedInUser, ...user } : user
+          })),
   
         setPatientBasicInformation: (payload) => 
           set(() => ({ patientBasicInformation: payload })),

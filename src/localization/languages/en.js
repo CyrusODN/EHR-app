@@ -73,6 +73,17 @@ export const en = {
         documents: 'Documents',
         history: 'History'
     },
+    profile_settings: {
+        title: "Account Management",
+        edit_profile: "Edit Profile",
+        security: "Security",
+        change_password: "Change Password",
+        notifications: "Notifications",
+        email_notifications: "Email Notifications",
+        sms_notifications: "SMS Notifications",
+        app_notifications: "In-app Notifications",
+        add_user: "Add User"
+    },
     status: {
         scheduled: 'Scheduled',
         inProgress: 'In Progress',

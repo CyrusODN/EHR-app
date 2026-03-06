@@ -103,7 +103,7 @@ const FacilityStatistics = () => {
     ] : [];
 
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={{ paddingRight: 10 }}>
@@ -147,7 +147,7 @@ const FacilityStatistics = () => {
                     ))}
                 </ScrollView>
             )}
-        </SafeAreaView>
+        </View>
     );
 };
 

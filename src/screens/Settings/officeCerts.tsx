@@ -8,7 +8,10 @@ import {
     TouchableOpacity,
     StatusBar,
     TextInput,
-    Dimensions
+    Dimensions,
+    KeyboardAvoidingView,
+    Platform,
+    ActivityIndicator
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -21,6 +24,10 @@ import PrimaryButton from '../../component/button';
 import CustomTextInput from '../../component/customTextInput';
 import CustomDropdown from '../../component/customDropDown';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import { Linking } from 'react-native';
+import { GetDirectorSetting, UpdateDirectorSetting } from '../../Services/settingServices';
+import { uploadFileOnServer } from '../../Services/Upload.Service';
+import DocumentPicker from 'react-native-document-picker';
 
 
 
@@ -43,6 +50,9 @@ interface CertificateUploadSectionProps {
     title: string;
     placeholder: string;
     onUpload: () => void;
+    onRemove: () => void;
+    fileUrl?: string;
+    loading?: boolean;
 }
 
 // Office Card Component
@@ -66,15 +76,31 @@ const OfficeCard = ({ office, onEdit, onDelete }: OfficeCardProps) => (
 );
 
 // Certificate Upload Section Component
-const CertificateUploadSection = ({ title, placeholder, onUpload }: CertificateUploadSectionProps) => (
+const CertificateUploadSection = ({ title, placeholder, onUpload, onRemove, fileUrl, loading }: CertificateUploadSectionProps) => (
     <View style={styles.certificateSection}>
         <Text style={styles.certificateLabel}>{title}</Text>
-        {title === 'P1 Identifier' ? (
-            <TextInput
-                style={styles.certificateInput}
-                placeholder={placeholder}
-                placeholderTextColor="#999"
-            />
+        {loading ? (
+            <View style={[styles.uploadButton, { borderStyle: 'solid' }]}>
+                <ActivityIndicator size="small" color="#4A90B9" />
+                <Text style={[styles.uploadText, { marginLeft: 10 }]}>Uploading...</Text>
+            </View>
+        ) : fileUrl ? (
+            <View style={styles.filePreviewContainer}>
+                <TouchableOpacity 
+                    style={styles.fileInfo} 
+                    onPress={() => Linking.openURL(fileUrl)}
+                >
+                    <MaterialCommunityIcons name="paperclip" size={20} color="#64748B" />
+                    <Text style={styles.fileUrlText} numberOfLines={1}>
+                        {fileUrl.split('/').pop()}
+                    </Text>
+                </TouchableOpacity>
+                <View style={styles.actionIconsSide}>
+                    <TouchableOpacity onPress={onRemove} style={styles.deleteFileIconSide}>
+                        <Feather name="trash-2" size={16} color="#FF6B6B" />
+                    </TouchableOpacity>
+                </View>
+            </View>
         ) : (
             <TouchableOpacity style={styles.uploadButton} onPress={onUpload}>
                 <Feather name="upload" size={20} color="#4A90B9" />
@@ -84,8 +110,17 @@ const CertificateUploadSection = ({ title, placeholder, onUpload }: CertificateU
     </View>
 );
 
-const OfficeCertificates = () => {
+const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) => {
     const navigation = useNavigation<any>();
+
+    const [id, setId] = useState('');
+    const [directorId, setDirectorId] = useState('');
+    const [p1Id, setP1Id] = useState('');
+    const [tlsCert, setTlsCert] = useState('');
+    const [wlsCert, setWlsCert] = useState('');
+    const [isUploadingTls, setIsUploadingTls] = useState(false);
+    const [isUploadingWls, setIsUploadingWls] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     // Sample office data
     const [offices, setOffices] = useState([
@@ -112,11 +147,69 @@ const OfficeCertificates = () => {
         setOffices(offices.filter(office => office.id !== id));
     };
 
-    // Handle upload certificate
-    const handleUploadCertificate = (type: string) => {
-        console.log('Upload certificate of type:', type);
-        // Show file picker
+    // Handle upload certificate - immediate upload
+    const handleUploadCertificate = async (type: string) => {
+        try {
+            const res: any = await DocumentPicker.pickSingle({
+                type: [DocumentPicker.types.allFiles],
+            });
+
+            if (type === 'TLS') setIsUploadingTls(true);
+            else setIsUploadingWls(true);
+
+            const uploadRes: any = await uploadFileOnServer(res);
+            console.log("Upload Response:", uploadRes);
+
+            const url = uploadRes?.data?.url || uploadRes?.data || uploadRes;
+            
+            if (type === 'TLS') setTlsCert(url);
+            else setWlsCert(url);
+
+        } catch (err) {
+            if (!DocumentPicker.isCancel(err)) {
+                console.error('Upload error:', err);
+                if (onAlert) onAlert({ visible: true, type: 'error', message: 'Failed to upload certificate' });
+            }
+        } finally {
+            setIsUploadingTls(false);
+            setIsUploadingWls(false);
+        }
     };
+
+    const fetchSettings = async () => {
+        setLoading(true);
+        try {
+            const res: any = await GetDirectorSetting();
+            const data = res?.data || res;
+            if (data) {
+                setId(data.id || '');
+                setDirectorId(data.director || '');
+                setP1Id(data.p1Id || '');
+                setTlsCert(data.tlsCertificate || '');
+                setWlsCert(data.wlsCertificate || '');
+                
+                if (data.offices) {
+                    const mappedOffices = data.offices.map((off: any) => ({
+                        id: off._id,
+                        title: off.name,
+                        floor: off.floor,
+                        number: off.officeNumber,
+                        type: off.type,
+                        equipment: Array.isArray(off.equipment) ? off.equipment.join(', ') : off.equipment
+                    }));
+                    setOffices(mappedOffices);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching director settings:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    React.useEffect(() => {
+        fetchSettings();
+    }, []);
 
     const [showAddForm, setShowAddForm] = useState(false);
     const [officeName, setOfficeName] = useState('');
@@ -144,6 +237,45 @@ const OfficeCertificates = () => {
         resetForm();
     };
 
+    const handleSaveChanges = async () => {
+        setLoading(true);
+        try {
+            const payload = {
+                director: directorId,
+                id: id,
+                offices: offices.map(off => ({
+                    _id: off.id.includes('.') ? undefined : off.id, // New offices might have decimal IDs from Math.random
+                    name: off.title,
+                    floor: off.floor,
+                    officeNumber: off.number,
+                    type: off.type.toLowerCase().includes('medical') ? 'medical' : 
+                          off.type.toLowerCase().includes('therapy') ? 'therapy' : 'diagnostic',
+                    equipment: off.equipment.split(',').map(item => item.trim()).filter(item => item !== '')
+                })),
+                p1Id: p1Id,
+                tlsCert: tlsCert,
+                wlsCert: wlsCert
+            };
+
+            console.log("Saving Director Settings Payload:", payload);
+            await UpdateDirectorSetting(payload);
+            
+            if (onAlert) {
+                onAlert({
+                    visible: true,
+                    type: 'success',
+                    message: 'Director Settings updated successfully!'
+                });
+            }
+            fetchSettings();
+        } catch (error) {
+            console.error('Error saving director settings:', error);
+            if (onAlert) onAlert({ visible: true, type: 'error', message: 'Failed to update settings' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const resetForm = () => {
         setOfficeName('');
         setFloor('');
@@ -154,7 +286,7 @@ const OfficeCertificates = () => {
     };
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
             <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
             <View style={styles.header}>
@@ -298,22 +430,33 @@ const OfficeCertificates = () => {
 
                     {/* Certificate Upload Sections */}
                     <View style={styles.certificatesContainer}>
-                        <CertificateUploadSection
-                            title="P1 Identifier"
-                            placeholder="Enter P1 identifier"
-                            onUpload={() => { }}
-                        />
+                        <View style={styles.certificateSection}>
+                            <Text style={styles.certificateLabel}>P1 Identifier</Text>
+                            <TextInput
+                                style={styles.certificateInput}
+                                placeholder="Enter P1 identifier"
+                                placeholderTextColor="#999"
+                                value={p1Id}
+                                onChangeText={setP1Id}
+                            />
+                        </View>
 
                         <CertificateUploadSection
                             title="TLS Certificate"
                             placeholder="Choose TLS certificate file"
                             onUpload={() => handleUploadCertificate('TLS')}
+                            onRemove={() => setTlsCert('')}
+                            fileUrl={tlsCert}
+                            loading={isUploadingTls}
                         />
 
                         <CertificateUploadSection
                             title="WLS Certificate"
                             placeholder="Choose WLS certificate file"
                             onUpload={() => handleUploadCertificate('WLS')}
+                            onRemove={() => setWlsCert('')}
+                            fileUrl={wlsCert}
+                            loading={isUploadingWls}
                         />
                     </View>
 
@@ -322,18 +465,14 @@ const OfficeCertificates = () => {
                             label="Save Changes"
                             filled={true}
                             icon={<FontAwesome name="save" size={16} color="white" />}
-                            onPress={() => { }}
+                            onPress={handleSaveChanges}
                             style={{ width: "100%" }}
-                            image={undefined}
-                            iconStyle={undefined}
-                            imageStyle={undefined}
-                            loading={false}
-                            disabled={false}
+                            loading={loading}
                         />
                     </View>
                 </View>
             </ScrollView>
-        </SafeAreaView>
+        </View>
     );
 };
 
@@ -345,8 +484,11 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 16,
+        paddingHorizontal: 20,
+        paddingVertical: 15,
         backgroundColor: '#FFFFFF',
+        borderBottomWidth: 1,
+        borderBottomColor: '#F1F5F9',
     },
     headerIconContainer: {
         width: 40,
@@ -368,12 +510,11 @@ const styles = StyleSheet.create({
     },
     container: {
         flex: 1,
-        backgroundColor: '#F5F5F5',
+        backgroundColor: '#FFFFFF',
     },
     section: {
         marginBottom: 20,
         backgroundColor: 'white',
-        borderRadius: 8,
         overflow: 'hidden',
     },
     sectionHeader: {
@@ -529,6 +670,28 @@ const styles = StyleSheet.create({
         color: '#4A90B9',
         fontWeight: '700',
         fontSize: 14,
+    },
+    filePreviewContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 8,
+    },
+    fileInfo: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+    },
+    fileUrlText: {
+        marginLeft: 8,
+        fontSize: 14,
+        color: '#1E293B',
+    },
+    actionIconsSide: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    deleteFileIconSide: {
+        padding: 5,
     },
 });
 

@@ -22,6 +22,10 @@ import CustomTextInput from '../../component/customTextInput';
 import Gap from '../../component/gap';
 import CustomDropdown from '../../component/customDropDown';
 import { LightTheme } from '../../constants/colors/lightTheme';
+import { GetMyPermissions } from '../../Services/settingServices';
+import { GetVisits } from '../../Services/Visit.Service';
+import CreateVisitModal from '../Home/modals/createVisit';
+import CustomAlert from '../../component/customAlert';
 
 const { width } = Dimensions.get('window');
 
@@ -30,6 +34,7 @@ export const ScheduleVisitsScreen = () => {
     const [currentBaseDate, setCurrentBaseDate] = useState(new Date());
     const [selectedDay, setSelectedDay] = useState(new Date().getDate().toString());
     const [showFilters, setShowFilters] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     // Filter States
     const [visitStartDate, setVisitStartDate] = useState<Date | null>(null);
@@ -39,7 +44,24 @@ export const ScheduleVisitsScreen = () => {
     const [visitType, setVisitType] = useState<string | number>('All');
     const [status, setStatus] = useState<string | number>('All');
     const [hasReferral, setHasReferral] = useState(false);
+    const [appointmentType, setAppointmentType] = useState<string | number>('All');
+    const [doctorSearch, setDoctorSearch] = useState('');
+    const [patientSearch, setPatientSearch] = useState('');
     const [activePicker, setActivePicker] = useState<{ type: 'date' | 'time', field: string } | null>(null);
+    const [isCreateVisitModalVisible, setIsCreateVisitModalVisible] = useState(false);
+    const [alertConfig, setAlertConfig] = useState<any>({
+        visible: false,
+        type: 'success',
+        message: '',
+    });
+
+    const showAlert = (type: 'success' | 'error' | 'warning', message: string) => {
+        setAlertConfig({
+            visible: true,
+            type,
+            message,
+        });
+    };
 
     const visitTypeOptions = [
         { label: 'All', value: 'All' },
@@ -133,14 +155,69 @@ export const ScheduleVisitsScreen = () => {
 
     const timeSlots = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, '0')}:00`);
 
-    const [appointments, setAppointments] = useState([
-        { date: '5', time: '04:00', patient: 'John Doe', doctor: 'Dr. Smith', duration: 30 },
-        { date: '4', time: '07:00', patient: 'Jane Smith', doctor: 'Dr. Johnson', duration: 45 },
-        { date: '12', time: '08:00', patient: 'Mike Johnson', doctor: 'Dr. Smith', duration: 30 },
-        { date: '7', time: '02:00', patient: 'John Doe', doctor: 'Dr. Smith', duration: 30 },
-        { date: '12', time: '05:00', patient: 'Jane Smith', doctor: 'Dr. Johnson', duration: 45 },
-        { date: '10', time: '01:00', patient: 'Mike Johnson', doctor: 'Dr. Smith', duration: 30 }
-    ]);
+    const [appointments, setAppointments] = useState<any[]>([]);
+
+    useEffect(() => {
+        const init = async () => {
+            await GetMyPermissions();
+            fetchVisits();
+        };
+        init();
+    }, []);
+
+    const fetchVisits = async () => {
+        setLoading(true);
+        try {
+            const params = {
+                dateFrom: visitStartDate ? visitStartDate.toISOString().split('T')[0] : '',
+                dateTo: visitEndDate ? visitEndDate.toISOString().split('T')[0] : '',
+                timeFrom: visitStartTime ? visitStartTime.toTimeString().split(' ')[0].substring(0, 5) : '',
+                timeTo: visitEndTime ? visitEndTime.toTimeString().split(' ')[0].substring(0, 5) : '',
+                visitType: visitType === 'All' ? '' : visitType,
+                status: status === 'All' ? '' : status,
+                hasReferral: hasReferral ? 'true' : '',
+                appointmentType: appointmentType === 'All' ? '' : appointmentType,
+                doctorSearch: doctorSearch,
+                patientSearch: patientSearch
+            };
+
+            console.log("ScheduleVisits.tsx: Fetching visits with params:", params);
+            const res: any = await GetVisits(params);
+            console.log("ScheduleVisits.tsx: API Response raw:", JSON.stringify(res).substring(0, 500));
+            
+            // res could be { success, message, data } OR just the data object due to interceptor
+            const data = res?.data || res;
+            const visitsData = data?.visits || data?.scheduleVisits || [];
+            console.log("ScheduleVisits.tsx: Found", visitsData.length, "visits");
+            
+            const mappedAppointments = visitsData.map((v: any) => {
+                const startTime = v.startTime || "00:00";
+                const endTime = v.endTime || "00:30";
+                
+                // Calculate duration
+                const startParts = startTime.split(':').map(Number);
+                const endParts = endTime.split(':').map(Number);
+                const durationMinutes = (endParts[0] * 60 + endParts[1]) - (startParts[0] * 60 + startParts[1]);
+
+                return {
+                    id: v.id || v._id,
+                    fullDate: v.date, // ISO string from server
+                    time: startTime, // "HH:mm"
+                    patient: v.patient?.name || 'Unknown',
+                    doctor: v.doctor?.name || 'Unknown',
+                    duration: durationMinutes > 0 ? durationMinutes : 30,
+                    status: v.status,
+                    specialization: v.specialization || ''
+                };
+            });
+            console.log("ScheduleVisits.tsx: Mapped appointments count:", mappedAppointments.length);
+            setAppointments(mappedAppointments);
+        } catch (error) {
+            console.error("ScheduleVisits.tsx: Error fetching visits", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handlePrevious = () => {
         const newDate = new Date(currentBaseDate.getTime());
@@ -209,11 +286,52 @@ export const ScheduleVisitsScreen = () => {
         </TouchableOpacity>
     );
 
-    const renderAppointment = (date: string, time: string) => {
-        const appointment = appointments.find(app => (app.date === date && app.time === time));
+    const renderAppointment = (dayFullDate: Date, time: string) => {
+        // Use local date string to avoid timezone shifts from ISO to local
+        const year = dayFullDate.getFullYear();
+        const month = (dayFullDate.getMonth() + 1).toString().padStart(2, '0');
+        const day = dayFullDate.getDate().toString().padStart(2, '0');
+        const formattedDay = `${year}-${month}-${day}`;
+
+        const appointment = appointments.find(app => {
+            if (!app.fullDate) return false;
+            
+            // app.fullDate is from server, likely ISO UTC
+            const appDate = new Date(app.fullDate);
+            const appYear = appDate.getFullYear();
+            const appMonth = (appDate.getMonth() + 1).toString().padStart(2, '0');
+            const appDay = appDate.getDate().toString().padStart(2, '0');
+            const appDateStr = `${appYear}-${appMonth}-${appDay}`;
+
+            // Matching time slot - match if the appointment starts within this hour slot
+            const appHour = app.time ? app.time.split(':')[0] + ':00' : '00:00';
+            
+            const isMatch = appDateStr === formattedDay && appHour === time;
+            return isMatch;
+        });
+
         if (appointment) {
+            const statusColors: any = {
+                scheduled: '#E0F2FE',
+                completed: '#DCFCE7',
+                cancelled: '#FEE2E2',
+                in_progress: '#FEF9C3'
+            };
+            const borderColors: any = {
+                scheduled: '#4A90B9',
+                completed: '#22C55E',
+                cancelled: '#EF4444',
+                in_progress: '#EAB308'
+            };
+            
             return (
-                <View style={styles.appointmentContainer}>
+                <View style={[
+                    styles.appointmentContainer, 
+                    { 
+                        backgroundColor: statusColors[appointment.status] || '#E0F2FE',
+                        borderLeftColor: borderColors[appointment.status] || '#4A90B9'
+                    }
+                ]}>
                     <Text style={styles.appointmentPatient} numberOfLines={1}>{appointment.patient}</Text>
                     <Text style={styles.appointmentDoctor} numberOfLines={1}>{appointment.doctor}</Text>
                     <Text style={styles.appointmentDuration}>{appointment.duration} min</Text>
@@ -256,7 +374,7 @@ export const ScheduleVisitsScreen = () => {
                         <PrimaryButton
                             label={'New Visit'}
                             filled={true}
-                            onPress={() => { }}
+                            onPress={() => setIsCreateVisitModalVisible(true)}
                             style={{ width: wp(49) }}
                             icon={<Feather name="plus" size={20} color="white" />}
                             loading={false}
@@ -269,29 +387,29 @@ export const ScheduleVisitsScreen = () => {
                 {showFilters && (
                     <View style={styles.filterSection}>
                         <View style={styles.filterGrid}>
-                            <View style={[styles.filterItem, { minWidth: '45%' }]}>
+                            <View style={[styles.filterItem, { minWidth: '100%' }]}>
                                 <Text style={styles.filterLabel}>Visit date</Text>
                                 <View style={styles.rowInputs}>
                                     <TouchableOpacity style={styles.dateSelector} onPress={() => setActivePicker({ type: 'date', field: 'visitStart' })}>
-                                        <Text style={styles.selectorText}>{formatDate(visitStartDate)}</Text>
+                                        <Text style={styles.selectorText} numberOfLines={1} ellipsizeMode="tail">{formatDate(visitStartDate)}</Text>
                                         <MaterialCommunityIcons name="calendar" size={16} color="#4B5563" />
                                     </TouchableOpacity>
                                     <TouchableOpacity style={styles.dateSelector} onPress={() => setActivePicker({ type: 'date', field: 'visitEnd' })}>
-                                        <Text style={styles.selectorText}>{formatDate(visitEndDate)}</Text>
+                                        <Text style={styles.selectorText} numberOfLines={1} ellipsizeMode="tail">{formatDate(visitEndDate)}</Text>
                                         <MaterialCommunityIcons name="calendar" size={16} color="#4B5563" />
                                     </TouchableOpacity>
                                 </View>
                             </View>
 
-                            <View style={[styles.filterItem, { minWidth: '45%' }]}>
+                            <View style={[styles.filterItem, { minWidth: '100%' }]}>
                                 <Text style={styles.filterLabel}>Visit time</Text>
                                 <View style={styles.rowInputs}>
                                     <TouchableOpacity style={styles.dateSelector} onPress={() => setActivePicker({ type: 'time', field: 'timeStart' })}>
-                                        <Text style={styles.selectorText}>{formatTime(visitStartTime)}</Text>
+                                        <Text style={styles.selectorText} numberOfLines={1} ellipsizeMode="tail">{formatTime(visitStartTime)}</Text>
                                         <Feather name="clock" size={16} color="#4B5563" />
                                     </TouchableOpacity>
                                     <TouchableOpacity style={styles.dateSelector} onPress={() => setActivePicker({ type: 'time', field: 'timeEnd' })}>
-                                        <Text style={styles.selectorText}>{formatTime(visitEndTime)}</Text>
+                                        <Text style={styles.selectorText} numberOfLines={1} ellipsizeMode="tail">{formatTime(visitEndTime)}</Text>
                                         <Feather name="clock" size={16} color="#4B5563" />
                                     </TouchableOpacity>
                                 </View>
@@ -425,21 +543,63 @@ export const ScheduleVisitsScreen = () => {
 
                                     {viewMode === 'Month' ? (
                                         <View style={styles.monthGrid}>
-                                            {getDaysForCurrentView().map((dayInfo: any, idx) => (
-                                                <TouchableOpacity 
-                                                    key={idx} 
-                                                    style={[styles.monthDayCell, !dayInfo.isCurrentMonth && { opacity: 0.3 }]}
-                                                    onPress={() => {
-                                                        setCurrentBaseDate(dayInfo.fullDate);
-                                                        setViewMode('Day');
-                                                    }}
-                                                >
-                                                    <Text style={styles.monthDayText}>{dayInfo.date}</Text>
-                                                    {appointments.filter(a => a.date === dayInfo.date).length > 0 && (
-                                                        <View style={styles.monthAppointmentDot} />
-                                                    )}
-                                                </TouchableOpacity>
-                                            ))}
+                                            {getDaysForCurrentView().map((dayInfo: any, idx) => {
+                                                const year = dayInfo.fullDate.getFullYear();
+                                                const month = (dayInfo.fullDate.getMonth() + 1).toString().padStart(2, '0');
+                                                const day = dayInfo.fullDate.getDate().toString().padStart(2, '0');
+                                                const formattedDay = `${year}-${month}-${day}`;
+                                                
+                                                const dayVisits = appointments.filter(app => {
+                                                    if (!app.fullDate) return false;
+                                                    const appDate = new Date(app.fullDate);
+                                                    const appYear = appDate.getFullYear();
+                                                    const appMonth = (appDate.getMonth() + 1).toString().padStart(2, '0');
+                                                    const appDay = appDate.getDate().toString().padStart(2, '0');
+                                                    return `${appYear}-${appMonth}-${appDay}` === formattedDay;
+                                                });
+
+                                                return (
+                                                    <TouchableOpacity 
+                                                        key={idx} 
+                                                        style={[
+                                                            styles.monthDayCell, 
+                                                            !dayInfo.isCurrentMonth && { opacity: 0.3 },
+                                                            formattedDay === new Date().toISOString().split('T')[0] && { backgroundColor: '#F1F5F9' }
+                                                        ]}
+                                                        onPress={() => {
+                                                            setCurrentBaseDate(dayInfo.fullDate);
+                                                            setViewMode('Day');
+                                                        }}
+                                                    >
+                                                        <Text style={[
+                                                            styles.monthDayText,
+                                                            formattedDay === new Date().toISOString().split('T')[0] && { color: '#4A90B9' }
+                                                        ]}>
+                                                            {dayInfo.date}
+                                                        </Text>
+                                                        <View style={styles.monthVisitsContainer}>
+                                                            {dayVisits.slice(0, 3).map((visit, vIdx) => (
+                                                                <View key={visit.id || vIdx} style={styles.monthVisitCard}>
+                                                                    <Text style={styles.monthVisitContent} numberOfLines={1}>
+                                                                        <Text style={styles.monthVisitTime}>{visit.time} </Text>
+                                                                        <Text style={styles.monthVisitPatient}>{visit.patient}</Text>
+                                                                    </Text>
+                                                                    {visit.specialization ? (
+                                                                        <View style={styles.specializationBadge}>
+                                                                            <Text style={styles.specializationBadgeText} numberOfLines={1}>
+                                                                                {visit.specialization}
+                                                                            </Text>
+                                                                        </View>
+                                                                    ) : null}
+                                                                </View>
+                                                            ))}
+                                                            {dayVisits.length > 3 && (
+                                                                <Text style={styles.moreVisitsText}>+{dayVisits.length - 3} more</Text>
+                                                            )}
+                                                        </View>
+                                                    </TouchableOpacity>
+                                                );
+                                            })}
                                         </View>
                                     ) : (
                                         <View style={styles.slotsGrid}>
@@ -447,7 +607,7 @@ export const ScheduleVisitsScreen = () => {
                                                 <View key={time} style={styles.calendarRow}>
                                                     {getDaysForCurrentView().map((dayInfo) => (
                                                         <View key={`${dayInfo.date}-${time}`} style={[styles.calendarSlot, { width: viewMode === 'Day' ? wp(85) : 70 }]}>
-                                                            {renderAppointment(dayInfo.date, time)}
+                                                            {renderAppointment(dayInfo.fullDate, time)}
                                                         </View>
                                                     ))}
                                                 </View>
@@ -514,6 +674,20 @@ export const ScheduleVisitsScreen = () => {
                         />
                     )
                 )}
+                <CreateVisitModal 
+                    visible={isCreateVisitModalVisible} 
+                    onClose={() => setIsCreateVisitModalVisible(false)} 
+                    onSaveSuccess={() => {
+                        fetchVisits();
+                        showAlert('success', 'Visit created successfully');
+                    }}
+                />
+                <CustomAlert
+                    visible={alertConfig.visible}
+                    type={alertConfig.type}
+                    message={alertConfig.message}
+                    onClose={() => setAlertConfig({ ...alertConfig, visible: false })}
+                />
             </View>
         </SafeAreaView>
     );
@@ -702,6 +876,8 @@ const styles = StyleSheet.create({
     selectorText: {
         fontSize: 12,
         color: '#64748B',
+        flex: 1,
+        marginRight: 4,
     },
     checkboxContainer: {
         flexDirection: 'row',
@@ -911,15 +1087,64 @@ const styles = StyleSheet.create({
     },
     monthDayCell: {
         width: wp(100) / 7 - 1,
-        height: 80,
+        height: 100,
         backgroundColor: 'white',
         padding: 4,
-        alignItems: 'center',
+        alignItems: 'flex-start',
     },
     monthDayText: {
         fontSize: 12,
-        fontWeight: '600',
+        fontWeight: '700',
         color: '#475569',
+        marginBottom: 4,
+        marginLeft: 2,
+    },
+    monthVisitsContainer: {
+        width: '100%',
+        gap: 2,
+    },
+    monthVisitCard: {
+        backgroundColor: '#6bafbd',
+        borderRadius: 4,
+        paddingHorizontal: 4,
+        paddingVertical: 3,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        width: '100%',
+    },
+    monthVisitContent: {
+        flex: 1,
+        marginRight: 4,
+    },
+    monthVisitTime: {
+        fontSize: 8,
+        fontWeight: '700',
+        color: '#FFFFFF',
+    },
+    monthVisitPatient: {
+        fontSize: 8,
+        fontWeight: '600',
+        color: '#FFFFFF',
+    },
+    specializationBadge: {
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        borderRadius: 2,
+        paddingHorizontal: 3,
+        paddingVertical: 1,
+        maxWidth: '40%',
+    },
+    specializationBadgeText: {
+        fontSize: 6,
+        color: '#FFFFFF',
+        textTransform: 'lowercase',
+    },
+    moreVisitsText: {
+        fontSize: 7,
+        color: '#64748B',
+        textAlign: 'center',
+        marginTop: 1,
+        fontWeight: '600',
     },
     monthAppointmentDot: {
         width: 6,

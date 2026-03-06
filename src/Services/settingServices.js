@@ -55,6 +55,19 @@ export async function GetDirectorSetting() {
     }
 }
 
+// Update Director Setting
+export async function UpdateDirectorSetting(payload) {
+    console.log("UpdateDirectorSetting called with payload:", payload);
+    try {
+        const result = await putRequest('/director-setting/update', payload);
+        console.log("UpdateDirectorSetting API Response:", JSON.stringify(result, null, 4));
+        return result;
+    } catch (err) {
+        console.log("UpdateDirectorSetting API Error:", JSON.stringify(err, null, 4));
+        return throwServerError(err);
+    }
+}
+
 //Get Employees
 export async function GetEmployees(params) {
     console.log("GetEmployees Payload Sent:", JSON.stringify(params, null, 4));

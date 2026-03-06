@@ -44,7 +44,7 @@ const EWUS = () => {
     ];
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
             <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
             <View style={styles.container}>
                 {/* Header */}
@@ -189,7 +189,7 @@ const EWUS = () => {
                     <Gap height={hp(2)} />
                 </View>
             </View>
-        </SafeAreaView>
+        </View>
     );
 };
 
@@ -201,15 +201,16 @@ const styles = StyleSheet.create({
     },
     container: {
         flex: 1,
-        backgroundColor: '#F5F5F5',
+        backgroundColor: '#FFFFFF',
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 16,
+        paddingHorizontal: 20,
+        paddingVertical: 15,
         backgroundColor: '#FFFFFF',
         borderBottomWidth: 1,
-        borderBottomColor: '#E0E0E0',
+        borderBottomColor: '#F1F5F9',
     },
     headerIconContainer: {
         width: 40,

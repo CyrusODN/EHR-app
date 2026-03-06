@@ -8,7 +8,11 @@ const MODEL_NAME = "/upload";
 export async function uploadFileOnServer(file) {
   try {
     let formData = new FormData();
-    formData.append("file", file);
+    formData.append("file", {
+      uri: file.uri,
+      name: file.name || file.fileName || 'upload.pdf',
+      type: file.type || 'application/pdf'
+    });
 
     const result = await postFormDataRequest(`${MODEL_NAME}`, formData);
     return result;
