@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -13,6 +13,7 @@ import {
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import CustomAlert from '../../component/customAlert';
 
 // AI Tools Components
 import ConsultChat from './AI_Tools/consultChat';
@@ -21,25 +22,55 @@ import PharmacopediaChat from './AI_Tools/pharmacopediaChat';
 import Diagnosis from './AI_Tools/diagnosis';
 import ClinicalTrials from './AI_Tools/clinicalTrials';
 import StatisticalAnalysis from './AI_Tools/statisticalAnalysis';
+import { getChatbotServiceToken } from '../../Services/AiAssitants.Service';
 
 const { width } = Dimensions.get('window');
 
 export const AIAssistantScreen = () => {
     const navigation = useNavigation<any>();
     const [activeTab, setActiveTab] = useState('Remedius Consult');
+    const [serviceToken, setServiceToken] = useState<string | null>(null);
+    const [alertConfig, setAlertConfig] = useState<{ visible: boolean; message: string; type: 'success' | 'warning' | 'error' }>({
+        visible: false,
+        message: '',
+        type: 'success'
+    });
+
+    const triggerAlert = (message: string, type: 'success' | 'warning' | 'error' = 'success') => {
+        setAlertConfig({ visible: true, message, type });
+    };
+
+    useEffect(() => {
+        const fetchToken = async () => {
+            console.log("[AIAssistantScreen] Fetching service token...");
+            try {
+                const response: any = await getChatbotServiceToken();
+                if (response?.serviceToken) {
+                    setServiceToken(response.serviceToken);
+                    console.log("[AIAssistantScreen] Service Token fetched successfully:", response.serviceToken.substring(0, 20) + "...");
+                } else {
+                    console.warn("[AIAssistantScreen] Service Token response missing 'serviceToken' field");
+                }
+            } catch (error) {
+                console.error("[AIAssistantScreen] Error fetching service token:", error);
+            }
+        };
+
+        fetchToken();
+    }, []);
 
     const renderContent = () => {
         switch (activeTab) {
             case 'Remedius Consult':
-                return <ConsultChat />;
+                return <ConsultChat serviceToken={serviceToken} onShowAlert={triggerAlert} />;
             case 'Remedius Pathfinder':
                 return <Pathfinder />;
             case 'Pharmacopedia':
-                return <PharmacopediaChat />;
+                return <PharmacopediaChat serviceToken={serviceToken} onShowAlert={triggerAlert} />;
             case 'Diagnosis':
                 return <Diagnosis />;
             case 'Clinical Trials':
-                return <ClinicalTrials />;
+                return <ClinicalTrials serviceToken={serviceToken} onShowAlert={triggerAlert} />;
             case 'Statistical Analysis':
                 return <StatisticalAnalysis />;
             default:
@@ -57,70 +88,71 @@ export const AIAssistantScreen = () => {
     ];
 
     return (
-        <KeyboardAvoidingView
-            style={styles.safeArea}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-            <View style={styles.container}>
-                {/* Header */}
-                <View style={styles.header}>
-                    <View>
-                        <Text style={styles.headerTitle}>AI Assistants</Text>
-                        <Text style={styles.headerSubtitle}>
-                            Advanced AI tools supporting doctor's work
-                        </Text>
-                    </View>
-                    <TouchableOpacity
-                        onPress={() => navigation.goBack()}
-                        style={styles.backButton}
-                    >
-                        <Ionicons name="arrow-back" size={20} color="#4A90B9" />
-                    </TouchableOpacity>
-                </View>
-
-                {/* Tabs */}
-                <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    style={styles.tabContainer}
-                >
-                    {tabs.map((tab, index) => (
-                        <TouchableOpacity
-                            key={index}
-                            style={[
-                                styles.tab,
-                                activeTab === tab && styles.activeTab,
-                                {
-                                    marginEnd: 5
-                                }
-                            ]}
-                            onPress={() => setActiveTab(tab)}
-                        >
-                            <Text style={[
-                                styles.tabText,
-                                activeTab === tab && styles.activeTabText
-                            ]}>
-                                {tab}
+        <View style={{ flex: 1 }}>
+            <KeyboardAvoidingView
+                style={styles.safeArea}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            >
+                <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+                <View style={styles.container}>
+                    {/* Header */}
+                    <View style={styles.header}>
+                        <View>
+                            <Text style={styles.headerTitle}>AI Assistants</Text>
+                            <Text style={styles.headerSubtitle}>
+                                Advanced AI tools supporting doctor's work
                             </Text>
+                        </View>
+                        <TouchableOpacity
+                            onPress={() => navigation.goBack()}
+                            style={styles.backButton}
+                        >
+                            <Ionicons name="arrow-back" size={20} color="#4A90B9" />
                         </TouchableOpacity>
-                    ))}
-                </ScrollView>
+                    </View>
 
-                {/* Content */}
-                <ScrollView
-                    style={styles.scrollContent}
-                    contentContainerStyle={styles.scrollContentContainer}
-                >
-                    {renderContent()}
-                </ScrollView>
+                    {/* Tabs */}
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        style={styles.tabContainer}
+                    >
+                        {tabs.map((tab, index) => (
+                            <TouchableOpacity
+                                key={index}
+                                style={[
+                                    styles.tab,
+                                    activeTab === tab && styles.activeTab,
+                                    {
+                                        marginEnd: 5
+                                    }
+                                ]}
+                                onPress={() => setActiveTab(tab)}
+                            >
+                                <Text style={[
+                                    styles.tabText,
+                                    activeTab === tab && styles.activeTabText
+                                ]}>
+                                    {tab}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </ScrollView>
 
-                {/* Help Button
-                <TouchableOpacity style={styles.helpButton}>
-                    <Text style={styles.helpButtonText}>?</Text>
-                </TouchableOpacity> */}
-            </View>
-        </KeyboardAvoidingView>
+                    {/* Content */}
+                    <View style={styles.contentArea}>
+                        {renderContent()}
+                    </View>
+                </View>
+            </KeyboardAvoidingView>
+
+            <CustomAlert
+                visible={alertConfig.visible}
+                message={alertConfig.message}
+                type={alertConfig.type}
+                onClose={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
+            />
+        </View>
     );
 };
 
@@ -193,10 +225,8 @@ const styles = StyleSheet.create({
         color: '#4A90B9',
         fontWeight: 'bold',
     },
-    scrollContent: {
-        height: hp(75)
-    },
-    scrollContentContainer: {
+    contentArea: {
+        height: hp(76)
     },
     helpButton: {
         position: 'absolute',

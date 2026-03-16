@@ -27,14 +27,14 @@ import Employees from "./Settings/employees";
 import EWUS from "./Settings/ewUs";
 import ReferralsScreen from "./Patient/Referrals";
 import PatientProfile from "./Patient/PatientProfile";
+import VisitScreen from "./Visit/index";
 
 
 export const Screens = {
     Splash,
     ModuleSelection,
     SignIn,
-    SignUp,
-    ForgetPassword,
+    SignUp,    ForgetPassword,
     Otp,
     ResetPassword,
     Dashboard,
@@ -57,5 +57,6 @@ export const Screens = {
     AIAnalysis,
     AIAssistantScreen,
     ReferralsScreen,
-    PatientProfile
+    PatientProfile,
+    VisitScreen
 }

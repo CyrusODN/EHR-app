@@ -261,7 +261,7 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
                             />
                         </View>
                         <PrimaryButton
-                            label="+ Add Doctor/Dentist/Paramedic"
+                            label={`+ Add ${activeTab === 'Doctors, Dentists, and Paramedics' ? 'Doctor/Dentist/Paramedic' : activeTab === 'Nurses and Midwives' ? 'Nurse/Midwife' : 'Receptionist'}`}
                             filled={true}
                             onPress={() => setShowAddDoctorModal(true)}
                             style={styles.addBtn}
@@ -298,16 +298,18 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
                                 onChangeText={setSearchFirstName}
                             />
                         </View>
-                        <View style={styles.searchField}>
-                            <Ionicons name="search-outline" size={16} color="#9CA3AF" style={styles.searchFieldIcon} />
-                            <TextInput
-                                style={styles.searchFieldInput}
-                                placeholder="PWZ"
-                                placeholderTextColor="#9CA3AF"
-                                value={searchPWZ}
-                                onChangeText={setSearchPWZ}
-                            />
-                        </View>
+                        {activeTab === 'Doctors, Dentists, and Paramedics' && (
+                            <View style={styles.searchField}>
+                                <Ionicons name="search-outline" size={16} color="#9CA3AF" style={styles.searchFieldIcon} />
+                                <TextInput
+                                    style={styles.searchFieldInput}
+                                    placeholder="PWZ"
+                                    placeholderTextColor="#9CA3AF"
+                                    value={searchPWZ}
+                                    onChangeText={setSearchPWZ}
+                                />
+                            </View>
+                        )}
                     </View>
 
                     <View style={styles.filterExtrasRow}>
@@ -458,6 +460,7 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
                 onClose={() => setShowAddDoctorModal(false)}
                 onAdd={handleDoctorModalSubmit}
                 onAlert={onAlert}
+                activeTab={activeTab}
             />
             <EditEmployeeModal
                 visible={showEditModal}

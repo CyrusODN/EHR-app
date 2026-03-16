@@ -1,87 +1,266 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import Feather from 'react-native-vector-icons/Feather';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import PrimaryButton from '../../../component/button';
 import CustomTextInput from '../../../component/customTextInput';
 import Gap from '../../../component/gap';
+import { searchClinicalTrials } from '../../../Services/AiAssitants.Service';
 
-const ClinicalTrials = () => {
+interface ClinicalTrialsProps {
+    serviceToken: string | null;
+    onShowAlert?: (message: string, type?: 'success' | 'warning' | 'error') => void;
+}
+
+const ClinicalTrials = ({ serviceToken, onShowAlert }: ClinicalTrialsProps) => {
     const [diagnosis, setDiagnosis] = useState('');
     const [location, setLocation] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [trials, setTrials] = useState<any[]>([]);
+    const [searched, setSearched] = useState(false);
+
+    const handleSearch = async () => {
+        if (!diagnosis.trim()) {
+            if (onShowAlert) onShowAlert("Please enter a diagnosis", "warning");
+            return;
+        }
+
+        setLoading(true);
+        setSearched(true);
+        try {
+            const results = await searchClinicalTrials(serviceToken as string, diagnosis, location);
+            setTrials(results || []);
+        } catch (error) {
+            console.error("[ClinicalTrials] Search Error:", error);
+            if (onShowAlert) onShowAlert("Failed to fetch clinical trials", "error");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
-        <View style={styles.contentContainer}>
-            <Text style={styles.sectionTitle}>Clinical Research Search</Text>
-            <Text style={{ color: "black" }} >
-                Diagnosis
-            </Text>
+        <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: hp(5) }} showsVerticalScrollIndicator={false}>
+            <View style={styles.searchSection}>
+                <View style={styles.inputRow}>
+                    <View style={styles.inputCol}>
+                        <Text style={styles.inputLabel}>Diagnosis</Text>
+                        <CustomTextInput
+                            placeholder={'e.g. Migraine'}
+                            value={diagnosis}
+                            onChangeText={setDiagnosis}
+                            style={styles.textInput}
+                        />
+                    </View>
+                    <View style={styles.inputCol}>
+                        <Text style={styles.inputLabel}>Location</Text>
+                        <CustomTextInput
+                            placeholder={'e.g. Warsaw'}
+                            value={location}
+                            onChangeText={setLocation}
+                            style={styles.textInput}
+                        />
+                    </View>
+                </View>
 
-            <Gap height={hp(1)} />
+                <Gap height={hp(2)} />
 
-            <CustomTextInput
-                placeholder={'e.g. Migraine'}
-                value={diagnosis}
-                onChangeText={setDiagnosis}
-                icon={undefined}
-                right={undefined}
-                onRightPress={undefined}
-                keyboardType={undefined}
-            />
+                <PrimaryButton
+                    label={loading ? "Searching..." : "Search trials"}
+                    filled={true}
+                    onPress={handleSearch}
+                    style={styles.searchBtn}
+                    icon={loading ? <ActivityIndicator color="white" size="small" /> : <Feather name="search" color={"white"} size={18} />}
+                    disabled={loading}
+                />
+            </View>
 
-            <Gap height={hp(2)} />
+            {searched && (
+                <View style={styles.resultsHeader}>
+                    <Text style={styles.foundText}>Found trials ({trials.length})</Text>
+                </View>
+            )}
 
-            <Text style={{ color: "black" }} >
-                Location
-            </Text>
+            {trials.map((trial, index) => (
+                <View key={trial.id || index} style={styles.trialCard}>
+                    <View style={styles.cardHeader}>
+                        <Text style={styles.trialTitle}>{trial.title}</Text>
+                        <Gap height={hp(1)} />
+                        <Text style={styles.trialMeta}>ID: {trial.id}</Text>
+                        <Text style={styles.trialMeta}>Sponsor: {trial.sponsor}</Text>
+                        <Text style={styles.trialMeta}>Phase: {trial.phase}</Text>
+                    </View>
 
-            <Gap height={hp(1)} />
+                    <View style={styles.locationContainer}>
+                        <Feather name="map-pin" size={14} color="#9CA3AF" style={{ marginRight: 5 }} />
+                        <Text style={styles.locationText} numberOfLines={1}>{trial.location}</Text>
+                    </View>
 
-            <CustomTextInput
-                placeholder={'e.g. Warsaw'}
-                value={location}
-                onChangeText={setLocation}
-                icon={undefined}
-                right={undefined}
-                onRightPress={undefined}
-                keyboardType={undefined}
-            />
+                    <View style={styles.criteriaRow}>
+                        <View style={styles.criteriaCol}>
+                            <Text style={styles.criteriaTitle}>Inclusion criteria:</Text>
+                            {(trial.criteria?.inclusion || []).map((item: string, i: number) => (
+                                <Text key={i} style={styles.criteriaItem}>• {item}</Text>
+                            ))}
+                        </View>
+                        <View style={styles.criteriaCol}>
+                            <Text style={styles.criteriaTitle}>Exclusion criteria:</Text>
+                            {(trial.criteria?.exclusion || []).map((item: string, i: number) => (
+                                <Text key={i} style={styles.criteriaItem}>• {item}</Text>
+                            ))}
+                        </View>
+                    </View>
 
-            <Gap height={hp(2)} />
+                    <View style={styles.cardFooter}>
+                        <TouchableOpacity style={styles.detailsBtn}>
+                            <Feather name="file-text" size={14} color="#4A90B9" style={{ marginRight: 5 }} />
+                            <Text style={styles.detailsBtnText}>Details</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            ))}
 
-            <PrimaryButton
-                label={"Search Studies"}
-                filled={true}
-                onPress={() => { }}
-                style={{ width: '100%' }}
-                icon={<Feather name="search" color={"white"} size={18} />}
-                image={undefined}
-                iconStyle={undefined}
-                imageStyle={undefined}
-            />
-
-        </View>
+            {searched && trials.length === 0 && !loading && (
+                <View style={styles.noResults}>
+                    <Text style={styles.noResultsText}>No clinical trials found for your search.</Text>
+                </View>
+            )}
+        </ScrollView>
     );
 };
 
 const styles = StyleSheet.create({
-    contentContainer: {
+    container: {
+        flex: 1,
+        backgroundColor: '#F9FAFB',
+    },
+    searchSection: {
         padding: 15,
         backgroundColor: '#FFFFFF',
         margin: 15,
-        borderRadius: 10,
+        borderRadius: 12,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
-        shadowRadius: 3,
+        shadowRadius: 4,
         elevation: 3,
     },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
+    inputRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    inputCol: {
+        width: '48%',
+    },
+    inputLabel: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#374151',
+        marginBottom: 8,
+    },
+    textInput: {
+        backgroundColor: '#F3F4F6',
+        borderRadius: 8,
+    },
+    searchBtn: {
+        width: '100%',
+        backgroundColor: '#67B7B1',
+        borderRadius: 8,
+        height: hp(6),
+    },
+    resultsHeader: {
+        paddingHorizontal: 15,
+        marginBottom: 10,
+    },
+    foundText: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#111827',
+    },
+    trialCard: {
+        backgroundColor: '#FFFFFF',
+        marginHorizontal: 15,
         marginBottom: 15,
-        color: '#333333',
-        width: "50%"
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+        overflow: 'hidden',
+    },
+    cardHeader: {
+        padding: 15,
+        backgroundColor: '#F9FAFB',
+        borderBottomWidth: 1,
+        borderBottomColor: '#F3F4F6',
+    },
+    trialTitle: {
+        fontSize: 15,
+        fontWeight: 'bold',
+        color: '#111827',
+        lineHeight: 20,
+    },
+    trialMeta: {
+        fontSize: 12,
+        color: '#6B7280',
+        marginTop: 2,
+    },
+    locationContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        paddingVertical: 10,
+    },
+    locationText: {
+        fontSize: 12,
+        color: '#6B7280',
+        flex: 1,
+    },
+    criteriaRow: {
+        flexDirection: 'row',
+        paddingHorizontal: 15,
+        paddingBottom: 15,
+    },
+    criteriaCol: {
+        flex: 1,
+    },
+    criteriaTitle: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#374151',
+        marginBottom: 8,
+    },
+    criteriaItem: {
+        fontSize: 12,
+        color: '#4B5563',
+        marginBottom: 4,
+        lineHeight: 18,
+    },
+    cardFooter: {
+        borderTopWidth: 1,
+        borderTopColor: '#F3F4F6',
+        padding: 10,
+        alignItems: 'flex-end',
+    },
+    detailsBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        paddingVertical: 8,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#4A90B9',
+    },
+    detailsBtnText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#4A90B9',
+    },
+    noResults: {
+        padding: 20,
+        alignItems: 'center',
+    },
+    noResultsText: {
+        fontSize: 14,
+        color: '#6B7280',
     },
 });
 

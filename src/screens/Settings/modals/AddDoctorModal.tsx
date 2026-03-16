@@ -27,9 +27,10 @@ interface AddDoctorModalProps {
     onClose: () => void;
     onAdd: (doctorData: any) => void;
     onAlert?: (config: { visible: boolean; type: string; message: string }) => void;
+    activeTab?: string;
 }
 
-const AddDoctorModal: React.FC<AddDoctorModalProps> = ({ visible, onClose, onAdd, onAlert }) => {
+const AddDoctorModal: React.FC<AddDoctorModalProps> = ({ visible, onClose, onAdd, onAlert, activeTab }) => {
     const { loggedInUser } = userStore();
     const [loading, setLoading] = useState(false);
     
@@ -99,7 +100,7 @@ const AddDoctorModal: React.FC<AddDoctorModalProps> = ({ visible, onClose, onAdd
                 email: formData.email,
                 pesel: formData.peselNumber,
                 pwz: formData.pwzNumber,
-                role: 'doctor',
+                role: activeTab === 'Nurses and Midwives' ? 'nurse' : activeTab === 'Receptionists' ? 'receptionist' : 'doctor',
                 assignedOffices: selectedOffice ? [
                     {
                         name: selectedOffice.name,
@@ -116,7 +117,7 @@ const AddDoctorModal: React.FC<AddDoctorModalProps> = ({ visible, onClose, onAdd
                 onAlert?.({
                     visible: true,
                     type: 'success',
-                    message: 'Doctor invitation has been sent successfully.',
+                    message: `${activeTab === 'Nurses and Midwives' ? 'Nurse' : activeTab === 'Receptionists' ? 'Receptionist' : 'Doctor'} invitation has been sent successfully.`,
                 });
                 setFormData({
                     firstName: '',
@@ -135,7 +136,7 @@ const AddDoctorModal: React.FC<AddDoctorModalProps> = ({ visible, onClose, onAdd
             onAlert?.({
                 visible: true,
                 type: 'error',
-                message: error.message || 'An error occurred while adding the doctor.',
+                message: error.message || `An error occurred while adding the ${activeTab === 'Nurses and Midwives' ? 'nurse' : activeTab === 'Receptionists' ? 'receptionist' : 'doctor'}.`,
             });
         } finally {
             setLoading(false);
@@ -165,7 +166,7 @@ const AddDoctorModal: React.FC<AddDoctorModalProps> = ({ visible, onClose, onAdd
                     <View style={styles.modalContent}>
                         {/* Header */}
                         <View style={styles.header}>
-                            <Text style={styles.headerTitle}>Add Doctor</Text>
+                            <Text style={styles.headerTitle}>Add {activeTab === 'Nurses and Midwives' ? 'Nurse' : activeTab === 'Receptionists' ? 'Receptionist' : 'Doctor'}</Text>
                             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                                 <Feather name="x" size={24} color="#64748B" />
                             </TouchableOpacity>
@@ -217,14 +218,18 @@ const AddDoctorModal: React.FC<AddDoctorModalProps> = ({ visible, onClose, onAdd
                             <Gap height={hp(1.5)} />
 
                             {/* PWZ Number */}
-                            {renderLabel('PWZ Number')}
-                            <CustomTextInput
-                                placeholder=""
-                                value={formData.pwzNumber}
-                                onChangeText={(val) => setFormData({ ...formData, pwzNumber: val })}
-                                keyboardType="numeric"
-                            />
-                            <Gap height={hp(1.5)} />
+                            {(!activeTab || activeTab === 'Doctors, Dentists, and Paramedics') && (
+                                <>
+                                    {renderLabel('PWZ Number')}
+                                    <CustomTextInput
+                                        placeholder=""
+                                        value={formData.pwzNumber}
+                                        onChangeText={(val) => setFormData({ ...formData, pwzNumber: val })}
+                                        keyboardType="numeric"
+                                    />
+                                    <Gap height={hp(1.5)} />
+                                </>
+                            )}
 
                             {/* PESEL Number */}
                             {renderLabel('PESEL Number')}
@@ -265,7 +270,7 @@ const AddDoctorModal: React.FC<AddDoctorModalProps> = ({ visible, onClose, onAdd
                                     style={styles.cancelButton}
                                 />
                                 <PrimaryButton
-                                    label="Add"
+                                    label={`Add ${activeTab === 'Nurses and Midwives' ? 'Nurse' : activeTab === 'Receptionists' ? 'Receptionist' : 'Doctor'}`}
                                     filled={true}
                                     onPress={handleAdd}
                                     style={styles.addButton}

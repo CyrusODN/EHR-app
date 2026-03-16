@@ -10,7 +10,7 @@ export async function CreatePatient(payload) {
         console.log("CreatePatient API Response:", JSON.stringify(result, null, 4));
 		return result;
 	} catch (err) {
-        console.log("CreatePatient API Error:", JSON.stringify(err, null, 4));
+        console.log("CreatePatient API Error:", err);
 		return throwServerError(err);
 	}
 }

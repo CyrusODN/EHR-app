@@ -25,7 +25,7 @@ import { CreatePatient } from '../../Services/Patient.Service';
 import CustomAlert from '../../component/customAlert';
 
 const NewPatientScreen = ({ }) => {
-    const navigation = useNavigation();
+    const navigation = useNavigation<any>();
     // State variables for form fields
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -164,36 +164,82 @@ const NewPatientScreen = ({ }) => {
 
     // Handle save patient
     const handleSavePatient = async () => {
+        // Validation for compulsory fields
+        if (!firstName.trim() || !lastName.trim() || !dateOfBirth || !gender || !street.trim() || !houseNo.trim() || !city.trim() || !country || !insuranceType || !postalCode.trim()) {
+            showAlert('warning', 'Please fill in all compulsory fields marked with *');
+            return;
+        }
+
+        // Phone number validation (exactly 9 digits)
+        const phoneDigits = phone.replace(/\D/g, '');
+        if (phone && phoneDigits.length !== 9) {
+            showAlert('warning', 'Phone number must be exactly 9 digits');
+            return;
+        }
+
+        // PESEL validation (exactly 11 digits)
+        const peselDigits = pesel.replace(/\D/g, '');
+        if (pesel && peselDigits.length !== 11) {
+            showAlert('warning', 'PESEL must be exactly 11 digits');
+            return;
+        }
+
+        // Alternative phone validation (exactly 9 digits if provided)
+        const altPhoneDigits = alternativePhone.replace(/\D/g, '');
+        if (alternativePhone && altPhoneDigits.length !== 9) {
+            showAlert('warning', 'Alternative phone number must be exactly 9 digits');
+            return;
+        }
+
+        // Email validation
+        const emailPattern = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+        if (email && !emailPattern.test(email)) {
+            showAlert('warning', 'Please enter a valid email address');
+            return;
+        }
+
+        // Postal code validation (00-000 format)
+        const postalPattern = /^\d{2}-\d{3}$/;
+        if (postalCode && !postalPattern.test(postalCode)) {
+            showAlert('warning', 'Postal code must be in 00-000 format');
+            return;
+        }
+
         setLoading(true);
         console.log('Initiating Create Patient request...');
         try {
-            const payload = {
-                firstName,
-                lastName,
-                pesel,
+            const rawPayload = {
+                firstName: firstName.trim(),
+                lastName: lastName.trim(),
+                pesel: pesel.trim(),
                 dob: dateOfBirth ? dateOfBirth.toISOString() : null,
                 gender: gender || "",
-                phone,
-                middleName,
-                maidenName,
-                alternativePhone,
-                email,
-                birthPlace: placeOfBirth,
+                phone: phone.trim(),
+                middleName: middleName.trim(),
+                maidenName: maidenName.trim(),
+                alternativePhone: alternativePhone.trim(),
+                email: email.trim(),
+                birthPlace: placeOfBirth.trim(),
                 documentType: documentType || "",
                 bloodType: bloodType || "",
-                internalCardNumber: internalCardNo,
-                isForeigner: foreigner === 'yes',
-                street,
-                houseNumber: houseNo,
-                apartmentNumber: apartmentNo,
-                postalCode,
-                city,
+                internalCardNumber: internalCardNo.trim(),
+                isForeigner: foreigner === null ? null : foreigner === 'yes',
+                street: street.trim(),
+                houseNumber: houseNo.trim(),
+                apartmentNumber: apartmentNo.trim(),
+                postalCode: postalCode.trim(),
+                city: city.trim(),
                 country: country || "",
                 voivodeship: voivodeship || "",
-                municipalityTeryt,
-                insuranceType: insuranceType.toString().toLowerCase(),
-                insuranceNumber: insuranceNo
+                municipalityTeryt: municipalityTeryt.trim(),
+                insuranceType: insuranceType ? insuranceType.toString().toLowerCase() : "nfz",
+                insuranceNumber: insuranceNo.trim()
             };
+
+            // Filter out empty, null, or undefined values
+            const payload = Object.fromEntries(
+                Object.entries(rawPayload).filter(([_, v]) => v !== null && v !== undefined && v !== "")
+            );
 
             console.log('Create Patient Payload:', JSON.stringify(payload, null, 2));
 
@@ -201,18 +247,15 @@ const NewPatientScreen = ({ }) => {
             console.log('Create Patient Response:', JSON.stringify(response, null, 2));
 
             if (response) {
-                const successMessage = typeof response === 'string' ? response : (response.data || 'Patient created successfully!');
-                showAlert('success', successMessage);
-                setTimeout(() => {
-                    hideAlert();
-                    navigation.goBack();
-                }, 2000);
+                const successMessage = typeof response === 'string' ? response : (response.message || 'Patient created successfully!');
+                navigation.navigate('Dashboard', { successMessage });
             } else {
                 showAlert('error', 'Failed to create patient');
             }
         } catch (error: any) {
-            showAlert('error', error.message || 'An error occurred while creating patient');
-            console.error(error);
+            const errorMessage = error?.message || (typeof error === 'string' ? error : 'An error occurred while creating patient');
+            showAlert('error', errorMessage);
+            console.error('Create Patient Error:', error);
         } finally {
             setLoading(false);
         }
@@ -248,19 +291,19 @@ const NewPatientScreen = ({ }) => {
                             <Text style={styles.sectionTitle}>Personal Data</Text>
 
                             <View style={styles.formField}>
-                                <Text style={styles.label}>First Name</Text>
+                                <Text style={styles.label}><Text style={{ color: 'red' }}>*</Text> First Name</Text>
                                 <CustomTextInput
                                     placeholder="Enter first name"
                                     value={firstName}
-                                    onChangeText={setFirstName} icon={undefined} right={undefined} onRightPress={undefined} keyboardType={undefined} />
+                                    onChangeText={setFirstName} />
                             </View>
 
                             <View style={styles.formField}>
-                                <Text style={styles.label}>Last Name</Text>
+                                <Text style={styles.label}><Text style={{ color: 'red' }}>*</Text> Last Name</Text>
                                 <CustomTextInput
                                     placeholder="Enter last name"
                                     value={lastName}
-                                    onChangeText={setLastName} icon={undefined} right={undefined} onRightPress={undefined} keyboardType={undefined} />
+                                    onChangeText={setLastName} />
                             </View>
 
                             <View style={styles.formField}>
@@ -269,11 +312,12 @@ const NewPatientScreen = ({ }) => {
                                     placeholder="Enter PESEL number"
                                     value={pesel}
                                     onChangeText={setPesel}
-                                    keyboardType="numeric" icon={undefined} right={undefined} onRightPress={undefined} />
+                                    name="pesel"
+                                    keyboardType="numeric" />
                             </View>
 
                              <View style={styles.formField}>
-                                <Text style={styles.label}>Date of Birth</Text>
+                                <Text style={styles.label}><Text style={{ color: 'red' }}>*</Text> Date of Birth</Text>
                                 <TouchableOpacity
                                     style={styles.datePickerButton}
                                     onPress={() => setShowDatePicker(true)}
@@ -323,12 +367,12 @@ const NewPatientScreen = ({ }) => {
                             </View>
 
                             <View style={styles.formField}>
-                                <Text style={styles.label}>Gender</Text>
+                                <Text style={styles.label}><Text style={{ color: 'red' }}>*</Text> Gender</Text>
                                 <CustomDropdown
                                     placeholder="Select gender"
                                     options={genderOptions}
                                     value={gender}
-                                    onChange={setGender} icon={undefined} />
+                                    onChange={setGender} />
                             </View>
 
                             <View style={styles.formField}>
@@ -337,7 +381,8 @@ const NewPatientScreen = ({ }) => {
                                     placeholder="Enter phone number"
                                     value={phone}
                                     onChangeText={setPhone}
-                                    keyboardType="phone-pad" icon={undefined} right={undefined} onRightPress={undefined} />
+                                    name="phone"
+                                    keyboardType="phone-pad" />
                             </View>
 
                             <View style={styles.rowContainer}>
@@ -346,14 +391,14 @@ const NewPatientScreen = ({ }) => {
                                     <CustomTextInput
                                         placeholder="Enter middle name"
                                         value={middleName}
-                                        onChangeText={setMiddleName} icon={undefined} right={undefined} onRightPress={undefined} keyboardType={undefined} />
+                                        onChangeText={setMiddleName} />
                                 </View>
                                 <View style={styles.halfField}>
                                     <Text style={styles.label}>Maiden Name</Text>
                                     <CustomTextInput
                                         placeholder="Enter maiden name"
                                         value={maidenName}
-                                        onChangeText={setMaidenName} icon={undefined} right={undefined} onRightPress={undefined} keyboardType={undefined} />
+                                        onChangeText={setMaidenName} />
                                 </View>
                             </View>
 
@@ -364,7 +409,8 @@ const NewPatientScreen = ({ }) => {
                                         placeholder="Enter alternative phone"
                                         value={alternativePhone}
                                         onChangeText={setAlternativePhone}
-                                        keyboardType="phone-pad" icon={undefined} right={undefined} onRightPress={undefined} />
+                                        name="alternativePhone"
+                                        keyboardType="phone-pad" />
                                 </View>
                                 <View style={styles.halfField}>
                                     <Text style={styles.label}>Email</Text>
@@ -372,7 +418,8 @@ const NewPatientScreen = ({ }) => {
                                         placeholder="Enter email address"
                                         value={email}
                                         onChangeText={setEmail}
-                                        keyboardType="email-address" icon={undefined} right={undefined} onRightPress={undefined} />
+                                        name="email"
+                                        keyboardType="email-address" />
                                 </View>
                             </View>
 
@@ -382,7 +429,7 @@ const NewPatientScreen = ({ }) => {
                                     <CustomTextInput
                                         placeholder="Enter place of birth"
                                         value={placeOfBirth}
-                                        onChangeText={setPlaceOfBirth} icon={undefined} right={undefined} onRightPress={undefined} keyboardType={undefined} />
+                                        onChangeText={setPlaceOfBirth} />
                                 </View>
                                 <View style={styles.halfField}>
                                     <Text style={styles.label}>Document Type</Text>
@@ -390,7 +437,7 @@ const NewPatientScreen = ({ }) => {
                                         placeholder="Select document type"
                                         options={documentTypeOptions}
                                         value={documentType}
-                                        onChange={setDocumentType} icon={undefined} />
+                                        onChange={setDocumentType} />
                                 </View>
                             </View>
 
@@ -401,14 +448,14 @@ const NewPatientScreen = ({ }) => {
                                         placeholder="Select blood type"
                                         options={bloodTypeOptions}
                                         value={bloodType}
-                                        onChange={setBloodType} icon={undefined} />
+                                        onChange={setBloodType} />
                                 </View>
                                 <View style={styles.halfField}>
                                     <Text style={styles.label}>Internal Card No.</Text>
                                     <CustomTextInput
                                         placeholder="Enter internal card no."
                                         value={internalCardNo}
-                                        onChangeText={setInternalCardNo} icon={undefined} right={undefined} onRightPress={undefined} keyboardType={undefined} />
+                                        onChangeText={setInternalCardNo} />
                                 </View>
                             </View>
 
@@ -419,7 +466,7 @@ const NewPatientScreen = ({ }) => {
                                         placeholder="Select"
                                         options={foreignerOptions}
                                         value={foreigner}
-                                        onChange={setForeigner} icon={undefined} />
+                                        onChange={setForeigner} />
                                 </View>
                                 <View style={styles.halfField} />
                             </View>
@@ -431,44 +478,45 @@ const NewPatientScreen = ({ }) => {
                             <Text style={styles.sectionTitle}>Address</Text>
 
                             <View style={styles.formField}>
-                                <Text style={styles.label}>Street</Text>
+                                <Text style={styles.label}><Text style={{ color: 'red' }}>*</Text> Street</Text>
                                 <CustomTextInput
                                     placeholder="Enter street name"
                                     value={street}
-                                    onChangeText={setStreet} icon={undefined} right={undefined} onRightPress={undefined} keyboardType={undefined} />
+                                    onChangeText={setStreet} />
                             </View>
 
                             <View style={styles.rowContainer}>
                                 <View style={styles.halfField}>
-                                    <Text style={styles.label}>House No.</Text>
+                                    <Text style={styles.label}><Text style={{ color: 'red' }}>*</Text> House No.</Text>
                                     <CustomTextInput
                                         placeholder="Enter house number"
                                         value={houseNo}
-                                        onChangeText={setHouseNo} icon={undefined} right={undefined} onRightPress={undefined} keyboardType={undefined} />
+                                        onChangeText={setHouseNo} />
                                 </View>
                                 <View style={styles.halfField}>
                                     <Text style={styles.label}>Apartment No.</Text>
                                     <CustomTextInput
                                         placeholder="Enter apartment number"
                                         value={apartmentNo}
-                                        onChangeText={setApartmentNo} icon={undefined} right={undefined} onRightPress={undefined} keyboardType={undefined} />
+                                        onChangeText={setApartmentNo} />
                                 </View>
                             </View>
                             <Gap height={hp(1)} />
                             <View style={styles.formField}>
-                                <Text style={styles.label}>Postal Code</Text>
+                                <Text style={styles.label}><Text style={{ color: 'red' }}>*</Text> Postal Code</Text>
                                 <CustomTextInput
                                     placeholder="Enter postal code"
                                     value={postalCode}
-                                    onChangeText={setPostalCode} icon={undefined} right={undefined} onRightPress={undefined} keyboardType={undefined} />
+                                    onChangeText={setPostalCode}
+                                    name="postalCode" />
                             </View>
 
                             <View style={styles.formField}>
-                                <Text style={styles.label}>City</Text>
+                                <Text style={styles.label}><Text style={{ color: 'red' }}>*</Text> City</Text>
                                 <CustomTextInput
                                     placeholder="Enter city name"
                                     value={city}
-                                    onChangeText={setCity} icon={undefined} right={undefined} onRightPress={undefined} keyboardType={undefined} />
+                                    onChangeText={setCity} />
                             </View>
 
                             <View style={styles.rowContainer}>
@@ -478,15 +526,15 @@ const NewPatientScreen = ({ }) => {
                                         placeholder="Select voivodeship"
                                         options={voivodeshipOptions}
                                         value={voivodeship}
-                                        onChange={setVoivodeship} icon={undefined} />
+                                        onChange={setVoivodeship} />
                                 </View>
                                 <View style={styles.halfField}>
-                                    <Text style={styles.label}>* Country</Text>
+                                    <Text style={styles.label}><Text style={{ color: 'red' }}>*</Text> Country</Text>
                                     <CustomDropdown
                                         placeholder="Select country"
                                         options={countryOptions}
                                         value={country}
-                                        onChange={setCountry} icon={undefined} />
+                                        onChange={setCountry} />
                                 </View>
                             </View>
                             <Gap height={hp(1)} />
@@ -495,7 +543,7 @@ const NewPatientScreen = ({ }) => {
                                 <CustomTextInput
                                     placeholder="Enter municipality TERYT"
                                     value={municipalityTeryt}
-                                    onChangeText={setMunicipalityTeryt} icon={undefined} right={undefined} onRightPress={undefined} keyboardType={undefined} />
+                                    onChangeText={setMunicipalityTeryt} />
                             </View>
                         </View>
 
@@ -505,12 +553,12 @@ const NewPatientScreen = ({ }) => {
                             <Text style={styles.sectionTitle}>Insurance</Text>
 
                             <View style={styles.formField}>
-                                <Text style={styles.label}>Insurance Type</Text>
+                                <Text style={styles.label}><Text style={{ color: 'red' }}>*</Text> Insurance Type</Text>
                                 <CustomDropdown
                                     placeholder="Select insurance type"
                                     options={insuranceOptions}
                                     value={insuranceType}
-                                    onChange={setInsuranceType} icon={undefined} />
+                                    onChange={setInsuranceType} />
                             </View>
 
                             <View style={styles.formField}>
@@ -518,7 +566,7 @@ const NewPatientScreen = ({ }) => {
                                 <CustomTextInput
                                     placeholder="Enter insurance number"
                                     value={insuranceNo}
-                                    onChangeText={setInsuranceNo} icon={undefined} right={undefined} onRightPress={undefined} keyboardType={undefined} />
+                                    onChangeText={setInsuranceNo} />
                             </View>
                         </View>
 

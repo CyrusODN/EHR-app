@@ -25,16 +25,39 @@ import CreateVisitModal from './modals/createVisit';
 import userStore from '../../store/user';
 import { GetDashboardVisits } from '../../Services/DashboardServices';
 import { Modal } from 'react-native';
+import CustomAlert from '../../component/customAlert';
+import { useRoute } from '@react-navigation/native';
 
 const Dashboard = () => {
     const { t } = useTranslation();
     const { loggedInUser } = userStore();
+    const navigation = useNavigation<any>();
+    const route = useRoute<any>();
 
     useEffect(() => {
         console.log("loggedInUser", loggedInUser);
     }, [loggedInUser])
 
-    const navigation = useNavigation<any>();
+    const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
+    const [calendarModalVisible, setCalendarModalVisible] = useState(false);
+
+    const [alertConfig, setAlertConfig] = useState<{
+        visible: boolean;
+        type: 'success' | 'warning' | 'error';
+        message: string;
+    }>({
+        visible: false,
+        type: 'success',
+        message: '',
+    });
+
+    const showAlert = (type: 'success' | 'warning' | 'error', message: string) => {
+        setAlertConfig({ visible: true, type, message });
+    };
+
+    const hideAlert = () => {
+        setAlertConfig({ ...alertConfig, visible: false });
+    };
     const currentMonth = 'April 2025';
     const { colors } = useTheme();
     const [selectedDate, setSelectedDate] = useState(new Date()); // The Date for which we are showing visits
@@ -42,8 +65,6 @@ const Dashboard = () => {
     const [createVisitModalVisible, setCreateVisitModalVisible] = useState(false);
     const [drawerVisible, setDrawerVisible] = useState(false);
     const [showActionModal, setShowActionModal] = useState(false);
-    const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
-    const [calendarModalVisible, setCalendarModalVisible] = useState(false);
 
     // Visit data from API
     const [visits, setVisits] = useState<any[]>([]);
@@ -164,7 +185,13 @@ const Dashboard = () => {
     useFocusEffect(
         useCallback(() => {
             fetchVisits();
-        }, [fetchVisits])
+
+            if (route.params?.successMessage) {
+                showAlert('success', route.params.successMessage);
+                // Clear params to avoid re-showing alert
+                navigation.setParams({ successMessage: undefined });
+            }
+        }, [fetchVisits, route.params])
     );
 
     // Also re-fetch when date selection changes
@@ -520,6 +547,11 @@ const Dashboard = () => {
                 }}
                 onStart={() => { 
                     setShowActionModal(false);
+                    if (selectedAppointment) {
+                        navigation.navigate('Visit', {
+                            visitId: selectedAppointment.id
+                        });
+                    }
                 }}
                 onAddNote={() => { 
                     setShowActionModal(false);
@@ -537,6 +569,13 @@ const Dashboard = () => {
                     <Icon name="help-circle-outline" size={24} color="#ffffff" />
                 </LinearGradient>
             </TouchableOpacity>
+
+            <CustomAlert
+                visible={alertConfig.visible}
+                type={alertConfig.type}
+                message={alertConfig.message}
+                onClose={hideAlert}
+            />
         </View>
     );
 };

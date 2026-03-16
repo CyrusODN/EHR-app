@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
     View,
     Text,
@@ -7,6 +7,7 @@ import {
     TouchableOpacity,
     ScrollView,
     Animated,
+    ActivityIndicator,
 } from 'react-native';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import Feather from 'react-native-vector-icons/Feather';
@@ -15,9 +16,10 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import LinearGradient from 'react-native-linear-gradient';
 import PrimaryButton from '../../../component/button';
 import Gap from '../../../component/gap';
+// import { getPathfinderSessions } from '../../../Services/PathfinderTool.Service';
 
 interface ResearchProject {
-    id: string;
+    id: string; 
     topic: string;
     date: string;
     contentType: string;
@@ -51,7 +53,34 @@ const Pathfinder = () => {
     // Side panel state
     const [showPanel, setShowPanel] = useState(false);
     const [projects, setProjects] = useState<ResearchProject[]>([]);
+    const [loadingSessions, setLoadingSessions] = useState(false);
     const slideAnim = useRef(new Animated.Value(-wp(72))).current;
+
+    // useEffect(() => {
+    //     fetchSessions();
+    // }, []);
+
+    // const fetchSessions = async () => {
+    //     setLoadingSessions(true);
+    //     try {
+    //         const response = await getPathfinderSessions();
+    //         if (response?.success && Array.isArray(response.data)) {
+    //             // Map API response to ResearchProject interface
+    //             const mappedProjects: ResearchProject[] = response.data.map((proj: any) => ({
+    //                 id: proj.id || Math.random().toString(),
+    //                 topic: proj.topic || 'Untitled Research',
+    //                 date: proj.date ? new Date(proj.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : 'Unknown',
+    //                 contentType: proj.contentType || 'N/A',
+    //                 citationStyle: proj.citationStyle || 'N/A'
+    //             }));
+    //             setProjects(mappedProjects);
+    //         }
+    //     } catch (error) {
+    //         console.error("[Pathfinder] Error loading sessions:", error);
+    //     } finally {
+    //         setLoadingSessions(false);
+    //     }
+    // };
 
     const togglePanel = () => {
         if (showPanel) {

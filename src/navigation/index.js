@@ -189,6 +189,10 @@ function AppNavigator() {
                             name="PatientProfile"
                             component={Screens.PatientProfile}
                         />
+                         <Stack.Screen
+                            name="Visit"
+                            component={Screens.VisitScreen}
+                        />
                     </>
                 )}
             </Stack.Navigator>

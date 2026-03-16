@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
     View,
     Text,
@@ -29,7 +29,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import { GetVisitRequirements } from '../../../Services/DoctorSetting.Service';
 import { GetPatients } from '../../../Services/Patient.Service';
-import { GetEmployees } from '../../../Services/settingServices';
+import { GetEmployees, GetDirectorSetting } from '../../../Services/settingServices';
 import { CreateVisit } from '../../../Services/Visit.Service';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -105,40 +105,48 @@ const CreateVisitModal = ({ visible, onClose, onSaveSuccess }: { visible: boolea
     const [patientOptions, setPatientOptions] = useState<{ label: string; value: string }[]>([]);
     const [officeOptions, setOfficeOptions] = useState<{ label: string; value: string }[]>([]);
     const [typeOptions, setTypeOptions] = useState<{ label: string; value: string }[]>([
-        { label: 'Private', value: 'Private' },
-        { label: 'Public', value: 'Public' },
-        { label: 'Insurance', value: 'Insurance' },
+        { label: 'Private', value: 'private' },
+        { label: 'Public', value: 'public' },
+        { label: 'Insurance', value: 'insurance' },
     ]);
-    const [specializationOptions, setSpecializationOptions] = useState<{ label: string; value: string }[]>([]);
+    const [specializationOptions, setSpecializationOptions] = useState<{ label: string; value: string }[]>([
+        { label: 'Psychiatry', value: 'psychiatry' },
+        { label: 'Neurology', value: 'neurology' },
+        { label: 'Cardiology', value: 'cardiology' },
+    ]);
 
-    // Fetch all dropdown data on mount
-    useEffect(() => {
-        // Fetch visit requirements (offices, specializations, types)
+    // Fetch all dropdown data
+    const fetchData = useCallback(async () => {
+        // Fetch visit requirements (specializations, types)
         const fetchRequirements = async () => {
             try {
                 const res: any = await GetVisitRequirements();
-                console.log('Visit requirements raw:', JSON.stringify(res));
+                console.log('CreateVisitModal: Visit requirements raw:', JSON.stringify(res));
 
-                // Offices
-                const offices = res?.offices || res?.data?.offices || [];
-                if (Array.isArray(offices) && offices.length > 0) {
-                    setOfficeOptions(offices.map((o: any) => ({
-                        label: o.name || o.officeName || o.label || `Office`,
-                        value: String(o._id || o.id || o.value),
-                    })));
-                }
+                const data = res?.data || res;
+                if (!data) return;
 
-                // Specializations
-                const specs = res?.specializations || res?.data?.specializations || [];
-                if (Array.isArray(specs) && specs.length > 0) {
-                    setSpecializationOptions(specs.map((s: any) => ({
-                        label: typeof s === 'string' ? s : (s.name || s.label || ''),
+                // Specializations - try multiple keys seen in other parts or common in EHR APIs
+                const specs = data?.specializations || data?.specialization || data?.medicalSpecializations || data?.medicalSpecialities || [];
+                if (Array.isArray(specs)) {
+                    const apiSpecs = specs.map((s: any) => ({
+                        label: typeof s === 'string' ? s : (s.name || s.label || s.title || s.specializationName || ''),
                         value: typeof s === 'string' ? s : String(s._id || s.id || s.value),
-                    })));
+                    })).filter(o => o.label && o.value);
+
+                    setSpecializationOptions(prev => {
+                        const combined = [...prev];
+                        apiSpecs.forEach(spec => {
+                            if (!combined.some(o => o.value === spec.value)) {
+                                combined.push(spec);
+                            }
+                        });
+                        return combined;
+                    });
                 }
 
-                // Types (override defaults if API provides them)
-                const types = res?.types || res?.data?.types;
+                // Types
+                const types = data?.types || data?.visitTypes || [];
                 if (Array.isArray(types) && types.length > 0) {
                     setTypeOptions(types.map((t: any) => ({
                         label: typeof t === 'string' ? t : (t.name || t.label || ''),
@@ -146,63 +154,88 @@ const CreateVisitModal = ({ visible, onClose, onSaveSuccess }: { visible: boolea
                     })));
                 }
 
-                // Doctors (if provided in requirements)
-                const doctors = res?.doctors || res?.data?.doctors;
-                if (Array.isArray(doctors) && doctors.length > 0) {
-                    setDoctorOptions(doctors.map((d: any) => ({
-                        label: `Dr. ${d.firstName || ''} ${d.lastName || ''}`.trim(),
+                // If offices are also here, use them as a fallback
+                const officesFromReq = data?.offices || data?.office || [];
+                if (Array.isArray(officesFromReq) && officesFromReq.length > 0) {
+                    setOfficeOptions(prev => prev.length > 0 ? prev : officesFromReq.map((o: any) => ({
+                        label: o.name || o.officeName || o.label || `Office`,
+                        value: String(o._id || o.id || o.value),
+                    })));
+                }
+            } catch (err) {
+                console.log('CreateVisitModal: Error fetching visit requirements:', err);
+            }
+        };
+
+        // Fetch offices from Director Setting (Reliable source used in AddDoctorModal)
+        const fetchOffices = async () => {
+            try {
+                const res: any = await GetDirectorSetting();
+                console.log('CreateVisitModal: Director settings raw:', JSON.stringify(res));
+                
+                const data = res?.data || res;
+                const offices = data?.offices || (Array.isArray(data) ? data : []);
+                
+                if (Array.isArray(offices) && offices.length > 0) {
+                    setOfficeOptions(offices.map((o: any) => ({
+                        label: o.name || o.officeName || o.label || 'Office',
+                        value: String(o._id || o.id || o.value),
+                    })));
+                }
+            } catch (err) {
+                console.log('CreateVisitModal: Error fetching offices:', err);
+            }
+        };
+
+        // Fetch doctors
+        const fetchDoctors = async () => {
+            try {
+                const res: any = await GetEmployees({ role: 'doctor', page: 1, limit: 100 });
+                const data = res?.data || res;
+                const employees = data?.users || data?.employees || (Array.isArray(data) ? data : []);
+                
+                if (Array.isArray(employees) && employees.length > 0) {
+                    setDoctorOptions(employees.map((d: any) => ({
+                        label: `Dr. ${d.name || d.firstName || ''} ${d.lastName || ''}`.trim(),
                         value: String(d._id || d.id),
                     })));
                 }
             } catch (err) {
-                console.log('Error fetching visit requirements:', err);
-            }
-        };
-
-        // Always fetch doctors from employees API
-        const fetchDoctors = async () => {
-            try {
-                const res: any = await GetEmployees({ role: 'doctor', page: 1, limit: 100 });
-                console.log('Doctors raw:', JSON.stringify(res));
-                // Could be res.employees, res.data.employees, res.data, or res itself as array
-                const employees = res?.employees || res?.data?.employees || res?.data || (Array.isArray(res) ? res : []);
-                if (Array.isArray(employees) && employees.length > 0) {
-                    setDoctorOptions(prev => {
-                        // Only set if not already populated by requirements
-                        if (prev.length > 0) return prev;
-                        return employees.map((d: any) => ({
-                            label: `Dr. ${d.firstName || ''} ${d.lastName || ''}`.trim(),
-                            value: String(d._id || d.id),
-                        }));
-                    });
-                }
-            } catch (err) {
-                console.log('Error fetching doctors:', err);
+                console.log('CreateVisitModal: Error fetching doctors:', err);
             }
         };
 
         // Fetch patients
         const fetchPatients = async () => {
             try {
-                const res: any = await GetPatients({ page: 1, limit: 50 });
-                console.log('Patients raw:', JSON.stringify(res));
-                // Could be res.patients, res.data.patients, res.data, or res itself as array
-                const patients = res?.patients || res?.data?.patients || res?.data || (Array.isArray(res) ? res : []);
-                if (Array.isArray(patients) && patients.length > 0) {
-                    setPatientOptions(patients.map((p: any) => ({
-                        label: `${p.firstName || ''} ${p.lastName || ''}`.trim() || p.name || 'Patient',
+                const res: any = await GetPatients({ page: 1, limit: 100 });
+                const data = res?.data || res;
+                const patientsList = data?.patients || data?.users || (Array.isArray(data) ? data : []);
+                
+                if (Array.isArray(patientsList) && patientsList.length > 0) {
+                    setPatientOptions(patientsList.map((p: any) => ({
+                        label: `${p.firstName || p.name || ''} ${p.lastName || ''}`.trim() || 'Patient',
                         value: String(p._id || p.id),
                     })));
                 }
             } catch (err) {
-                console.log('Error fetching patients:', err);
+                console.log('CreateVisitModal: Error fetching patients:', err);
             }
         };
 
-        fetchRequirements();
-        fetchDoctors();
-        fetchPatients();
+        await Promise.allSettled([
+            fetchRequirements(),
+            fetchOffices(),
+            fetchDoctors(),
+            fetchPatients()
+        ]);
     }, []);
+
+    useEffect(() => {
+        if (visible) {
+            fetchData();
+        }
+    }, [visible, fetchData]);
 
 
     const handleDateChange = (_event: any, selectedDate?: Date) => {
@@ -288,9 +321,9 @@ const CreateVisitModal = ({ visible, onClose, onSaveSuccess }: { visible: boolea
     };
 
     const handleSave = async () => {
-        if (!patient || !doctor || !office) {
-            console.log("Missing required fields", { patient, doctor, office });
-            // You might want to show an alert here
+        if (!patient || !doctor || !office || !type || !date || !timeFrom || !timeTo) {
+            console.log("Missing required fields", { patient, doctor, office, type, date, timeFrom, timeTo });
+            // Show alert if possible, or just log
             return;
         }
 
@@ -302,13 +335,13 @@ const CreateVisitModal = ({ visible, onClose, onSaveSuccess }: { visible: boolea
                 endTime: timeTo.toTimeString().split(' ')[0].substring(0, 5),
                 officeId: office,
                 visitType: type.toLowerCase(),
-                specialization: specialization,
+                specialization: specialization?.toLowerCase() || null,
                 notes: notes,
                 isOnline: isEVisit,
                 isPrescription: isPrescriptionOnly,
                 isReferral: isReferral,
-                doctor: doctor,
-                patient: patient
+                doctorId: doctor,
+                patientId: patient
             };
             console.log("CreateVisitModal: Saving visit with payload:", payload);
             const res: any = await CreateVisit(payload);
@@ -595,7 +628,14 @@ const CreateVisitModal = ({ visible, onClose, onSaveSuccess }: { visible: boolea
                             <Text style={styles.label}>Specialization</Text>
                             <CustomDropdown
                                 placeholder="Select specialization"
-                                options={specializationOptions}
+                                options={[
+                                    { label: 'Psychiatry', value: 'psychiatry' },
+                                    { label: 'Neurology', value: 'neurology' },
+                                    { label: 'Cardiology', value: 'cardiology' },
+                                    ...specializationOptions.filter(o => 
+                                        !['psychiatry', 'neurology', 'cardiology'].includes(o.value.toLowerCase())
+                                    )
+                                ]}
                                 value={specialization}
                                 onChange={(v: any) => setSpecialization(v)}
                                 icon={<FontAwesome name="stethoscope" size={16} color="#4A90B9" />}
