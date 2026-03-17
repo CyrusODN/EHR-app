@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -18,9 +18,11 @@ import RecommendationModal from './modals/RecommendationModal';
 interface VisitSummaryProps {
     onBack: () => void;
     onFinish: () => void;
+    visitData?: any;
+    onUpdate?: (data: any) => void;
 }
 
-const VisitSummary = ({ onBack, onFinish }: VisitSummaryProps) => {
+const VisitSummary = ({ onBack, onFinish, visitData, onUpdate }: VisitSummaryProps) => {
     const [expandedSections, setExpandedSections] = useState({
         diagnoses: false,
         documents: false,
@@ -29,6 +31,13 @@ const VisitSummary = ({ onBack, onFinish }: VisitSummaryProps) => {
         general: false,
     });
     const [showRecommendationModal, setShowRecommendationModal] = useState(false);
+    const [generalRecommendations, setGeneralRecommendations] = useState(visitData?.recommendations?.specialization || '');
+
+    useEffect(() => {
+        if (visitData?.recommendations?.specialization) {
+            setGeneralRecommendations(visitData.recommendations.specialization);
+        }
+    }, [visitData]);
 
     // Next Visit states
     const [visitDate, setVisitDate] = useState(new Date());
@@ -128,27 +137,52 @@ const VisitSummary = ({ onBack, onFinish }: VisitSummaryProps) => {
         <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
             {/* Diagnoses Card */}
             <View style={styles.card}>
-                {renderHeader('Diagnoses', 'activity', 'feather', undefined, 'diagnoses')}
+                {renderHeader('Diagnoses', 'activity', 'feather', visitData?.diagnosis?.icd10?.length || 0, 'diagnoses')}
                 {expandedSections.diagnoses && (
                     <View style={styles.cardContent}>
-                        <Text style={styles.placeholderText}>No diagnoses added yet.</Text>
+                        {visitData?.diagnosis?.icd10?.length > 0 ? (
+                            <View style={styles.aiGrid}>
+                                {visitData.diagnosis.icd10.map((diag: any, index: number) => (
+                                    <View key={index} style={styles.aiToolPill}>
+                                        <Text style={styles.aiToolText}>{diag.code || diag}</Text>
+                                    </View>
+                                ))}
+                            </View>
+                        ) : (
+                            <Text style={styles.placeholderText}>No diagnoses added yet.</Text>
+                        )}
                     </View>
                 )}
             </View>
 
             {/* Issued Documents Card */}
             <View style={styles.card}>
-                {renderHeader('Issued Documents', 'file-text', 'feather', 1, 'documents')}
+                {renderHeader('Issued Documents', 'file-text', 'feather', (visitData?.isPrescription ? 1 : 0) + (visitData?.isReferral ? 1 : 0), 'documents')}
                 {expandedSections.documents && (
                     <View style={styles.cardContent}>
-                         <Text style={styles.placeholderText}>e-ZLA #123456</Text>
+                        {visitData?.isPrescription || visitData?.isReferral ? (
+                            <View style={styles.aiGrid}>
+                                {visitData?.isPrescription && (
+                                    <View style={styles.aiToolPill}>
+                                        <Text style={styles.aiToolText}>e-Prescription issued</Text>
+                                    </View>
+                                )}
+                                {visitData?.isReferral && (
+                                    <View style={styles.aiToolPill}>
+                                        <Text style={styles.aiToolText}>Referral issued</Text>
+                                    </View>
+                                )}
+                            </View>
+                        ) : (
+                            <Text style={styles.placeholderText}>No documents issued.</Text>
+                        )}
                     </View>
                 )}
             </View>
 
             {/* Psychiatric Recommendations Card */}
             <View style={styles.card}>
-                {renderHeader('Psychiatric Recommendations', 'brain', 'material', 1, 'psychiatric', true)}
+                {renderHeader('Psychiatric Recommendations', 'brain', 'material', visitData?.recommendations?.aiAssistance?.features ? Object.values(visitData.recommendations.aiAssistance.features).filter(Boolean).length : 0, 'psychiatric', true)}
                 {expandedSections.psychiatric && (
                     <View style={styles.cardContent}>
                         <View style={styles.aiAssistanceSection}>
@@ -158,21 +192,25 @@ const VisitSummary = ({ onBack, onFinish }: VisitSummaryProps) => {
                             </View>
                             
                             <View style={styles.aiGrid}>
-                                <View style={styles.aiToolPill}>
-                                    <Text style={styles.aiToolText}>mood Tracking</Text>
-                                </View>
-                                <View style={styles.aiToolPill}>
-                                    <Text style={styles.aiToolText}>medication Reminders</Text>
-                                </View>
-                                <View style={styles.aiToolPill}>
-                                    <Text style={styles.aiToolText}>crisis Intervention</Text>
-                                </View>
-                                <View style={styles.aiToolPill}>
-                                    <Text style={styles.aiToolText}>coping Strategies</Text>
-                                </View>
+                                {visitData?.recommendations?.aiAssistance?.features ? (
+                                    Object.entries(visitData.recommendations.aiAssistance.features).map(([key, value]) => {
+                                        if (value) {
+                                            const formattedKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                                            return (
+                                                <View key={key} style={styles.aiToolPill}>
+                                                    <Text style={styles.aiToolText}>{formattedKey}</Text>
+                                                </View>
+                                            )
+                                        }
+                                        return null;
+                                    })
+                                ) : (
+                                    <View style={styles.aiToolPill}>
+                                        <Text style={styles.aiToolText}>No AI features enabled</Text>
+                                    </View>
+                                )}
                             </View>
                         </View>
-                        {/* <Text style={styles.placeholderText}>No recommendations added yet.</Text> */}
                     </View>
                 )}
             </View>
@@ -279,6 +317,13 @@ const VisitSummary = ({ onBack, onFinish }: VisitSummaryProps) => {
                             multiline
                             numberOfLines={4}
                             textAlignVertical="top"
+                            value={generalRecommendations}
+                            onChangeText={setGeneralRecommendations}
+                            onBlur={() => {
+                                if (onUpdate && (visitData?.recommendations?.specialization !== generalRecommendations)) {
+                                    onUpdate({ recommendations: { specialization: generalRecommendations } });
+                                }
+                            }}
                         />
                     </View>
                 )}

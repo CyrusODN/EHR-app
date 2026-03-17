@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -24,9 +24,10 @@ interface Referral {
 interface VisitDocumentsProps {
     onNext: () => void;
     onBack: () => void;
+    visitData?: any;
 }
 
-const VisitDocuments = ({ onNext, onBack }: VisitDocumentsProps) => {
+const VisitDocuments = ({ onNext, onBack, visitData }: VisitDocumentsProps) => {
     const [expandedSections, setExpandedSections] = useState({
         prescriptions: true,
         sickLeave: true,
@@ -35,7 +36,13 @@ const VisitDocuments = ({ onNext, onBack }: VisitDocumentsProps) => {
     const [showSickLeaveForm, setShowSickLeaveForm] = useState(false);
     const [showPayerSearch, setShowPayerSearch] = useState(false);
     const [isHospitalStay, setIsHospitalStay] = useState(false);
-    const [referrals, setReferrals] = useState<Referral[]>([]);
+    const [referrals, setReferrals] = useState<Referral[]>(visitData?.patient?.referrals || []);
+
+    useEffect(() => {
+        if (visitData?.patient?.referrals) {
+            setReferrals(visitData.patient.referrals);
+        }
+    }, [visitData]);
 
     const toggleSection = (section: keyof typeof expandedSections) => {
         setExpandedSections(prev => ({

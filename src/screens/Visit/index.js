@@ -24,9 +24,9 @@ import VisitDiagnosis from './VisitDiagnosis';
 import VisitDocuments from './VisitDocuments';
 import VisitSummary from './VisitSummary';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { GetVisitDetails, GetPreviousVisits } from '../../Services/Visit.Service';
+import { GetVisitDetails, GetPreviousVisits, UpdateVisit } from '../../Services/Visit.Service';
 import { GetPatientMedicalData } from '../../Services/MedicalData.Service';
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 
 const VisitScreen = () => {
     const route = useRoute();
@@ -100,6 +100,43 @@ const VisitScreen = () => {
             setLoading(false);
         }
     };
+
+    const handleVisitUpdate = useCallback(async (updatedFields) => {
+        if (!visitData || !visitId) return;
+
+        // Optimistically update local state
+        const newVisitData = {
+            ...visitData,
+            ...updatedFields
+        };
+        
+        // Deep merge for nested fields like interview, examination, etc.
+        Object.keys(updatedFields).forEach(key => {
+            if (typeof updatedFields[key] === 'object' && updatedFields[key] !== null) {
+                newVisitData[key] = {
+                    ...(visitData[key] || {}),
+                    ...updatedFields[key]
+                };
+            }
+        });
+
+        setVisitData(newVisitData);
+
+        // Send payload ensuring id properties are set as required by the backend
+        const payload = {
+            ...newVisitData,
+            visitId: newVisitData.visitId || visitId,
+            id: newVisitData.id || visitId,
+            _id: newVisitData._id || visitId
+        };
+
+        try {
+            await UpdateVisit(payload);
+        } catch (error) {
+            console.error("Error updating visit data:", error);
+            // Optionally, we could revert state here on failure, but optimistic is often better for simple texts 
+        }
+    }, [visitData, visitId]);
 
     const steps = [
         { id: 1, label: 'Profile' },
@@ -201,6 +238,8 @@ const VisitScreen = () => {
                         onBack={() => setCurrentStep(1)} 
                         visitId={visitId}
                         patientId={visitData?.patient?.id || visitData?.patient?._id || visitData?.patientId}
+                        visitData={visitData}
+                        onUpdate={handleVisitUpdate}
                     />
                 );
             case 3:
@@ -208,6 +247,8 @@ const VisitScreen = () => {
                     <VisitExamination 
                         onNext={() => setCurrentStep(4)} 
                         onBack={() => setCurrentStep(2)} 
+                        visitData={visitData}
+                        onUpdate={handleVisitUpdate}
                     />
                 );
             case 4:
@@ -215,6 +256,8 @@ const VisitScreen = () => {
                     <VisitDiagnosis 
                         onNext={() => setCurrentStep(5)} 
                         onBack={() => setCurrentStep(3)} 
+                        visitData={visitData}
+                        onUpdate={handleVisitUpdate}
                     />
                 );
             case 5:
@@ -222,6 +265,8 @@ const VisitScreen = () => {
                     <VisitDocuments 
                         onNext={() => setCurrentStep(6)} 
                         onBack={() => setCurrentStep(4)} 
+                        visitData={visitData}
+                        onUpdate={handleVisitUpdate}
                     />
                 );
             case 6:
@@ -229,6 +274,8 @@ const VisitScreen = () => {
                     <VisitSummary 
                         onFinish={() => {/* Final action */}} 
                         onBack={() => setCurrentStep(5)} 
+                        visitData={visitData}
+                        onUpdate={handleVisitUpdate}
                     />
                 );
             default:

@@ -13,7 +13,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import PsychiatricScalesModal from './modals/PsychiatricScalesModal';
 import ScaleQuestionnaireModal from './modals/ScaleQuestionnaireModal';
 import VisitHistoryModal from './modals/VisitHistoryModal';
-import { GetPreviousVisits } from '../../Services/Visit.Service';
+import { GetPreviousVisits, GetPatientVisits } from '../../Services/Visit.Service';
 import { useEffect } from 'react';
 
 interface VisitInterviewProps {
@@ -21,11 +21,13 @@ interface VisitInterviewProps {
     onBack: () => void;
     visitId?: string;
     patientId?: string;
+    visitData?: any;
+    onUpdate?: (data: any) => void;
 }
 
-const VisitInterview = ({ onNext, onBack, visitId, patientId }: VisitInterviewProps) => {
-    const [mainSymptoms, setMainSymptoms] = useState('');
-    const [additionalNotes, setAdditionalNotes] = useState('');
+const VisitInterview = ({ onNext, onBack, visitId, patientId, visitData, onUpdate }: VisitInterviewProps) => {
+    const [mainSymptoms, setMainSymptoms] = useState(visitData?.interview?.mainSymptoms || '');
+    const [additionalNotes, setAdditionalNotes] = useState(visitData?.notes || '');
     const [showScalesModal, setShowScalesModal] = useState(false);
     const [showQuestionnaire, setShowQuestionnaire] = useState(false);
     const [selectedScale, setSelectedScale] = useState('');
@@ -33,12 +35,31 @@ const VisitInterview = ({ onNext, onBack, visitId, patientId }: VisitInterviewPr
     const [visits, setVisits] = useState<any[]>([]);
     const [totalVisits, setTotalVisits] = useState(0);
     const [loading, setLoading] = useState(false);
+    const [completedScales, setCompletedScales] = useState<Record<string, number>>(visitData?.interview?.psychiatricScales || {});
 
+    // Update state if visitData changes
+    useEffect(() => {
+        if (visitData) {
+            if (visitData.interview) {
+                setMainSymptoms(visitData.interview.mainSymptoms || '');
+                if (visitData.interview.psychiatricScales && typeof visitData.interview.psychiatricScales === 'object') {
+                    setCompletedScales(visitData.interview.psychiatricScales);
+                }
+            }
+            if (visitData.notes) {
+                setAdditionalNotes(visitData.notes || '');
+            }
+        }
+    }, [visitData]);
+
+    // Fetch previous visits for history modal using GetPreviousVisits
     useEffect(() => {
         if (visitId) {
             fetchVisitHistory();
         }
     }, [visitId]);
+
+    // Removed fetchInterviewData since we pass visitData directly
 
     const fetchVisitHistory = async () => {
         setLoading(true);
@@ -87,8 +108,28 @@ const VisitInterview = ({ onNext, onBack, visitId, patientId }: VisitInterviewPr
                         textAlignVertical="top"
                         value={mainSymptoms}
                         onChangeText={setMainSymptoms}
+                        onBlur={() => {
+                            if (onUpdate && (visitData?.interview?.mainSymptoms !== mainSymptoms)) {
+                                onUpdate({ interview: { mainSymptoms } });
+                            }
+                        }}
                     />
                 </View>
+
+                {/* Complete Scales */}
+                {Object.keys(completedScales).length > 0 && (
+                    <View style={styles.fieldContainer}>
+                        <Text style={styles.sectionLabel}>Complete Scales</Text>
+                        <View style={styles.scalesCard}>
+                            {Object.entries(completedScales).map(([scaleName, score]) => (
+                                <View key={scaleName} style={styles.scaleRow}>
+                                    <Text style={styles.scaleName}>{scaleName.toUpperCase()}:</Text>
+                                    <Text style={styles.scaleScore}>{score}</Text>
+                                </View>
+                            ))}
+                        </View>
+                    </View>
+                )}
 
                 {/* Previous Visits */}
                 <View style={styles.previousVisitsRow}>
@@ -114,6 +155,11 @@ const VisitInterview = ({ onNext, onBack, visitId, patientId }: VisitInterviewPr
                         textAlignVertical="top"
                         value={additionalNotes}
                         onChangeText={setAdditionalNotes}
+                        onBlur={() => {
+                            if (onUpdate && (visitData?.notes !== additionalNotes)) {
+                                onUpdate({ notes: additionalNotes });
+                            }
+                        }}
                     />
                 </View>
 
@@ -233,6 +279,35 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '700',
         color: '#1E293B',
+        marginBottom: 12,
+    },
+    scalesCard: {
+        backgroundColor: '#F8FAFC',
+        borderRadius: 8,
+        padding: 16,
+        marginTop: 4,
+    },
+    scaleRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FFFFFF',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderRadius: 6,
+        justifyContent: 'space-between',
+        // Minimal shadow or border to match image
+        borderWidth: 1,
+        borderColor: '#F1F5F9',
+    },
+    scaleName: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#1E293B',
+    },
+    scaleScore: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#58A7B3',
     },
     showVisitsButton: {
         flexDirection: 'row',

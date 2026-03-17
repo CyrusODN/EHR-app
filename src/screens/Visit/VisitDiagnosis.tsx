@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -14,10 +14,18 @@ import LinearGradient from 'react-native-linear-gradient';
 interface VisitDiagnosisProps {
     onNext: () => void;
     onBack: () => void;
+    visitData?: any;
 }
 
-const VisitDiagnosis = ({ onNext, onBack }: VisitDiagnosisProps) => {
+const VisitDiagnosis = ({ onNext, onBack, visitData }: VisitDiagnosisProps) => {
     const [searchQuery, setSearchQuery] = useState('');
+    const [selectedDiagnoses, setSelectedDiagnoses] = useState<any[]>(visitData?.diagnosis?.icd10 || []);
+
+    useEffect(() => {
+        if (visitData?.diagnosis?.icd10) {
+            setSelectedDiagnoses(visitData.diagnosis.icd10);
+        }
+    }, [visitData]);
 
     return (
         <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -41,13 +49,24 @@ const VisitDiagnosis = ({ onNext, onBack }: VisitDiagnosisProps) => {
                 <View style={styles.selectedSection}>
                     <Text style={styles.selectedLabel}>Selected diagnoses</Text>
                     
-                    <View style={styles.emptyStateContainer}>
-                        <View style={styles.emptyIconCircle}>
-                            <Feather name="search" size={40} color="#CBD5E1" />
+                    {selectedDiagnoses.length > 0 ? (
+                        <View style={styles.diagnosesList}>
+                            {selectedDiagnoses.map((diag, index) => (
+                                <View key={index} style={styles.diagnosisItem}>
+                                    <Text style={styles.diagnosisCode}>{diag.code || diag}</Text>
+                                    <Text style={styles.diagnosisName}>{diag.name || diag.description || 'Diagnosis'}</Text>
+                                </View>
+                            ))}
                         </View>
-                        <Text style={styles.emptyTitle}>No diagnoses selected</Text>
-                        <Text style={styles.emptySubtitle}>Search and select ICD-10 codes above</Text>
-                    </View>
+                    ) : (
+                        <View style={styles.emptyStateContainer}>
+                            <View style={styles.emptyIconCircle}>
+                                <Feather name="search" size={40} color="#CBD5E1" />
+                            </View>
+                            <Text style={styles.emptyTitle}>No diagnoses selected</Text>
+                            <Text style={styles.emptySubtitle}>Search and select ICD-10 codes above</Text>
+                        </View>
+                    )}
                 </View>
             </View>
 
@@ -128,6 +147,31 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: '#64748B',
         marginBottom: 16,
+    },
+    diagnosesList: {
+        marginTop: 8,
+    },
+    diagnosisItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 12,
+        backgroundColor: '#F8FAFC',
+        borderRadius: 8,
+        marginBottom: 8,
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+    },
+    diagnosisCode: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#1E293B',
+        marginRight: 12,
+        minWidth: 50,
+    },
+    diagnosisName: {
+        flex: 1,
+        fontSize: 14,
+        color: '#64748B',
     },
     emptyStateContainer: {
         flex: 1,
