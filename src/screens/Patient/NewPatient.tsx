@@ -1,5 +1,4 @@
-// components/NewPatientScreen.js
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
     View,
     Text,
@@ -23,9 +22,14 @@ import Gap from '../../component/gap';
 import { useNavigation } from '@react-navigation/native';
 import { CreatePatient } from '../../Services/Patient.Service';
 import CustomAlert from '../../component/customAlert';
+import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 const NewPatientScreen = ({ }) => {
+    const { t } = useTranslation();
     const navigation = useNavigation<any>();
+    const { colors: tc, isDark } = useThemeColors();
+    
     // State variables for form fields
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -66,27 +70,27 @@ const NewPatientScreen = ({ }) => {
 
     // Options for dropdowns
     const genderOptions = [
-        { label: 'Male', value: 'male' },
-        { label: 'Female', value: 'female' },
-        { label: 'Other', value: 'other' },
+        { label: t('newPatient.male'), value: 'male' },
+        { label: t('newPatient.female'), value: 'female' },
+        { label: t('newPatient.other'), value: 'other' },
     ];
 
     const insuranceOptions = [
-        { label: 'NFZ', value: 'NFZ' },
-        { label: 'Private', value: 'Private' },
-        { label: 'None', value: 'None' },
+        { label: t('newPatient.nfz'), value: 'NFZ' },
+        { label: t('newPatient.private'), value: 'Private' },
+        { label: t('newPatient.none'), value: 'None' },
     ];
 
     const documentTypeOptions = [
-        { label: 'Residence Card', value: 'residence_card' },
-        { label: 'ID Card', value: 'id_card' },
-        { label: 'EHIC', value: 'ehic' },
-        { label: 'EU/EOG National ID', value: 'eu_eog_id' },
-        { label: "Foreign Driver's License", value: 'foreign_license' },
-        { label: 'Other', value: 'other' },
-        { label: 'None (Infant)', value: 'none_infant' },
-        { label: 'None (NN)', value: 'none_nn' },
-        { label: 'None (NW - Child under 6 months)', value: 'none_nw' },
+        { label: t('newPatient.residenceCard'), value: 'residence_card' },
+        { label: t('newPatient.idCard'), value: 'id_card' },
+        { label: t('newPatient.ehic'), value: 'ehic' },
+        { label: t('newPatient.euEogId'), value: 'eu_eog_id' },
+        { label: t('newPatient.foreignLicense'), value: 'foreign_license' },
+        { label: t('newPatient.other'), value: 'other' },
+        { label: t('newPatient.noneInfant'), value: 'none_infant' },
+        { label: t('newPatient.noneNn'), value: 'none_nn' },
+        { label: t('newPatient.noneNw'), value: 'none_nw' },
     ];
 
     const bloodTypeOptions = [
@@ -101,15 +105,15 @@ const NewPatientScreen = ({ }) => {
     ];
 
     const foreignerOptions = [
-        { label: 'Yes', value: 'yes' },
-        { label: 'No', value: 'no' },
+        { label: t('newPatient.yes'), value: 'yes' },
+        { label: t('newPatient.no'), value: 'no' },
     ];
 
     const countryOptions = [
-        { label: 'Poland', value: 'poland' },
-        { label: 'Germany', value: 'germany' },
-        { label: 'United Kingdom', value: 'uk' },
-        { label: 'France', value: 'france' },
+        { label: t('newPatient.poland'), value: 'poland' },
+        { label: t('newPatient.germany'), value: 'germany' },
+        { label: t('newPatient.unitedKingdom'), value: 'uk' },
+        { label: t('newPatient.france'), value: 'france' },
     ];
 
     const voivodeshipOptions = [
@@ -131,19 +135,13 @@ const NewPatientScreen = ({ }) => {
         { label: 'Zachodniopomorskie', value: 'zachodniopomorskie' },
     ];
 
-    // Handle date change
     const handleDateChange = (event: any, selectedDate?: Date) => {
-        if (Platform.OS === 'android') {
-            setShowDatePicker(false);
-        }
-        if (selectedDate) {
-            setDateOfBirth(selectedDate);
-        }
+        if (Platform.OS === 'android') setShowDatePicker(false);
+        if (selectedDate) setDateOfBirth(selectedDate);
     };
 
-    // Format date for display
     const formatDate = (date: Date | null) => {
-        if (!date) return 'Select date';
+        if (!date) return t('newPatient.selectDate');
         const day = date.getDate().toString().padStart(2, '0');
         const month = (date.getMonth() + 1).toString().padStart(2, '0');
         const year = date.getFullYear();
@@ -151,62 +149,48 @@ const NewPatientScreen = ({ }) => {
     };
 
     const showAlert = (type: 'success' | 'warning' | 'error', message: string) => {
-        setAlertConfig({
-            visible: true,
-            type,
-            message,
-        });
+        setAlertConfig({ visible: true, type, message });
     };
 
-    const hideAlert = () => {
-        setAlertConfig(prev => ({ ...prev, visible: false }));
-    };
+    const hideAlert = () => setAlertConfig(prev => ({ ...prev, visible: false }));
 
-    // Handle save patient
     const handleSavePatient = async () => {
-        // Validation for compulsory fields
         if (!firstName.trim() || !lastName.trim() || !dateOfBirth || !gender || !street.trim() || !houseNo.trim() || !city.trim() || !country || !insuranceType || !postalCode.trim()) {
-            showAlert('warning', 'Please fill in all compulsory fields marked with *');
+            showAlert('warning', t('newPatient.fillCompulsoryFields'));
             return;
         }
 
-        // Phone number validation (exactly 9 digits)
         const phoneDigits = phone.replace(/\D/g, '');
         if (phone && phoneDigits.length !== 9) {
-            showAlert('warning', 'Phone number must be exactly 9 digits');
+            showAlert('warning', t('newPatient.phoneLengthError'));
             return;
         }
 
-        // PESEL validation (exactly 11 digits)
         const peselDigits = pesel.replace(/\D/g, '');
         if (pesel && peselDigits.length !== 11) {
-            showAlert('warning', 'PESEL must be exactly 11 digits');
+            showAlert('warning', t('newPatient.peselLengthError'));
             return;
         }
 
-        // Alternative phone validation (exactly 9 digits if provided)
         const altPhoneDigits = alternativePhone.replace(/\D/g, '');
         if (alternativePhone && altPhoneDigits.length !== 9) {
-            showAlert('warning', 'Alternative phone number must be exactly 9 digits');
+            showAlert('warning', t('newPatient.altPhoneLengthError'));
             return;
         }
 
-        // Email validation
         const emailPattern = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
         if (email && !emailPattern.test(email)) {
-            showAlert('warning', 'Please enter a valid email address');
+            showAlert('warning', t('newPatient.invalidEmail'));
             return;
         }
 
-        // Postal code validation (00-000 format)
         const postalPattern = /^\d{2}-\d{3}$/;
         if (postalCode && !postalPattern.test(postalCode)) {
-            showAlert('warning', 'Postal code must be in 00-000 format');
+            showAlert('warning', t('newPatient.postalCodeFormatError'));
             return;
         }
 
         setLoading(true);
-        console.log('Initiating Create Patient request...');
         try {
             const rawPayload = {
                 firstName: firstName.trim(),
@@ -236,98 +220,91 @@ const NewPatientScreen = ({ }) => {
                 insuranceNumber: insuranceNo.trim()
             };
 
-            // Filter out empty, null, or undefined values
             const payload = Object.fromEntries(
                 Object.entries(rawPayload).filter(([_, v]) => v !== null && v !== undefined && v !== "")
             );
 
-            console.log('Create Patient Payload:', JSON.stringify(payload, null, 2));
-
             const response = (await CreatePatient(payload)) as any;
-            console.log('Create Patient Response:', JSON.stringify(response, null, 2));
-
             if (response) {
-                const successMessage = typeof response === 'string' ? response : (response.message || 'Patient created successfully!');
+                const successMessage = typeof response === 'string' ? response : (response.message || t('newPatient.createSuccess'));
                 navigation.navigate('Dashboard', { successMessage });
             } else {
-                showAlert('error', 'Failed to create patient');
+                showAlert('error', t('newPatient.createError'));
             }
         } catch (error: any) {
-            const errorMessage = error?.message || (typeof error === 'string' ? error : 'An error occurred while creating patient');
+            const errorMessage = error?.message || (typeof error === 'string' ? error : t('newPatient.createError'));
             showAlert('error', errorMessage);
-            console.error('Create Patient Error:', error);
         } finally {
             setLoading(false);
         }
     };
 
+    const ds = useMemo(() => createDynamicStyles(tc, isDark), [tc, isDark]);
+
     return (
-        <SafeAreaView style={styles.safeArea}>
-            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-            <View style={styles.container}>
+        <SafeAreaView style={ds.safeArea}>
+            <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={tc.headerBg} />
+            <View style={ds.container}>
                 {/* Header */}
-                <View style={styles.header}>
+                <View style={ds.header}>
                     <View>
-                        <Text style={styles.headerTitle}>New Patient</Text>
-                        <Text style={styles.headerSubtitle}>Enter new patient data</Text>
+                        <Text style={ds.headerTitle}>{t('newPatient.newPatient')}</Text>
+                        <Text style={ds.headerSubtitle}>{t('newPatient.enterNewPatientData')}</Text>
                     </View>
-                    <View style={styles.headerRightContainer}>
+                    <View style={ds.headerRightContainer}>
                         <TouchableOpacity
-                            style={styles.backButton}
-                            onPress={() => navigation && navigation.goBack ? navigation.goBack() : null}
+                            style={ds.backButton}
+                            onPress={() => navigation?.goBack?.()}
                         >
-                            <Ionicons name="arrow-back" size={20} color="#4A90B9" />
+                            <Ionicons name="arrow-back" size={20} color={tc.accent} />
                         </TouchableOpacity>
-                        {/* <TouchableOpacity style={styles.helpButtonHeader}>
-                            <Text style={styles.helpText}>?</Text>
-                        </TouchableOpacity> */}
                     </View>
                 </View>
 
                 {/* Content */}
-                <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContent}>
-                    <View style={styles.formCard}>
-                        <View style={styles.formSection}>
-                            <Text style={styles.sectionTitle}>Personal Data</Text>
-
-                            <View style={styles.formField}>
-                                <Text style={styles.label}><Text style={{ color: 'red' }}>*</Text> First Name</Text>
+                <ScrollView style={ds.scrollView} contentContainerStyle={ds.scrollViewContent} showsVerticalScrollIndicator={false}>
+                    <View style={ds.formCard}>
+                        <View style={ds.formSection}>
+                            <Text style={ds.sectionTitle}>{t('newPatient.personalData')}</Text>
+  
+                            <View style={ds.formField}>
+                                <Text style={ds.label}><Text style={{ color: tc.accentRed }}>*</Text> {t('newPatient.firstName')}</Text>
                                 <CustomTextInput
-                                    placeholder="Enter first name"
+                                    placeholder={t('newPatient.firstNamePlaceholder')}
                                     value={firstName}
                                     onChangeText={setFirstName} />
                             </View>
-
-                            <View style={styles.formField}>
-                                <Text style={styles.label}><Text style={{ color: 'red' }}>*</Text> Last Name</Text>
+  
+                            <View style={ds.formField}>
+                                <Text style={ds.label}><Text style={{ color: tc.accentRed }}>*</Text> {t('newPatient.lastName')}</Text>
                                 <CustomTextInput
-                                    placeholder="Enter last name"
+                                    placeholder={t('newPatient.lastNamePlaceholder')}
                                     value={lastName}
                                     onChangeText={setLastName} />
                             </View>
-
-                            <View style={styles.formField}>
-                                <Text style={styles.label}>PESEL</Text>
+  
+                            <View style={ds.formField}>
+                                <Text style={ds.label}>{t('newPatient.pesel')}</Text>
                                 <CustomTextInput
-                                    placeholder="Enter PESEL number"
+                                    placeholder={t('newPatient.peselPlaceholder')}
                                     value={pesel}
                                     onChangeText={setPesel}
                                     name="pesel"
                                     keyboardType="numeric" />
                             </View>
 
-                             <View style={styles.formField}>
-                                <Text style={styles.label}><Text style={{ color: 'red' }}>*</Text> Date of Birth</Text>
+                             <View style={ds.formField}>
+                                <Text style={ds.label}><Text style={{ color: tc.accentRed }}>*</Text> {t('newPatient.dob')}</Text>
                                 <TouchableOpacity
-                                    style={styles.datePickerButton}
+                                    style={ds.datePickerButton}
                                     onPress={() => setShowDatePicker(true)}
                                 >
-                                    <Text style={{ color: dateOfBirth ? '#000' : 'grey' }}>
+                                    <Text style={{ color: dateOfBirth ? tc.textPrimary : tc.textMuted }}>
                                         {formatDate(dateOfBirth)}
                                     </Text>
-                                    <MaterialCommunityIcons name="calendar-month" size={20} color="#4A90B9" />
+                                    <MaterialCommunityIcons name="calendar-month" size={20} color={tc.accent} />
                                 </TouchableOpacity>
-
+  
                                 <Modal
                                     visible={showDatePicker}
                                     transparent={true}
@@ -335,15 +312,15 @@ const NewPatientScreen = ({ }) => {
                                     onRequestClose={() => setShowDatePicker(false)}
                                 >
                                     <TouchableOpacity 
-                                        style={styles.modalOverlay} 
+                                        style={ds.modalOverlay} 
                                         activeOpacity={1} 
                                         onPress={() => setShowDatePicker(false)}
                                     >
-                                        <View style={styles.datePickerContainer}>
-                                            <View style={styles.datePickerHeader}>
-                                                <Text style={styles.datePickerTitle}>Select Date of Birth</Text>
+                                        <View style={ds.datePickerContainer}>
+                                            <View style={ds.datePickerHeader}>
+                                                <Text style={ds.datePickerTitle}>{t('newPatient.selectDate')}</Text>
                                                 <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                                                    <Ionicons name="close" size={24} color="#666" />
+                                                    <Ionicons name="close" size={24} color={tc.textPrimary} />
                                                 </TouchableOpacity>
                                             </View>
                                             <DateTimePicker
@@ -352,70 +329,71 @@ const NewPatientScreen = ({ }) => {
                                                 display={Platform.OS === 'ios' ? 'inline' : 'calendar'}
                                                 onChange={handleDateChange}
                                                 maximumDate={new Date()}
+                                                themeVariant={isDark ? 'dark' : 'light'}
                                             />
                                             {Platform.OS === 'ios' && (
                                                 <TouchableOpacity 
-                                                    style={styles.confirmButton}
+                                                    style={ds.confirmButton}
                                                     onPress={() => setShowDatePicker(false)}
                                                 >
-                                                    <Text style={styles.confirmButtonText}>Confirm</Text>
+                                                    <Text style={ds.confirmButtonText}>{t('newPatient.confirm')}</Text>
                                                 </TouchableOpacity>
                                             )}
                                         </View>
                                     </TouchableOpacity>
                                 </Modal>
                             </View>
-
-                            <View style={styles.formField}>
-                                <Text style={styles.label}><Text style={{ color: 'red' }}>*</Text> Gender</Text>
+  
+                            <View style={ds.formField}>
+                                <Text style={ds.label}><Text style={{ color: tc.accentRed }}>*</Text> {t('newPatient.gender')}</Text>
                                 <CustomDropdown
-                                    placeholder="Select gender"
+                                    placeholder={t('newPatient.selectGender')}
                                     options={genderOptions}
                                     value={gender}
                                     onChange={setGender} />
                             </View>
-
-                            <View style={styles.formField}>
-                                <Text style={styles.label}>Phone</Text>
+  
+                            <View style={ds.formField}>
+                                <Text style={ds.label}>{t('newPatient.phone')}</Text>
                                 <CustomTextInput
-                                    placeholder="Enter phone number"
+                                    placeholder={t('newPatient.phonePlaceholder')}
                                     value={phone}
                                     onChangeText={setPhone}
                                     name="phone"
                                     keyboardType="phone-pad" />
                             </View>
 
-                            <View style={styles.rowContainer}>
-                                <View style={styles.halfField}>
-                                    <Text style={styles.label}>Middle Name</Text>
+                            <View style={ds.rowContainer}>
+                                <View style={ds.halfField}>
+                                    <Text style={ds.label}>{t('newPatient.middleName')}</Text>
                                     <CustomTextInput
-                                        placeholder="Enter middle name"
+                                        placeholder={t('newPatient.middleNamePlaceholder')}
                                         value={middleName}
                                         onChangeText={setMiddleName} />
                                 </View>
-                                <View style={styles.halfField}>
-                                    <Text style={styles.label}>Maiden Name</Text>
+                                <View style={ds.halfField}>
+                                    <Text style={ds.label}>{t('newPatient.maidenName')}</Text>
                                     <CustomTextInput
-                                        placeholder="Enter maiden name"
+                                        placeholder={t('newPatient.maidenNamePlaceholder')}
                                         value={maidenName}
                                         onChangeText={setMaidenName} />
                                 </View>
                             </View>
 
-                            <View style={styles.rowContainer}>
-                                <View style={styles.halfField}>
-                                    <Text style={styles.label}>Alternative Phone</Text>
+                            <View style={ds.rowContainer}>
+                                <View style={ds.halfField}>
+                                    <Text style={ds.label}>{t('newPatient.alternativePhone')}</Text>
                                     <CustomTextInput
-                                        placeholder="Enter alternative phone"
+                                        placeholder={t('newPatient.altPhonePlaceholder')}
                                         value={alternativePhone}
                                         onChangeText={setAlternativePhone}
                                         name="alternativePhone"
                                         keyboardType="phone-pad" />
                                 </View>
-                                <View style={styles.halfField}>
-                                    <Text style={styles.label}>Email</Text>
+                                <View style={ds.halfField}>
+                                    <Text style={ds.label}>{t('newPatient.email')}</Text>
                                     <CustomTextInput
-                                        placeholder="Enter email address"
+                                        placeholder={t('newPatient.emailPlaceholder')}
                                         value={email}
                                         onChangeText={setEmail}
                                         name="email"
@@ -423,173 +401,169 @@ const NewPatientScreen = ({ }) => {
                                 </View>
                             </View>
 
-                            <View style={styles.rowContainer}>
-                                <View style={styles.halfField}>
-                                    <Text style={styles.label}>Place of Birth</Text>
+                            <View style={ds.rowContainer}>
+                                <View style={ds.halfField}>
+                                    <Text style={ds.label}>{t('newPatient.birthPlace')}</Text>
                                     <CustomTextInput
-                                        placeholder="Enter place of birth"
+                                        placeholder={t('newPatient.birthPlacePlaceholder')}
                                         value={placeOfBirth}
                                         onChangeText={setPlaceOfBirth} />
                                 </View>
-                                <View style={styles.halfField}>
-                                    <Text style={styles.label}>Document Type</Text>
+                                <View style={ds.halfField}>
+                                    <Text style={ds.label}>{t('newPatient.documentType')}</Text>
                                     <CustomDropdown
-                                        placeholder="Select document type"
+                                        placeholder={t('newPatient.selectDocumentType')}
                                         options={documentTypeOptions}
                                         value={documentType}
                                         onChange={setDocumentType} />
                                 </View>
                             </View>
 
-                            <View style={styles.rowContainer}>
-                                <View style={styles.halfField}>
-                                    <Text style={styles.label}>Blood Type</Text>
+                            <View style={ds.rowContainer}>
+                                <View style={ds.halfField}>
+                                    <Text style={ds.label}>{t('newPatient.bloodType')}</Text>
                                     <CustomDropdown
-                                        placeholder="Select blood type"
+                                        placeholder={t('newPatient.selectBloodType')}
                                         options={bloodTypeOptions}
                                         value={bloodType}
                                         onChange={setBloodType} />
                                 </View>
-                                <View style={styles.halfField}>
-                                    <Text style={styles.label}>Internal Card No.</Text>
+                                <View style={ds.halfField}>
+                                    <Text style={ds.label}>{t('newPatient.internalCardNo')}</Text>
                                     <CustomTextInput
-                                        placeholder="Enter internal card no."
+                                        placeholder={t('newPatient.internalCardNoPlaceholder')}
                                         value={internalCardNo}
                                         onChangeText={setInternalCardNo} />
                                 </View>
                             </View>
 
-                            <View style={styles.rowContainer}>
-                                <View style={styles.halfField}>
-                                    <Text style={styles.label}>Foreigner</Text>
+                            <View style={ds.rowContainer}>
+                                <View style={ds.halfField}>
+                                    <Text style={ds.label}>{t('newPatient.foreigner')}</Text>
                                     <CustomDropdown
-                                        placeholder="Select"
+                                        placeholder={t('newPatient.select')}
                                         options={foreignerOptions}
                                         value={foreigner}
                                         onChange={setForeigner} />
                                 </View>
-                                <View style={styles.halfField} />
                             </View>
                         </View>
-
-                        <View style={styles.divider} />
-
-                        <View style={styles.formSection}>
-                            <Text style={styles.sectionTitle}>Address</Text>
-
-                            <View style={styles.formField}>
-                                <Text style={styles.label}><Text style={{ color: 'red' }}>*</Text> Street</Text>
+  
+                        <View style={ds.divider} />
+  
+                        <View style={ds.formSection}>
+                            <Text style={ds.sectionTitle}>{t('newPatient.address')}</Text>
+  
+                            <View style={ds.formField}>
+                                <Text style={ds.label}><Text style={{ color: tc.accentRed }}>*</Text> {t('newPatient.street')}</Text>
                                 <CustomTextInput
-                                    placeholder="Enter street name"
+                                    placeholder={t('newPatient.streetPlaceholder')}
                                     value={street}
                                     onChangeText={setStreet} />
                             </View>
 
-                            <View style={styles.rowContainer}>
-                                <View style={styles.halfField}>
-                                    <Text style={styles.label}><Text style={{ color: 'red' }}>*</Text> House No.</Text>
+                            <View style={ds.rowContainer}>
+                                <View style={ds.halfField}>
+                                    <Text style={ds.label}><Text style={{ color: tc.accentRed }}>*</Text> {t('newPatient.houseNo')}</Text>
                                     <CustomTextInput
-                                        placeholder="Enter house number"
+                                        placeholder={t('newPatient.houseNoPlaceholder')}
                                         value={houseNo}
                                         onChangeText={setHouseNo} />
                                 </View>
-                                <View style={styles.halfField}>
-                                    <Text style={styles.label}>Apartment No.</Text>
+                                <View style={ds.halfField}>
+                                    <Text style={ds.label}>{t('newPatient.apartmentNo')}</Text>
                                     <CustomTextInput
-                                        placeholder="Enter apartment number"
+                                        placeholder={t('newPatient.apartmentNoPlaceholder')}
                                         value={apartmentNo}
                                         onChangeText={setApartmentNo} />
                                 </View>
                             </View>
                             <Gap height={hp(1)} />
-                            <View style={styles.formField}>
-                                <Text style={styles.label}><Text style={{ color: 'red' }}>*</Text> Postal Code</Text>
+                            <View style={ds.formField}>
+                                <Text style={ds.label}><Text style={{ color: tc.accentRed }}>*</Text> {t('newPatient.postalCode')}</Text>
                                 <CustomTextInput
-                                    placeholder="Enter postal code"
+                                    placeholder={t('newPatient.postalCodePlaceholder')}
                                     value={postalCode}
                                     onChangeText={setPostalCode}
                                     name="postalCode" />
                             </View>
-
-                            <View style={styles.formField}>
-                                <Text style={styles.label}><Text style={{ color: 'red' }}>*</Text> City</Text>
+  
+                            <View style={ds.formField}>
+                                <Text style={ds.label}><Text style={{ color: tc.accentRed }}>*</Text> {t('newPatient.city')}</Text>
                                 <CustomTextInput
-                                    placeholder="Enter city name"
+                                    placeholder={t('newPatient.cityPlaceholder')}
                                     value={city}
                                     onChangeText={setCity} />
                             </View>
 
-                            <View style={styles.rowContainer}>
-                                <View style={styles.halfField}>
-                                    <Text style={styles.label}>Voivodeship</Text>
+                            <View style={ds.rowContainer}>
+                                <View style={ds.halfField}>
+                                    <Text style={ds.label}>{t('newPatient.voivodeship')}</Text>
                                     <CustomDropdown
-                                        placeholder="Select voivodeship"
+                                        placeholder={t('newPatient.select')}
                                         options={voivodeshipOptions}
                                         value={voivodeship}
                                         onChange={setVoivodeship} />
                                 </View>
-                                <View style={styles.halfField}>
-                                    <Text style={styles.label}><Text style={{ color: 'red' }}>*</Text> Country</Text>
+                                <View style={ds.halfField}>
+                                    <Text style={ds.label}><Text style={{ color: tc.accentRed }}>*</Text> {t('newPatient.country')}</Text>
                                     <CustomDropdown
-                                        placeholder="Select country"
+                                        placeholder={t('newPatient.select')}
                                         options={countryOptions}
                                         value={country}
                                         onChange={setCountry} />
                                 </View>
                             </View>
                             <Gap height={hp(1)} />
-                            <View style={styles.formField}>
-                                <Text style={styles.label}>Municipality TERYT</Text>
+                            <View style={ds.formField}>
+                                <Text style={ds.label}>{t('newPatient.municipalityTeryt')}</Text>
                                 <CustomTextInput
-                                    placeholder="Enter municipality TERYT"
+                                    placeholder={t('newPatient.municipalityTerytPlaceholder')}
                                     value={municipalityTeryt}
                                     onChangeText={setMunicipalityTeryt} />
                             </View>
                         </View>
 
-                        <View style={styles.divider} />
-
-                        <View style={styles.formSection}>
-                            <Text style={styles.sectionTitle}>Insurance</Text>
-
-                            <View style={styles.formField}>
-                                <Text style={styles.label}><Text style={{ color: 'red' }}>*</Text> Insurance Type</Text>
+                        <View style={ds.divider} />
+  
+                        <View style={ds.formSection}>
+                            <Text style={ds.sectionTitle}>{t('newPatient.insurance')}</Text>
+  
+                            <View style={ds.formField}>
+                                <Text style={ds.label}><Text style={{ color: tc.accentRed }}>*</Text> {t('newPatient.insuranceType')}</Text>
                                 <CustomDropdown
-                                    placeholder="Select insurance type"
+                                    placeholder={t('newPatient.selectInsuranceType')}
                                     options={insuranceOptions}
                                     value={insuranceType}
                                     onChange={setInsuranceType} />
                             </View>
 
-                            <View style={styles.formField}>
-                                <Text style={styles.label}>Insurance No.</Text>
+                            <View style={ds.formField}>
+                                <Text style={ds.label}>{t('newPatient.insuranceNo')}</Text>
                                 <CustomTextInput
-                                    placeholder="Enter insurance number"
+                                    placeholder={t('newPatient.insuranceNoPlaceholder')}
                                     value={insuranceNo}
                                     onChangeText={setInsuranceNo} />
                             </View>
                         </View>
-
-                        <View style={styles.buttonContainer}>
+  
+                        <View style={ds.buttonContainer}>
                             <PrimaryButton
-                                label="Save patient"
+                                label={t('newPatient.savePatient')}
                                 filled={true}
                                 icon={<FontAwesome name="save" size={16} color="white" />}
                                 onPress={handleSavePatient}
-                                style={{ width: "100%" }} 
+                                style={{ width: "95%" }} 
                                 loading={loading} 
                                 disabled={loading}
-                                image={undefined}
-                                iconStyle={undefined}
-                                imageStyle={undefined}
                             />
                         </View>
                     </View>
                 </ScrollView>
 
                 {/* Help button */}
-                <TouchableOpacity style={styles.helpButtonFloat}>
-                    <Text style={styles.helpText}>?</Text>
+                <TouchableOpacity style={ds.helpButtonFloat}>
+                    <Text style={ds.helpText}>?</Text>
                 </TouchableOpacity>
             </View>
             <CustomAlert
@@ -602,14 +576,14 @@ const NewPatientScreen = ({ }) => {
     );
 };
 
-const styles = StyleSheet.create({
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.headerBg,
     },
     container: {
         flex: 1,
-        backgroundColor: '#F5F5F5',
+        backgroundColor: tc.screenBackground,
     },
     header: {
         flexDirection: 'row',
@@ -618,21 +592,19 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingTop: 15,
         paddingBottom: 15,
-        backgroundColor: '#FFFFFF',
-    },
-    headerTime: {
-        fontSize: 14,
-        color: '#333333',
+        backgroundColor: tc.headerBg,
+        borderBottomWidth: isDark ? 1 : 0,
+        borderBottomColor: tc.borderColor,
     },
     headerTitle: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#333333',
+        color: tc.textPrimary,
         marginTop: 5,
     },
     headerSubtitle: {
         fontSize: 16,
-        color: '#666666',
+        color: tc.textSecondary,
         marginTop: 5,
     },
     headerRightContainer: {
@@ -642,19 +614,13 @@ const styles = StyleSheet.create({
     backButton: {
         padding: 8,
         borderWidth: 1,
-        borderColor: '#4A90B9',
+        borderColor: tc.accent,
         borderRadius: 50,
-        marginRight: 10,
-        height: 50, width: 50,
-        alignItems: "center", justifyContent: 'center',
-    },
-    helpButtonHeader: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        backgroundColor: '#4A90B9',
+        height: 50, 
+        width: 50,
+        alignItems: "center", 
         justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: isDark ? tc.buttonMutedBg : 'transparent',
     },
     helpText: {
         color: 'white',
@@ -668,60 +634,61 @@ const styles = StyleSheet.create({
         paddingBottom: 30,
     },
     formCard: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 10,
+        backgroundColor: tc.cardBackground,
+        borderRadius: 12,
         margin: 15,
-        marginTop: 20,
+        marginTop: 15,
         paddingBottom: 20,
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-        elevation: 3,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: tc.borderColor,
+        ...Platform.select({
+            ios: { shadowColor: tc.shadow, shadowOffset: { width: 0, height: 2 }, shadowOpacity: isDark ? 0 : 0.05, shadowRadius: 8 },
+            android: { elevation: isDark ? 0 : 3 },
+        }),
     },
     formSection: {
         padding: 15,
     },
     sectionTitle: {
         fontSize: 18,
-        fontWeight: 'bold',
+        fontWeight: '700',
         marginBottom: 15,
-        color: '#333333',
+        color: tc.textPrimary,
     },
     formField: {
         marginBottom: 15,
     },
     label: {
-        fontSize: 16,
+        fontSize: 15,
+        fontWeight: '600',
         marginBottom: 8,
-        color: '#333333',
+        color: tc.textSecondary,
     },
     datePickerButton: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#E0E0E0',
-        borderRadius: 5,
+        borderColor: tc.borderColor,
+        borderRadius: 8,
         padding: 12,
-        backgroundColor: 'white',
+        backgroundColor: tc.cardBackgroundAlt,
     },
     rowContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
+        marginBottom: 10,
     },
     halfField: {
         width: '48%',
     },
     divider: {
         height: 1,
-        backgroundColor: '#E0E0E0',
+        backgroundColor: tc.borderColor,
+        marginHorizontal: 15,
     },
     buttonContainer: {
-        marginHorizontal: 15,
+        alignItems: 'center',
         marginTop: 20,
     },
     helpButtonFloat: {
@@ -731,7 +698,7 @@ const styles = StyleSheet.create({
         width: 50,
         height: 50,
         borderRadius: 25,
-        backgroundColor: '#4A90B9',
+        backgroundColor: tc.accent,
         justifyContent: 'center',
         alignItems: 'center',
         elevation: 5,
@@ -742,18 +709,20 @@ const styles = StyleSheet.create({
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        backgroundColor: 'rgba(0,0,0,0.6)',
         justifyContent: 'center',
         alignItems: 'center',
         padding: 10,
     },
     datePickerContainer: {
-        backgroundColor: 'white',
+        backgroundColor: tc.modalBg || tc.drawerBg || '#1A1A1A',
         borderRadius: 20,
         paddingBottom: 20,
         width: '95%',
         overflow: 'hidden',
         maxWidth: 400,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: tc.borderColor,
     },
     datePickerHeader: {
         flexDirection: 'row',
@@ -761,15 +730,15 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#f0f0f0',
+        borderBottomColor: tc.borderColor,
     },
     datePickerTitle: {
         fontSize: 18,
         fontWeight: '700',
-        color: '#333',
+        color: tc.textPrimary,
     },
     confirmButton: {
-        backgroundColor: '#4A90B9',
+        backgroundColor: tc.accent,
         marginHorizontal: 16,
         marginTop: 10,
         padding: 14,

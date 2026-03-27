@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import { useTranslation } from 'react-i18next';
 
 interface PsychiatricScalesModalProps {
     visible: boolean;
@@ -16,16 +17,18 @@ interface PsychiatricScalesModalProps {
     onSelectScale: (scale: string) => void;
 }
 
-const scales = [
-    { id: 'HAM-D', title: 'HAM-D', subtitle: 'Hamilton Depression Scale' },
-    { id: 'MADRS', title: 'MADRS', subtitle: 'Montgomery-Åsberg Depression Scale' },
-    { id: 'ASRS', title: 'ASRS', subtitle: 'ADHD Symptoms Scale' },
-    { id: 'HAM-A', title: 'HAM-A', subtitle: 'Hamilton Anxiety Scale' },
-    { id: 'ISI', title: 'ISI', subtitle: 'Insomnia Severity Scale' },
-    { id: 'CARS-2', title: 'CARS-2', subtitle: 'Childhood Autism Rating Scale' },
+const scales = (t: any) => [
+    { id: 'HAM-D', title: 'HAM-D', subtitle: t('visit.interview.scales.hamd') },
+    { id: 'MADRS', title: 'MADRS', subtitle: t('visit.interview.scales.madrs') },
+    { id: 'ASRS', title: 'ASRS', subtitle: t('visit.interview.scales.asrs') },
+    { id: 'HAM-A', title: 'HAM-A', subtitle: t('visit.interview.scales.hama') },
+    { id: 'ISI', title: 'ISI', subtitle: t('visit.interview.scales.isi') },
+    { id: 'CARS-2', title: 'CARS-2', subtitle: t('visit.interview.scales.cars2') },
 ];
 
 const PsychiatricScalesModal = ({ visible, onClose, onSelectScale }: PsychiatricScalesModalProps) => {
+    const { t } = useTranslation();
+    const availableScales = scales(t);
     return (
         <Modal
             transparent
@@ -37,7 +40,7 @@ const PsychiatricScalesModal = ({ visible, onClose, onSelectScale }: Psychiatric
                 <View style={styles.modalContainer}>
                     {/* Header */}
                     <View style={styles.header}>
-                        <Text style={styles.headerTitle}>Select scale</Text>
+                        <Text style={styles.headerTitle}>{t('visit.interview.scales.selectScale')}</Text>
                         <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
                             <Feather name="x" size={24} color="#64748B" />
                         </TouchableOpacity>
@@ -45,7 +48,7 @@ const PsychiatricScalesModal = ({ visible, onClose, onSelectScale }: Psychiatric
 
                     {/* Scales Grid */}
                     <ScrollView contentContainerStyle={styles.gridContainer}>
-                        {scales.map((scale, index) => {
+                        {availableScales.map((scale, index) => {
                             const isLeft = index % 2 === 0;
                             return (
                                 <TouchableOpacity

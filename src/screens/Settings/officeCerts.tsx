@@ -28,6 +28,7 @@ import { Linking } from 'react-native';
 import { GetDirectorSetting, UpdateDirectorSetting } from '../../Services/settingServices';
 import { uploadFileOnServer } from '../../Services/Upload.Service';
 import DocumentPicker from 'react-native-document-picker';
+import { useTranslation } from 'react-i18next';
 
 
 
@@ -56,13 +57,13 @@ interface CertificateUploadSectionProps {
 }
 
 // Office Card Component
-const OfficeCard = ({ office, onEdit, onDelete }: OfficeCardProps) => (
+const OfficeCard = ({ office, onEdit, onDelete, t }: OfficeCardProps & { t: any }) => (
     <View style={styles.officeCard}>
         <View style={styles.officeInfo}>
             <Text style={styles.officeTitle}>{office.title}</Text>
-            <Text style={styles.officeDetail}>Floor: {office.floor}, No: {office.number}</Text>
-            <Text style={styles.officeDetail}>Type: {office.type}</Text>
-            <Text style={styles.officeDetail}>Equipment: {office.equipment}</Text>
+            <Text style={styles.officeDetail}>{t('settings.office_certs.offices.details.floor')}: {office.floor}, {t('settings.office_certs.offices.details.number')}: {office.number}</Text>
+            <Text style={styles.officeDetail}>{t('settings.office_certs.offices.details.type')}: {office.type}</Text>
+            <Text style={styles.officeDetail}>{t('settings.office_certs.offices.details.equipment')}: {office.equipment}</Text>
         </View>
         <View style={styles.officeActions}>
             <TouchableOpacity onPress={() => onEdit(office.id)} style={styles.iconButton}>
@@ -76,13 +77,13 @@ const OfficeCard = ({ office, onEdit, onDelete }: OfficeCardProps) => (
 );
 
 // Certificate Upload Section Component
-const CertificateUploadSection = ({ title, placeholder, onUpload, onRemove, fileUrl, loading }: CertificateUploadSectionProps) => (
+const CertificateUploadSection = ({ title, placeholder, onUpload, onRemove, fileUrl, loading, t }: CertificateUploadSectionProps & { t: any }) => (
     <View style={styles.certificateSection}>
         <Text style={styles.certificateLabel}>{title}</Text>
         {loading ? (
             <View style={[styles.uploadButton, { borderStyle: 'solid' }]}>
                 <ActivityIndicator size="small" color="#4A90B9" />
-                <Text style={[styles.uploadText, { marginLeft: 10 }]}>Uploading...</Text>
+                <Text style={[styles.uploadText, { marginLeft: 10 }]}>{t('settings.office_certs.certificates.uploading')}</Text>
             </View>
         ) : fileUrl ? (
             <View style={styles.filePreviewContainer}>
@@ -111,6 +112,7 @@ const CertificateUploadSection = ({ title, placeholder, onUpload, onRemove, file
 );
 
 const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) => {
+    const { t } = useTranslation();
     const navigation = useNavigation<any>();
 
     const [id, setId] = useState('');
@@ -168,7 +170,7 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
         } catch (err) {
             if (!DocumentPicker.isCancel(err)) {
                 console.error('Upload error:', err);
-                if (onAlert) onAlert({ visible: true, type: 'error', message: 'Failed to upload certificate' });
+                if (onAlert) onAlert({ visible: true, type: 'error', message: t('settings.office_certs.alerts.upload_error') });
             }
         } finally {
             setIsUploadingTls(false);
@@ -219,9 +221,9 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
     const [equipment, setEquipment] = useState('');
 
     const officeTypeOptions = [
-        { label: 'Medical office', value: 'Medical office' },
-        { label: 'Therapy office', value: 'Therapy office' },
-        { label: 'Diagnostic office', value: 'Diagnostic office' },
+        { label: t('settings.office_certs.offices.types.medical'), value: 'Medical office' },
+        { label: t('settings.office_certs.offices.types.therapy'), value: 'Therapy office' },
+        { label: t('settings.office_certs.offices.types.diagnostic'), value: 'Diagnostic office' },
     ];
 
     const handleAddOffice = () => {
@@ -264,13 +266,13 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
                 onAlert({
                     visible: true,
                     type: 'success',
-                    message: 'Director Settings updated successfully!'
+                    message: t('settings.office_certs.alerts.save_success')
                 });
             }
             fetchSettings();
         } catch (error) {
             console.error('Error saving director settings:', error);
-            if (onAlert) onAlert({ visible: true, type: 'error', message: 'Failed to update settings' });
+            if (onAlert) onAlert({ visible: true, type: 'error', message: t('settings.office_certs.alerts.save_error') });
         } finally {
             setLoading(false);
         }
@@ -296,7 +298,7 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
                 <View style={styles.headerIconContainer}>
                     <MaterialCommunityIcons name="office-building" size={24} color="#4A90B9" />
                 </View>
-                <Text style={styles.headerTitle}>Offices & Certificates</Text>
+                <Text style={styles.headerTitle}>{t('settings.office_certs.title')}</Text>
             </View>
 
             <ScrollView style={styles.container}>
@@ -307,11 +309,11 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
                             <View style={styles.iconContainer}>
                                 <MaterialIcons name="meeting-room" size={24} color="#4A90B9" />
                             </View>
-                            <Text style={styles.sectionTitle}>Offices</Text>
+                            <Text style={styles.sectionTitle}>{t('settings.office_certs.offices.title')}</Text>
                         </View>
 
                         <PrimaryButton
-                            label={showAddForm ? "Hide Form" : "Add office"}
+                            label={showAddForm ? t('settings.office_certs.offices.buttons.hide_form') : t('settings.office_certs.offices.buttons.add_office')}
                             filled={true}
                             onPress={() => setShowAddForm(!showAddForm)}
                             style={{ width: "40%" }}
@@ -329,20 +331,20 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
                             <View style={styles.rowContainer}>
                                 <View style={styles.halfField}>
                                     <Text style={styles.label}>
-                                        <Text style={styles.required}>* </Text>Office Name
+                                        <Text style={styles.required}>* </Text>{t('settings.office_certs.offices.form.name')}
                                     </Text>
                                     <CustomTextInput
-                                        placeholder="Office Name"
+                                        placeholder={t('settings.office_certs.offices.form.name')}
                                         value={officeName}
                                         onChangeText={setOfficeName}
                                     />
                                 </View>
                                 <View style={styles.halfField}>
                                     <Text style={styles.label}>
-                                        <Text style={styles.required}>* </Text>Floor
+                                        <Text style={styles.required}>* </Text>{t('settings.office_certs.offices.form.floor')}
                                     </Text>
                                     <CustomTextInput
-                                        placeholder="Floor"
+                                        placeholder={t('settings.office_certs.offices.form.floor')}
                                         value={floor}
                                         onChangeText={setFloor}
                                         keyboardType="numeric"
@@ -353,10 +355,10 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
                             <View style={styles.rowContainer}>
                                 <View style={styles.halfField}>
                                     <Text style={styles.label}>
-                                        <Text style={styles.required}>* </Text>Number
+                                        <Text style={styles.required}>* </Text>{t('settings.office_certs.offices.form.number')}
                                     </Text>
                                     <CustomTextInput
-                                        placeholder="Office Number"
+                                        placeholder={t('settings.office_certs.offices.form.number_placeholder')}
                                         value={number}
                                         onChangeText={setNumber}
                                         keyboardType="numeric"
@@ -364,10 +366,10 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
                                 </View>
                                 <View style={styles.halfField}>
                                     <Text style={styles.label}>
-                                        <Text style={styles.required}>* </Text>Office Type
+                                        <Text style={styles.required}>* </Text>{t('settings.office_certs.offices.form.type')}
                                     </Text>
                                     <CustomDropdown
-                                        placeholder="Select Type"
+                                        placeholder={t('settings.office_certs.offices.form.type_placeholder')}
                                         options={officeTypeOptions}
                                         value={type}
                                         onChange={setType}
@@ -376,9 +378,9 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
                             </View>
 
                             <View style={styles.formField}>
-                                <Text style={styles.label}>Equipment</Text>
+                                <Text style={styles.label}>{t('settings.office_certs.offices.form.equipment')}</Text>
                                 <CustomTextInput
-                                    placeholder="Equipment list (one per line)"
+                                    placeholder={t('settings.office_certs.offices.form.equipment_placeholder')}
                                     value={equipment}
                                     onChangeText={setEquipment}
                                     multiline={true}
@@ -388,13 +390,13 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
 
                             <View style={styles.formFooter}>
                                 <PrimaryButton
-                                    label="Cancel"
+                                    label={t('settings.office_certs.offices.buttons.cancel')}
                                     filled={false}
                                     onPress={resetForm}
                                     style={{ width: "30%", height: hp(5.5), marginBottom: 0 }}
                                 />
                                 <PrimaryButton
-                                    label="Save"
+                                    label={t('settings.office_certs.offices.buttons.save')}
                                     filled={true}
                                     onPress={handleAddOffice}
                                     style={{ width: "30%", height: hp(5.5), marginBottom: 0 }}
@@ -412,6 +414,7 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
                                 office={office}
                                 onEdit={handleEditOffice}
                                 onDelete={handleDeleteOffice}
+                                t={t}
                             />
                         ))}
                     </View>
@@ -424,17 +427,17 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
                             <View style={styles.iconContainer}>
                                 <MaterialCommunityIcons name="certificate" size={24} color="#4A90B9" />
                             </View>
-                            <Text style={styles.sectionTitle}>Certificates P1</Text>
+                            <Text style={styles.sectionTitle}>{t('settings.office_certs.certificates.title')}</Text>
                         </View>
                     </View>
 
                     {/* Certificate Upload Sections */}
-                    <View style={styles.certificatesContainer}>
+                        <View style={styles.certificatesContainer}>
                         <View style={styles.certificateSection}>
-                            <Text style={styles.certificateLabel}>P1 Identifier</Text>
+                            <Text style={styles.certificateLabel}>{t('settings.office_certs.certificates.p1_id')}</Text>
                             <TextInput
                                 style={styles.certificateInput}
-                                placeholder="Enter P1 identifier"
+                                placeholder={t('settings.office_certs.certificates.p1_placeholder')}
                                 placeholderTextColor="#999"
                                 value={p1Id}
                                 onChangeText={setP1Id}
@@ -442,27 +445,29 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
                         </View>
 
                         <CertificateUploadSection
-                            title="TLS Certificate"
-                            placeholder="Choose TLS certificate file"
+                            title={t('settings.office_certs.certificates.tls_label')}
+                            placeholder={t('settings.office_certs.certificates.tls_placeholder')}
                             onUpload={() => handleUploadCertificate('TLS')}
                             onRemove={() => setTlsCert('')}
                             fileUrl={tlsCert}
                             loading={isUploadingTls}
+                            t={t}
                         />
 
                         <CertificateUploadSection
-                            title="WLS Certificate"
-                            placeholder="Choose WLS certificate file"
+                            title={t('settings.office_certs.certificates.wls_label')}
+                            placeholder={t('settings.office_certs.certificates.wls_placeholder')}
                             onUpload={() => handleUploadCertificate('WLS')}
                             onRemove={() => setWlsCert('')}
                             fileUrl={wlsCert}
                             loading={isUploadingWls}
+                            t={t}
                         />
                     </View>
 
                     <View style={styles.buttonContainer}>
                         <PrimaryButton
-                            label="Save Changes"
+                            label={t('settings.office_certs.buttons.save_changes')}
                             filled={true}
                             icon={<FontAwesome name="save" size={16} color="white" />}
                             onPress={handleSaveChanges}

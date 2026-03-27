@@ -12,6 +12,7 @@ import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-nat
 import LinearGradient from 'react-native-linear-gradient';
 import TrendAnalysisModal from './modals/TrendAnalysisModal';
 import { GetPatientVisits } from '../../Services/Visit.Service';
+import { useTranslation } from 'react-i18next';
 
 interface VisitProfileProps {
     onNext: () => void;
@@ -32,6 +33,7 @@ const VisitProfile = ({
     totalPreviousVisits = 0,
     loading 
 }: VisitProfileProps) => {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState('Basic Information');
     const [showTrendModal, setShowTrendModal] = useState(false);
     const [trendData, setTrendData] = useState<any>(null);
@@ -39,15 +41,14 @@ const VisitProfile = ({
     const [expandedVisitIndex, setExpandedVisitIndex] = useState<number | null>(null);
 
     const formatVisitDate = useCallback((dateStr: string) => {
-        if (!dateStr) return 'N/A';
+        if (!dateStr) return t('visit.history_labels.noData');
         const date = new Date(dateStr);
         const day = date.getDate();
-        const months = ['January', 'February', 'March', 'April', 'May', 'June',
-            'July', 'August', 'September', 'October', 'November', 'December'];
+        const months = t('common.months', { returnObjects: true }) as string[];
         const month = months[date.getMonth()];
         const year = date.getFullYear();
         return `${day} ${month} ${year}`;
-    }, []);
+    }, [t]);
 
     const formatTime = useCallback((timeStr: string) => {
         if (!timeStr) return '';
@@ -94,17 +95,17 @@ const VisitProfile = ({
         <View style={styles.cardContent}>
             <View style={styles.row}>
                 <View style={styles.column}>
-                    <Text style={styles.label}>Patient</Text>
-                    <Text style={styles.value}>{patientData?.name || patientData?.firstName || 'N/A'}</Text>
+                    <Text style={styles.label}>{t('common.patient')}</Text>
+                    <Text style={styles.value}>{patientData?.name || patientData?.firstName || t('visit.history_labels.noData')}</Text>
 
-                    <Text style={[styles.label, { marginTop: 20 }]}>PESEL</Text>
-                    <Text style={styles.value}>{patientData?.pesel || 'N/A'}</Text>
+                    <Text style={[styles.label, { marginTop: 20 }]}>{t('visit.profile.pesel')}</Text>
+                    <Text style={styles.value}>{patientData?.pesel || t('visit.history_labels.noData')}</Text>
 
-                    <Text style={[styles.label, { marginTop: 20 }]}>Date of Birth</Text>
-                    <Text style={styles.value}>{patientData?.dob ? new Date(patientData.dob).toLocaleDateString() : 'N/A'}</Text>
+                    <Text style={[styles.label, { marginTop: 20 }]}>{t('visit.profile.dateOfBirth')}</Text>
+                    <Text style={styles.value}>{patientData?.dob ? new Date(patientData.dob).toLocaleDateString() : t('visit.history_labels.noData')}</Text>
                 </View>
                 <View style={styles.column}>
-                    <Text style={styles.label}>Allergies</Text>
+                    <Text style={styles.label}>{t('visit.profile.allergies')}</Text>
                     <View style={styles.allergyContainer}>
                         {medicalData?.allergies && medicalData.allergies.length > 0 ? (
                             medicalData.allergies.map((allergy: any, index: number) => (
@@ -113,18 +114,18 @@ const VisitProfile = ({
                                 </View>
                             ))
                         ) : (
-                            <Text style={styles.subtitle}>No allergies</Text>
+                            <Text style={styles.subtitle}>{t('visit.profile.noAllergies')}</Text>
                         )}
                     </View>
 
-                    <Text style={[styles.label, { marginTop: 20 }]}>Chronic Diseases</Text>
+                    <Text style={[styles.label, { marginTop: 20 }]}>{t('visit.profile.chronicDiseases')}</Text>
                     <View>
                         {medicalData?.chronicConditions && medicalData.chronicConditions.length > 0 ? (
                             medicalData.chronicConditions.map((condition: any, index: number) => (
                                 <Text key={index} style={styles.value}>{condition.name || condition}</Text>
                             ))
                         ) : (
-                            <Text style={styles.subtitle}>No chronic diseases</Text>
+                            <Text style={styles.subtitle}>{t('visit.profile.noDiseases')}</Text>
                         )}
                     </View>
                 </View>
@@ -139,8 +140,8 @@ const VisitProfile = ({
     const renderVisitHistory = () => (
         <View style={styles.cardContent}>
             <View style={styles.historyHeader}>
-                <Text style={styles.historyTitle}>Visit History</Text>
-                <Text style={styles.historyCount}>Total visits: {totalPreviousVisits}</Text>
+                <Text style={styles.historyTitle}>{t('visit.profile.history')}</Text>
+                <Text style={styles.historyCount}>{t('visit.profile.history_total', { total: totalPreviousVisits })}</Text>
             </View>
             {previousVisits && previousVisits.length > 0 ? (
                 <ScrollView showsVerticalScrollIndicator={false}>
@@ -208,10 +209,10 @@ const VisitProfile = ({
                                         <View style={styles.expandedSection}>
                                             <View style={styles.expandedSectionHeader}>
                                                 <Feather name="user" size={16} color="#64748B" />
-                                                <Text style={styles.expandedSectionTitle}>Doctor</Text>
+                                                <Text style={styles.expandedSectionTitle}>{t('visit.history_labels.doctor')}</Text>
                                             </View>
                                             <Text style={styles.expandedSectionValue}>
-                                                {visit.doctor?.name || visit.doctorName || visit.doctor || 'N/A'}
+                                                {visit.doctor?.name || visit.doctorName || visit.doctor || t('visit.history_labels.noData')}
                                             </Text>
                                         </View>
 
@@ -219,10 +220,10 @@ const VisitProfile = ({
                                         <View style={styles.expandedSection}>
                                             <View style={styles.expandedSectionHeader}>
                                                 <Feather name="file-text" size={16} color="#64748B" />
-                                                <Text style={styles.expandedSectionTitle}>Notes</Text>
+                                                <Text style={styles.expandedSectionTitle}>{t('visit.history_labels.notes')}</Text>
                                             </View>
                                             <Text style={styles.expandedSectionValue}>
-                                                {visit.notes || 'New Patient'}
+                                                {visit.notes || t('visit.history_labels.defaultNote')}
                                             </Text>
                                         </View>
 
@@ -230,17 +231,17 @@ const VisitProfile = ({
                                         <View style={styles.expandedSection}>
                                             <View style={styles.expandedSectionHeader}>
                                                 <Feather name="file-text" size={16} color="#64748B" />
-                                                <Text style={styles.expandedSectionTitle}>Medical Interview</Text>
+                                                <Text style={styles.expandedSectionTitle}>{t('visit.history_labels.interview')}</Text>
                                             </View>
 
-                                            <Text style={styles.expandedSubLabel}>Main Symptoms</Text>
+                                            <Text style={styles.expandedSubLabel}>{t('visit.history_labels.mainSymptoms')}</Text>
                                             <Text style={styles.expandedSubValue}>
-                                                {visit.mainSymptoms || visit.recommendations?.mainSymptoms || 'No data available'}
+                                                {visit.mainSymptoms || visit.recommendations?.mainSymptoms || t('visit.history_labels.noData')}
                                             </Text>
 
                                             <View style={[styles.expandedSectionHeader, { marginTop: 12 }]}>
                                                 <MaterialCommunityIcons name="brain" size={16} color="#64748B" />
-                                                <Text style={styles.expandedSectionTitle}>Psychiatric Scales</Text>
+                                                <Text style={styles.expandedSectionTitle}>{t('visit.history_labels.scales')}</Text>
                                             </View>
                                         </View>
 
@@ -248,34 +249,34 @@ const VisitProfile = ({
                                         <View style={styles.expandedSection}>
                                             <View style={styles.expandedSectionHeader}>
                                                 <MaterialCommunityIcons name="stethoscope" size={16} color="#64748B" />
-                                                <Text style={styles.expandedSectionTitle}>Examination</Text>
+                                                <Text style={styles.expandedSectionTitle}>{t('visit.history_labels.examination')}</Text>
                                             </View>
 
                                             <View style={styles.examGrid}>
                                                 <View style={styles.examGridItem}>
-                                                    <Text style={styles.examLabel}>Blood Pressure:</Text>
+                                                    <Text style={styles.examLabel}>{t('visit.history_labels.bloodPressure')}:</Text>
                                                     <Text style={styles.examValue}>
-                                                        {visit.examination?.bloodPressure || 'No data available'}
+                                                        {visit.examination?.bloodPressure || t('visit.history_labels.noData')}
                                                     </Text>
                                                 </View>
                                                 <View style={styles.examGridItem}>
-                                                    <Text style={styles.examLabel}>General Condition:</Text>
+                                                    <Text style={styles.examLabel}>{t('visit.history_labels.generalCondition')}:</Text>
                                                     <Text style={styles.examValue}>
-                                                        {visit.examination?.generalCondition || 'No data available'}
+                                                        {visit.examination?.generalCondition || t('visit.history_labels.noData')}
                                                     </Text>
                                                 </View>
                                             </View>
                                             <View style={styles.examGrid}>
                                                 <View style={styles.examGridItem}>
-                                                    <Text style={styles.examLabel}>Heart Rate:</Text>
+                                                    <Text style={styles.examLabel}>{t('visit.history_labels.heartRate')}:</Text>
                                                     <Text style={styles.examValue}>
-                                                        {visit.examination?.heartRate || 'No data available'}
+                                                        {visit.examination?.heartRate || t('visit.history_labels.noData')}
                                                     </Text>
                                                 </View>
                                                 <View style={styles.examGridItem}>
-                                                    <Text style={styles.examLabel}>Temperature:</Text>
+                                                    <Text style={styles.examLabel}>{t('visit.history_labels.temperature')}:</Text>
                                                     <Text style={styles.examValue}>
-                                                        {visit.examination?.temperature || 'No data available'}
+                                                        {visit.examination?.temperature || t('visit.history_labels.noData')}
                                                     </Text>
                                                 </View>
                                             </View>
@@ -288,7 +289,7 @@ const VisitProfile = ({
                 </ScrollView>
             ) : (
                 <View style={styles.emptyContainer}>
-                    <Text style={styles.emptyText}>No visits found</Text>
+                    <Text style={styles.emptyText}>{t('visit.profile.noVisits')}</Text>
                 </View>
             )}
         </View>
@@ -304,7 +305,7 @@ const VisitProfile = ({
                             onPress={() => setActiveTab('Basic Information')}
                         >
                             <Text style={[styles.tabText, activeTab === 'Basic Information' && styles.tabTextActive]}>
-                                Basic Information
+                                {t('visit.profile.tabs.basic')}
                             </Text>
                         </TouchableOpacity>
                         <TouchableOpacity 
@@ -312,7 +313,7 @@ const VisitProfile = ({
                             onPress={() => setActiveTab('Visit History')}
                         >
                             <Text style={[styles.tabText, activeTab === 'Visit History' && styles.tabTextActive]}>
-                                Visit History
+                                {t('visit.profile.tabs.history')}
                             </Text>
                         </TouchableOpacity>
                     </View>
@@ -326,14 +327,14 @@ const VisitProfile = ({
                         onPress={handleTrendPress}
                     >
                         <MaterialCommunityIcons name="trending-up" size={18} color="#58A7B3" />
-                        <Text style={styles.trendButtonText}>Trend Analysis</Text>
+                        <Text style={styles.trendButtonText}>{t('visit.profile.trends')}</Text>
                     </TouchableOpacity>
                 </View>
 
                 <View style={styles.footer}>
                     <TouchableOpacity style={styles.backButton} onPress={onBack}>
                         <Feather name="arrow-left" size={18} color="#58A7B3" />
-                        <Text style={styles.backButtonText}>Back</Text>
+                        <Text style={styles.backButtonText}>{t('visit.navigation.previous')}</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity onPress={onNext}>
@@ -343,7 +344,7 @@ const VisitProfile = ({
                             end={{ x: 1, y: 0 }}
                             style={styles.nextButton}
                         >
-                            <Text style={styles.nextButtonText}>Next</Text>
+                            <Text style={styles.nextButtonText}>{t('visit.navigation.next')}</Text>
                             <Feather name="arrow-right" size={18} color="#fff" />
                         </LinearGradient>
                     </TouchableOpacity>

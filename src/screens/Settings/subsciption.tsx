@@ -19,6 +19,7 @@ import PrimaryButton from '../../component/button';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import Gap from '../../component/gap';
 import LinearGradient from 'react-native-linear-gradient';
+import { useTranslation } from 'react-i18next';
 
 interface AIFeature {
     icon: string;
@@ -56,8 +57,9 @@ const PlanCard = ({
     isAIPowered,
     onSelect,
     isCurrentPlan,
-    isBestOffer
-}: PlanCardProps) => (
+    isBestOffer,
+    t
+}: PlanCardProps & { t: any }) => (
     <View style={[
         styles.planCard,
         isSelected && styles.selectedPlanCard,
@@ -65,7 +67,7 @@ const PlanCard = ({
         isAIPowered ? { paddingVertical: hp(3) } : { paddingVertical: hp(2) }
     ]}>
         {isBestOffer && (
-            <Text style={styles.bestOfferTag}>Best offer for you</Text>
+            <Text style={styles.bestOfferTag}>{t('settings.subscription.plan_card.best_offer')}</Text>
         )}
 
         {isAIPowered && (
@@ -76,20 +78,20 @@ const PlanCard = ({
                 style={styles.aiPoweredTag}
             >
                 <Ionicons name="flash-outline" size={14} color="white" />
-                <Text style={styles.aiPoweredText}>AI Powered</Text>
+                <Text style={styles.aiPoweredText}>{t('settings.subscription.plan_card.ai_powered')}</Text>
             </LinearGradient>
         )}
 
         <Text style={styles.planUserLimit}>
-            up to <Text style={styles.planUserLimitBold}>{plan.userLimit}</Text> users
+            {t('settings.subscription.plan_card.up_to')} <Text style={styles.planUserLimitBold}>{plan.userLimit}</Text> {t('settings.subscription.plan_card.users')}
         </Text>
 
         <Text style={styles.planPrice}>
             {plan.price} <Text style={styles.priceCurrency}>zł</Text>
         </Text>
 
-        <Text style={styles.planPriceSubtext}>gross</Text>
-        <Text style={styles.planPriceSubtext}>without NFZ module</Text>
+        <Text style={styles.planPriceSubtext}>{t('settings.subscription.plan_card.gross')}</Text>
+        <Text style={styles.planPriceSubtext}>{t('settings.subscription.plan_card.without_nfz')}</Text>
 
         {plan.aiFeatures && (
             <View style={styles.featuresContainer}>
@@ -119,7 +121,7 @@ const PlanCard = ({
 
         <Gap height={isAIPowered ? hp(4) : hp(5)} />
         <PrimaryButton
-            label={isCurrentPlan ? 'Current plan' : 'SELECT'}
+            label={isCurrentPlan ? t('settings.subscription.plan_card.current_plan') : t('settings.subscription.plan_card.select')}
             filled={isAIPowered ? true : false}
             onPress={() => {}}
             style={{ width: "100%", marginTop: hp(1), position: 'absolute', bottom: 0, alignSelf: "center" }}
@@ -134,24 +136,24 @@ const PlanCard = ({
 );
 
 // Subscription Info Component
-const SubscriptionInfo = () => (
+const SubscriptionInfo = ({ t }: { t: any }) => (
     <View style={styles.infoContainer}>
         <View style={styles.infoIconContainer}>
             <Image source={require("../../assets/images/brain-primary.png")} style={{ height: 20, width: 20 }} />
         </View>
         <View style={styles.infoContent}>
-            <Text style={styles.infoTitle}>What is the AI Powered subscription?</Text>
+            <Text style={styles.infoTitle}>{t('settings.subscription.ai_info.title')}</Text>
             <Text style={styles.infoText}>
-                AI Powered subscription provides access to advanced features supported by artificial intelligence that help in daily work:
+                {t('settings.subscription.ai_info.description')}
             </Text>
             <View style={styles.bulletPointList}>
-                <BulletPoint text="Medical documentation assistant with voice transcription" />
-                <BulletPoint text="Clinical decision support system" />
-                <BulletPoint text="Intelligent ICD-10 coding assistant" />
-                <BulletPoint text="Drug interaction analysis with knowledge graph" />
-                <BulletPoint text="Interview assistant with emotion analysis" />
-                <BulletPoint text="Automatic diagnostic suggestions" />
-                <BulletPoint text="Analysis of trends and patterns in patient data" />
+                <BulletPoint text={t('settings.subscription.ai_info.features.documentation')} />
+                <BulletPoint text={t('settings.subscription.ai_info.features.clinical_decision')} />
+                <BulletPoint text={t('settings.subscription.ai_info.features.icd10')} />
+                <BulletPoint text={t('settings.subscription.ai_info.features.drug_interaction')} />
+                <BulletPoint text={t('settings.subscription.ai_info.features.interview')} />
+                <BulletPoint text={t('settings.subscription.ai_info.features.diagnostic')} />
+                <BulletPoint text={t('settings.subscription.ai_info.features.trends')} />
             </View>
         </View>
     </View>
@@ -166,6 +168,7 @@ const BulletPoint = ({ text }: BulletPointProps) => (
 );
 
 const Subscription = () => {
+    const { t } = useTranslation();
     const navigation = useNavigation<any>();
 
     // State variables
@@ -302,35 +305,35 @@ const Subscription = () => {
                     <View style={styles.headerIconContainer}>
                         <Feather name="credit-card" size={24} color="#4A90B9" />
                     </View>
-                    <Text style={styles.headerTitle}>Purchased Plans</Text>
+                    <Text style={styles.headerTitle}>{t('settings.subscription.title')}</Text>
                 </View>
 
                 {/* Subscription Summary */}
                 <View style={styles.summaryContainer}>
                     <View style={styles.summaryItem}>
-                        <Text style={styles.summaryLabel}>Number of active users</Text>
+                        <Text style={styles.summaryLabel}>{t('settings.subscription.summary.active_users')}</Text>
                         <Text style={styles.summaryValue}>{subscriptionInfo.activeUsers}</Text>
                     </View>
 
                     <View style={styles.summaryItem}>
-                        <Text style={styles.summaryLabel}>NFZ Settlements</Text>
+                        <Text style={styles.summaryLabel}>{t('settings.subscription.summary.nfz_settlements')}</Text>
                         <Text style={styles.summaryValue}>{subscriptionInfo.nfzSettlements}</Text>
                     </View>
 
                     <View style={styles.summaryItem}>
-                        <Text style={styles.summaryLabel}>Next payment</Text>
+                        <Text style={styles.summaryLabel}>{t('settings.subscription.summary.next_payment')}</Text>
                         <Text style={styles.summaryValue}>{subscriptionInfo.nextPayment}</Text>
 
                         <View style={styles.actionsRow}>
                             <PrimaryButton
-                                label={"PAY NOW"} filled={true}
+                                label={t('settings.subscription.buttons.pay_now')} filled={true}
                                 onPress={() => {}} style={{ width: "100%" }}
                                 icon={undefined} image={undefined}
                                 iconStyle={undefined} imageStyle={undefined}
                                 loading={false} disabled={false} />
 
                             <PrimaryButton
-                                label={"CANCEL SUBCRIPTION"} filled={false}
+                                label={t('settings.subscription.buttons.cancel_subscription')} filled={false}
                                 onPress={() => {}} style={{ width: "100%" }}
                                 icon={undefined} image={undefined}
                                 iconStyle={undefined} imageStyle={undefined}
@@ -342,10 +345,10 @@ const Subscription = () => {
                 {/* Current Subscription Details */}
                 <View style={styles.detailsContainer}>
                     <View style={styles.detailsHeader}>
-                        <Text style={styles.detailsHeaderText}>Name</Text>
-                        <Text style={styles.detailsHeaderText}>Valid from</Text>
-                        <Text style={styles.detailsHeaderText}>Valid to</Text>
-                        <Text style={styles.detailsHeaderText}>Next payment</Text>
+                        <Text style={styles.detailsHeaderText}>{t('settings.subscription.details.name')}</Text>
+                        <Text style={styles.detailsHeaderText}>{t('settings.subscription.details.valid_from')}</Text>
+                        <Text style={styles.detailsHeaderText}>{t('settings.subscription.details.valid_to')}</Text>
+                        <Text style={styles.detailsHeaderText}>{t('settings.subscription.details.next_payment')}</Text>
                     </View>
 
                     <View style={styles.detailsRow}>
@@ -358,13 +361,13 @@ const Subscription = () => {
 
                 {/* Plans Section */}
                 <View style={styles.plansSection}>
-                    <Text style={styles.sectionTitle}>Plans</Text>
+                    <Text style={styles.sectionTitle}>{t('settings.subscription.plans_title')}</Text>
 
                     {/* NFZ Module Toggle */}
                     <View style={styles.moduleToggleContainer}>
 
                         <PrimaryButton
-                            label={"WITHOUT NFZ MODULE"} filled={true}
+                            label={t('settings.subscription.modules.without_nfz')} filled={true}
                             onPress={() => {}} style={{ width: '100%' }}
                             icon={undefined} image={undefined}
                             iconStyle={undefined} imageStyle={undefined}
@@ -372,7 +375,7 @@ const Subscription = () => {
                         <Gap height={hp(1)} />
                         <View>
                             <PrimaryButton
-                                label={" NFZ SETTLEMENT MODULE"} filled={false}
+                                label={t('settings.subscription.modules.nfz_settlement')} filled={false}
                                 onPress={() => setNfzModuleSelected(true)} style={{ width: '100%' }}
                                 icon={undefined} image={undefined}
                                 iconStyle={undefined} imageStyle={undefined}
@@ -385,7 +388,7 @@ const Subscription = () => {
                                     color={'white'}
                                 />
                                 <View style={{ width: 5 }} />
-                                <Text style={{ fontWeight: "bold", fontSize: 12, color: 'white' }}>Coming Soon</Text>
+                                <Text style={{ fontWeight: "bold", fontSize: 12, color: 'white' }}>{t('settings.subscription.modules.coming_soon')}</Text>
                             </View>
                         </View>
 
@@ -402,6 +405,7 @@ const Subscription = () => {
                                 onSelect={handleSelectPlan}
                                 isCurrentPlan={plan.isCurrentPlan}
                                 isBestOffer={plan.isBestOffer}
+                                t={t}
                             />
                         ))}
                     </View>
@@ -417,12 +421,13 @@ const Subscription = () => {
                                 onSelect={handleSelectPlan}
                                 isCurrentPlan={false}
                                 isBestOffer={false}
+                                t={t}
                             />
                         ))}
                     </View>
 
                     {/* AI Powered Subscription Info */}
-                    <SubscriptionInfo />
+                    <SubscriptionInfo t={t} />
                 </View>
             </ScrollView>
         </View>

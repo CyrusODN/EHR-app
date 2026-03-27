@@ -22,6 +22,7 @@ import { GetPatientMedicalData, UpdateMedicalData, MEDICATION_FORMS, SEVERITY_LE
 
 
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useTranslation } from 'react-i18next';
 
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -113,8 +114,8 @@ const AccordionItem = ({ title, icon, children }: { title: string, icon: string,
     );
 };
 
-const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any }) => {
-
+const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (type: 'success' | 'error' | 'warning', message: string) => void }) => {
+    const { t } = useTranslation();
     const [medicalData, setMedicalData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [showMedModal, setShowMedModal] = useState(false);
@@ -366,7 +367,7 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
             const res = await UpdateMedicalData(payload);
             console.log(`${section} update response:`, res);
             if (res && (res.status === 200 || res.status === 201 || res.data)) {
-                if (onAlert) onAlert('success', `${section.charAt(0).toUpperCase() + section.slice(1)} updated successfully`);
+                if (onAlert) onAlert('success', t('medicalData.saveSuccess', { section: section.charAt(0).toUpperCase() + section.slice(1) }));
                 
                 // Refresh data to ensure UI sync
                 const response: any = await GetPatientMedicalData(patientId);
@@ -391,7 +392,7 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
             }
         } catch (error) {
             console.error(`Error saving ${section}:`, error);
-            if (onAlert) onAlert('error', `Failed to update ${section}`);
+            if (onAlert) onAlert('error', t('medicalData.saveError', { section: section.charAt(0).toUpperCase() + section.slice(1) }));
         } finally {
             setIsSaving(false);
         }
@@ -443,7 +444,7 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
         return (
             <View style={{ flex: 1, paddingVertical: 40, alignItems: 'center', justifyContent: 'center' }}>
                 <ActivityIndicator size="large" color="#4A90B9" />
-                <Text style={{ marginTop: 15, color: '#64748b' }}>Fetching medical history...</Text>
+                <Text style={{ marginTop: 15, color: '#64748b' }}>{t('medicalData.fetchingHistory')}</Text>
             </View>
         );
     }
@@ -453,24 +454,24 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
             <View style={styles.modalOverlay}>
                 <View style={styles.modalContent}>
                     <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>Add Medication</Text>
+                        <Text style={styles.modalTitle}>{t('medicalData.addMedication')}</Text>
                         <TouchableOpacity onPress={() => setShowMedModal(false)}><Feather name="x" size={20} color="#94a3b8" /></TouchableOpacity>
                     </View>
                     <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
                         <FormInput 
-                            label="Medication Name" required placeholder="Enter medication name" 
+                            label={t('medicalData.medicationName')} required placeholder={t('medicalData.placeholderMedName')} 
                             value={newMedication.name}
                             onChangeText={(val: string) => handleMedicationChange('name', val)}
                         />
                         <FormInput 
-                            label="Common Name (Generic)" placeholder="Enter generic name" 
+                            label={t('medicalData.commonName')} placeholder={t('medicalData.placeholderGenericName')} 
                             value={newMedication.genericName}
                             onChangeText={(val: string) => handleMedicationChange('genericName', val)}
                         />
                         <View style={[styles.row, { zIndex: 10 }]}>
                             <View style={{ flex: 1, marginRight: 8 }}>
                                 <FormInput 
-                                    label="Form" placeholder="Tablet" isDropdown 
+                                    label={t('medicalData.form')} placeholder={t('medicalData.placeholderForm')} isDropdown 
                                     value={newMedication.form}
                                     onPress={() => setShowFormDropdown(!showFormDropdown)}
                                 />
@@ -485,7 +486,9 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
                                                     setShowFormDropdown(false);
                                                 }}
                                             >
-                                                <Text style={[styles.dropdownItemText, newMedication.form === option && styles.dropdownItemTextActive]}>{option}</Text>
+                                                <Text style={[styles.dropdownItemText, newMedication.form === option && styles.dropdownItemTextActive]}>
+                                                    {t(`medicalData.options.medicationForms.${option}`, { defaultValue: option })}
+                                                </Text>
                                             </TouchableOpacity>
                                         ))}
                                     </View>
@@ -493,19 +496,19 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
                             </View>
                             <View style={{ flex: 1 }}>
                                 <FormInput 
-                                    label="Dose" placeholder="e.g. 500" unit="mg" 
+                                    label={t('medicalData.dose')} placeholder={t('medicalData.placeholderDose')} unit="mg" 
                                     value={newMedication.dose}
                                     onChangeText={(val: string) => handleMedicationChange('dose', val)}
                                 />
                             </View>
                         </View>
                         <FormInput 
-                            label="Dosage Instructions" required placeholder="e.g. 1 tablet twice daily" 
+                            label={t('medicalData.dosageInstructions')} required placeholder={t('medicalData.placeholderInstructions')} 
                             value={newMedication.instructions}
                             onChangeText={(val: string) => handleMedicationChange('instructions', val)}
                         />
                         <FormInput 
-                            label="Start Date" placeholder="Select date" isDate 
+                            label={t('medicalData.startDate')} placeholder={t('medicalData.placeholderSelectDate')} isDate 
                             value={newMedication.startDate.toISOString().split('T')[0].replace(/-/g, '/')}
                             onPress={() => setShowStartDatePicker(!showStartDatePicker)}
                         />
@@ -515,7 +518,7 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
                                 {Platform.OS === 'ios' && (
                                     <View style={styles.datePickerHeader}>
                                         <TouchableOpacity onPress={() => setShowStartDatePicker(false)}>
-                                            <Text style={styles.datePickerDone}>Done</Text>
+                                            <Text style={styles.datePickerDone}>{t('medicalData.done')}</Text>
                                         </TouchableOpacity>
                                     </View>
                                 )}
@@ -529,7 +532,7 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
                         )}
 
                         <FormInput 
-                            label="Notes" multiline placeholder="Add any additional notes about this medication..." 
+                            label={t('medicalData.notes')} multiline placeholder={t('medicalData.notesPlaceholder')} 
                             value={newMedication.notes}
                             onChangeText={(val: string) => handleMedicationChange('notes', val)}
                         />
@@ -540,14 +543,14 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
                                 onValueChange={setIsRegularMed}
                                 trackColor={{ false: '#e2e8f0', true: '#58a6b8' }}
                             />
-                            <Text style={styles.checkboxLabel}>Regular medication (taken on schedule)</Text>
+                            <Text style={styles.checkboxLabel}>{t('medicalData.regularMedication')}</Text>
                         </View>
                     </ScrollView>
                     <View style={styles.modalFooter}>
                         <TouchableOpacity style={styles.cancelOutlineButton} onPress={() => setShowMedModal(false)}>
-                            <Text style={styles.cancelOutlineText}>Cancel</Text>
+                            <Text style={styles.cancelOutlineText}>{t('medicalData.cancel')}</Text>
                         </TouchableOpacity>
-                        <SubmitButton title="Add" onPress={() => {
+                        <SubmitButton title={t('medicalData.addEntry')} onPress={() => {
                             // Add logic here if needed, or just close for now
                             console.log("Adding medication:", newMedication);
                             setShowMedModal(false);
@@ -564,43 +567,49 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
             <View style={styles.modalOverlay}>
                 <View style={styles.modalContent}>
                     <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>Add Diagnosis</Text>
+                        <Text style={styles.modalTitle}>{t('medicalData.addDiagnosis')}</Text>
                         <TouchableOpacity onPress={() => setShowDiagModal(false)}><Feather name="x" size={20} color="#94a3b8" /></TouchableOpacity>
                     </View>
                     <ScrollView style={styles.modalScroll}>
-                        <FormInput label="Description" hasInfo placeholder="" />
-                        <FormInput label="Code" required hasInfo placeholder="e.g. F32.1" />
+                        <FormInput label={t('medicalData.description')} hasInfo placeholder="" />
+                        <FormInput label={t('medicalData.code')} required hasInfo placeholder={t('medicalData.placeholderDiagnosisCode')} />
                         
                         <View style={styles.radioGroup}>
                             <View style={styles.labelRow}>
                                 <Text style={styles.requiredStar}>* </Text>
-                                <Text style={styles.inputLabel}>Diagnosis Type</Text>
+                                <Text style={styles.inputLabel}>{t('medicalData.diagnosisType')}</Text>
                                 <Feather name="help-circle" size={14} color="#94a3b8" style={{ marginLeft: 4 }} />
                             </View>
                             <View style={styles.radioRow}>
-                                <TouchableOpacity style={styles.radioItem} onPress={() => setDiagType('primary')}>
+                                <TouchableOpacity 
+                                    style={styles.radioItem} 
+                                    onPress={() => setDiagType('primary')}
+                                >
                                     <View style={[styles.radioOuter, diagType === 'primary' && styles.radioOuterActive]}>
                                         {diagType === 'primary' && <View style={styles.radioInner} />}
                                     </View>
-                                    <Text style={styles.radioLabel}>Primary diagnosis</Text>
+                                    <Text style={styles.radioLabel}>{t('medicalData.options.diagnosisTypes.Primary')}</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity style={styles.radioItem} onPress={() => setDiagType('secondary')}>
+                                <TouchableOpacity 
+                                    style={styles.radioItem} 
+                                    onPress={() => setDiagType('secondary')}
+                                >
                                     <View style={[styles.radioOuter, diagType === 'secondary' && styles.radioOuterActive]}>
                                         {diagType === 'secondary' && <View style={styles.radioInner} />}
                                     </View>
-                                    <Text style={styles.radioLabel}>Secondary diagnosis</Text>
+                                    <Text style={styles.radioLabel}>{t('medicalData.options.diagnosisTypes.Secondary')}</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
 
-                        <FormInput label="Notes" hasInfo multiline placeholder="Add any additional notes about this diagnosis..." />
+                        <FormInput label={t('medicalData.notes')} hasInfo multiline placeholder={t('medicalData.diagnosisNotesPlaceholder')} />
                         <Text style={styles.charCount}>0 / 500</Text>
                     </ScrollView>
                     <View style={styles.modalFooter}>
                         <TouchableOpacity style={styles.cancelOutlineButton} onPress={() => setShowDiagModal(false)}>
-                            <Text style={styles.cancelOutlineText}>Cancel</Text>
+                            <Text style={styles.cancelOutlineText}>{t('medicalData.cancel')}</Text>
                         </TouchableOpacity>
-                        <SubmitButton title="Add" />
+                        <SubmitButton title={t('medicalData.addEntry')} />
                     </View>
                 </View>
             </View>
@@ -612,13 +621,13 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
             <View style={styles.modalOverlay}>
                 <View style={styles.modalContent}>
                     <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>Add Allergy</Text>
+                        <Text style={styles.modalTitle}>{t('medicalData.addAllergy')}</Text>
                         <TouchableOpacity onPress={() => setShowAllergyModal(false)}><Feather name="x" size={20} color="#94a3b8" /></TouchableOpacity>
                     </View>
                     <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
                         <View style={{ zIndex: 20 }}>
                             <FormInput 
-                                label="Allergy Type" required placeholder="Select type" isDropdown 
+                                label={t('medicalData.allergyType')} required placeholder={t('medicalData.placeholderSelectType')} isDropdown 
                                 value={newAllergy.type}
                                 onPress={() => setShowAllergyTypeDropdown(!showAllergyTypeDropdown)}
                             />
@@ -633,7 +642,9 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
                                                 setShowAllergyTypeDropdown(false);
                                             }}
                                         >
-                                            <Text style={[styles.dropdownItemText, newAllergy.type === option && styles.dropdownItemTextActive]}>{option}</Text>
+                                            <Text style={[styles.dropdownItemText, newAllergy.type === option && styles.dropdownItemTextActive]}>
+                                                {t(`medicalData.options.allergyTypes.${option}`, { defaultValue: option })}
+                                            </Text>
                                         </TouchableOpacity>
                                     ))}
                                 </View>
@@ -641,19 +652,19 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
                         </View>
 
                         <FormInput 
-                            label="Allergen Name" placeholder="Enter allergen name..." 
+                            label={t('medicalData.allergenName')} placeholder={t('medicalData.placeholderAllergenName')} 
                             value={newAllergy.allergen}
                             onChangeText={(val: string) => handleAllergyChange('allergen', val)}
                         />
                         <FormInput 
-                            label="Allergic Reaction" multiline placeholder="Describe allergic reaction..." 
+                            label={t('medicalData.allergicReaction')} multiline placeholder={t('medicalData.placeholderAllergicReaction')} 
                             value={newAllergy.reaction}
                             onChangeText={(val: string) => handleAllergyChange('reaction', val)}
                         />
 
                         <View style={{ zIndex: 10 }}>
                             <FormInput 
-                                label="Severity" required placeholder="Select severity" isDropdown 
+                                label={t('medicalData.severity')} required placeholder={t('medicalData.placeholderSelectSeverity')} isDropdown 
                                 value={newAllergy.severity}
                                 onPress={() => setShowAllergySeverityDropdown(!showAllergySeverityDropdown)}
                             />
@@ -668,7 +679,9 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
                                                 setShowAllergySeverityDropdown(false);
                                             }}
                                         >
-                                            <Text style={[styles.dropdownItemText, newAllergy.severity === option && styles.dropdownItemTextActive]}>{option}</Text>
+                                            <Text style={[styles.dropdownItemText, newAllergy.severity === option && styles.dropdownItemTextActive]}>
+                                                {t(`medicalData.options.severityLevels.${option}`, { defaultValue: option })}
+                                            </Text>
                                         </TouchableOpacity>
                                     ))}
                                 </View>
@@ -677,7 +690,7 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
                         </View>
 
                         <FormInput 
-                            label="Notes" multiline placeholder="Additional notes..." 
+                            label={t('medicalData.notes')} multiline placeholder={t('medicalData.notesPlaceholder')} 
                             value={newAllergy.notes}
                             onChangeText={(val: string) => handleAllergyChange('notes', val)}
                         />
@@ -685,9 +698,9 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
                     </ScrollView>
                     <View style={styles.modalFooter}>
                         <TouchableOpacity style={styles.cancelOutlineButton} onPress={() => setShowAllergyModal(false)}>
-                            <Text style={styles.cancelOutlineText}>Cancel</Text>
+                            <Text style={styles.cancelOutlineText}>{t('medicalData.cancel')}</Text>
                         </TouchableOpacity>
-                        <SubmitButton title="Add Allergy" onPress={() => {
+                        <SubmitButton title={t('medicalData.addAllergy')} onPress={() => {
                             console.log("Adding allergy:", newAllergy);
                             setShowAllergyModal(false);
                         }} />
@@ -703,19 +716,19 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
             <View style={styles.modalOverlay}>
                 <View style={styles.modalContent}>
                     <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>Add Chronic Condition</Text>
+                        <Text style={styles.modalTitle}>{t('medicalData.addCondition')}</Text>
                         <TouchableOpacity onPress={() => setShowChronicModal(false)}><Feather name="x" size={20} color="#94a3b8" /></TouchableOpacity>
                     </View>
                     <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
                         <FormInput 
-                            label="Condition Name" placeholder="Enter condition name..." 
+                            label={t('medicalData.conditionName')} placeholder={t('medicalData.placeholderConditionName')} 
                             value={newCondition.name}
                             onChangeText={(val: string) => handleConditionChange('name', val)}
                         />
                         
                         <View style={{ zIndex: 20 }}>
                             <FormInput 
-                                label="Status" required placeholder="Select status" isDropdown 
+                                label={t('medicalData.status')} required placeholder={t('medicalData.placeholderSelectStatus')} isDropdown 
                                 value={newCondition.status}
                                 onPress={() => setShowConditionStatusDropdown(!showConditionStatusDropdown)}
                             />
@@ -730,7 +743,9 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
                                                 setShowConditionStatusDropdown(false);
                                             }}
                                         >
-                                            <Text style={[styles.dropdownItemText, newCondition.status === option && styles.dropdownItemTextActive]}>{option}</Text>
+                                            <Text style={[styles.dropdownItemText, newCondition.status === option && styles.dropdownItemTextActive]}>
+                                                {t(`medicalData.options.conditionStatuses.${option}`, { defaultValue: option })}
+                                            </Text>
                                         </TouchableOpacity>
                                     ))}
                                 </View>
@@ -739,7 +754,7 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
 
                         <View style={{ zIndex: 10 }}>
                             <FormInput 
-                                label="Severity" required placeholder="Select severity" isDropdown 
+                                label={t('medicalData.severity')} required placeholder={t('medicalData.placeholderSelectSeverity')} isDropdown 
                                 value={newCondition.severity}
                                 onPress={() => setShowConditionSeverityDropdown(!showConditionSeverityDropdown)}
                             />
@@ -754,7 +769,9 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
                                                 setShowConditionSeverityDropdown(false);
                                             }}
                                         >
-                                            <Text style={[styles.dropdownItemText, newCondition.severity === option && styles.dropdownItemTextActive]}>{option}</Text>
+                                            <Text style={[styles.dropdownItemText, newCondition.severity === option && styles.dropdownItemTextActive]}>
+                                                {t(`medicalData.options.severityLevels.${option}`, { defaultValue: option })}
+                                            </Text>
                                         </TouchableOpacity>
                                     ))}
                                 </View>
@@ -762,12 +779,12 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
                         </View>
 
                         <FormInput 
-                            label="Current Treatment" multiline placeholder="Describe treatment plan..." 
+                            label={t('medicalData.currentTreatment')} multiline placeholder={t('medicalData.placeholderTreatmentPlan')} 
                             value={newCondition.treatment}
                             onChangeText={(val: string) => handleConditionChange('treatment', val)}
                         />
                         <FormInput 
-                            label="Notes" multiline placeholder="Additional notes..." 
+                            label={t('medicalData.notes')} multiline placeholder={t('medicalData.notesPlaceholder')} 
                             value={newCondition.notes}
                             onChangeText={(val: string) => handleConditionChange('notes', val)}
                         />
@@ -775,9 +792,9 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
                     </ScrollView>
                     <View style={styles.modalFooter}>
                         <TouchableOpacity style={styles.cancelOutlineButton} onPress={() => setShowChronicModal(false)}>
-                            <Text style={styles.cancelOutlineText}>Cancel</Text>
+                            <Text style={styles.cancelOutlineText}>{t('medicalData.cancel')}</Text>
                         </TouchableOpacity>
-                        <SubmitButton title="Add Condition" onPress={() => {
+                        <SubmitButton title={t('medicalData.addEntry')} onPress={() => {
                             console.log("Adding condition:", newCondition);
                             setShowChronicModal(false);
                         }} />
@@ -793,19 +810,19 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
             <View style={styles.modalOverlay}>
                 <View style={styles.modalContent}>
                     <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>Add Family History</Text>
+                        <Text style={styles.modalTitle}>{t('medicalData.addEntry')}</Text>
                         <TouchableOpacity onPress={() => setShowFamilyModal(false)}><Feather name="x" size={20} color="#94a3b8" /></TouchableOpacity>
                     </View>
                     <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
                         <FormInput 
-                            label="Disease Name" required placeholder="e.g. Depression" 
+                            label={t('medicalData.diseaseName')} required placeholder={t('medicalData.placeholderDiseaseName')} 
                             value={newFamilyHistory.diseaseName}
                             onChangeText={(val: string) => handleFamilyHistoryChange('diseaseName', val)}
                         />
                         
                         <View style={{ zIndex: 10 }}>
                             <FormInput 
-                                label="Relationship" required placeholder="Select relationship" isDropdown 
+                                label={t('medicalData.relationship')} required placeholder={t('medicalData.placeholderSelectRelationship')} isDropdown 
                                 value={newFamilyHistory.relationship}
                                 onPress={() => setShowRelationshipDropdown(!showRelationshipDropdown)}
                             />
@@ -821,21 +838,23 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
                                                     setShowRelationshipDropdown(false);
                                                 }}
                                             >
-                                                <Text style={[styles.dropdownItemText, newFamilyHistory.relationship === option && styles.dropdownItemTextActive]}>{option}</Text>
+                                                <Text style={[styles.dropdownItemText, newFamilyHistory.relationship === option && styles.dropdownItemTextActive]}>
+                                                    {t(`medicalData.options.relationships.${option}`, { defaultValue: option })}
+                                                </Text>
                                             </TouchableOpacity>
                                         ))}
                                     </ScrollView>
                                 </View>
                             )}
                         </View>
-
+ 
                         <FormInput 
-                            label="Age of onset" placeholder="e.g. 45 years" 
+                            label={t('medicalData.ageOfOnset')} placeholder={t('medicalData.placeholderAgeOfOnset')} 
                             value={newFamilyHistory.ageOfOnset}
                             onChangeText={(val: string) => handleFamilyHistoryChange('ageOfOnset', val)}
                         />
                         <FormInput 
-                            label="Notes" multiline placeholder="Additional notes..." 
+                            label={t('medicalData.notes')} multiline placeholder={t('medicalData.notesPlaceholder')} 
                             value={newFamilyHistory.notes}
                             onChangeText={(val: string) => handleFamilyHistoryChange('notes', val)}
                         />
@@ -843,9 +862,9 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
                     </ScrollView>
                     <View style={styles.modalFooter}>
                         <TouchableOpacity style={styles.cancelOutlineButton} onPress={() => setShowFamilyModal(false)}>
-                            <Text style={styles.cancelOutlineText}>Cancel</Text>
+                            <Text style={styles.cancelOutlineText}>{t('medicalData.cancel')}</Text>
                         </TouchableOpacity>
-                        <SubmitButton title="Add Entry" onPress={() => {
+                        <SubmitButton title={t('medicalData.addEntry')} onPress={() => {
                             console.log("Adding family history:", newFamilyHistory);
                             setShowFamilyModal(false);
                         }} />
@@ -861,13 +880,13 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
             <View style={styles.modalOverlay}>
                 <View style={styles.modalContent}>
                     <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>Add Risk Factor</Text>
+                        <Text style={styles.modalTitle}>{t('medicalData.addRiskFactor')}</Text>
                         <TouchableOpacity onPress={() => setShowRiskModal(false)}><Feather name="x" size={20} color="#94a3b8" /></TouchableOpacity>
                     </View>
                     <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
                         <View style={{ zIndex: 20 }}>
                             <FormInput 
-                                label="Risk Category" required placeholder="Select category" isDropdown 
+                                label={t('medicalData.riskCategory')} required placeholder={t('medicalData.placeholderSelectCategory')} isDropdown 
                                 value={newRiskFactor.category}
                                 onPress={() => setShowRiskCategoryDropdown(!showRiskCategoryDropdown)}
                             />
@@ -882,22 +901,24 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
                                                 setShowRiskCategoryDropdown(false);
                                             }}
                                         >
-                                            <Text style={[styles.dropdownItemText, newRiskFactor.category === option && styles.dropdownItemTextActive]}>{option}</Text>
+                                            <Text style={[styles.dropdownItemText, newRiskFactor.category === option && styles.dropdownItemTextActive]}>
+                                                {t(`medicalData.options.riskCategories.${option}`, { defaultValue: option })}
+                                            </Text>
                                         </TouchableOpacity>
                                     ))}
                                 </View>
                             )}
                         </View>
-
+ 
                         <FormInput 
-                            label="Risk Factor" required placeholder="Enter or select risk factor..." 
+                            label={t('medicalData.riskFactor')} required placeholder={t('medicalData.placeholderEnterRiskFactor')} 
                             value={newRiskFactor.factor}
                             onChangeText={(val: string) => handleRiskFactorChange('factor', val)}
                         />
-
+ 
                         <View style={{ zIndex: 10 }}>
                             <FormInput 
-                                label="Risk Level" required placeholder="Select level" isDropdown 
+                                label={t('medicalData.riskLevel')} required placeholder={t('medicalData.placeholderSelectSeverity')} isDropdown 
                                 value={newRiskFactor.level}
                                 onPress={() => setShowRiskLevelDropdown(!showRiskLevelDropdown)}
                             />
@@ -912,15 +933,17 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
                                                 setShowRiskLevelDropdown(false);
                                             }}
                                         >
-                                            <Text style={[styles.dropdownItemText, newRiskFactor.level === option && styles.dropdownItemTextActive]}>{option}</Text>
+                                            <Text style={[styles.dropdownItemText, newRiskFactor.level === option && styles.dropdownItemTextActive]}>
+                                                {t(`medicalData.options.severityLevels.${option}`, { defaultValue: option })}
+                                            </Text>
                                         </TouchableOpacity>
                                     ))}
                                 </View>
                             )}
                         </View>
-
+ 
                         <FormInput 
-                            label="Notes" multiline placeholder="Add notes..." 
+                            label={t('medicalData.notes')} multiline placeholder={t('medicalData.notesPlaceholder')} 
                             value={newRiskFactor.notes}
                             onChangeText={(val: string) => handleRiskFactorChange('notes', val)}
                         />
@@ -928,9 +951,9 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
                     </ScrollView>
                     <View style={styles.modalFooter}>
                         <TouchableOpacity style={styles.cancelOutlineButton} onPress={() => setShowRiskModal(false)}>
-                            <Text style={styles.cancelOutlineText}>Cancel</Text>
+                            <Text style={styles.cancelOutlineText}>{t('medicalData.cancel')}</Text>
                         </TouchableOpacity>
-                        <SubmitButton title="Add" onPress={() => {
+                        <SubmitButton title={t('medicalData.add')} onPress={() => {
                             console.log("Adding risk factor:", newRiskFactor);
                             setShowRiskModal(false);
                         }} />
@@ -974,18 +997,18 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
             
             <View style={styles.medicationBody}>
                 <View style={styles.medicationInfoColumn}>
-                    <Text style={styles.medicationDetail}>Dosage: {med.dosage || '1 tablet daily'}</Text>
+                    <Text style={styles.medicationDetail}>{t('medicalData.dosage')}: {med.dosage || '1 tablet daily'}</Text>
                     <View style={styles.dateRow}>
                         <Feather name="clock" size={12} color="#94a3b8" style={{ marginRight: 4 }} />
-                        <Text style={styles.medicationDetail}>From {formatDate(med.startDate) || '04/03/2026'}</Text>
+                        <Text style={styles.medicationDetail}>{t('medicalData.from')} {formatDate(med.startDate) || '04/03/2026'}</Text>
                     </View>
-                    <Text style={styles.medicationDetail}>Notes: {med.instructions || med.notes || 'It is for headache'}</Text>
+                    <Text style={styles.medicationDetail}>{t('medicalData.notes')}: {med.instructions || med.notes || 'It is for headache'}</Text>
                 </View>
 
                 <View style={styles.medicationActions}>
                     {!isHistory && (
                         <TouchableOpacity style={styles.endButton} onPress={() => endMedication(index)}>
-                            <Text style={styles.endButtonText}>End</Text>
+                            <Text style={styles.endButtonText}>{t('medicalData.end')}</Text>
                         </TouchableOpacity>
                     )}
                     <TouchableOpacity style={styles.deleteButton} onPress={() => deleteMedication(index, isHistory)}>
@@ -1003,7 +1026,7 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
                     <Feather name="activity" size={16} color="#4DA1C0" style={{ marginRight: 6 }} />
                     <Text style={styles.medicationName}>{diag.description || diag.code} - </Text>
                     <View style={[styles.statusBadge, { backgroundColor: '#E0F2FE' }]}>
-                        <Text style={[styles.statusBadgeText, { color: '#0EA5E9' }]}>{diag.type || 'Primary'}</Text>
+                        <Text style={[styles.statusBadgeText, { color: '#0EA5E9' }]}>{t(`medicalData.options.diagnosisTypes.${diag.type || 'Primary'}`, { defaultValue: diag.type || 'Primary' })}</Text>
                     </View>
                 </View>
                 <Text style={styles.doctorName}>{diag.doctor || 'Hamad Alvi'}</Text>
@@ -1013,9 +1036,9 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
                 <View style={styles.medicationInfoColumn}>
                     <View style={styles.dateRow}>
                         <Feather name="calendar" size={12} color="#94a3b8" style={{ marginRight: 4 }} />
-                        <Text style={styles.medicationDetail}>From {formatDate(diag.date || diag.onsetDate) || '04/03/2026'}</Text>
+                        <Text style={styles.medicationDetail}>{t('medicalData.from')} {formatDate(diag.date || diag.onsetDate) || '04/03/2026'}</Text>
                     </View>
-                    <Text style={styles.medicationDetail}>Notes: {diag.notes || 'Health is fine'}</Text>
+                    <Text style={styles.medicationDetail}>{t('medicalData.notes')}: {diag.notes || 'Health is fine'}</Text>
                 </View>
                 
                 <View style={styles.medicationActions}>
@@ -1025,7 +1048,7 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
                                 style={[styles.statusDropdownBtn, openStatusMenu?.type === 'diag' && openStatusMenu.index === index && { borderColor: '#4DA1C0' }]}
                                 onPress={() => setOpenStatusMenu(openStatusMenu?.type === 'diag' && openStatusMenu.index === index ? null : { type: 'diag', index })}
                             >
-                                <Text style={styles.statusDropdownBtnText}>{diag.status || 'Active'}</Text>
+                                <Text style={styles.statusDropdownBtnText}>{t(`medicalData.options.conditionStatuses.${diag.status || 'Active'}`, { defaultValue: diag.status || 'Active' })}</Text>
                                 <Feather name="chevron-down" size={12} color="#94a3b8" />
                             </TouchableOpacity>
                             
@@ -1038,7 +1061,7 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
                                             onPress={() => updateDiagnosisStatus(index, status)}
                                         >
                                             <Text style={[styles.statusOptionText, diag.status === status && styles.statusOptionTextActive]}>
-                                                {status}
+                                                {t(`medicalData.options.conditionStatuses.${status}`, { defaultValue: status })}
                                             </Text>
                                         </TouchableOpacity>
 
@@ -1063,7 +1086,7 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
                     <Feather name="alert-circle" size={16} color={isHistory ? "#94a3b8" : "#4DA1C0"} style={{ marginRight: 6 }} />
                     <Text style={[styles.medicationName, isHistory && { color: '#64748b' }]}>{allergy.name || allergy.allergen}</Text>
                     <View style={[styles.statusBadge, { backgroundColor: isHistory ? '#f1f5f9' : '#FEF3C7' }]}>
-                        <Text style={[styles.statusBadgeText, { color: isHistory ? '#94a3b8' : '#D97706' }]}>{allergy.severity || 'Moderate'}</Text>
+                        <Text style={[styles.statusBadgeText, { color: isHistory ? '#94a3b8' : '#D97706' }]}>{t(`medicalData.options.severityLevels.${allergy.severity || 'Moderate'}`, { defaultValue: allergy.severity || 'Moderate' })}</Text>
                     </View>
                 </View>
                 <Text style={styles.doctorName}>{allergy.doctor || 'Hamad Alvi'}</Text>
@@ -1071,12 +1094,12 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
             
             <View style={styles.medicationBody}>
                 <View style={styles.medicationInfoColumn}>
-                    <Text style={styles.medicationDetail}>Reaction: {allergy.reaction || 'Allergic to skin'}</Text>
+                    <Text style={styles.medicationDetail}>{t('medicalData.reaction')}: {allergy.reaction || 'Allergic to skin'}</Text>
                     <View style={styles.dateRow}>
                         <Feather name="calendar" size={12} color="#94a3b8" style={{ marginRight: 4 }} />
-                        <Text style={styles.medicationDetail}>Diagnosed: {formatDate(allergy.date || allergy.diagnosedDate) || '04/03/2026'}</Text>
+                        <Text style={styles.medicationDetail}>{t('medicalData.diagnosed')}: {formatDate(allergy.date || allergy.diagnosedDate) || '04/03/2026'}</Text>
                     </View>
-                    <Text style={styles.medicationDetail}>Notes: {allergy.notes || 'Not too risky'}</Text>
+                    <Text style={styles.medicationDetail}>{t('medicalData.notes')}: {allergy.notes || 'Not too risky'}</Text>
                 </View>
                 
                 <View style={styles.medicationActions}>
@@ -1095,7 +1118,7 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
                     <Feather name="heart" size={16} color={isHistory ? "#94a3b8" : "#4DA1C0"} style={{ marginRight: 6 }} />
                     <Text style={[styles.medicationName, isHistory && { color: '#64748b' }]}>{item.name || item.condition}</Text>
                     <View style={[styles.statusBadge, { backgroundColor: isHistory ? '#f1f5f9' : '#E0F2FE' }]}>
-                        <Text style={[styles.statusBadgeText, { color: isHistory ? '#94a3b8' : '#0EA5E9' }]}>{item.status || 'Active'}</Text>
+                        <Text style={[styles.statusBadgeText, { color: isHistory ? '#94a3b8' : '#0EA5E9' }]}>{t(`medicalData.options.conditionStatuses.${item.status || 'Active'}`, { defaultValue: item.status || 'Active' })}</Text>
                     </View>
                 </View>
                 <Text style={styles.doctorName}>{item.doctor || 'Hamad Alvi'}</Text>
@@ -1103,12 +1126,12 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
             
             <View style={styles.medicationBody}>
                 <View style={styles.medicationInfoColumn}>
-                    <Text style={styles.medicationDetail}>Treatment: {item.treatment || 'Needs some rest'}</Text>
+                    <Text style={styles.medicationDetail}>{t('medicalData.treatment')}: {item.treatment || 'Needs some rest'}</Text>
                     <View style={styles.dateRow}>
                         <Feather name="calendar" size={12} color="#94a3b8" style={{ marginRight: 4 }} />
-                        <Text style={styles.medicationDetail}>Diagnosed: {formatDate(item.date || item.diagnosedDate) || '04/03/2026'}</Text>
+                        <Text style={styles.medicationDetail}>{t('medicalData.diagnosed')}: {formatDate(item.date || item.diagnosedDate) || '04/03/2026'}</Text>
                     </View>
-                    <Text style={styles.medicationDetail}>Notes: {item.notes || 'Eat Fruits regularly'}</Text>
+                    <Text style={styles.medicationDetail}>{t('medicalData.notes')}: {item.notes || 'Eat Fruits regularly'}</Text>
                 </View>
                 
                 <View style={styles.medicationActions}>
@@ -1118,7 +1141,7 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
                                 style={[styles.statusDropdownBtn, openStatusMenu?.type === 'chronic' && openStatusMenu.index === index && { borderColor: '#4DA1C0' }]}
                                 onPress={() => setOpenStatusMenu(openStatusMenu?.type === 'chronic' && openStatusMenu.index === index ? null : { type: 'chronic', index })}
                             >
-                                <Text style={styles.statusDropdownBtnText}>{item.status || 'Active'}</Text>
+                                <Text style={styles.statusDropdownBtnText}>{t(`medicalData.options.conditionStatuses.${item.status || 'Active'}`, { defaultValue: item.status || 'Active' })}</Text>
                                 <Feather name="chevron-down" size={12} color="#94a3b8" />
                             </TouchableOpacity>
 
@@ -1131,7 +1154,7 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
                                             onPress={() => updateChronicStatus(index, status)}
                                         >
                                             <Text style={[styles.statusOptionText, item.status === status && styles.statusOptionTextActive]}>
-                                                {status}
+                                                {t(`medicalData.options.conditionStatuses.${status}`, { defaultValue: status })}
                                             </Text>
                                         </TouchableOpacity>
 
@@ -1159,9 +1182,9 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
             
             <View style={styles.medicationBody}>
                 <View style={styles.medicationInfoColumn}>
-                    <Text style={styles.medicationDetail}>Relationship: {item.relationship}</Text>
-                    <Text style={styles.medicationDetail}>Age of onset: {item.ageOfOnset || item.onsetAge || '70'}</Text>
-                    <Text style={styles.medicationDetail}>Notes: {item.notes || 'There is Sugar in the genetics'}</Text>
+                    <Text style={styles.medicationDetail}>{t('medicalData.relationship')}: {item.relationship}</Text>
+                    <Text style={styles.medicationDetail}>{t('medicalData.ageOfOnsetLower')}: {item.ageOfOnset || item.onsetAge || '70'}</Text>
+                    <Text style={styles.medicationDetail}>{t('medicalData.notes')}: {item.notes || 'There is Sugar in the genetics'}</Text>
                 </View>
                 
                 <View style={styles.medicationActions}>
@@ -1180,15 +1203,15 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
                     <Feather name="alert-triangle" size={16} color="#4DA1C0" style={{ marginRight: 6 }} />
                     <Text style={[styles.medicationName, isHistory && { color: '#64748b' }]}>{item.factor}</Text>
                     <View style={[styles.statusBadge, { backgroundColor: isHistory ? '#f1f5f9' : '#FEF3C7' }]}>
-                        <Text style={[styles.statusBadgeText, { color: isHistory ? '#94a3b8' : '#D97706' }]}>{item.level || 'Moderate'}</Text>
+                        <Text style={[styles.statusBadgeText, { color: isHistory ? '#94a3b8' : '#D97706' }]}>{t(`medicalData.options.severityLevels.${item.level || 'Moderate'}`, { defaultValue: item.level || 'Moderate' })}</Text>
                     </View>
                 </View>
             </View>
             
             <View style={styles.medicationBody}>
                 <View style={styles.medicationInfoColumn}>
-                    <Text style={styles.medicationDetail}>Category: {item.category || 'Genetic'}</Text>
-                    <Text style={styles.medicationDetail}>Notes: {item.notes || 'A little factor'}</Text>
+                    <Text style={styles.medicationDetail}>{t('medicalData.category')}: {item.category || 'Genetic'}</Text>
+                    <Text style={styles.medicationDetail}>{t('medicalData.notes')}: {item.notes || 'A little factor'}</Text>
                 </View>
                 
                 <View style={styles.medicationActions}>
@@ -1211,146 +1234,146 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: any
             {renderAddFamilyModal()}
             {renderAddRiskModal()}
 
-            <AccordionItem title="Medicines" icon="link">
+            <AccordionItem title={t('medicalData.medicines')} icon="link">
                 <View style={styles.sectionHeaderRow}>
-                    <Text style={styles.subHeader}>Regular Medications</Text>
-                    <ActionOutlineButton title="Add Medication" icon="plus" onPress={() => setShowMedModal(true)} />
+                    <Text style={styles.subHeader}>{t('medicalData.regularMedications')}</Text>
+                    <ActionOutlineButton title={t('medicalData.addMedication')} icon="plus" onPress={() => setShowMedModal(true)} />
                 </View>
                 {medicalData?.medications?.length > 0 ? (
                     medicalData.medications.map((m: any, idx: number) => renderMedicationItem(m, `med-${idx}`, idx))
                 ) : (
 
                     <View style={styles.emptyBox}>
-                        <Text style={styles.emptyBoxText}>No regular medications</Text>
+                        <Text style={styles.emptyBoxText}>{t('medicalData.noRegularMedications')}</Text>
                     </View>
                 )}
                 
-                <Text style={[styles.subHeader, { marginTop: 15 }]}>As Needed (PRN) Medications</Text>
-                {renderEmptyBox("No as-needed medications")}
+                <Text style={[styles.subHeader, { marginTop: 15 }]}>{t('medicalData.asNeededMedications')}</Text>
+                {renderEmptyBox(t('medicalData.noAsNeededMedications'))}
                 
-                <Text style={[styles.subHeader, { marginTop: 15 }]}>Medication History</Text>
+                <Text style={[styles.subHeader, { marginTop: 15 }]}>{t('medicalData.medicationHistory')}</Text>
                 {medicalData?.medicationHistory?.length > 0 ? (
                     medicalData.medicationHistory.map((m: any, idx: number) => renderMedicationItem(m, `med-hist-${idx}`, idx, true))
-                ) : renderEmptyBox("No medication history")}
-
+                ) : renderEmptyBox(t('medicalData.noMedicationHistory'))}
+ 
                 
                 <View style={styles.saveContainer}>
                     <SubmitButton 
-                        title={isSaving ? "Saving..." : "Save"} 
+                        title={isSaving ? t('medicalData.saving') : t('medicalData.save')} 
                         onPress={() => handleSave('medications')} 
                     />
                 </View>
             </AccordionItem>
 
-            <AccordionItem title="Diagnosis" icon="activity">
+            <AccordionItem title={t('medicalData.diagnosis')} icon="activity">
                 <View style={styles.sectionHeaderRow}>
-                    <Text style={styles.subHeader}>Active Diagnoses</Text>
-                    <ActionOutlineButton title="Add Diagnosis" icon="plus" onPress={() => setShowDiagModal(true)} />
+                    <Text style={styles.subHeader}>{t('medicalData.activeDiagnoses')}</Text>
+                    <ActionOutlineButton title={t('medicalData.addDiagnosis')} icon="plus" onPress={() => setShowDiagModal(true)} />
                 </View>
                 {medicalData?.diagnoses?.length > 0 ? (
                     medicalData.diagnoses.map((d: any, idx: number) => renderDiagnosisItem(d, `diag-${idx}`, idx))
                 ) : (
                     <View style={styles.emptyBox}>
-                        <Text style={styles.emptyBoxText}>No active diagnoses</Text>
+                        <Text style={styles.emptyBoxText}>{t('medicalData.noActiveDiagnoses')}</Text>
                     </View>
                 )}
                 
-                <Text style={[styles.subHeader, { marginTop: 15 }]}>Diagnosis History</Text>
+                <Text style={[styles.subHeader, { marginTop: 15 }]}>{t('medicalData.diagnosisHistory')}</Text>
                 {medicalData?.diagnosisHistory?.length > 0 ? (
                     medicalData.diagnosisHistory.map((d: any, idx: number) => renderDiagnosisItem(d, `diag-hist-${idx}`, idx, true))
-                ) : renderEmptyBox("No diagnosis history")}
+                ) : renderEmptyBox(t('medicalData.noDiagnosisHistory'))}
                 
                 <View style={styles.saveContainer}>
                     <SubmitButton 
-                        title={isSaving ? "Saving..." : "Save"} 
+                        title={isSaving ? t('medicalData.saving') : t('medicalData.save')} 
                         onPress={() => handleSave('diagnoses')} 
                     />
                 </View>
             </AccordionItem>
 
-            <AccordionItem title="Allergies and intolerances" icon="alert-circle">
+            <AccordionItem title={t('medicalData.allergiesAndIntolerances')} icon="alert-circle">
                 <View style={styles.sectionHeaderRow}>
-                    <Text style={styles.subHeader}>Allergies and Intolerances</Text>
-                    <ActionOutlineButton title="Add Allergy" icon="plus" onPress={() => setShowAllergyModal(true)} />
+                    <Text style={styles.subHeader}>{t('medicalData.allergiesAndIntolerances')}</Text>
+                    <ActionOutlineButton title={t('medicalData.addAllergy')} icon="plus" onPress={() => setShowAllergyModal(true)} />
                 </View>
                 {medicalData?.allergies?.length > 0 ? (
                     medicalData.allergies.map((a: any, idx: number) => renderAllergyItem(a, `all-${idx}`, idx))
-                ) : renderEmptyBox("No registered allergies")}
-
-                <Text style={[styles.subHeader, { marginTop: 15 }]}>Past Allergies</Text>
+                ) : renderEmptyBox(t('medicalData.noRegisteredAllergies'))}
+ 
+                <Text style={[styles.subHeader, { marginTop: 15 }]}>{t('medicalData.pastAllergies')}</Text>
                 {medicalData?.allergyHistory?.length > 0 ? (
                     medicalData.allergyHistory.map((a: any, idx: number) => renderAllergyItem(a, `all-hist-${idx}`, idx, true))
-                ) : renderEmptyBox("No allergy history")}
-
+                ) : renderEmptyBox(t('medicalData.noAllergyHistory'))}
+ 
                 <View style={styles.saveContainer}>
                     <SubmitButton 
-                        title={isSaving ? "Saving..." : "Save"} 
+                        title={isSaving ? t('medicalData.saving') : t('medicalData.save')} 
                         onPress={() => handleSave('allergies')} 
                     />
                 </View>
             </AccordionItem>
 
-            <AccordionItem title="Chronic diseases" icon="heart">
+            <AccordionItem title={t('medicalData.chronicDiseases')} icon="heart">
                 <View style={styles.sectionHeaderRow}>
-                    <Text style={styles.subHeader}>Chronic Conditions</Text>
-                    <ActionOutlineButton title="Add Condition" icon="plus" onPress={() => setShowChronicModal(true)} />
+                    <Text style={styles.subHeader}>{t('medicalData.chronicConditions')}</Text>
+                    <ActionOutlineButton title={t('medicalData.addCondition')} icon="plus" onPress={() => setShowChronicModal(true)} />
                 </View>
                 {medicalData?.chronicConditions?.length > 0 ? (
                     medicalData.chronicConditions.map((c: any, idx: number) => renderChronicItem(c, `chronic-${idx}`, idx))
-                ) : renderEmptyBox("No chronic conditions")}
-
-                <Text style={[styles.subHeader, { marginTop: 15 }]}>Chronic Disease History</Text>
+                ) : renderEmptyBox(t('medicalData.noChronicConditions'))}
+ 
+                <Text style={[styles.subHeader, { marginTop: 15 }]}>{t('medicalData.chronicDiseaseHistory')}</Text>
                 {medicalData?.chronicHistory?.length > 0 ? (
                     medicalData.chronicHistory.map((c: any, idx: number) => renderChronicItem(c, `chronic-hist-${idx}`, idx, true))
-                ) : renderEmptyBox("No chronic condition history")}
-
+                ) : renderEmptyBox(t('medicalData.noChronicConditionHistory'))}
+ 
                 <View style={styles.saveContainer}>
                     <SubmitButton 
-                        title={isSaving ? "Saving..." : "Save"} 
+                        title={isSaving ? t('medicalData.saving') : t('medicalData.save')} 
                         onPress={() => handleSave('chronic')} 
                     />
                 </View>
             </AccordionItem>
             
-            <AccordionItem title="Family interview" icon="users">
+            <AccordionItem title={t('medicalData.familyInterview')} icon="users">
                 <View style={styles.sectionHeaderRow}>
-                    <Text style={styles.subHeader}>Family History</Text>
-                    <ActionOutlineButton title="Add Entry" icon="plus" onPress={() => setShowFamilyModal(true)} />
+                    <Text style={styles.subHeader}>{t('medicalData.familyHistory')}</Text>
+                    <ActionOutlineButton title={t('medicalData.addEntry')} icon="plus" onPress={() => setShowFamilyModal(true)} />
                 </View>
                 {medicalData?.familyHistory?.length > 0 ? (
                     medicalData.familyHistory.map((f: any, idx: number) => renderFamilyItem(f, `family-${idx}`, idx))
-                ) : renderEmptyBox("No family history entries")}
-
-                <Text style={[styles.subHeader, { marginTop: 15 }]}>Past Family History</Text>
+                ) : renderEmptyBox(t('medicalData.noFamilyHistoryEntries'))}
+ 
+                <Text style={[styles.subHeader, { marginTop: 15 }]}>{t('medicalData.pastFamilyHistory')}</Text>
                 {medicalData?.familyHistoryPast?.length > 0 ? (
                     medicalData.familyHistoryPast.map((f: any, idx: number) => renderFamilyItem(f, `family-past-${idx}`, idx, true))
-                ) : renderEmptyBox("No historical entries")}
-
+                ) : renderEmptyBox(t('medicalData.noHistoricalEntries'))}
+ 
                 <View style={styles.saveContainer}>
                     <SubmitButton 
-                        title={isSaving ? "Saving..." : "Save"} 
+                        title={isSaving ? t('medicalData.saving') : t('medicalData.save')} 
                         onPress={() => handleSave('family')} 
                     />
                 </View>
             </AccordionItem>
 
-            <AccordionItem title="Risk factors" icon="alert-triangle">
+            <AccordionItem title={t('medicalData.riskFactors')} icon="alert-triangle">
                 <View style={styles.sectionHeaderRow}>
-                    <Text style={styles.subHeader}>Risk Factors</Text>
-                    <ActionOutlineButton title="Add Risk Factor" icon="plus" onPress={() => setShowRiskModal(true)} />
+                    <Text style={styles.subHeader}>{t('medicalData.riskFactors')}</Text>
+                    <ActionOutlineButton title={t('medicalData.addRiskFactor')} icon="plus" onPress={() => setShowRiskModal(true)} />
                 </View>
                 {medicalData?.riskFactors?.length > 0 ? (
                     medicalData.riskFactors.map((r: any, idx: number) => renderRiskItem(r, `risk-${idx}`, idx))
-                ) : renderEmptyBox("No risk factors recorded")}
-
-                <Text style={[styles.subHeader, { marginTop: 15 }]}>Risk Factor History</Text>
+                ) : renderEmptyBox(t('medicalData.noRiskFactorsRecorded'))}
+ 
+                <Text style={[styles.subHeader, { marginTop: 15 }]}>{t('medicalData.riskFactorHistory')}</Text>
                 {medicalData?.riskHistory?.length > 0 ? (
                     medicalData.riskHistory.map((r: any, idx: number) => renderRiskItem(r, `risk-hist-${idx}`, idx, true))
-                ) : renderEmptyBox("No risk history")}
-
+                ) : renderEmptyBox(t('medicalData.noRiskHistory'))}
+ 
                 <View style={styles.saveContainer}>
                     <SubmitButton 
-                        title={isSaving ? "Saving..." : "Save"} 
+                        title={isSaving ? t('medicalData.saving') : t('medicalData.save')} 
                         onPress={() => handleSave('risk')} 
                     />
                 </View>

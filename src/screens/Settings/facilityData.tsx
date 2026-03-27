@@ -19,6 +19,7 @@ import CustomTextInput from '../../component/customTextInput';
 import CustomDropdown from '../../component/customDropDown';
 import PrimaryButton from '../../component/button';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { GetFacilitySettings, UpdateFacilitySettings } from '../../Services/Facility.Service';
 import { uploadFileOnServer } from '../../Services/Upload.Service';
 import CustomAlert from '../../component/customAlert';
@@ -26,6 +27,7 @@ import DocumentPicker from 'react-native-document-picker';
 import { Image } from 'react-native';
 
 const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
+    const { t } = useTranslation();
     const navigation = useNavigation<any>();
 
     // State variables for form fields
@@ -63,22 +65,22 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
 
     // Options for dropdowns
     const facilityTypeOptions = [
-        { label: 'Individual practice', value: 'praktyka_ind' },
-        { label: 'Group practice', value: 'praktyka_zesp' },
-        { label: 'Hospital', value: 'szpital' },
-        { label: 'Clinic', value: 'przychodnia' },
+        { label: t('settings.facility_data.options.facility_types.individual'), value: 'praktyka_ind' },
+        { label: t('settings.facility_data.options.facility_types.group'), value: 'praktyka_zesp' },
+        { label: t('settings.facility_data.options.facility_types.hospital'), value: 'szpital' },
+        { label: t('settings.facility_data.options.facility_types.clinic'), value: 'przychodnia' },
     ];
 
     const visitTypeOptions = [
-        { label: 'Private', value: 'private' },
-        { label: 'NFZ', value: 'nfz' },
-        { label: 'Mixed', value: 'mixed' },
+        { label: t('settings.facility_data.options.visit_types.private'), value: 'private' },
+        { label: t('settings.facility_data.options.visit_types.nfz'), value: 'nfz' },
+        { label: t('settings.facility_data.options.visit_types.mixed'), value: 'mixed' },
     ];
 
     const receptionModeOptions = [
-        { label: 'In Person', value: 'inPerson' },
-        { label: 'Online', value: 'online' },
-        { label: 'Telephone', value: 'telephone' },
+        { label: t('settings.facility_data.options.reception_modes.in_person'), value: 'inPerson' },
+        { label: t('settings.facility_data.options.reception_modes.online'), value: 'online' },
+        { label: t('settings.facility_data.options.reception_modes.telephone'), value: 'telephone' },
     ];
 
     const nfzOptions = [
@@ -164,7 +166,7 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
             }
         } catch (error) {
             console.error("Error fetching facility data:", error);
-            showAlert('error', 'Failed to load facility data');
+            showAlert('error', t('settings.facility_data.alerts.fetch_error'));
         } finally {
             setLoading(false);
         }
@@ -187,7 +189,7 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                 // User cancelled the picker
             } else {
                 console.error("Error picking document:", err);
-                showAlert('error', 'Failed to pick file');
+                showAlert('error', t('settings.facility_data.alerts.pick_error'));
             }
         }
     };
@@ -242,10 +244,10 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                 onAlert({
                     visible: true,
                     type: 'success',
-                    message: 'Facility Settings updated successfully!'
+                    message: t('settings.facility_data.alerts.save_success')
                 });
             } else {
-                showAlert('success', 'Facility settings updated successfully');
+                showAlert('success', t('settings.facility_data.alerts.save_success'));
             }
             
             // Refresh to see new changes
@@ -257,10 +259,10 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                 onAlert({
                     visible: true,
                     type: 'error',
-                    message: 'Failed to update facility settings'
+                    message: t('settings.facility_data.alerts.save_error')
                 });
             } else {
-                showAlert('error', 'Failed to update facility settings');
+                showAlert('error', t('settings.facility_data.alerts.save_error'));
             }
         } finally {
             setLoading(false);
@@ -270,203 +272,204 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
     return (
         <View style={styles.container}>
             <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-                {/* Header with Logo */}
-                <View style={styles.topHeader}>
-                    <View style={styles.logoContainer}>
-                        <MaterialCommunityIcons name="office-building-cog-outline" size={24} color="#4A90B9" />
-                    </View>
-                    <Text style={styles.topHeaderTitle}>Facility Data</Text>
+            
+            {/* Header with Logo */}
+            <View style={styles.topHeader}>
+                <View style={styles.logoContainer}>
+                    <MaterialCommunityIcons name="office-building-cog-outline" size={24} color="#4A90B9" />
                 </View>
+                <Text style={styles.topHeaderTitle}>{t('settings.facility_data.title')}</Text>
+            </View>
 
-                {/* Content */}
-                <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContent}>
-                    <View style={[styles.formCard, { padding: 20 }]}>
-                        {/* Basic Information Section */}
-                        <View style={styles.formSection}>
-                            <View style={styles.sectionHeader}>
-                                <Ionicons name="information-circle-outline" size={20} color="#4A90B9" />
-                                <Text style={styles.sectionTitle}>Basic Information</Text>
+            {/* Content */}
+            <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContent}>
+                <View style={[styles.formCard, { padding: 20 }]}>
+                    {/* Basic Information Section */}
+                    <View style={styles.formSection}>
+                        <View style={styles.sectionHeader}>
+                            <Ionicons name="information-circle-outline" size={20} color="#4A90B9" />
+                            <Text style={styles.sectionTitle}>{t('settings.facility_data.sections.general')}</Text>
+                        </View>
+
+                        <View style={styles.rowContainer}>
+                            <View style={{ flex: 2, marginRight: 12 }}>
+                                <Text style={styles.label}>{t('settings.facility_data.labels.name')} <Text style={styles.required}>*</Text></Text>
+                                <CustomTextInput
+                                    placeholder={t('settings.facility_data.placeholders.enter_name')}
+                                    value={name}
+                                    onChangeText={setName}
+                                />
                             </View>
-
-                            <View style={styles.rowContainer}>
-                                <View style={{ flex: 2, marginRight: 12 }}>
-                                    <Text style={styles.label}>Name <Text style={styles.required}>*</Text></Text>
-                                    <CustomTextInput
-                                        placeholder="Facility Name"
-                                        value={name}
-                                        onChangeText={setName}
-                                    />
-                                </View>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={styles.label}>REGON <Text style={styles.required}>*</Text></Text>
-                                    <CustomTextInput
-                                        placeholder="REGON"
-                                        value={regon}
-                                        onChangeText={setRegon}
-                                        keyboardType="numeric"
-                                    />
-                                </View>
-                            </View>
-
-                            <View style={[styles.rowContainer, { marginTop: 10 }]}>
-                                <View style={{ flex: 1, marginRight: 10 }}>
-                                    <Text style={styles.label}>NIP <Text style={styles.required}>*</Text></Text>
-                                    <CustomTextInput
-                                        placeholder="NIP"
-                                        value={nip}
-                                        onChangeText={setNip}
-                                        keyboardType="numeric"
-                                    />
-                                </View>
-                                <View style={{ flex: 1, marginRight: 10 }}>
-                                    <Text style={styles.label}>BDO Number</Text>
-                                    <CustomTextInput
-                                        placeholder="BDO"
-                                        value={bdo}
-                                        onChangeText={setBdo}
-                                        keyboardType="numeric"
-                                    />
-                                </View>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={styles.label}>Registry No.</Text>
-                                    <CustomTextInput
-                                        placeholder="Registry"
-                                        value={registryNumber}
-                                        onChangeText={setRegistryNumber}
-                                    />
-                                </View>
-                            </View>
-
-                            <View style={[styles.rowContainer, { marginTop: 10 }]}>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={styles.label}>Facility Type <Text style={styles.required}>*</Text></Text>
-                                    <CustomDropdown
-                                        placeholder="Select type"
-                                        options={facilityTypeOptions}
-                                        value={facilityType}
-                                        onChange={(val) => setFacilityType(val.toString())}
-                                    />
-                                </View>
-                            </View>
-
-                            <View style={[styles.rowContainer, { marginTop: 10 }]}>
-                                <View style={{ flex: 1, marginRight: 10 }}>
-                                    <Text style={styles.label}>Phone <Text style={styles.required}>*</Text></Text>
-                                    <CustomTextInput
-                                        placeholder="Phone"
-                                        value={phone}
-                                        onChangeText={setPhone}
-                                        keyboardType="phone-pad"
-                                    />
-                                </View>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={styles.label}>Email <Text style={styles.required}>*</Text></Text>
-                                    <CustomTextInput
-                                        placeholder="Email"
-                                        value={email}
-                                        onChangeText={setEmail}
-                                        keyboardType="email-address"
-                                    />
-                                </View>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.label}>{t('settings.facility_data.labels.regon')} <Text style={styles.required}>*</Text></Text>
+                                <CustomTextInput
+                                    placeholder={t('settings.facility_data.labels.regon')}
+                                    value={regon}
+                                    onChangeText={setRegon}
+                                    keyboardType="numeric"
+                                />
                             </View>
                         </View>
+
+                        <View style={[styles.rowContainer, { marginTop: 10 }]}>
+                            <View style={{ flex: 1, marginRight: 10 }}>
+                                <Text style={styles.label}>{t('settings.facility_data.labels.nip')} <Text style={styles.required}>*</Text></Text>
+                                <CustomTextInput
+                                    placeholder={t('settings.facility_data.labels.nip')}
+                                    value={nip}
+                                    onChangeText={setNip}
+                                    keyboardType="numeric"
+                                />
+                            </View>
+                            <View style={{ flex: 1, marginRight: 10 }}>
+                                <Text style={styles.label}>{t('settings.facility_data.labels.bdo')}</Text>
+                                <CustomTextInput
+                                    placeholder={t('settings.facility_data.labels.bdo')}
+                                    value={bdo}
+                                    onChangeText={setBdo}
+                                    keyboardType="numeric"
+                                />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.label}>{t('settings.facility_data.labels.registry_number')}</Text>
+                                <CustomTextInput
+                                    placeholder={t('settings.facility_data.placeholders.registry')}
+                                    value={registryNumber}
+                                    onChangeText={setRegistryNumber}
+                                />
+                            </View>
+                        </View>
+
+                        <View style={[styles.rowContainer, { marginTop: 10 }]}>
+                            <View style={{ flex: 1, marginRight: 10 }}>
+                                <Text style={styles.label}>{t('settings.facility_data.labels.facility_type')} <Text style={styles.required}>*</Text></Text>
+                                <CustomDropdown
+                                    placeholder={t('settings.facility_data.placeholders.select_type')}
+                                    options={facilityTypeOptions}
+                                    value={facilityType}
+                                    onChange={(val) => setFacilityType(val.toString())}
+                                />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.label}>{t('settings.facility_data.labels.phone')} <Text style={styles.required}>*</Text></Text>
+                                <CustomTextInput
+                                    placeholder={t('settings.facility_data.labels.phone')}
+                                    value={phone}
+                                    onChangeText={setPhone}
+                                    keyboardType="phone-pad"
+                                />
+                            </View>
+                        </View>
+
+                        <View style={[styles.rowContainer, { marginTop: 10 }]}>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.label}>{t('settings.facility_data.labels.email')} <Text style={styles.required}>*</Text></Text>
+                                <CustomTextInput
+                                    placeholder={t('settings.facility_data.labels.email')}
+                                    value={email}
+                                    onChangeText={setEmail}
+                                    keyboardType="email-address"
+                                />
+                            </View>
+                        </View>
+                    </View>
 
                         <View style={styles.divider} />
 
-                        {/* Contact & Address Section */}
-                        <View style={styles.formSection}>
-                            <View style={styles.sectionHeader}>
-                                <Ionicons name="location-outline" size={20} color="#4A90B9" />
-                                <Text style={styles.sectionTitle}>Contact & Address</Text>
-                            </View>
+                    {/* Contact & Address Section */}
+                    <View style={styles.formSection}>
+                        <View style={styles.sectionHeader}>
+                            <Ionicons name="location-outline" size={20} color="#4A90B9" />
+                            <Text style={styles.sectionTitle}>{t('settings.facility_data.sections.address')}</Text>
+                        </View>
 
-                            <View style={styles.rowContainer}>
-                                <View style={{ flex: 1, marginRight: 15 }}>
-                                    <Text style={styles.label}>Website</Text>
-                                    <CustomTextInput
-                                        placeholder="Enter website URL"
-                                        value={website}
-                                        onChangeText={setWebsite}
-                                        keyboardType="url"
-                                    />
-                                </View>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={styles.label}>Account Number</Text>
-                                    <CustomTextInput
-                                        placeholder="Account number"
-                                        value={accountNumber}
-                                        onChangeText={setAccountNumber}
-                                    />
-                                </View>
+                        <View style={styles.rowContainer}>
+                            <View style={{ flex: 1, marginRight: 15 }}>
+                                <Text style={styles.label}>{t('settings.facility_data.labels.website')}</Text>
+                                <CustomTextInput
+                                    placeholder={t('settings.facility_data.placeholders.enter_website')}
+                                    value={website}
+                                    onChangeText={setWebsite}
+                                    keyboardType="url"
+                                />
                             </View>
-
-                            <View style={[styles.rowContainer, { marginTop: 15 }]}>
-                                <View style={{ flex: 2, marginRight: 15 }}>
-                                    <Text style={styles.label}>Street <Text style={styles.required}>*</Text></Text>
-                                    <CustomTextInput
-                                        placeholder="Street name"
-                                        value={street}
-                                        onChangeText={setStreet}
-                                    />
-                                </View>
-                                <View style={{ flex: 1, marginRight: 15 }}>
-                                    <Text style={styles.label}>House <Text style={styles.required}>*</Text></Text>
-                                    <CustomTextInput
-                                        placeholder="No."
-                                        value={houseNo}
-                                        onChangeText={setHouseNo}
-                                    />
-                                </View>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={styles.label}>Apt No.</Text>
-                                    <CustomTextInput
-                                        placeholder="Apt."
-                                        value={apartmentNo}
-                                        onChangeText={setApartmentNo}
-                                    />
-                                </View>
-                            </View>
-
-                            <View style={[styles.rowContainer, { marginTop: 15 }]}>
-                                <View style={{ flex: 1, marginRight: 15 }}>
-                                    <Text style={styles.label}>Postal Code <Text style={styles.required}>*</Text></Text>
-                                    <CustomTextInput
-                                        placeholder="XX-XXX"
-                                        value={postalCode}
-                                        onChangeText={setPostalCode}
-                                    />
-                                </View>
-                                <View style={{ flex: 2 }}>
-                                    <Text style={styles.label}>City <Text style={styles.required}>*</Text></Text>
-                                    <CustomTextInput
-                                        placeholder="City name"
-                                        value={city}
-                                        onChangeText={setCity}
-                                    />
-                                </View>
-                            </View>
-
-                            <View style={[styles.rowContainer, { marginTop: 15 }]}>
-                                <View style={{ flex: 1, marginRight: 15 }}>
-                                    <Text style={styles.label}>TERYT Code <Text style={styles.required}>*</Text></Text>
-                                    <CustomTextInput
-                                        placeholder="Search TERYT..."
-                                        value={terytCode}
-                                        onChangeText={setTerytCode}
-                                        icon={<FontAwesome name="search" size={14} color="#64748B" />}
-                                    />
-                                </View>
-                                <View style={{ flex: 2 }}>
-                                    <Text style={styles.label}>NFZ Code <Text style={styles.required}>*</Text></Text>
-                                    <CustomDropdown
-                                        placeholder="Select NFZ branch"
-                                        options={nfzOptions}
-                                        value={nfzCode}
-                                        onChange={(val) => setNfzCode(val.toString())}
-                                    />
-                                </View>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.label}>{t('settings.facility_data.labels.account_number')}</Text>
+                                <CustomTextInput
+                                    placeholder={t('settings.facility_data.labels.account_number')}
+                                    value={accountNumber}
+                                    onChangeText={setAccountNumber}
+                                />
                             </View>
                         </View>
+
+                        <View style={[styles.rowContainer, { marginTop: 15 }]}>
+                            <View style={{ flex: 2, marginRight: 15 }}>
+                                <Text style={styles.label}>{t('settings.facility_data.labels.street')} <Text style={styles.required}>*</Text></Text>
+                                <CustomTextInput
+                                    placeholder={t('settings.facility_data.placeholders.street')}
+                                    value={street}
+                                    onChangeText={setStreet}
+                                />
+                            </View>
+                            <View style={{ flex: 1, marginRight: 15 }}>
+                                <Text style={styles.label}>{t('settings.facility_data.labels.house_no')} <Text style={styles.required}>*</Text></Text>
+                                <CustomTextInput
+                                    placeholder={t('settings.facility_data.placeholders.no')}
+                                    value={houseNo}
+                                    onChangeText={setHouseNo}
+                                />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.label}>{t('settings.facility_data.labels.apartment_no')}</Text>
+                                <CustomTextInput
+                                    placeholder={t('settings.facility_data.placeholders.apt')}
+                                    value={apartmentNo}
+                                    onChangeText={setApartmentNo}
+                                />
+                            </View>
+                        </View>
+
+                        <View style={[styles.rowContainer, { marginTop: 15 }]}>
+                            <View style={{ flex: 1, marginRight: 15 }}>
+                                <Text style={styles.label}>{t('settings.facility_data.labels.postal_code')} <Text style={styles.required}>*</Text></Text>
+                                <CustomTextInput
+                                    placeholder="XX-XXX"
+                                    value={postalCode}
+                                    onChangeText={setPostalCode}
+                                />
+                            </View>
+                            <View style={{ flex: 2 }}>
+                                <Text style={styles.label}>{t('settings.facility_data.labels.city')} <Text style={styles.required}>*</Text></Text>
+                                <CustomTextInput
+                                    placeholder={t('settings.facility_data.placeholders.city')}
+                                    value={city}
+                                    onChangeText={setCity}
+                                />
+                            </View>
+                        </View>
+
+                        <View style={[styles.rowContainer, { marginTop: 15 }]}>
+                            <View style={{ flex: 1, marginRight: 15 }}>
+                                <Text style={styles.label}>{t('settings.facility_data.labels.teryt_code')} <Text style={styles.required}>*</Text></Text>
+                                <CustomTextInput
+                                    placeholder={t('settings.facility_data.placeholders.search_teryt')}
+                                    value={terytCode}
+                                    onChangeText={setTerytCode}
+                                    icon={<FontAwesome name="search" size={14} color="#64748B" />}
+                                />
+                            </View>
+                            <View style={{ flex: 2 }}>
+                                <Text style={styles.label}>{t('settings.facility_data.labels.nfz_branch')} <Text style={styles.required}>*</Text></Text>
+                                <CustomDropdown
+                                    placeholder={t('settings.facility_data.placeholders.select_nfz_branch')}
+                                    options={nfzOptions}
+                                    value={nfzCode}
+                                    onChange={(val) => setNfzCode(val.toString())}
+                                />
+                            </View>
+                        </View>
+                    </View>
 
                         <View style={styles.divider} />
 
@@ -474,12 +477,12 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                         <View style={styles.formSection}>
                             <View style={styles.sectionHeader}>
                                 <Ionicons name="time-outline" size={20} color="#4A90B9" />
-                                <Text style={styles.sectionTitle}>Workflow Settings</Text>
+                                <Text style={styles.sectionTitle}>{t('settings.facility_data.sections.other')}</Text>
                             </View>
 
                             <View style={styles.rowContainer}>
                                 <View style={styles.halfField}>
-                                    <Text style={styles.label}>Working hours from <Text style={styles.required}>*</Text></Text>
+                                    <Text style={styles.label}>{t('settings.facility_data.labels.work_hours')} <Text style={styles.required}>*</Text></Text>
                                     <TouchableOpacity 
                                         activeOpacity={0.7}
                                         onPress={() => setActivePicker('from')}
@@ -494,9 +497,9 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                                         </View>
                                     </TouchableOpacity>
                                 </View>
- 
+
                                 <View style={styles.halfField}>
-                                    <Text style={styles.label}>Working hours to <Text style={styles.required}>*</Text></Text>
+                                    <Text style={styles.label}>{t('settings.facility_data.labels.work_hours')} <Text style={styles.required}>*</Text></Text>
                                     <TouchableOpacity 
                                         activeOpacity={0.7}
                                         onPress={() => setActivePicker('to')}
@@ -531,12 +534,6 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                                                 setWorkHoursToDate(selectedDate);
                                             }
                                         }
-
-                                        // For iOS spinner, we might want a different way to close it
-                                        // but usually it's handled by some "Done" button if wrapped in a modal.
-                                        // Here, since the user wants it to "show when clicked", we'll keep it simple
-                                        // and maybe just close it if they click the input again or we can add a close button.
-                                        // For now, let's just make it show the selector.
                                     }}
                                 />
                             )}
@@ -545,13 +542,13 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                                     style={styles.closePickerBtn}
                                     onPress={() => setActivePicker(null)}
                                 >
-                                    <Text style={styles.closePickerText}>Done</Text>
+                                    <Text style={styles.closePickerText}>{t('settings.facility_data.buttons.done')}</Text>
                                 </TouchableOpacity>
                             )}
 
                             <View style={[styles.rowContainer, { marginTop: 10 }]}>
                                 <View style={styles.halfField}>
-                                    <Text style={styles.label}>Visit Duration (min) <Text style={styles.required}>*</Text></Text>
+                                    <Text style={styles.label}>{t('settings.facility_data.labels.visit_duration')} <Text style={styles.required}>*</Text></Text>
                                     <CustomTextInput
                                         placeholder="30"
                                         value={visitDuration}
@@ -561,9 +558,9 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                                 </View>
 
                                 <View style={styles.halfField}>
-                                    <Text style={styles.label}>Visit Type</Text>
+                                    <Text style={styles.label}>{t('settings.facility_data.labels.visit_type')}</Text>
                                     <CustomDropdown
-                                        placeholder="Select type"
+                                        placeholder={t('settings.facility_data.placeholders.select_visit_type')}
                                         options={visitTypeOptions}
                                         value={visitType}
                                         onChange={(val) => setVisitType(val.toString())}
@@ -572,9 +569,9 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                             </View>
 
                             <View style={[styles.formField, { marginTop: 10 }]}>
-                                <Text style={styles.label}>Default Reception Mode</Text>
+                                <Text style={styles.label}>{t('settings.facility_data.labels.reception_mode')}</Text>
                                 <CustomDropdown
-                                    placeholder="Select mode"
+                                    placeholder={t('settings.facility_data.placeholders.select_reception_mode')}
                                     options={receptionModeOptions}
                                     value={defaultReceptionMode}
                                     onChange={(val) => setDefaultReceptionMode(val.toString())}
@@ -584,78 +581,78 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
 
                         <View style={styles.divider} />
 
-                        <View style={styles.formSection}>
-                            <Text style={styles.label}>Facility logo / Document</Text>
-                            <View style={styles.logoUploadContainer}>
-                                <TouchableOpacity 
-                                    style={styles.chooseFileBtn}
-                                    onPress={pickLogo}
-                                >
-                                    <View style={styles.chooseFileInner}>
-                                        <Ionicons name="cloud-upload-outline" size={18} color="#4A90B9" />
-                                        <Text style={styles.chooseFileText}>
-                                            {logo ? 'CHANGE FILE' : 'CHOOSE FILE'}
-                                        </Text>
+                    <View style={styles.formSection}>
+                        <Text style={styles.label}>{t('settings.facility_data.labels.logo')}</Text>
+                        <View style={styles.logoUploadContainer}>
+                            <TouchableOpacity 
+                                style={styles.chooseFileBtn}
+                                onPress={pickLogo}
+                            >
+                                <View style={styles.chooseFileInner}>
+                                    <Ionicons name="cloud-upload-outline" size={18} color="#4A90B9" />
+                                    <Text style={styles.chooseFileText}>
+                                        {logo ? t('settings.facility_data.buttons.choose_file') : t('settings.facility_data.buttons.choose_file')}
+                                    </Text>
+                                </View>
+                            </TouchableOpacity>
+                            {logo && (
+                                <View style={styles.selectedFileContainer}>
+                                    <View style={styles.logoPreviewWrapper}>
+                                        {logo.type?.startsWith('image/') ? (
+                                            <Image source={{ uri: logo.uri }} style={styles.logoPreview} />
+                                        ) : (
+                                            <Ionicons name="document-text-outline" size={24} color="#4A90B9" />
+                                        )}
                                     </View>
-                                </TouchableOpacity>
-                                {logo && (
-                                    <View style={styles.selectedFileContainer}>
-                                        <View style={styles.logoPreviewWrapper}>
-                                            {logo.type?.startsWith('image/') ? (
-                                                <Image source={{ uri: logo.uri }} style={styles.logoPreview} />
-                                            ) : (
-                                                <Ionicons name="document-text-outline" size={24} color="#4A90B9" />
-                                            )}
-                                        </View>
-                                        <Text style={styles.fileName} numberOfLines={1}>{logo.name}</Text>
-                                        <TouchableOpacity onPress={() => setLogo(null)}>
-                                            <Ionicons name="close-circle" size={20} color="#EF4444" />
-                                        </TouchableOpacity>
-                                    </View>
-                                )}
-                            </View>
+                                    <Text style={styles.fileName} numberOfLines={1}>{logo.name}</Text>
+                                    <TouchableOpacity onPress={() => setLogo(null)}>
+                                        <Ionicons name="close-circle" size={20} color="#EF4444" />
+                                    </TouchableOpacity>
+                                </View>
+                            )}
                         </View>
 
-                            <View style={styles.formField}>
-                                <Text style={styles.label}>Personal data processing consent text (change default)</Text>
-                                <CustomTextInput
-                                    placeholder=""
-                                    value={consentText}
-                                    onChangeText={setConsentText}
-                                    multiline={true}
-                                    numberOfLines={6}
-                                    icon={undefined}
-                                    right={undefined}
-                                    onRightPress={undefined}
-                                    keyboardType={undefined}
-                                />
-                            </View>
-
-                            <View style={{ alignItems: 'flex-end', marginTop: 10 }}>
-                                <Text style={styles.requiredNote}>* Required field</Text>
-                            </View>
-                        </View>
-
-                        <View style={styles.buttonContainer}>
-                            <PrimaryButton
-                                label="Save Changes"
-                                filled={true}
-                                icon={<FontAwesome name="save" size={16} color="white" />}
-                                onPress={handleSave}
-                                style={{ width: "100%" }}
-                                loading={loading}
-                                disabled={loading}
+                        <View style={[styles.formField, { marginTop: 20 }]}>
+                            <Text style={styles.label}>{t('settings.facility_data.labels.consent')}</Text>
+                            <CustomTextInput
+                                placeholder=""
+                                value={consentText}
+                                onChangeText={setConsentText}
+                                multiline={true}
+                                numberOfLines={6}
+                                icon={undefined}
+                                right={undefined}
+                                onRightPress={undefined}
+                                keyboardType={undefined}
                             />
                         </View>
-                        <View style={{ height: 20 }} />
-                </ScrollView>
-                <CustomAlert
-                    visible={alertConfig.visible}
-                    type={alertConfig.type}
-                    message={alertConfig.message}
-                    onClose={() => setAlertConfig({ ...alertConfig, visible: false })}
-                />
-            </View>
+
+                        <View style={{ alignItems: 'flex-end', marginTop: 10 }}>
+                            <Text style={styles.requiredNote}>* {t('settings.facility_data.labels.required_field')}</Text>
+                        </View>
+                    </View>
+
+                    <View style={styles.buttonContainer}>
+                        <PrimaryButton
+                            label={t('settings.facility_data.buttons.save')}
+                            filled={true}
+                            icon={<FontAwesome name="save" size={16} color="white" />}
+                            onPress={handleSave}
+                            style={{ width: "100%" }}
+                            loading={loading}
+                            disabled={loading}
+                        />
+                    </View>
+                    <View style={{ height: 20 }} />
+                </View>
+            </ScrollView>
+            <CustomAlert
+                visible={alertConfig.visible}
+                type={alertConfig.type}
+                message={alertConfig.message}
+                onClose={() => setAlertConfig({ ...alertConfig, visible: false })}
+            />
+        </View>
     );
 };
 

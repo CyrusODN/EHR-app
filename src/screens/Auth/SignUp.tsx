@@ -111,7 +111,7 @@ const checkValidation = () => {
                 setSpinner(false);
 
                 if (response) {
-                    let successMessage = 'User signed up successfully! Please verify your email address to login';
+                    let successMessage = t('signup.registration_success');
 
                     if (typeof response === 'object') {
                         successMessage = response.data || successMessage;
@@ -139,7 +139,7 @@ const checkValidation = () => {
                 setAlertConfig({
                     visible: true,
                     type: 'error',
-                    message: error.message || 'Something went wrong. Please try again.',
+                    message: error.message || t('auth.error_default'),
                 });
             }
         }, 0);
@@ -189,7 +189,7 @@ const checkValidation = () => {
                         console.log('Sign in is in progress already');
                         return;
                     } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-                        setAlertConfig({ visible: true, type: 'error', message: 'Play services not available or outdated' });
+                        setAlertConfig({ visible: true, type: 'error', message: t('login.play_services_error') });
                         setIsGoogleLoading(false);
                         return;
                     } else {
@@ -204,7 +204,7 @@ const checkValidation = () => {
             // Validate we got a token
             if (!idToken) {
                 setIsGoogleLoading(false);
-                setAlertConfig({ visible: true, type: 'error', message: 'Error Signing In with Google' });
+                setAlertConfig({ visible: true, type: 'error', message: t('login.google_signin_error') });
                 return;
             }
 
@@ -231,7 +231,7 @@ const checkValidation = () => {
             setAlertConfig({
                 visible: true,
                 type: 'success',
-                message: `Google Sign-Up successful!\nEmail: ${googleEmail}\n\nPayload logged to console. API integration pending.`,
+                message: t('signup.google_signup_success'),
             });
 
         } catch (error: any) {
@@ -239,7 +239,7 @@ const checkValidation = () => {
             const message =
                 error?.response?.data?.message ||
                 error?.message ||
-                'Failed to initiate Google sign-up';
+                t('signup.google_signup_failed');
             setAlertConfig({
                 visible: true,
                 type: 'error',
@@ -274,7 +274,7 @@ const checkValidation = () => {
 
           {/* Header */}
           <View style={{ width: '100%', alignItems: 'center' }}>
-            <Text style={styles.header}>Create your account</Text>
+            <Text style={styles.header}>{t('signup.create_account')}</Text>
           </View>
 
           {/* Full Name Input */}
@@ -353,7 +353,7 @@ const checkValidation = () => {
 
 
          <PrimaryButton
-            label="Sign up"
+            label={t('signup.signup_button')}
             filled
             onPress={handleSignUp}
             style={styles.primaryButton}
@@ -379,13 +379,13 @@ const checkValidation = () => {
               style={styles.googleIcon}
             />
             <Text style={{color: 'black', fontWeight: '500'}}>
-              {isGoogleLoading ? 'Signing up...' : t('login.continue_with_google')}
+              {isGoogleLoading ? t('signup.signing_up') : t('login.continue_with_google')}
             </Text>
           </TouchableOpacity>
 
           <Gap height={hp(1.5)} />
           <Text style={styles.restrictionText}>
-            Registration is restricted to authorized email addresses only.
+            {t('signup.restriction_text')}
           </Text>
 
           <Gap height={hp(2)} />

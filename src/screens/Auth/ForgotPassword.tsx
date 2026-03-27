@@ -96,7 +96,7 @@ const checkValidation = () => {
                 setSpinner(false);
 
                 if (response) {
-                    let successMessage = 'An email has been sent to your registered email address with otp code to reset your password.';
+                    let successMessage = t('forgot_password.otp_success');
 
                     if (typeof response === 'object') {
                         successMessage = response.data || successMessage;
@@ -124,7 +124,7 @@ const checkValidation = () => {
                 setAlertConfig({
                     visible: true,
                     type: 'error',
-                    message: error.message || 'Something went wrong. Please try again.',
+                    message: error.message || t('auth.error_default'),
                 });
             }
         }, 0);

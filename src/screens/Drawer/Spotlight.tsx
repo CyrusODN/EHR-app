@@ -17,8 +17,10 @@ import PrimaryButton from '../../component/button';
 import { Searchbar } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Feather from 'react-native-vector-icons/Feather';
+import { useTranslation } from 'react-i18next';
 
 const SpotlightScreen = () => {
+    const { t } = useTranslation();
     const [searchQuery, setSearchQuery] = useState('');
     const navigation = useNavigation();
     const [active, setActive] = useState(0);
@@ -29,9 +31,9 @@ const SpotlightScreen = () => {
                 {/* Header */}
                 <View style={styles.header}>
                     <View>
-                        <Text style={styles.headerTitle}>Spotlight</Text>
+                        <Text style={styles.headerTitle}>{t('spotlight.title')}</Text>
                         <Text style={styles.headerSubtitle}>
-                            Securely share anonymized patient data for clinical research
+                            {t('spotlight.subtitle')}
                         </Text>
                     </View>
                     <View style={styles.headerRightContainer}>
@@ -49,7 +51,7 @@ const SpotlightScreen = () => {
                 <View style={styles.contentContainer}>
                     <View style={styles.actionButtonsContainer}>
                         <PrimaryButton
-                            label={"New Submission"}
+                            label={t('spotlight.newSubmission')}
                             filled={active == 0 ? true : false}
                             onPress={() => {
                                 setActive(0);
@@ -62,7 +64,7 @@ const SpotlightScreen = () => {
                             disabled={false}
                         />
                         <PrimaryButton
-                            label={"My Submission"}
+                            label={t('spotlight.mySubmission')}
                             filled={active == 1 ? true : false}
                             onPress={() => {
                                 setActive(1);
@@ -79,16 +81,16 @@ const SpotlightScreen = () => {
 
                     {active == 0 ?
                         <View style={styles.searchContainer}>
-                            <Text style={styles.searchLabel}>Patient Selection</Text>
+                            <Text style={styles.searchLabel}>{t('spotlight.patientSelection')}</Text>
                             <Searchbar
-                                placeholder="Search patient"
+                                placeholder={t('spotlight.searchPatient')}
                                 style={styles.searchBar}
 
                                 icon="magnify" value={''} />
                         </View>
                         :
                         <View style={styles.searchContainer}>
-                            <Text style={styles.searchLabel}>Moje zgloszenia w Spotlight</Text>
+                            <Text style={styles.searchLabel}>{t('spotlight.myRequests')}</Text>
                             <View style={{ width: '100%', backgroundColor: "#ccc", height: 1, marginVertical: hp(1) }} />
                             <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
                                 <View style={{ width: '65%', }}>
@@ -96,10 +98,10 @@ const SpotlightScreen = () => {
                                         <MaterialCommunityIcons name="clock-outline" color="orange" size={20} />
                                         <Text style={{
                                             marginLeft: wp(1)
-                                        }}>Oczekujace</Text>
+                                        }}>{t('spotlight.status.pending')}</Text>
                                     </View>
-                                    <Text style={{ color: "grey" }}>ID pacjecta: P123</Text>
-                                    <Text style={{ color: "grey" }}>Data zgtoszenia: 19/03/2024, 10:00:00</Text>
+                                    <Text style={{ color: "grey" }}>{t('spotlight.patientId')}: P123</Text>
+                                    <Text style={{ color: "grey" }}>{t('spotlight.submissionDate')}: 19/03/2024, 10:00:00</Text>
                                 </View>
                                 <PrimaryButton
                                     label={"Podglad"}
@@ -121,14 +123,14 @@ const SpotlightScreen = () => {
                                             <Feather name="check-circle" color="green" size={20} />
                                             <Text style={{
                                                 marginLeft: wp(1)
-                                            }}>Zaakceptowane</Text>
+                                            }}>{t('spotlight.status.accepted')}</Text>
                                         </View>
-                                        <Text style={{ color: "grey" }}>ID pacjecta: P123</Text>
-                                        <Text style={{ color: "grey" }}>Data zgtoszenia: 19/03/2024, 10:00:00</Text>
+                                        <Text style={{ color: "grey" }}>{t('spotlight.patientId')}: P123</Text>
+                                        <Text style={{ color: "grey" }}>{t('spotlight.submissionDate')}: 19/03/2024, 10:00:00</Text>
                                     </View>
                                     <View style={{ width: "50%" }} >
                                         <PrimaryButton
-                                            label={"Podglad"}
+                                            label={t('spotlight.view')}
                                             filled={false}
                                             onPress={() => { }}
                                             style={{ width: "70%", alignSelf: "flex-end" }}
@@ -140,7 +142,7 @@ const SpotlightScreen = () => {
                                             disabled={false}
                                         />
                                         <PrimaryButton
-                                            label={"Wtacz do badania"}
+                                            label={t('spotlight.includeInStudy')}
                                             filled={true}
                                             onPress={() => { }}
                                             style={{ width: "100%" }}
@@ -156,8 +158,8 @@ const SpotlightScreen = () => {
                                 </View>
                                 <Text style={{
                                     marginLeft: wp(1)
-                                }}>Centrum Badan Kliniczynch</Text>
-                                <Text style={{ marginLeft: wp(1), color: "grey" }}>Badanie skuteczności nowej terapii w leczeniu migreny</Text>
+                                }}>{t('spotlight.clinicalCenter')}</Text>
+                                <Text style={{ marginLeft: wp(1), color: "grey" }}>{t('spotlight.migraineStudy')}</Text>
                             </View>
 
                         </View>

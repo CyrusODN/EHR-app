@@ -10,6 +10,7 @@ import {
 import Feather from 'react-native-vector-icons/Feather';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import LinearGradient from 'react-native-linear-gradient';
+import { useTranslation } from 'react-i18next';
 
 interface VisitExaminationProps {
     onNext: () => void;
@@ -19,6 +20,7 @@ interface VisitExaminationProps {
 }
 
 const VisitExamination = ({ onNext, onBack, visitData, onUpdate }: VisitExaminationProps) => {
+    const { t } = useTranslation();
     const [bloodPressure, setBloodPressure] = useState(visitData?.examination?.bloodPressure || '');
     const [heartRate, setHeartRate] = useState(visitData?.examination?.heartRate || '');
     const [temperature, setTemperature] = useState(visitData?.examination?.temperature || '');
@@ -38,57 +40,51 @@ const VisitExamination = ({ onNext, onBack, visitData, onUpdate }: VisitExaminat
     return (
         <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
             <View style={styles.card}>
-                <Text style={styles.title}>Physical Examination</Text>
+                <Text style={styles.title}>{t('visit.examination.title')}</Text>
 
                 <View style={styles.formContainer}>
                     {/* Left Column */}
                     <View style={styles.column}>
                         <View style={styles.fieldContainer}>
-                            <Text style={styles.label}>Blood Pressure</Text>
+                            <Text style={styles.label}>{t('visit.examination.bloodPressure')}</Text>
                             <TextInput
                                 style={styles.input}
-                                placeholder="np. 120/80 mmHg"
+                                placeholder={t('visit.examination.placeholders.bp')}
                                 placeholderTextColor="#94A3B8"
                                 value={bloodPressure}
-                                onChangeText={setBloodPressure}
-                                onBlur={() => {
-                                    if (onUpdate && (visitData?.examination?.bloodPressure !== bloodPressure)) {
-                                        onUpdate({ examination: { bloodPressure } });
-                                    }
+                                onChangeText={(text) => {
+                                    setBloodPressure(text);
+                                    if (onUpdate) onUpdate({ examination: { bloodPressure: text } });
                                 }}
                             />
                         </View>
 
                         <View style={styles.fieldContainer}>
-                            <Text style={styles.label}>Heart Rate (bpm)</Text>
+                            <Text style={styles.label}>{t('visit.examination.heartRate')}</Text>
                             <TextInput
                                 style={styles.input}
-                                placeholder="e.g. 72"
+                                placeholder={t('visit.examination.placeholders.hr')}
                                 placeholderTextColor="#94A3B8"
                                 keyboardType="numeric"
                                 value={heartRate}
-                                onChangeText={setHeartRate}
-                                onBlur={() => {
-                                    if (onUpdate && (visitData?.examination?.heartRate !== heartRate)) {
-                                        onUpdate({ examination: { heartRate } });
-                                    }
+                                onChangeText={(text) => {
+                                    setHeartRate(text);
+                                    if (onUpdate) onUpdate({ examination: { heartRate: text } });
                                 }}
                             />
                         </View>
 
                         <View style={styles.fieldContainer}>
-                            <Text style={styles.label}>Temperature (°C)</Text>
+                            <Text style={styles.label}>{t('visit.examination.temperature')}</Text>
                             <TextInput
                                 style={styles.input}
-                                placeholder="e.g. 36.6"
+                                placeholder={t('visit.examination.placeholders.temp')}
                                 placeholderTextColor="#94A3B8"
                                 keyboardType="numeric"
                                 value={temperature}
-                                onChangeText={setTemperature}
-                                onBlur={() => {
-                                    if (onUpdate && (visitData?.examination?.temperature !== temperature)) {
-                                        onUpdate({ examination: { temperature } });
-                                    }
+                                onChangeText={(text) => {
+                                    setTemperature(text);
+                                    if (onUpdate) onUpdate({ examination: { temperature: text } });
                                 }}
                             />
                         </View>
@@ -97,7 +93,7 @@ const VisitExamination = ({ onNext, onBack, visitData, onUpdate }: VisitExaminat
                     {/* Right Column */}
                     <View style={styles.column}>
                         <View style={styles.fieldContainer}>
-                            <Text style={styles.label}>General Condition</Text>
+                            <Text style={styles.label}>{t('visit.examination.generalCondition')}</Text>
                             <TextInput
                                 style={styles.textArea}
                                 placeholder=""
@@ -106,30 +102,26 @@ const VisitExamination = ({ onNext, onBack, visitData, onUpdate }: VisitExaminat
                                 numberOfLines={5}
                                 textAlignVertical="top"
                                 value={generalCondition}
-                                onChangeText={setGeneralCondition}
-                                onBlur={() => {
-                                    if (onUpdate && (visitData?.examination?.generalCondition !== generalCondition)) {
-                                        onUpdate({ examination: { generalCondition } });
-                                    }
+                                onChangeText={(text) => {
+                                    setGeneralCondition(text);
+                                    if (onUpdate) onUpdate({ examination: { generalCondition: text } });
                                 }}
                             />
                         </View>
 
                         <View style={styles.fieldContainer}>
-                            <Text style={styles.label}>Additional Findings</Text>
+                            <Text style={styles.label}>{t('visit.examination.additionalFindings')}</Text>
                             <TextInput
                                 style={styles.textArea}
-                                placeholder="Other observations..."
+                                placeholder={t('visit.examination.placeholders.findings')}
                                 placeholderTextColor="#94A3B8"
                                 multiline
                                 numberOfLines={4}
                                 textAlignVertical="top"
                                 value={additionalFindings}
-                                onChangeText={setAdditionalFindings}
-                                onBlur={() => {
-                                    if (onUpdate && (visitData?.examination?.additionalFindings !== additionalFindings)) {
-                                        onUpdate({ examination: { additionalFindings } });
-                                    }
+                                onChangeText={(text) => {
+                                    setAdditionalFindings(text);
+                                    if (onUpdate) onUpdate({ examination: { additionalFindings: text } });
                                 }}
                             />
                         </View>
@@ -141,7 +133,7 @@ const VisitExamination = ({ onNext, onBack, visitData, onUpdate }: VisitExaminat
             <View style={styles.footer}>
                 <TouchableOpacity style={styles.backButton} onPress={onBack}>
                     <Feather name="arrow-left" size={18} color="#58A7B3" />
-                    <Text style={styles.backButtonText}>Back</Text>
+                    <Text style={styles.backButtonText}>{t('visit.navigation.previous')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={onNext}>
@@ -151,7 +143,7 @@ const VisitExamination = ({ onNext, onBack, visitData, onUpdate }: VisitExaminat
                         end={{ x: 1, y: 0 }}
                         style={styles.nextButton}
                     >
-                        <Text style={styles.nextButtonText}>Next</Text>
+                        <Text style={styles.nextButtonText}>{t('visit.navigation.next')}</Text>
                         <Feather name="arrow-right" size={18} color="#fff" />
                     </LinearGradient>
                 </TouchableOpacity>

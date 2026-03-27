@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
     View, 
     Text, 
@@ -13,6 +13,8 @@ import Feather from 'react-native-vector-icons/Feather';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import CustomAlert from '../../component/customAlert';
+import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 // Import tab screens
 import PersonalData from './profileOptions/PersonalData';
@@ -24,52 +26,61 @@ import Insurance from './profileOptions/Insurance';
 import PatientLogs from './profileOptions/PatientLogs';
 
 const PatientProfile = () => {
+    const { t } = useTranslation();
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
     const { patientData } = route.params || {};
+    const { colors: tc, isDark } = useThemeColors();
     
-    // In mobile, we might want fewer tabs or a more compact way to show them
     const [activeTab, setActiveTab] = useState('Personal Data');
     const [alertVisible, setAlertVisible] = useState(false);
-    const [alertType, setAlertType] = useState<'success' | 'error' | 'warning'>('success');
+    const [alertType, setAlertType] = useState<any>('success');
     const [alertMessage, setAlertMessage] = useState('');
 
     const tabs = [
-        'Personal Data',
-        'Medical Data',
-        'Laboratory',
-        'Documents',
-        'Visits List',
-        'Insurance',
-        'Patient Logs'
+        { id: 'Personal Data', label: t('patient_tabs.personal_data') },
+        { id: 'Medical Data', label: t('patient_tabs.medical_data') },
+        { id: 'Laboratory', label: t('patient_tabs.laboratory') },
+        { id: 'Documents', label: t('patient_tabs.documents') },
+        { id: 'Visits List', label: t('patient_tabs.visits_list') },
+        { id: 'Insurance', label: t('patient_tabs.insurance') },
+        { id: 'Patient Logs', label: t('patient_tabs.history') },
     ];
 
+    const handleAlert = (type: string, message: string) => {
+        setAlertType(type);
+        setAlertMessage(message);
+        setAlertVisible(true);
+    };
+
+    const ds = useMemo(() => createDynamicStyles(tc, isDark), [tc, isDark]);
+
     const renderHeader = () => (
-        <View style={styles.header}>
-            <View style={styles.headerTextContainer}>
-                <Text style={styles.headerTitle}>Patient Profile</Text>
-                <Text style={styles.headerSubtitle}>Manage patient data and medical documentation</Text>
+        <View style={ds.header}>
+            <View style={ds.headerTextContainer}>
+                <Text style={ds.headerTitle}>{t('patient_profile.title')}</Text>
+                <Text style={ds.headerSubtitle}>{t('patient_profile.subtitle')}</Text>
             </View>
             <TouchableOpacity 
-                style={styles.backButton}
+                style={ds.backButton}
                 onPress={() => navigation.goBack()}
             >
-                <Feather name="chevron-left" size={18} color="#4A90B9" />
-                <Text style={styles.backText}>Back</Text>
+                <Feather name="chevron-left" size={18} color={tc.accent} />
+                <Text style={ds.backText}>{t('patient_profile.back_button')}</Text>
             </TouchableOpacity>
         </View>
     );
 
     const renderPatientCard = () => (
-        <View style={styles.patientCard}>
-            <View style={styles.patientInfoRow}>
-                <View style={styles.avatarContainer}>
-                    <Feather name="user" size={28} color="#68BFB3" />
+        <View style={ds.patientCard}>
+            <View style={ds.patientInfoRow}>
+                <View style={ds.avatarContainer}>
+                    <Feather name="user" size={28} color={isDark ? tc.accent : "#68BFB3"} />
                 </View>
-                <View style={styles.patientBasicInfo}>
-                    <Text style={styles.patientName}>{patientData?.name || `${patientData?.firstName} ${patientData?.lastName}` || 'Gnnhnn'}</Text>
-                    <Text style={styles.patientMeta}>
-                        PESEL: {patientData?.pesel || 'nhnn'}   •   Age: {patientData?.age || '2 years'}
+                <View style={ds.patientBasicInfo}>
+                    <Text style={ds.patientName}>{patientData?.name || `${patientData?.firstName} ${patientData?.lastName}` || 'Gnnhnn'}</Text>
+                    <Text style={ds.patientMeta}>
+                        {t('patient_header.pesel_label')}: {patientData?.pesel || '92010112345'}   •   {t('patient_header.age_label')}: {patientData?.age || '32'} {t('patient_header.age_years')}
                     </Text>
                 </View>
             </View>
@@ -77,61 +88,55 @@ const PatientProfile = () => {
             <ScrollView 
                 horizontal 
                 showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.actionButtonsContainer}
+                contentContainerStyle={ds.actionButtonsContainer}
             >
-                <TouchableOpacity style={styles.miniActionButton}>
-                    <Feather name="shield" size={14} color="#58a6b8" />
-                    <Text style={styles.miniActionText}>eWUŚ</Text>
+                <TouchableOpacity style={ds.miniActionButton}>
+                    <Feather name="shield" size={14} color={tc.accent} />
+                    <Text style={ds.miniActionText}>{t('patient_header.ewus_button')}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.miniActionButton}>
-                    <Feather name="home" size={14} color="#58a6b8" />
-                    <Text style={styles.miniActionText}>CEZ</Text>
+                <TouchableOpacity style={ds.miniActionButton}>
+                    <Feather name="home" size={14} color={tc.accent} />
+                    <Text style={ds.miniActionText}>{t('patient_header.cez_button')}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.miniActionButton}>
-                    <Feather name="file-text" size={14} color="#58a6b8" />
-                    <Text style={styles.miniActionText}>Documents</Text>
+                <TouchableOpacity style={ds.miniActionButton}>
+                    <Feather name="file-text" size={14} color={tc.accent} />
+                    <Text style={ds.miniActionText}>{t('patient_header.documents_button')}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.miniActionButton}>
-                    <Feather name="calendar" size={14} color="#58a6b8" />
-                    <Text style={styles.miniActionText}>Visits</Text>
+                <TouchableOpacity style={ds.miniActionButton}>
+                    <Feather name="calendar" size={14} color={tc.accent} />
+                    <Text style={ds.miniActionText}>{t('patient_header.visits_button')}</Text>
                 </TouchableOpacity>
             </ScrollView>
         </View>
     );
 
     const renderTabs = () => (
-        <View style={styles.tabsWrapper}>
+        <View style={ds.tabsWrapper}>
             <ScrollView 
                 horizontal 
                 showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.tabsContainer}
+                contentContainerStyle={ds.tabsContainer}
             >
                 {tabs.map((tab) => (
                     <TouchableOpacity 
-                        key={tab}
+                        key={tab.id}
                         style={[
-                            styles.tabItem,
-                            activeTab === tab && styles.activeTabItem
+                            ds.tabItem,
+                            activeTab === tab.id && ds.activeTabItem
                         ]}
-                        onPress={() => setActiveTab(tab)}
+                        onPress={() => setActiveTab(tab.id)}
                     >
                         <Text style={[
-                            styles.tabText,
-                            activeTab === tab && styles.activeTabText
+                            ds.tabText,
+                            activeTab === tab.id && ds.activeTabText
                         ]}>
-                            {tab}
+                            {tab.label}
                         </Text>
                     </TouchableOpacity>
                 ))}
             </ScrollView>
         </View>
     );
-
-    const handleAlert = (type: 'success' | 'error' | 'warning', message: string) => {
-        setAlertType(type);
-        setAlertMessage(message);
-        setAlertVisible(true);
-    };
 
     const renderActiveContent = () => {
         const props = { patientData, onAlert: handleAlert };
@@ -148,25 +153,25 @@ const PatientProfile = () => {
     };
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <SafeAreaView style={ds.safeArea}>
             <CustomAlert
                 visible={alertVisible}
                 type={alertType}
                 message={alertMessage}
                 onClose={() => setAlertVisible(false)}
             />
-            <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-            <View style={styles.container}>
+            <StatusBar barStyle={tc.statusBarStyle} backgroundColor={tc.headerBg} />
+            <View style={ds.container}>
                 {renderHeader()}
                 <ScrollView 
                     showsVerticalScrollIndicator={false}
                     stickyHeaderIndices={[2]}
-                    contentContainerStyle={styles.scrollContent}
+                    contentContainerStyle={ds.scrollContent}
                 >
                     {renderPatientCard()}
                     <View style={{ height: 10 }} />
                     {renderTabs()}
-                    <View style={styles.contentArea}>
+                    <View style={ds.contentArea}>
                         {renderActiveContent()}
                     </View>
                 </ScrollView>
@@ -175,10 +180,10 @@ const PatientProfile = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#f8fafc',
+        backgroundColor: tc.screenBackground,
     },
     container: {
         flex: 1,
@@ -190,7 +195,9 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingTop: 15,
         paddingBottom: 20,
-        backgroundColor: '#ffffff',
+        backgroundColor: tc.headerBg,
+        borderBottomWidth: isDark ? 1 : 0,
+        borderBottomColor: tc.borderColor,
     },
     headerTextContainer: {
         flex: 1,
@@ -199,11 +206,11 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 22,
         fontWeight: '700',
-        color: '#1e293b',
+        color: tc.textPrimary,
     },
     headerSubtitle: {
         fontSize: 12,
-        color: '#64748b',
+        color: tc.textSecondary,
         marginTop: 2,
     },
     backButton: {
@@ -213,13 +220,13 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: '#E2E8F0',
-        backgroundColor: '#ffffff',
+        borderColor: tc.borderColor,
+        backgroundColor: isDark ? tc.buttonMutedBg : '#ffffff',
     },
     backText: {
         fontSize: 13,
         fontWeight: '600',
-        color: '#475569',
+        color: tc.textSecondary,
         marginLeft: 4,
     },
     scrollContent: {
@@ -228,15 +235,14 @@ const styles = StyleSheet.create({
     patientCard: {
         marginHorizontal: 16,
         padding: 16,
-        backgroundColor: '#ffffff',
+        backgroundColor: tc.cardBackground,
         borderRadius: 16,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 10,
-        elevation: 3,
         borderWidth: 1,
-        borderColor: '#f1f5f9',
+        borderColor: tc.borderColor,
+        ...Platform.select({
+            ios: { shadowColor: tc.shadow, shadowOffset: { width: 0, height: 2 }, shadowOpacity: isDark ? 0 : 0.05, shadowRadius: 10 },
+            android: { elevation: isDark ? 0 : 3 },
+        }),
     },
     patientInfoRow: {
         flexDirection: 'row',
@@ -246,10 +252,12 @@ const styles = StyleSheet.create({
         width: 52,
         height: 52,
         borderRadius: 12,
-        backgroundColor: '#f0f9f8',
+        backgroundColor: isDark ? tc.accentLight : '#f0f9f8',
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 15,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: tc.borderColor,
     },
     patientBasicInfo: {
         flex: 1,
@@ -257,11 +265,11 @@ const styles = StyleSheet.create({
     patientName: {
         fontSize: 18,
         fontWeight: '700',
-        color: '#1e293b',
+        color: tc.textPrimary,
     },
     patientMeta: {
         fontSize: 12,
-        color: '#64748b',
+        color: tc.textSecondary,
         marginTop: 4,
     },
     actionButtonsContainer: {
@@ -275,20 +283,20 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: '#58a6b8',
-        backgroundColor: '#ffffff',
+        borderColor: tc.accent,
+        backgroundColor: isDark ? tc.buttonMutedBg : '#ffffff',
         marginRight: 8,
     },
     miniActionText: {
         fontSize: 12,
         fontWeight: '600',
-        color: '#58a6b8',
+        color: tc.accent,
         marginLeft: 6,
     },
     tabsWrapper: {
-        backgroundColor: '#ffffff',
+        backgroundColor: tc.headerBg,
         borderBottomWidth: 1,
-        borderBottomColor: '#f1f5f9',
+        borderBottomColor: tc.borderColor,
         paddingTop: 4,
     },
     tabsContainer: {
@@ -301,15 +309,15 @@ const styles = StyleSheet.create({
     },
     activeTabItem: {
         borderBottomWidth: 2,
-        borderBottomColor: '#58a6b8',
+        borderBottomColor: tc.accent,
     },
     tabText: {
         fontSize: 14,
         fontWeight: '500',
-        color: '#64748b',
+        color: tc.textMuted,
     },
     activeTabText: {
-        color: '#58a6b8',
+        color: tc.accent,
         fontWeight: '700',
     },
     contentArea: {

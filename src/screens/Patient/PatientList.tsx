@@ -12,6 +12,7 @@ import {
     Platform,
     Modal
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
@@ -27,8 +28,380 @@ import PrimaryButton from '../../component/button';
 import ActionModal from './modals/ActionModal';
 import PatientDetailsModal from './modals/PatientDetails';
 import CustomAlert from '../../component/customAlert';
+import { useThemeColors } from '../../hooks/useThemeColors';
+
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
+    safeArea: {
+        flex: 1,
+        backgroundColor: tc.screenBackground,
+    },
+    container: {
+        flex: 1,
+        backgroundColor: tc.screenBackground,
+    },
+    headerWrap: {
+        width: "100%", 
+        backgroundColor: tc.headerBg,
+        flexDirection: "row", 
+        justifyContent: "space-around", 
+        paddingTop: hp(2),
+        borderBottomWidth: 1,
+        borderBottomColor: tc.borderLight,
+    },
+    header: {
+        paddingHorizontal: 10,
+        paddingVertical: 10,
+        width: "75%",
+    },
+    headerTitle: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: tc.textPrimary,
+    },
+    headerSubtitle: {
+        fontSize: 16,
+        color: tc.textSecondary,
+        marginTop: 5,
+    },
+    headerButtons: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: "flex-end",
+        alignSelf: "center",
+        marginVertical: hp(1), 
+        width: "95%",
+    },
+    backButton: {
+        marginTop: 10,
+        borderWidth: 1,
+        borderColor: tc.accent,
+        borderRadius: 50,
+        marginRight: 10,
+        height: 50,
+        width: 50,
+        alignItems: "center", 
+        justifyContent: 'center',
+        backgroundColor: tc.cardBackgroundAlt,
+    },
+    buttonText: {
+        color: tc.accent,
+        marginLeft: 8,
+        fontSize: 15,
+    },
+    filtersButtonText: {
+        color: '#FFFFFF',
+        marginLeft: 8,
+        fontSize: 15,
+    },
+    secondaryButton: {
+        marginLeft: 10, 
+        borderRadius: 8, 
+        flexDirection: "row", 
+        height: hp(5),
+        alignItems: "center",
+        paddingHorizontal: 12,
+        justifyContent: "center", 
+        minWidth: wp(20), 
+        borderWidth: 1, 
+        borderColor: tc.accent, 
+        backgroundColor: tc.cardBackgroundAlt
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: tc.screenBackground,
+    },
+    loadingText: {
+        marginTop: 10,
+        fontSize: 16,
+        color: tc.textSecondary,
+    },
+    listContent: {
+        paddingBottom: 20,
+    },
+    listHeader: {
+        flexDirection: 'row',
+        paddingHorizontal: 20,
+        paddingVertical: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: tc.borderLight,
+        backgroundColor: tc.cardBackgroundAlt,
+        marginTop: hp(1)
+    },
+    headerCell: {
+        width: 120, 
+        marginEnd: 5,
+    },
+    headerText: {
+        fontWeight: '700',
+        color: tc.textSecondary,
+        fontSize: 12,
+        textAlign: "left"
+    },
+    patientCard: {
+        backgroundColor: tc.cardBackground,
+        borderBottomWidth: 1,
+        borderBottomColor: tc.borderLight,
+    },
+    patientRow: {
+        flexDirection: 'row',
+        paddingHorizontal: 20,
+        paddingVertical: 15,
+        alignItems: 'center',
+    },
+    patientInfo: {
+        width: 150,
+        marginEnd: 5,
+    },
+    patientName: {
+        fontSize: 14,
+        fontWeight: '500',
+        color: tc.textPrimary,
+    },
+    patientId: {
+        fontSize: 12,
+        color: tc.textMuted,
+        marginTop: 4,
+    },
+    patientDetail: {
+        width: 120, 
+        marginEnd: 5
+    },
+    detailValue: {
+        fontSize: 12,
+        color: tc.textSecondary,
+    },
+    statusBadge: {
+        width: 90,
+        paddingVertical: 6,
+        borderRadius: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    statusText: {
+        fontSize: 10,
+        fontWeight: '500',
+    },
+    actionButtons: {
+        width: 60,
+        flexDirection: 'row',
+        justifyContent: 'center'
+    },
+    actionButton: {
+        paddingVertical: 10, 
+        borderWidth: 1, 
+        borderColor: tc.accent, 
+        borderRadius: 10, 
+        paddingHorizontal: 5,
+        backgroundColor: tc.cardBackgroundAlt,
+    },
+    // Filter Styles
+    filtersContainer: {
+        backgroundColor: tc.cardBackground,
+        marginHorizontal: 15,
+        marginBottom: 10,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: tc.borderLight,
+    },
+    filtersInner: {
+        padding: 15,
+    },
+    filterRow: {
+        flexDirection: 'row',
+        marginBottom: 15,
+    },
+    filterGroup: {
+        flex: 1,
+    },
+    filterLabel: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: tc.textPrimary,
+        marginBottom: 8,
+    },
+    dateRangeContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    dateInput: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderWidth: 1,
+        borderColor: tc.borderColor,
+        borderRadius: 8,
+        paddingHorizontal: 10,
+        height: 42,
+        backgroundColor: tc.inputBackground,
+        marginHorizontal: 2,
+    },
+    dateText: {
+        fontSize: 13,
+        color: tc.textSecondary,
+    },
+    checkboxesSection: {
+        marginBottom: 15,
+    },
+    checkboxRow: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 12,
+    },
+    checkboxContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginRight: 10,
+        marginBottom: 8,
+    },
+    checkbox: {
+        width: 18,
+        height: 18,
+        borderWidth: 1,
+        borderColor: tc.borderColor,
+        borderRadius: 4,
+        marginRight: 8,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    checkboxChecked: {
+        backgroundColor: tc.accent,
+        borderColor: tc.accent,
+    },
+    checkboxLabel: {
+        fontSize: 13,
+        color: tc.textSecondary,
+    },
+    filterActions: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        gap: 10,
+        marginTop: 5,
+    },
+    clearFiltersBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        height: 40,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: tc.accent,
+        backgroundColor: tc.cardBackgroundAlt,
+    },
+    clearFiltersBtnText: {
+        color: tc.accent,
+        fontSize: 14,
+        fontWeight: '600',
+        marginLeft: 5,
+    },
+    applyFiltersBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        height: 40,
+        borderRadius: 8,
+        backgroundColor: tc.accent,
+    },
+    applyFiltersBtnText: {
+        color: 'white',
+        fontSize: 14,
+        fontWeight: '600',
+        marginLeft: 5,
+    },
+    // Calendar Modal Styles
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    calendarModalContent: {
+        width: '90%',
+        backgroundColor: tc.modalBg,
+        borderRadius: 20,
+        padding: 10,
+        borderWidth: 1,
+        borderColor: tc.borderColor,
+    },
+    calendarHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingHorizontal: 10,
+        paddingVertical: 10,
+    },
+    calendarCancelText: {
+        fontSize: 16,
+        color: tc.textSecondary,
+    },
+    calendarConfirmText: {
+        fontSize: 16,
+        color: tc.accent,
+        fontWeight: '600',
+    },
+    iosPicker: {
+        height: 350,
+    },
+    paginationWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        paddingHorizontal: 20,
+        paddingVertical: 15,
+        backgroundColor: tc.cardBackgroundAlt,
+        borderTopWidth: 1,
+        borderTopColor: tc.borderLight,
+        minWidth: wp(100)
+    },
+    paginationText: {
+        fontSize: 14,
+        color: tc.textSecondary,
+        marginRight: 15,
+    },
+    paginationArrow: {
+        padding: 5,
+        marginHorizontal: 5,
+    },
+    pageNumberBox: {
+        width: 32,
+        height: 32,
+        borderWidth: 1,
+        borderColor: tc.accent,
+        borderRadius: 6,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginHorizontal: 5,
+        backgroundColor: tc.hoverLayer,
+    },
+    pageNumberText: {
+        color: tc.accent,
+        fontSize: 14,
+        fontWeight: '500',
+    },
+    pageSizeSelector: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: tc.borderColor,
+        borderRadius: 8,
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        marginLeft: 15,
+        backgroundColor: tc.cardBackground,
+    },
+    pageSizeText: {
+        fontSize: 14,
+        color: tc.textSecondary,
+        marginRight: 10,
+    },
+});
 
 const PatientListScreen = () => {
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
+
+    const { t } = useTranslation();
     const navigation = useNavigation<any>();
     const [patients, setPatients] = useState<any[]>([]);
     const [selectedPatient, setSelectedPatient] = useState<any>(null);
@@ -71,10 +444,10 @@ const PatientListScreen = () => {
     const [isLongAbsent, setIsLongAbsent] = useState(false);
 
     const genderOptions = [
-        { label: 'All', value: 'All' },
-        { label: 'Male', value: 'male' },
-        { label: 'Female', value: 'female' },
-        { label: 'Other', value: 'other' },
+        { label: t('patientList.all'), value: 'All' },
+        { label: t('patientList.male'), value: 'male' },
+        { label: t('patientList.female'), value: 'female' },
+        { label: t('patientList.other'), value: 'other' },
     ];
 
     // Fetch patients from API
@@ -121,7 +494,7 @@ const PatientListScreen = () => {
 
     // Format date for display (YYYY-MM-DD to more readable format)
     const formatDate = (date: any) => {
-        if (!date) return 'dd/mm/yyyy';
+        if (!date) return t('common.datePlaceholder');
         if (typeof date === 'string') {
             const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: '2-digit', day: '2-digit' };
             return new Date(date).toLocaleDateString('en-GB', options).replace(/\//g, '-');
@@ -169,12 +542,12 @@ const PatientListScreen = () => {
         const patientId = patient._id;
         
         Alert.alert(
-            "Delete Patient",
-            `Are you sure you want to delete ${patient.name || (patient.firstName ? `${patient.firstName} ${patient.lastName}` : 'this patient')}?`,
+            t('patientList.deletePatientTitle'),
+            t('patientList.deletePatientConfirm', { name: patient.name || (patient.firstName ? `${patient.firstName} ${patient.lastName}` : t('patientList.patient')) }),
             [
-                { text: "Cancel", style: "cancel" },
+                { text: t('patientList.cancel'), style: "cancel" },
                 { 
-                    text: "Delete", 
+                    text: t('patientList.delete'), 
                     style: "destructive",
                     onPress: async () => {
                         try {
@@ -185,14 +558,14 @@ const PatientListScreen = () => {
                             console.log('DeletePatient Response:', JSON.stringify(response, null, 2));
                             
                             if (response) {
-                                showAlert('success', response.data?.message || 'Patient and all related data deleted successfully');
+                                showAlert('success', response.data?.message || t('patientList.deleteSuccess'));
                                 fetchPatients();
                             } else {
-                                showAlert('error', 'Failed to delete patient');
+                                showAlert('error', t('patientList.deleteError'));
                             }
                         } catch (error: any) {
                             console.error('Error deleting patient:', error);
-                            showAlert('error', error.message || 'An error occurred while deleting patient');
+                            showAlert('error', error.message || t('patientList.deleteErrorGeneral'));
                         } finally {
                             setLoading(false);
                         }
@@ -241,97 +614,104 @@ const PatientListScreen = () => {
     // Render checkbox
     const renderCheckbox = (isChecked: boolean, onToggle: any, label: string) => (
         <TouchableOpacity
-            style={styles.checkboxContainer}
+            style={ds.checkboxContainer}
             onPress={() => onToggle(!isChecked)}
         >
-            <View style={[styles.checkbox, isChecked && styles.checkboxChecked]}>
+            <View style={[ds.checkbox, isChecked && ds.checkboxChecked]}>
                 {isChecked && <Ionicons name="checkmark" size={16} color="#fff" />}
             </View>
-            <Text style={styles.checkboxLabel}>{label}</Text>
+            <Text style={ds.checkboxLabel}>{label}</Text>
         </TouchableOpacity>
     );
 
     // Render status badge with appropriate color
     const renderStatusBadge = (status: string) => {
         let backgroundColor;
-        let textColor = '#FFFFFF';
+        let textColor;
 
         const normalizedStatus = status?.toLowerCase() || '';
 
-        switch (normalizedStatus) {
-            case 'active':
-                backgroundColor = '#DCFCE7'; // Light green
-                textColor = '#166534';       // Dark green text
-                break;
-            case 'inactive':
-                backgroundColor = '#FEF9C3'; // Light yellow
-                textColor = '#854D0E';
-                break;
-            case 'deceased':
-                backgroundColor = '#F1F5F9'; // Light slate/grey
-                textColor = '#475569';
-                break;
-            default:
-                backgroundColor = '#F3F4F6';
-                textColor = '#374151';
+        if (isDark) {
+            switch (normalizedStatus) {
+                case 'active':
+                    backgroundColor = 'rgba(16, 185, 129, 0.15)'; // Deep green transparent
+                    textColor = '#10B981';
+                    break;
+                case 'inactive':
+                    backgroundColor = 'rgba(245, 158, 11, 0.15)'; // Darker yellow/orange
+                    textColor = '#F59E0B';
+                    break;
+                case 'deceased':
+                    backgroundColor = 'rgba(166, 166, 166, 0.15)'; // Muted gray
+                    textColor = '#A6A6A6';
+                    break;
+                default:
+                    backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                    textColor = tc.textSecondary;
+            }
+        } else {
+            switch (normalizedStatus) {
+                case 'active':
+                    backgroundColor = '#DCFCE7';
+                    textColor = '#166534';
+                    break;
+                case 'inactive':
+                    backgroundColor = '#FEF9C3';
+                    textColor = '#854D0E';
+                    break;
+                case 'deceased':
+                    backgroundColor = '#F1F5F9';
+                    textColor = '#475569';
+                    break;
+                default:
+                    backgroundColor = '#F3F4F6';
+                    textColor = '#374151';
+            }
         }
 
         return (
-            <View style={[styles.statusBadge, { backgroundColor }]}>
-                <Text style={[styles.statusText, { color: textColor }]}>{status}</Text>
+            <View style={[ds.statusBadge, { backgroundColor }]}>
+                <Text style={[ds.statusText, { color: textColor }]}>
+                    {normalizedStatus === 'active' ? t('patientList.active') : 
+                     normalizedStatus === 'inactive' ? t('patientList.inactive') : 
+                     normalizedStatus === 'deceased' ? t('patientList.deceased') : 
+                     status}
+                </Text>
             </View>
         );
     };
 
     // Render patient item
     const renderPatientItem = ({ item }: { item: any }) => (
-        <View style={styles.patientCard}>
-            <View style={styles.patientRow}>
-                <View style={styles.patientInfo}>
-                    <Text style={styles.patientName} numberOfLines={1}>
+        <View style={ds.patientCard}>
+            <View style={ds.patientRow}>
+                <View style={ds.patientInfo}>
+                    <Text style={ds.patientName} numberOfLines={1}>
                         {item.name || `${item.firstName} ${item.lastName}`}
                     </Text>
-                    <Text style={styles.patientId}>ID: {item.id || item._id?.substring(0, 8)}</Text>
+                    <Text style={ds.patientId}>{t('patientList.idLabel')} {item.id || item._id?.substring(0, 8)}</Text>
                 </View>
-                <View style={styles.patientDetail}>
-                    <Text style={styles.detailValue}>{item.pesel || 'N/A'}</Text>
+                <View style={ds.patientDetail}>
+                    <Text style={ds.detailValue}>{item.pesel || t('common.na')}</Text>
                 </View>
-                <View style={styles.patientDetail}>
-                    <Text style={styles.detailValue}>{formatDate(item.dateOfBirth || item.dob)}</Text>
+                <View style={ds.patientDetail}>
+                    <Text style={ds.detailValue}>{formatDate(item.dateOfBirth || item.dob)}</Text>
                 </View>
-                <View style={styles.patientDetail}>
-                    <Text style={styles.detailValue}>{item.referral || 'N/A'}</Text>
+                <View style={ds.patientDetail}>
+                    <Text style={ds.detailValue}>{item.referral || t('common.na')}</Text>
                 </View>
-                <View style={[styles.patientDetail, { width: wp(20) }]}>
+                <View style={[ds.patientDetail, { width: 100 }]}>
                     {renderStatusBadge(item.status)}
                 </View>
-                <View style={styles.actionButtons}>
-                    {/* <TouchableOpacity
-                        style={styles.actionButton}
-                        onPress={() => handleViewPatient(item.id)}
-                    >
-                        <Ionicons name="eye-outline" size={22} color="#4A90B9" />
-                    </TouchableOpacity>
+                <View style={ds.actionButtons}>
                     <TouchableOpacity
-                        style={styles.actionButton}
-                        onPress={() => handleEditPatient(item.id)}
-                    >
-                        <Feather name="file-text" size={22} color="#4A90B9" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={styles.actionButton}
-                        onPress={() => handleScheduleVisit(item.id)}
-                    >
-                        <Ionicons name="calendar-outline" size={22} color="#4A90B9" />
-                    </TouchableOpacity> */}
-                    <TouchableOpacity
-                        style={styles.actionButton}
+                        style={ds.actionButton}
                         onPress={() => { 
                             setSelectedPatient(item);
                             setShowActionModal(true); 
                         }}
                     >
-                        <Ionicons name="ellipsis-vertical" size={18} color="#4A90B9" />
+                        <Ionicons name="ellipsis-vertical" size={18} color={tc.accent} />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -340,128 +720,128 @@ const PatientListScreen = () => {
 
     // Render header for FlatList
     const renderListHeader = () => (
-        <View style={styles.listHeader}>
-            <View style={styles.headerCell}>
-                <Text style={styles.headerText}>PATIENT</Text>
+        <View style={ds.listHeader}>
+            <View style={ds.headerCell}>
+                <Text style={ds.headerText}>{t('patientList.patient')}</Text>
             </View>
-            <View style={styles.headerCell}>
-                <Text style={styles.headerText}>PESEL</Text>
+            <View style={ds.headerCell}>
+                <Text style={ds.headerText}>{t('patientList.pesel')}</Text>
             </View>
-            <View style={styles.headerCell}>
-                <Text style={styles.headerText}>DATE OF BIRTH</Text>
+            <View style={ds.headerCell}>
+                <Text style={ds.headerText}>{t('patientList.dob')}</Text>
             </View>
-            <View style={styles.headerCell}>
-                <Text style={styles.headerText}>REFERRAL</Text>
+            <View style={ds.headerCell}>
+                <Text style={ds.headerText}>{t('patientList.referral')}</Text>
             </View>
-            <View style={[styles.headerCell, {}]}>
-                <Text style={[styles.headerText, {}]}>STATUS</Text>
+            <View style={[ds.headerCell, {}]}>
+                <Text style={[ds.headerText, {}]}>{t('patientList.status')}</Text>
             </View>
-            <View style={styles.headerCell}>
-                <Text style={styles.headerText}>ACTIONS</Text>
+            <View style={ds.headerCell}>
+                <Text style={ds.headerText}>{t('patientList.actions')}</Text>
             </View>
         </View>
     );
 
     return (
-        <SafeAreaView style={styles.safeArea}>
-            <StatusBar barStyle="dark-content" backgroundColor="#F5F5F5" />
-            <View style={{
-                width: "100%", backgroundColor: "white",
-                flexDirection: "row", justifyContent: "space-around", paddingTop: hp(2)
-            }}>
-                <View style={styles.header}>
-                    <Text style={styles.headerTitle}>Patient List</Text>
-                    <Text style={styles.headerSubtitle}>Manage patient records</Text>
+        <SafeAreaView style={ds.safeArea}>
+            <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={tc.statusBarBg} />
+            <View style={ds.headerWrap}>
+                <View style={ds.header}>
+                    <Text style={ds.headerTitle}>{t('patientList.patientList')}</Text>
+                    <Text style={ds.headerSubtitle}>{t('patientList.manageRecords')}</Text>
                 </View>
 
                 {/* Back Button */}
                 <TouchableOpacity
-                    style={styles.backButton}
+                    style={ds.backButton}
                     onPress={() => navigation.goBack()}
                 >
-                    <Ionicons name="arrow-back" size={20} color="#4A90B9" />
+                    <Ionicons name="arrow-back" size={20} color={tc.accent} />
                 </TouchableOpacity>
             </View>
-            <View style={styles.headerButtons}>
-                <TouchableOpacity
-                    style={{
-                        marginLeft: 10, borderRadius: 8, flexDirection: "row", height: hp(5),
-                        alignItems: "center",
-                        justifyContent: "center", width: wp(25), borderWidth: 1, borderColor: "#4A90B9", backgroundColor: "white"
+            <View style={ds.headerButtons}>
+                <ScrollView 
+                    horizontal 
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{ 
+                        flexDirection: 'row', 
+                        alignItems: 'center',
+                        justifyContent: "flex-end",
+                        paddingRight: 15
                     }}
-                    onPress={handleExport}
                 >
-                    <Feather name="download" size={20} color="#4A90B9" />
-                    <Text style={styles.buttonText}>Export</Text>
-                </TouchableOpacity>
+                    <TouchableOpacity
+                        style={ds.secondaryButton}
+                        onPress={handleExport}
+                    >
+                        <Feather name="download" size={18} color={tc.accent} />
+                        <Text style={ds.buttonText}>{t('patientList.export')}</Text>
+                    </TouchableOpacity>
 
-                <TouchableOpacity
-                    style={{
-                        marginLeft: 10, borderRadius: 8, flexDirection: "row", height: hp(5),
-                        alignItems: "center",
-                        justifyContent: "center", width: wp(25), borderWidth: 1, borderColor: "#4A90B9", backgroundColor: "white"
-                    }}
-                    onPress={handlePrint}
-                >
-                    <Feather name="printer" size={20} color="#4A90B9" />
-                    <Text style={styles.buttonText}>Print</Text>
-                </TouchableOpacity>
+                    <TouchableOpacity
+                        style={ds.secondaryButton}
+                        onPress={handlePrint}
+                    >
+                        <Feather name="printer" size={18} color={tc.accent} />
+                        <Text style={ds.buttonText}>{t('patientList.print')}</Text>
+                    </TouchableOpacity>
 
-                <TouchableOpacity
-                    onPress={handleFilterToggle}
-                >
-                    <LinearGradient
-                        colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                        style={{
-                            marginLeft: 10, borderRadius: 8, flexDirection: "row", height: hp(5),
-                            alignItems: "center",
-                            paddingHorizontal: 15,
-                            justifyContent: "center", minWidth: wp(25)
-                        }}>
-                        <Feather name="filter" size={20} color="white" />
-                        <Text style={styles.filtersButtonText}>Filters</Text>
-                        <Ionicons 
-                            name={showFilters ? "chevron-up" : "chevron-down"} 
-                            size={16} 
-                            color="white" 
-                            style={{marginLeft: 5}} 
-                        />
-                    </LinearGradient>
+                    <TouchableOpacity
+                        onPress={handleFilterToggle}
+                    >
+                        <LinearGradient
+                            colors={[tc.accentGradientStart, tc.accentGradientEnd]}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                            style={{
+                                marginLeft: 10, borderRadius: 8, flexDirection: "row", height: hp(5),
+                                alignItems: "center",
+                                paddingHorizontal: 15,
+                                justifyContent: "center", minWidth: wp(25)
+                            }}>
+                            <Feather name="filter" size={20} color="white" />
+                            <Text style={ds.filtersButtonText}>{t('patientList.filters')}</Text>
+                            <Ionicons 
+                                name={showFilters ? "chevron-up" : "chevron-down"} 
+                                size={16} 
+                                color="white" 
+                                style={{marginLeft: 5}} 
+                            />
+                        </LinearGradient>
 
-                </TouchableOpacity>
+                    </TouchableOpacity>
+                </ScrollView>
             </View>
 
             {/* Filter Section */}
             {showFilters && (
-                <View style={styles.filtersContainer}>
-                    <View style={styles.filtersInner}>
-                        <View style={styles.filterRow}>
-                            <View style={[styles.filterGroup, { flex: 1.5 }]}>
-                                <Text style={styles.filterLabel}>Date of Birth</Text>
-                                <View style={styles.dateRangeContainer}>
+                <View style={ds.filtersContainer}>
+                    <View style={ds.filtersInner}>
+                        <View style={ds.filterRow}>
+                            <View style={[ds.filterGroup, { flex: 1.5 }]}>
+                                <Text style={ds.filterLabel}>{t('patientList.dateOfBirth')}</Text>
+                                <View style={ds.dateRangeContainer}>
                                     <TouchableOpacity
-                                        style={styles.dateInput}
+                                        style={ds.dateInput}
                                         onPress={() => setActivePicker('dobStart')}
                                     >
-                                        <Text style={styles.dateText}>{formatDate(dobStartDate)}</Text>
-                                        <MaterialCommunityIcons name="calendar-blank" size={18} color="#6B7280" />
+                                        <Text style={ds.dateText}>{formatDate(dobStartDate)}</Text>
+                                        <MaterialCommunityIcons name="calendar-blank" size={18} color={tc.textMuted} />
                                     </TouchableOpacity>
                                     <TouchableOpacity
-                                        style={styles.dateInput}
+                                        style={ds.dateInput}
                                         onPress={() => setActivePicker('dobEnd')}
                                     >
-                                        <Text style={styles.dateText}>{formatDate(dobEndDate)}</Text>
-                                        <MaterialCommunityIcons name="calendar-blank" size={18} color="#6B7280" />
+                                        <Text style={ds.dateText}>{formatDate(dobEndDate)}</Text>
+                                        <MaterialCommunityIcons name="calendar-blank" size={18} color={tc.textMuted} />
                                     </TouchableOpacity>
                                 </View>
                             </View>
 
-                            <View style={[styles.filterGroup, { flex: 1, marginLeft: 15 }]}>
-                                <Text style={styles.filterLabel}>Gender</Text>
+                            <View style={[ds.filterGroup, { flex: 1, marginLeft: 15 }]}>
+                                <Text style={ds.filterLabel}>{t('patientList.gender')}</Text>
                                 <CustomDropdown
-                                    placeholder="Select gender"
+                                    placeholder={t('patientList.gender')}
                                     options={genderOptions}
                                     value={gender}
                                     onChange={setGender}
@@ -469,25 +849,25 @@ const PatientListScreen = () => {
                             </View>
                         </View>
 
-                        <View style={styles.checkboxesSection}>
-                            <View style={styles.checkboxRow}>
-                                {renderCheckbox(hasPesel, setHasPesel, "Has PESEL")}
-                                {renderCheckbox(hasDeclaration, setHasDeclaration, "Has Declaration")}
-                                {renderCheckbox(isDeceased, setIsDeceased, "Deceased")}
-                                {renderCheckbox(hasDebt, setHasDebt, "Has Debt")}
-                                {renderCheckbox(isActive, setIsActive, "Active")}
-                                {renderCheckbox(isLongAbsent, setIsLongAbsent, "Long Absent")}
+                        <View style={ds.checkboxesSection}>
+                            <View style={ds.checkboxRow}>
+                                {renderCheckbox(hasPesel, setHasPesel, t('patientList.hasPesel'))}
+                                {renderCheckbox(hasDeclaration, setHasDeclaration, t('patientList.hasDeclaration'))}
+                                {renderCheckbox(isDeceased, setIsDeceased, t('patientList.deceased'))}
+                                {renderCheckbox(hasDebt, setHasDebt, t('patientList.hasDebt'))}
+                                {renderCheckbox(isActive, setIsActive, t('patientList.active'))}
+                                {renderCheckbox(isLongAbsent, setIsLongAbsent, t('patientList.longAbsent'))}
                             </View>
                         </View>
 
-                        <View style={styles.filterActions}>
-                            <TouchableOpacity style={styles.clearFiltersBtn} onPress={clearFilters}>
-                                <Ionicons name="close-outline" size={20} color="#4A90B9" />
-                                <Text style={styles.clearFiltersBtnText}>Clear filters</Text>
+                        <View style={ds.filterActions}>
+                            <TouchableOpacity style={ds.clearFiltersBtn} onPress={clearFilters}>
+                                <Ionicons name="close-outline" size={20} color={tc.accent} />
+                                <Text style={ds.clearFiltersBtnText}>{t('patientList.clearFilters')}</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.applyFiltersBtn} onPress={() => setShowFilters(false)}>
+                            <TouchableOpacity style={ds.applyFiltersBtn} onPress={() => setShowFilters(false)}>
                                 <Ionicons name="funnel-outline" size={18} color="white" />
-                                <Text style={styles.applyFiltersBtnText}>Apply filters</Text>
+                                <Text style={ds.applyFiltersBtnText}>{t('patientList.applyFilters')}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -496,9 +876,9 @@ const PatientListScreen = () => {
 
             {/* Patient List */}
             {loading ? (
-                <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color="#4A90B9" />
-                    <Text style={styles.loadingText}>Loading patients...</Text>
+                <View style={ds.loadingContainer}>
+                    <ActivityIndicator size="large" color={tc.accent} />
+                    <Text style={ds.loadingText}>{t('patientList.loadingPatients')}</Text>
                 </View>
             ) : (
                 <ScrollView horizontal>
@@ -508,38 +888,42 @@ const PatientListScreen = () => {
                             keyExtractor={(item, index) => item.id || item._id || index.toString()}
                             renderItem={renderPatientItem}
                             ListHeaderComponent={renderListHeader}
-                            contentContainerStyle={styles.listContent}
+                            contentContainerStyle={ds.listContent}
                             showsVerticalScrollIndicator={false}
                         />
                         {/* Pagination component */}
-                        <View style={styles.paginationWrapper}>
-                            <Text style={styles.paginationText}>
-                                {totalItems > 0 ? ((page - 1) * limit) + 1 : 0}-{Math.min(page * limit, totalItems)} of {totalItems} items
+                        <View style={ds.paginationWrapper}>
+                            <Text style={ds.paginationText}>
+                                {t('patientList.itemsRange', {
+                                    start: totalItems > 0 ? ((page - 1) * limit) + 1 : 0,
+                                    end: Math.min(page * limit, totalItems),
+                                    total: totalItems
+                                })}
                             </Text>
-                            
-                            <TouchableOpacity 
-                                style={styles.paginationArrow}
+
+                            <TouchableOpacity
+                                style={ds.paginationArrow}
                                 onPress={() => page > 1 && setPage(page - 1)}
                                 disabled={page === 1}
                             >
-                                <Feather name="chevron-left" size={20} color={page === 1 ? "#E2E8F0" : "#4A90B9"} />
+                                <Feather name="chevron-left" size={20} color={page === 1 ? tc.textMuted : tc.accent} />
                             </TouchableOpacity>
-                            
-                            <View style={styles.pageNumberBox}>
-                                <Text style={styles.pageNumberText}>{page}</Text>
+
+                            <View style={ds.pageNumberBox}>
+                                <Text style={ds.pageNumberText}>{page}</Text>
                             </View>
-                            
-                            <TouchableOpacity 
-                                style={styles.paginationArrow}
+
+                            <TouchableOpacity
+                                style={ds.paginationArrow}
                                 onPress={() => (page * limit) < totalItems && setPage(page + 1)}
                                 disabled={(page * limit) >= totalItems}
                             >
-                                <Feather name="chevron-right" size={20} color={(page * limit) >= totalItems ? "#E2E8F0" : "#4A90B9"} />
+                                <Feather name="chevron-right" size={20} color={(page * limit) >= totalItems ? tc.textMuted : tc.accent} />
                             </TouchableOpacity>
-                            
-                            <TouchableOpacity style={styles.pageSizeSelector}>
-                                <Text style={styles.pageSizeText}>{limit} / page</Text>
-                                <Feather name="chevron-down" size={16} color="#CBD5E1" />
+
+                            <TouchableOpacity style={ds.pageSizeSelector}>
+                                <Text style={ds.pageSizeText}>{t('patientList.itemsPerPage', { count: limit })}</Text>
+                                <Feather name="chevron-down" size={16} color={tc.textMuted} />
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -590,17 +974,17 @@ const PatientListScreen = () => {
                         onRequestClose={() => setActivePicker(null)}
                     >
                         <TouchableOpacity 
-                            style={styles.modalOverlay} 
+                            style={ds.modalOverlay} 
                             activeOpacity={1} 
                             onPress={() => setActivePicker(null)}
                         >
-                            <View style={styles.calendarModalContent}>
-                                <View style={styles.calendarHeader}>
+                            <View style={ds.calendarModalContent}>
+                                <View style={ds.calendarHeader}>
                                     <TouchableOpacity onPress={() => setActivePicker(null)}>
-                                        <Text style={styles.calendarCancelText}>Cancel</Text>
+                                        <Text style={ds.calendarCancelText}>{t('patientList.cancel')}</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity onPress={() => setActivePicker(null)}>
-                                        <Text style={styles.calendarConfirmText}>Done</Text>
+                                        <Text style={ds.calendarConfirmText}>{t('patientList.done')}</Text>
                                     </TouchableOpacity>
                                 </View>
                                 <DateTimePicker
@@ -611,7 +995,8 @@ const PatientListScreen = () => {
                                     mode="date"
                                     display="inline"
                                     onChange={onDateChange}
-                                    style={styles.iosPicker}
+                                    style={ds.iosPicker}
+                                    textColor={tc.textPrimary}
                                 />
                             </View>
                         </TouchableOpacity>
@@ -639,371 +1024,5 @@ const PatientListScreen = () => {
     );
 };
 
-const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: '#F5F5F5',
-    },
-    container: {
-        flex: 1,
-        backgroundColor: '#F5F5F5',
-    },
-    header: {
-        paddingHorizontal: 10,
-        paddingVertical: 10,
-        width: "75%",
-    },
-    headerTitle: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#333333',
-    },
-    headerSubtitle: {
-        fontSize: 16,
-        color: '#666666',
-        marginTop: 5,
-    },
-    headerButtons: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: "flex-end",
-        alignSelf: "center",
-        marginVertical: hp(1), width: "95%",
-    },
-    backButton: {
-        marginTop: 10,
-        borderWidth: 1,
-        borderColor: '#4A90B9',
-        borderRadius: 50,
-        marginRight: 10,
-        height: 50,
-        width: 50,
-        alignItems: "center", justifyContent: 'center',
-    },
-    backButtonText: {
-        color: '#4A90B9',
-        marginLeft: 5,
-        fontSize: 16,
-    },
-    filtersButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: 8,
-        paddingHorizontal: 15,
-        paddingVertical: 10,
-        marginLeft: 10,
-    },
-    buttonText: {
-        color: '#4A90B9',
-        marginLeft: 8,
-        fontSize: 15,
-    },
-    filtersButtonText: {
-        color: 'white',
-        marginLeft: 8,
-        fontSize: 15,
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    loadingText: {
-        marginTop: 10,
-        fontSize: 16,
-        color: '#666666',
-    },
-    listContent: {
-        paddingBottom: 20,
-    },
-    listHeader: {
-        flexDirection: 'row',
-        paddingHorizontal: 20,
-        paddingVertical: 15,
-        borderBottomWidth: 1,
-        borderBottomColor: '#E0E0E0',
-        backgroundColor: "white",
-        marginTop: hp(1)
-    },
-    headerCell: {
-        width: 70, marginEnd: 5,
-    },
-    headerText: {
-        fontWeight: '600',
-        color: 'black',
-        fontSize: 13,
-        textAlign: "left"
-    },
-    patientCard: {
-        backgroundColor: 'white',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E0E0E0',
-    },
-    patientRow: {
-        flexDirection: 'row',
-        paddingHorizontal: 20,
-        paddingVertical: 15,
-        alignItems: 'center',
-    },
-    patientInfo: {
-        width: 70,
-        marginEnd: 5,
-    },
-    patientName: {
-        fontSize: 14,
-        fontWeight: '500',
-        color: '#333333',
-    },
-    patientId: {
-        fontSize: 12,
-        color: '#666666',
-        marginTop: 4,
-    },
-    patientDetail: {
-        width: 70, marginEnd: 5
-    },
-    detailValue: {
-        fontSize: 12,
-        color: '#333333',
-    },
-    statusBadge: {
-        width: 70,
-        paddingVertical: 7,
-        borderRadius: 20,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    statusText: {
-        fontSize: 10,
-        fontWeight: '500',
-    },
-    actionButtons: {
-        flex: 1,
-        flexDirection: 'row',
-        width: 70
-    },
-    actionButton: {
-        paddingVertical: 10, borderWidth: 1, borderColor: "#4A90B9", borderRadius: 10, paddingHorizontal: 5
-    },
-    helpButtonFloat: {
-        position: 'absolute',
-        bottom: 20,
-        right: 20,
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        backgroundColor: '#4A90B9',
-        justifyContent: 'center',
-        alignItems: 'center',
-        elevation: 5,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 3,
-    },
-    helpText: {
-        color: 'white',
-        fontSize: 20,
-        fontWeight: 'bold',
-    },
-    // Filter Styles
-    filtersContainer: {
-        backgroundColor: 'white',
-        marginHorizontal: 15,
-        marginBottom: 10,
-        borderRadius: 12,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 5,
-        elevation: 2,
-    },
-    filtersInner: {
-        padding: 15,
-    },
-    filterRow: {
-        flexDirection: 'row',
-        marginBottom: 15,
-    },
-    filterGroup: {
-        flex: 1,
-    },
-    filterLabel: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#344155',
-        marginBottom: 8,
-    },
-    dateRangeContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    dateInput: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        borderWidth: 1,
-        borderColor: '#E2E8F0',
-        borderRadius: 8,
-        paddingHorizontal: 10,
-        height: 42,
-        backgroundColor: '#F8FAFC',
-        marginHorizontal: 2,
-    },
-    dateText: {
-        fontSize: 13,
-        color: '#64748B',
-    },
-    checkboxesSection: {
-        marginBottom: 15,
-    },
-    checkboxRow: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 12,
-    },
-    checkboxContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginRight: 10,
-        marginBottom: 8,
-    },
-    checkbox: {
-        width: 18,
-        height: 18,
-        borderWidth: 1,
-        borderColor: '#CBD5E1',
-        borderRadius: 4,
-        marginRight: 8,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    checkboxChecked: {
-        backgroundColor: '#4A90B9',
-        borderColor: '#4A90B9',
-    },
-    checkboxLabel: {
-        fontSize: 13,
-        color: '#475569',
-    },
-    filterActions: {
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
-        gap: 10,
-        marginTop: 5,
-    },
-    clearFiltersBtn: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 15,
-        height: 40,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#4A90B9',
-    },
-    clearFiltersBtnText: {
-        color: '#4A90B9',
-        fontSize: 14,
-        fontWeight: '600',
-        marginLeft: 5,
-    },
-    applyFiltersBtn: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 15,
-        height: 40,
-        borderRadius: 8,
-        backgroundColor: '#4A90B9',
-    },
-    applyFiltersBtnText: {
-        color: 'white',
-        fontSize: 14,
-        fontWeight: '600',
-        marginLeft: 5,
-    },
-    // Calendar Modal Styles
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.4)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    calendarModalContent: {
-        width: '90%',
-        backgroundColor: 'white',
-        borderRadius: 20,
-        padding: 10,
-    },
-    calendarHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingHorizontal: 10,
-        paddingVertical: 10,
-    },
-    calendarCancelText: {
-        fontSize: 16,
-        color: '#6B7280',
-    },
-    calendarConfirmText: {
-        fontSize: 16,
-        color: '#4A90B9',
-        fontWeight: '600',
-    },
-    iosPicker: {
-        height: 350,
-    },
-    paginationWrapper: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        paddingHorizontal: 20,
-        paddingVertical: 15,
-        backgroundColor: 'white',
-        borderTopWidth: 1,
-        borderTopColor: '#E0E0E0',
-        minWidth: wp(100)
-    },
-    paginationText: {
-        fontSize: 14,
-        color: '#333333',
-        marginRight: 15,
-    },
-    paginationArrow: {
-        padding: 5,
-        marginHorizontal: 5,
-    },
-    pageNumberBox: {
-        width: 32,
-        height: 32,
-        borderWidth: 1,
-        borderColor: '#4A90B9',
-        borderRadius: 6,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginHorizontal: 5,
-    },
-    pageNumberText: {
-        color: '#4A90B9',
-        fontSize: 14,
-        fontWeight: '500',
-    },
-    pageSizeSelector: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#E0E0E0',
-        borderRadius: 8,
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        marginLeft: 15,
-    },
-    pageSizeText: {
-        fontSize: 14,
-        color: '#333333',
-        marginRight: 10,
-    },
-});
 
 export default PatientListScreen;

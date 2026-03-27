@@ -26,9 +26,11 @@ import VisitSummary from './VisitSummary';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { GetVisitDetails, GetPreviousVisits, UpdateVisit } from '../../Services/Visit.Service';
 import { GetPatientMedicalData } from '../../Services/MedicalData.Service';
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const VisitScreen = () => {
+    const { t } = useTranslation();
     const route = useRoute();
     const navigation = useNavigation();
     const { visitId } = route.params || {};
@@ -101,58 +103,78 @@ const VisitScreen = () => {
         }
     };
 
-    const handleVisitUpdate = useCallback(async (updatedFields) => {
-        if (!visitData || !visitId) return;
+    const debounceTimeoutRef = useRef(null);
+    const pendingUpdatesRef = useRef({});
 
-        // Optimistically update local state
-        const newVisitData = {
-            ...visitData,
-            ...updatedFields
+    const handleVisitUpdate = useCallback((updatedFields) => {
+        if (!visitId) return;
+
+        const accumulate = (target, source) => {
+            Object.keys(source).forEach(key => {
+                if (typeof source[key] === 'object' && source[key] !== null && !Array.isArray(source[key])) {
+                    target[key] = target[key] || {};
+                    accumulate(target[key], source[key]);
+                } else {
+                    target[key] = source[key];
+                }
+            });
         };
         
-        // Deep merge for nested fields like interview, examination, etc.
-        Object.keys(updatedFields).forEach(key => {
-            if (typeof updatedFields[key] === 'object' && updatedFields[key] !== null) {
-                newVisitData[key] = {
-                    ...(visitData[key] || {}),
-                    ...updatedFields[key]
-                };
-            }
-        });
+        accumulate(pendingUpdatesRef.current, updatedFields);
 
-        setVisitData(newVisitData);
-
-        // Send payload ensuring id properties are set as required by the backend
-        const payload = {
-            ...newVisitData,
-            visitId: newVisitData.visitId || visitId,
-            id: newVisitData.id || visitId,
-            _id: newVisitData._id || visitId
-        };
-
-        try {
-            await UpdateVisit(payload);
-        } catch (error) {
-            console.error("Error updating visit data:", error);
-            // Optionally, we could revert state here on failure, but optimistic is often better for simple texts 
+        if (debounceTimeoutRef.current) {
+            clearTimeout(debounceTimeoutRef.current);
         }
-    }, [visitData, visitId]);
+
+        debounceTimeoutRef.current = setTimeout(() => {
+             setVisitData(prev => {
+                  if (!prev) return prev;
+                  // Create a deep copy for merging to avoid mutating prev state
+                  const newVisitData = { ...prev };
+                  const mergeDeep = (t, s) => {
+                      Object.keys(s).forEach(k => {
+                          if (typeof s[k] === 'object' && s[k] !== null && !Array.isArray(s[k])) {
+                              t[k] = { ...(t[k] || {}) };
+                              mergeDeep(t[k], s[k]);
+                          } else {
+                              t[k] = s[k];
+                          }
+                      });
+                  };
+                  mergeDeep(newVisitData, pendingUpdatesRef.current);
+                  
+                  const payload = {
+                      ...newVisitData,
+                      visitId: newVisitData.visitId || visitId,
+                      id: newVisitData.id || visitId,
+                      _id: newVisitData._id || visitId
+                  };
+
+                  UpdateVisit(payload).catch(error => {
+                      console.error("Error updating visit data:", error);
+                  });
+                  
+                  pendingUpdatesRef.current = {};
+                  return newVisitData;
+             });
+        }, 500);
+    }, [visitId]);
 
     const steps = [
-        { id: 1, label: 'Profile' },
-        { id: 2, label: 'Interview' },
-        { id: 3, label: 'Examination' },
-        { id: 4, label: 'Diagnosis' },
-        { id: 5, label: 'Documents' },
-        { id: 6, label: 'Summary' },
+        { id: 1, label: t('visit.steps.profile') },
+        { id: 2, label: t('visit.steps.interview') },
+        { id: 3, label: t('visit.steps.examination') },
+        { id: 4, label: t('visit.steps.diagnosis') },
+        { id: 5, label: t('visit.steps.documents') },
+        { id: 6, label: t('visit.steps.summary') },
     ];
 
     const aiTools = [
-        { id: 'Decision Support', label: 'Decision Support', icon: 'brain', type: 'material-community' },
-        { id: 'Interview Coach', label: 'Interview Coach', icon: 'message-square', type: 'feather' },
-        { id: 'Documentation Assistant', label: 'Documentation Assistant', icon: 'mic', type: 'feather' },
-        { id: 'Drug Knowledge', label: 'Drug Knowledge', icon: 'pill', type: 'material-community' },
-        { id: 'ICD-10 Assistant', label: 'ICD-10 Assistant', icon: 'file-text', type: 'feather' },
+        { id: 'Decision Support', label: t('visit.ai.tabs.cds'), icon: 'brain', type: 'material-community' },
+        { id: 'Interview Coach', label: t('visit.ai.tabs.interview'), icon: 'message-square', type: 'feather' },
+        { id: 'Documentation Assistant', label: t('visit.ai.tabs.transcription'), icon: 'mic', type: 'feather' },
+        { id: 'Drug Knowledge', label: t('visit.ai.tabs.interactions'), icon: 'pill', type: 'material-community' },
+        { id: 'ICD-10 Assistant', label: t('visit.ai.tabs.icd10'), icon: 'file-text', type: 'feather' },
     ];
 
     const renderStep = (step, index) => {
@@ -281,7 +303,7 @@ const VisitScreen = () => {
             default:
                 return (
                     <View style={styles.placeholderContainer}>
-                        <Text style={styles.placeholderText}>Content for Step {currentStep} coming soon...</Text>
+                        <Text style={styles.placeholderText}>{t('common.noData')} {currentStep}</Text>
                     </View>
                 );
         }
@@ -302,8 +324,8 @@ const VisitScreen = () => {
                                     <MaterialCommunityIcons name="brain" size={24} color="#58A7B3" />
                                 </View>
                                 <View>
-                                    <Text style={styles.headerTitle}>Clinical Decision Support</Text>
-                                    <Text style={styles.headerSubtitle}>AI analysis of clinical data</Text>
+                                    <Text style={styles.headerTitle}>{t('visit.ai.tabs.cds')}</Text>
+                                    <Text style={styles.headerSubtitle}>{t('visit.ai.interview.subtitle')}</Text>
                                 </View>
                             </View>
                             <Feather name={aiContentExpanded ? "chevron-up" : "chevron-down"} size={24} color="#333" />
@@ -312,7 +334,7 @@ const VisitScreen = () => {
                         {aiContentExpanded && (
                             <TouchableOpacity style={styles.analysisButton} onPress={() => setShowDataModal(true)}>
                                 <Feather name="file-text" size={18} color="#fff" />
-                                <Text style={styles.analysisButtonText}>Select data for analysis</Text>
+                                <Text style={styles.analysisButtonText}>{t('visit.ai.medInfo.search')}</Text>
                             </TouchableOpacity>
                         )}
                     </View>
@@ -330,8 +352,8 @@ const VisitScreen = () => {
                                     <MaterialCommunityIcons name="brain" size={24} color="#58A7B3" />
                                 </View>
                                 <View>
-                                    <Text style={styles.headerTitle}>Medical Interview Coach</Text>
-                                    <Text style={styles.headerSubtitle}>AI-powered medical interview Coach</Text>
+                                    <Text style={styles.headerTitle}>{t('visit.ai.interview.title')}</Text>
+                                    <Text style={styles.headerSubtitle}>{t('visit.ai.interview.subtitle')}</Text>
                                 </View>
                             </View>
                             <Feather name={aiContentExpanded ? "chevron-up" : "chevron-down"} size={24} color="#333" />
@@ -342,8 +364,8 @@ const VisitScreen = () => {
                                 <View style={styles.alertBox}>
                                     <Ionicons name="alert-circle-outline" size={20} color="#856404" />
                                     <View style={styles.alertTextContainer}>
-                                        <Text style={styles.alertTitle}>No data available for analysis</Text>
-                                        <Text style={styles.alertSubtitle}>Please conduct a medical interview to analyze communication quality.</Text>
+                                        <Text style={styles.alertTitle}>{t('visit.ai.interview.noData')}</Text>
+                                        <Text style={styles.alertSubtitle}>{t('visit.ai.interview.noDataDesc')}</Text>
                                     </View>
                                 </View>
 
@@ -353,27 +375,27 @@ const VisitScreen = () => {
                                         onPress={() => setActiveInterviewSubTab('Question suggestions')}
                                     >
                                         <Feather name="message-square" size={14} color={activeInterviewSubTab === 'Question suggestions' ? "#58A7B3" : "#64748B"} />
-                                        <Text style={[styles.subTabTextSmall, activeInterviewSubTab === 'Question suggestions' && styles.subTabTextActiveSmall]}>Question suggestions</Text>
+                                        <Text style={[styles.subTabTextSmall, activeInterviewSubTab === 'Question suggestions' && styles.subTabTextActiveSmall]}>{t('visit.ai.interview.tabs.suggestions')}</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity 
                                         style={[styles.subTab, activeInterviewSubTab === 'Communication analysis' && styles.subTabActive]}
                                         onPress={() => setActiveInterviewSubTab('Communication analysis')}
                                     >
                                         <Feather name="bar-chart-2" size={14} color={activeInterviewSubTab === 'Communication analysis' ? "#58A7B3" : "#64748B"} />
-                                        <Text style={[styles.subTabTextSmall, activeInterviewSubTab === 'Communication analysis' && styles.subTabTextActiveSmall]}>Communication analysis</Text>
+                                        <Text style={[styles.subTabTextSmall, activeInterviewSubTab === 'Communication analysis' && styles.subTabTextActiveSmall]}>{t('visit.ai.interview.tabs.analysis')}</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity 
                                         style={[styles.subTab, activeInterviewSubTab === 'Literature' && styles.subTabActive]}
                                         onPress={() => setActiveInterviewSubTab('Literature')}
                                     >
                                         <Feather name="book-open" size={14} color={activeInterviewSubTab === 'Literature' ? "#58A7B3" : "#64748B"} />
-                                        <Text style={[styles.subTabTextSmall, activeInterviewSubTab === 'Literature' && styles.subTabTextActiveSmall]}>Literature</Text>
+                                        <Text style={[styles.subTabTextSmall, activeInterviewSubTab === 'Literature' && styles.subTabTextActiveSmall]}>{t('visit.ai.interview.tabs.literature')}</Text>
                                     </TouchableOpacity>
                                 </View>
 
                                 <View style={styles.subTabContent}>
                                     {activeInterviewSubTab === 'Question suggestions' && (
-                                        <Text style={styles.suggestedQuestionsText}>Suggested questions 0</Text>
+                                        <Text style={styles.suggestedQuestionsText}>{t('visit.ai.interview.suggestedCount', { count: 0 })}</Text>
                                     )}
 
                                     {activeInterviewSubTab === 'Communication analysis' && (
@@ -385,31 +407,31 @@ const VisitScreen = () => {
                                             >
                                                 <View style={styles.analysisCard}>
                                                     <View style={styles.analysisCardText}>
-                                                        <Text style={styles.cardInfoLabel}>Symptom Clusters</Text>
+                                                        <Text style={styles.cardInfoLabel}>{t('visit.ai.interview.analysis.clusters')}</Text>
                                                         <Text style={styles.cardInfoValue}>0</Text>
-                                                        <Text style={styles.cardInfoSub}>Identified Areas</Text>
+                                                        <Text style={styles.cardInfoSub}>{t('visit.ai.interview.analysis.identified')}</Text>
                                                     </View>
                                                     <MaterialCommunityIcons name="brain" size={32} color="#58A7B3" />
                                                 </View>
                                                 <View style={styles.analysisCard}>
                                                     <View style={styles.analysisCardText}>
-                                                        <Text style={styles.cardInfoLabel}>Potential Diagnoses</Text>
+                                                        <Text style={styles.cardInfoLabel}>{t('visit.ai.interview.analysis.potential')}</Text>
                                                         <Text style={styles.cardInfoValue}>0</Text>
-                                                        <Text style={styles.cardInfoSub}>To Consider</Text>
+                                                        <Text style={styles.cardInfoSub}>{t('visit.ai.interview.analysis.toConsider')}</Text>
                                                     </View>
                                                     <MaterialCommunityIcons name="target" size={32} color="#4CAF50" />
                                                 </View>
                                                 <View style={styles.analysisCard}>
                                                     <View style={styles.analysisCardText}>
-                                                        <Text style={styles.cardInfoLabel}>Diagnostic Gaps</Text>
+                                                        <Text style={styles.cardInfoLabel}>{t('visit.ai.interview.analysis.gaps')}</Text>
                                                         <Text style={styles.cardInfoValue}>0</Text>
-                                                        <Text style={styles.cardInfoSub}>Require Attention</Text>
+                                                        <Text style={styles.cardInfoSub}>{t('visit.ai.interview.analysis.attention')}</Text>
                                                     </View>
                                                     <Feather name="alert-triangle" size={32} color="#EAB308" />
                                                 </View>
                                             </ScrollView>
                                             <View style={styles.recommendationHeader}>
-                                                <Text style={styles.recommendationTitle}>Clinical Recommendations</Text>
+                                                <Text style={styles.recommendationTitle}>{t('visit.ai.interview.analysis.recommendations')}</Text>
                                             </View>
                                         </View>
                                     )}
@@ -445,23 +467,23 @@ const VisitScreen = () => {
             case 'Documentation Assistant':
                 return (
                     <View style={styles.contentContainer}>
-                        {['Smart Transcription', 'Remedius Consult', 'Pharmacopedia'].map((title, index) => (
+                        {[
+                            { id: 'smart', title: t('visit.ai.transcription.smart'), desc: t('visit.ai.transcription.smartDesc') },
+                            { id: 'consult', title: t('visit.ai.transcription.consult'), desc: t('visit.ai.transcription.consultDesc') },
+                            { id: 'pharmacopedia', title: t('visit.ai.transcription.pharmacopedia'), desc: t('visit.ai.transcription.pharmacopediaDesc') }
+                        ].map((tool, index) => (
                             <View key={index} style={[styles.expandableHeader, { marginBottom: hp(1.5) }]}>
                                 <View style={styles.headerLeft}>
                                     <View style={styles.iconBackground}>
                                         <MaterialCommunityIcons 
-                                            name={title === 'Smart Transcription' ? 'brain' : title === 'Remedius Consult' ? 'stethoscope' : 'pill'} 
+                                            name={tool.id === 'smart' ? 'brain' : tool.id === 'consult' ? 'stethoscope' : 'pill'} 
                                             size={20} 
                                             color="#58A7B3" 
                                         />
                                     </View>
                                     <View>
-                                        <Text style={styles.headerTitle}>{title}</Text>
-                                        <Text style={styles.headerSubtitle}>
-                                            {title === 'Smart Transcription' ? 'AI-powered transcription of medical conversations' :
-                                             title === 'Remedius Consult' ? 'AI-powered clinical assistant for medical consultations...' :
-                                             'Comprehensive AI-driven drug information and interaction checker'}
-                                        </Text>
+                                        <Text style={styles.headerTitle}>{tool.title}</Text>
+                                        <Text style={styles.headerSubtitle}>{tool.desc}</Text>
                                     </View>
                                 </View>
                                 <Feather name="chevron-down" size={24} color="#333" />
@@ -478,18 +500,18 @@ const VisitScreen = () => {
                                     <Ionicons name="shield-checkmark-outline" size={24} color="#58A7B3" />
                                 </View>
                                 <View>
-                                    <Text style={styles.headerTitle}>Medicine Information</Text>
+                                    <Text style={styles.headerTitle}>{t('visit.ai.medInfo.title')}</Text>
                                 </View>
                             </View>
                             <Feather name="chevron-up" size={24} color="#333" />
                         </View>
                         
                         <View style={styles.searchSection}>
-                            <Text style={styles.inputLabel}>Search Medicine</Text>
+                            <Text style={styles.inputLabel}>{t('visit.ai.medInfo.search')}</Text>
                             <View style={styles.searchContainer}>
                                 <Feather name="search" size={20} color="#94A3B8" />
                                 <TextInput 
-                                    placeholder="Enter medicine name (min. 3 characters)..." 
+                                    placeholder={t('visit.ai.medInfo.placeholder')} 
                                     style={styles.searchInput}
                                     placeholderTextColor="#94A3B8"
                                 />
@@ -498,7 +520,7 @@ const VisitScreen = () => {
 
                         <View style={styles.emptyState}>
                             <MaterialCommunityIcons name="pill" size={60} color="#CBD5E1" />
-                            <Text style={styles.emptyStateText}>Search for a medicine to view details</Text>
+                            <Text style={styles.emptyStateText}>{t('visit.ai.medInfo.empty')}</Text>
                         </View>
                     </View>
                 );
@@ -508,7 +530,7 @@ const VisitScreen = () => {
                         <View style={styles.searchContainer}>
                             <Feather name="search" size={20} color="#94A3B8" />
                             <TextInput 
-                                placeholder="Search for ICD-10 code or diagnosis name..." 
+                                placeholder={t('visit.diagnosis.searchPlaceholder')} 
                                 style={styles.searchInput}
                                 placeholderTextColor="#94A3B8"
                             />
@@ -538,7 +560,7 @@ const VisitScreen = () => {
                 >
                     <Ionicons name="arrow-back" size={24} color="#1E293B" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitleMain}>Active Visit</Text>
+                <Text style={styles.headerTitleMain}>{t('visit.activeVisit')}</Text>
                 <View style={{ width: 40 }} /> 
             </View>
 
@@ -564,7 +586,7 @@ const VisitScreen = () => {
                             style={styles.aiBadge}
                         >
                             <MaterialCommunityIcons name="auto-fix" size={14} color="#fff" />
-                            <Text style={styles.aiBadgeText}>AI Powered</Text>
+                            <Text style={styles.aiBadgeText}>{t('visit.ai.badge')}</Text>
                         </LinearGradient>
                     </View>
 
@@ -587,6 +609,7 @@ const VisitScreen = () => {
             <SelectDataModal
                 visible={showDataModal}
                 onClose={() => setShowDataModal(false)}
+                previousVisits={previousVisits}
             />
         </SafeAreaView>
     );

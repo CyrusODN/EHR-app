@@ -151,7 +151,7 @@ console.log("type", type)
             setSpinner(false);
 
             if (response) {
-                let successMessage = 'Verification successful!';
+                let successMessage = t('otp.otp_verified');
                 
                 // If it's a successful 2FA login, update the store
                 if (type === '2fa' && response) {
@@ -190,7 +190,7 @@ console.log("type", type)
             setAlertConfig({
                 visible: true,
                 type: 'error',
-                message: error.message || 'Something went wrong. Please try again.',
+                message: error.message || t('auth.error_default'),
             });
         }
     };
@@ -207,7 +207,7 @@ console.log("type", type)
             setSpinner(false);
 
             if (response) {
-                let successMessage = 'OTP resent successfully!';
+                let successMessage = t('otp.new_otp_sent');
                 
                 if (typeof response === 'object') {
                     successMessage = response.data || successMessage;
@@ -226,7 +226,7 @@ console.log("type", type)
             setAlertConfig({
                 visible: true,
                 type: 'error',
-                message: error.message || 'Failed to resend OTP. Please try again.',
+                message: error.message || t('auth.error_default'),
             });
         }
     };

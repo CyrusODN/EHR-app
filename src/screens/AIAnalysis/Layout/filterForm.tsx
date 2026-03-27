@@ -2,8 +2,11 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import CustomCheckbox from '../../../component/customCheckBox';
 import CustomDropdown from '../../../component/customDropDown';
+import { useTranslation } from 'react-i18next';
 
 const MedicalFilterForm = () => {
+    const { t } = useTranslation();
+
     // State for form values
     const [timeRange, setTimeRange] = useState<string | number | null>(null);
     const [department, setDepartment] = useState<string | number | null>(null);
@@ -15,20 +18,20 @@ const MedicalFilterForm = () => {
 
     // Data for dropdowns
     const timeRangeOptions = [
-        { label: 'Last Month', value: 'last_month' },
-        { label: 'Last Week', value: 'last_week' },
-        { label: 'Last Year', value: 'last_year' }
+        { label: t('aiAnalysis.filterForm.lastMonth'), value: 'last_month' },
+        { label: t('aiAnalysis.filterForm.lastWeek'), value: 'last_week' },
+        { label: t('aiAnalysis.filterForm.lastYear'), value: 'last_year' }
     ];
 
     const departmentOptions = [
-        { label: 'All Branches', value: 'all' },
-        { label: 'Cardiology', value: 'cardiology' },
-        { label: 'Neurology', value: 'neurology' },
-        { label: 'Surgery', value: 'surgery' }
+        { label: t('aiAnalysis.filterForm.allBranches'), value: 'all' },
+        { label: t('aiAnalysis.filterForm.cardiology'), value: 'cardiology' },
+        { label: t('aiAnalysis.filterForm.neurology'), value: 'neurology' },
+        { label: t('aiAnalysis.filterForm.surgery'), value: 'surgery' }
     ];
 
     const doctorOptions = [
-        { label: 'All doctors', value: 'all' },
+        { label: t('aiAnalysis.filterForm.allDoctors'), value: 'all' },
         { label: 'Dr Jan Kowalski', value: 'kowalski' },
         { label: 'Dr Anna Nowak', value: 'nowak' },
         { label: 'Dr Piotr Wiśniewski', value: 'wisniewski' }
@@ -45,25 +48,25 @@ const MedicalFilterForm = () => {
     return (
         <View style={styles.container}>
             <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Time Range</Text>
+                <Text style={styles.sectionTitle}>{t('aiAnalysis.filterForm.timeRange')}</Text>
                 <CustomDropdown
-                    placeholder="Last month"
+                    placeholder={t('aiAnalysis.filterForm.lastMonth')}
                     options={timeRangeOptions}
                     value={timeRange}
                     onChange={setTimeRange} icon={undefined} />
             </View>
 
             <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Branch</Text>
+                <Text style={styles.sectionTitle}>{t('aiAnalysis.filterForm.branch')}</Text>
                 <CustomDropdown
-                    placeholder="All branches"
+                    placeholder={t('aiAnalysis.filterForm.allBranches')}
                     options={departmentOptions}
                     value={department}
                     onChange={setDepartment} icon={undefined} />
             </View>
 
             <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Doctors</Text>
+                <Text style={styles.sectionTitle}>{t('aiAnalysis.filterForm.doctors')}</Text>
                 <View style={{
                     borderWidth: 1,
                     borderColor: '#e0e0e0',
@@ -93,24 +96,17 @@ const MedicalFilterForm = () => {
                         )
                     })}
                 </View>
-                {/* <CustomDropdown
-                    placeholder="Wszyscy lekarze"
-                    options={doctorOptions}
-                    value={doctor}
-                    onChange={setDoctor}
-                    icon={<Ionicons name="people-outline" size={20} color="#666" />}
-                /> */}
             </View>
 
             <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Metrics</Text>
+                <Text style={styles.sectionTitle}>{t('aiAnalysis.filterForm.metrics')}</Text>
                 <CustomCheckbox
-                    label="Visits"
+                    label={t('aiAnalysis.filterForm.visits')}
                     checked={metrics.visits}
                     onChange={(value) => handleMetricChange('visits', value)}
                 />
                 <CustomCheckbox
-                    label="Recognitions"
+                    label={t('aiAnalysis.filterForm.recognitions')}
                     checked={metrics.diagnoses}
                     onChange={(value) => handleMetricChange('diagnoses', value)}
                 />

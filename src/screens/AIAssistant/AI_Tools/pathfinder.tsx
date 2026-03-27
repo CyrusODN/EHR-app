@@ -16,6 +16,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import LinearGradient from 'react-native-linear-gradient';
 import PrimaryButton from '../../../component/button';
 import Gap from '../../../component/gap';
+import { useTranslation } from 'react-i18next';
 // import { getPathfinderSessions } from '../../../Services/PathfinderTool.Service';
 
 interface ResearchProject {
@@ -41,6 +42,7 @@ const citationStyles = [
 ];
 
 const Pathfinder = () => {
+    const { t } = useTranslation();
     // Form state
     const [researchTopic, setResearchTopic] = useState('');
     const [selectedContentType, setSelectedContentType] = useState('Full Article (Draft)');
@@ -130,8 +132,8 @@ const Pathfinder = () => {
                     <Feather name="menu" size={20} color="#4A90B9" />
                 </TouchableOpacity>
                 <View>
-                    <Text style={styles.headerTitle}>Remedius Pathfinder</Text>
-                    <Text style={styles.headerSubtitle}>AI-powered research publication assistant</Text>
+                    <Text style={styles.headerTitle}>{t('aiAssistant.pathfinder.title')}</Text>
+                    <Text style={styles.headerSubtitle}>{t('aiAssistant.pathfinder.subtitle')}</Text>
                 </View>
             </View>
 
@@ -152,21 +154,21 @@ const Pathfinder = () => {
                         <Feather name="search" size={28} color="#FFFFFF" />
                     </LinearGradient>
                     <Gap height={hp(2)} />
-                    <Text style={styles.heroTitle}>Create Your First Research Project</Text>
+                    <Text style={styles.heroTitle}>{t('aiAssistant.pathfinder.heroTitle')}</Text>
                     <Gap height={hp(1)} />
                     <Text style={styles.heroDesc}>
-                        Upload documents, set a research topic, and generate academic publications with AI assistance
+                        {t('aiAssistant.pathfinder.heroDesc')}
                     </Text>
                 </View>
 
                 {/* Form Card */}
                 <View style={styles.formCard}>
                     {/* Research Topic */}
-                    <Text style={styles.fieldLabel}>Research Topic <Text style={styles.required}>*</Text></Text>
+                    <Text style={styles.fieldLabel}>{t('aiAssistant.pathfinder.researchTopic')} <Text style={styles.required}>*</Text></Text>
                     <Gap height={hp(0.8)} />
                     <TextInput
                         style={styles.textInput}
-                        placeholder="Enter your research topic or focus area..."
+                        placeholder={t('aiAssistant.pathfinder.researchTopicPlaceholder')}
                         placeholderTextColor="#9CA3AF"
                         value={researchTopic}
                         onChangeText={setResearchTopic}
@@ -175,7 +177,7 @@ const Pathfinder = () => {
                     <Gap height={hp(2)} />
 
                     {/* Upload Documents */}
-                    <Text style={styles.fieldLabel}>Upload Documents <Text style={styles.required}>*</Text></Text>
+                    <Text style={styles.fieldLabel}>{t('aiAssistant.pathfinder.uploadDocuments')} <Text style={styles.required}>*</Text></Text>
                     <Gap height={hp(0.8)} />
                     <View style={styles.uploadArea}>
                         <LinearGradient
@@ -187,11 +189,11 @@ const Pathfinder = () => {
                             <Feather name="upload" size={24} color="#FFFFFF" />
                         </LinearGradient>
                         <Gap height={hp(1.5)} />
-                        <Text style={styles.uploadText}>Tap to browse and upload files</Text>
-                        <Text style={styles.uploadSubText}>Supports PDF, DOC, DOCX (max 25MB each)</Text>
+                        <Text style={styles.uploadText}>{t('aiAssistant.pathfinder.uploadText')}</Text>
+                        <Text style={styles.uploadSubText}>{t('aiAssistant.pathfinder.uploadSubText')}</Text>
                         <Gap height={hp(1.5)} />
                         <TouchableOpacity onPress={handleChooseFiles} style={styles.chooseFilesBtn}>
-                            <Text style={styles.chooseFilesBtnText}>Choose Files</Text>
+                            <Text style={styles.chooseFilesBtnText}>{t('aiAssistant.pathfinder.chooseFiles')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -199,13 +201,13 @@ const Pathfinder = () => {
                 {/* Research Configuration */}
                 <View style={styles.configSection}>
                     <View style={styles.configHeader}>
-                        <Text style={styles.configTitle}>Research Configuration</Text>
+                        <Text style={styles.configTitle}>{t('aiAssistant.pathfinder.researchConfig')}</Text>
                         <TouchableOpacity
                             onPress={() => setShowAdvanced(!showAdvanced)}
                             style={styles.advancedToggleBtn}
                         >
                             <Text style={styles.advancedToggle}>
-                                {showAdvanced ? 'Hide Advanced Options' : 'Show Advanced Options'}
+                                {showAdvanced ? t('aiAssistant.pathfinder.hideAdvanced') : t('aiAssistant.pathfinder.showAdvanced')}
                             </Text>
                         </TouchableOpacity>
                     </View>
@@ -213,7 +215,7 @@ const Pathfinder = () => {
                     <Gap height={hp(2)} />
 
                     {/* Content Type */}
-                    <Text style={styles.chipGroupLabel}>Content Type</Text>
+                    <Text style={styles.chipGroupLabel}>{t('aiAssistant.pathfinder.contentType')}</Text>
                     <Gap height={hp(1)} />
                     <View style={styles.chipGrid}>
                         {contentTypes.map((type) => (
@@ -242,7 +244,7 @@ const Pathfinder = () => {
                     <Gap height={hp(2)} />
 
                     {/* Citation Style */}
-                    <Text style={styles.chipGroupLabel}>Citation Style</Text>
+                    <Text style={styles.chipGroupLabel}>{t('aiAssistant.pathfinder.citationStyle')}</Text>
                     <Gap height={hp(1)} />
                     <View style={styles.chipGrid}>
                         {citationStyles.map((cs) => (
@@ -272,7 +274,7 @@ const Pathfinder = () => {
                     {showAdvanced && (
                         <View style={styles.advancedSection}>
                             <Gap height={hp(2)} />
-                            <Text style={styles.fieldLabel}>Keywords/Focus</Text>
+                            <Text style={styles.fieldLabel}>{t('aiAssistant.pathfinder.keywordsFocus')}</Text>
                             <Gap height={hp(0.8)} />
                             <TextInput
                                 style={styles.textInput}
@@ -284,7 +286,7 @@ const Pathfinder = () => {
 
                             <Gap height={hp(2)} />
 
-                            <Text style={styles.fieldLabel}>Research Prompt</Text>
+                            <Text style={styles.fieldLabel}>{t('aiAssistant.pathfinder.researchPrompt')}</Text>
                             <Gap height={hp(0.8)} />
                             <TextInput
                                 style={styles.multilineInput}
@@ -301,14 +303,14 @@ const Pathfinder = () => {
                 {/* Create Button */}
                 <View style={styles.createBtnWrapper}>
                     <PrimaryButton
-                        label="Create Project"
+                        label={t('aiAssistant.pathfinder.createProject')}
                         filled={true}
                         onPress={handleCreateProject}
                         style={styles.createBtn}
                     />
                     <Gap height={hp(1)} />
                     <Text style={styles.createFooterText}>
-                        Project will be created with your selected configuration
+                        {t('aiAssistant.pathfinder.createFooter')}
                     </Text>
                 </View>
 
@@ -332,7 +334,7 @@ const Pathfinder = () => {
                                     <View style={styles.panelIconCircle}>
                                         <MaterialCommunityIcons name="file-document-outline" size={20} color="#FFFFFF" />
                                     </View>
-                                    <Text style={styles.panelHeaderTitle}>Research{'\n'}Projects</Text>
+                                    <Text style={styles.panelHeaderTitle}>{t('aiAssistant.pathfinder.researchProjects')}</Text>
                                 </View>
                                 <View style={styles.panelHeaderRight}>
                                     <TouchableOpacity
@@ -340,7 +342,7 @@ const Pathfinder = () => {
                                         onPress={() => { togglePanel(); }}
                                     >
                                         <Feather name="plus" size={14} color="#FFFFFF" />
-                                        <Text style={styles.newProjectBtnText}>New{'\n'}Project</Text>
+                                        <Text style={styles.newProjectBtnText}>{t('aiAssistant.pathfinder.newProject')}</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity onPress={togglePanel} style={styles.panelCloseBtn}>
                                         <Feather name="chevron-left" size={20} color="#FFFFFF" />
@@ -370,8 +372,8 @@ const Pathfinder = () => {
                                     <View style={styles.emptyState}>
                                         <MaterialCommunityIcons name="file-document-outline" size={48} color="#D1D5DB" />
                                         <Gap height={hp(1.5)} />
-                                        <Text style={styles.emptyStateTitle}>No research projects yet</Text>
-                                        <Text style={styles.emptyStateDesc}>Create your first research project</Text>
+                                        <Text style={styles.emptyStateTitle}>{t('aiAssistant.pathfinder.noProjectsYet')}</Text>
+                                        <Text style={styles.emptyStateDesc}>{t('aiAssistant.pathfinder.createFirstProject')}</Text>
                                     </View>
                                 )}
                             </ScrollView>

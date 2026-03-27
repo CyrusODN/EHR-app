@@ -12,6 +12,8 @@ import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 
+import { useTranslation } from 'react-i18next';
+
 interface VisitHistoryModalProps {
     visible: boolean;
     onClose: () => void;
@@ -21,6 +23,7 @@ interface VisitHistoryModalProps {
 }
 
 const VisitHistoryModal = ({ visible, onClose, visits = [], total = 0, loading = false }: VisitHistoryModalProps) => {
+    const { t, i18n } = useTranslation();
     const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
     const toggleExpand = useCallback((index: number) => {
@@ -28,15 +31,13 @@ const VisitHistoryModal = ({ visible, onClose, visits = [], total = 0, loading =
     }, []);
 
     const formatVisitDate = useCallback((dateStr: string) => {
-        if (!dateStr) return 'N/A';
+        if (!dateStr) return t('visit.history_labels.noData');
         const date = new Date(dateStr);
         const day = date.getDate();
-        const months = ['January', 'February', 'March', 'April', 'May', 'June',
-            'July', 'August', 'September', 'October', 'November', 'December'];
-        const month = months[date.getMonth()];
+        const month = date.toLocaleString(i18n.language || 'en', { month: 'long' });
         const year = date.getFullYear();
         return `${day} ${month} ${year}`;
-    }, []);
+    }, [t, i18n.language]);
 
     const formatTime = useCallback((timeStr: string) => {
         if (!timeStr) return '';
@@ -59,7 +60,7 @@ const VisitHistoryModal = ({ visible, onClose, visits = [], total = 0, loading =
                 <View style={styles.modalContainer}>
                     {/* Header */}
                     <View style={styles.header}>
-                        <Text style={styles.headerTitle}>Visit History</Text>
+                        <Text style={styles.headerTitle}>{t('visit.profile.history')}</Text>
                         <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
                             <Feather name="x" size={24} color="#64748B" />
                         </TouchableOpacity>
@@ -67,9 +68,9 @@ const VisitHistoryModal = ({ visible, onClose, visits = [], total = 0, loading =
 
                     {/* Sub Header */}
                     <View style={styles.subHeader}>
-                        <Text style={styles.activeLabel}>Visit History</Text>
+                        <Text style={styles.activeLabel}>{t('visit.profile.history')}</Text>
                         <View style={styles.totalContainer}>
-                            <Text style={styles.totalText}>Total visits: {total}</Text>
+                            <Text style={styles.totalText}>{t('visit.profile.history_total', { total })}</Text>
                         </View>
                     </View>
 
@@ -114,7 +115,7 @@ const VisitHistoryModal = ({ visible, onClose, visits = [], total = 0, loading =
                                                             {formatVisitDate(visit.date)}
                                                         </Text>
                                                         <Text style={styles.visitCardType}>
-                                                            {visit.visitType || 'public'}
+                                                            {visit.visitType ? t(`visit.type.${visit.visitType}`) : t('visit.type.followUp')}
                                                         </Text>
                                                         {timeRange ? (
                                                             <Text style={styles.visitCardTime}>
@@ -126,7 +127,7 @@ const VisitHistoryModal = ({ visible, onClose, visits = [], total = 0, loading =
                                                 <View style={styles.visitCardRight}>
                                                     <View style={styles.statusBadge}>
                                                         <Text style={styles.statusBadgeText}>
-                                                            {visit.status || 'scheduled'}
+                                                            {visit.status ? t(`status.${visit.status}`) : t('status.scheduled')}
                                                         </Text>
                                                     </View>
                                                     <Feather
@@ -145,10 +146,10 @@ const VisitHistoryModal = ({ visible, onClose, visits = [], total = 0, loading =
                                                     <View style={styles.expandedSection}>
                                                         <View style={styles.expandedSectionHeader}>
                                                             <Feather name="user" size={16} color="#64748B" />
-                                                            <Text style={styles.expandedSectionTitle}>Doctor</Text>
+                                                            <Text style={styles.expandedSectionTitle}>{t('visit.history_labels.doctor')}</Text>
                                                         </View>
                                                         <Text style={styles.expandedSectionValue}>
-                                                            {visit.doctor?.name || visit.doctorName || visit.doctor || 'N/A'}
+                                                            {visit.doctor?.name || visit.doctorName || visit.doctor || t('visit.history_labels.noData')}
                                                         </Text>
                                                     </View>
 
@@ -156,10 +157,10 @@ const VisitHistoryModal = ({ visible, onClose, visits = [], total = 0, loading =
                                                     <View style={styles.expandedSection}>
                                                         <View style={styles.expandedSectionHeader}>
                                                             <Feather name="file-text" size={16} color="#64748B" />
-                                                            <Text style={styles.expandedSectionTitle}>Notes</Text>
+                                                            <Text style={styles.expandedSectionTitle}>{t('visit.history_labels.notes')}</Text>
                                                         </View>
                                                         <Text style={styles.expandedSectionValue}>
-                                                            {visit.notes || 'New Patient'}
+                                                            {visit.notes || t('visit.history_labels.defaultNote')}
                                                         </Text>
                                                     </View>
 
@@ -167,17 +168,17 @@ const VisitHistoryModal = ({ visible, onClose, visits = [], total = 0, loading =
                                                     <View style={styles.expandedSection}>
                                                         <View style={styles.expandedSectionHeader}>
                                                             <Feather name="file-text" size={16} color="#64748B" />
-                                                            <Text style={styles.expandedSectionTitle}>Medical Interview</Text>
+                                                            <Text style={styles.expandedSectionTitle}>{t('visit.history_labels.interview')}</Text>
                                                         </View>
 
-                                                        <Text style={styles.expandedSubLabel}>Main Symptoms</Text>
+                                                        <Text style={styles.expandedSubLabel}>{t('visit.history_labels.mainSymptoms')}</Text>
                                                         <Text style={styles.expandedSubValue}>
-                                                            {visit.mainSymptoms || visit.recommendations?.mainSymptoms || 'No data available'}
+                                                            {visit.mainSymptoms || visit.recommendations?.mainSymptoms || t('visit.history_labels.noData')}
                                                         </Text>
 
                                                         <View style={[styles.expandedSectionHeader, { marginTop: 12 }]}>
                                                             <MaterialCommunityIcons name="brain" size={16} color="#64748B" />
-                                                            <Text style={styles.expandedSectionTitle}>Psychiatric Scales</Text>
+                                                            <Text style={styles.expandedSectionTitle}>{t('visit.history_labels.scales')}</Text>
                                                         </View>
                                                     </View>
 
@@ -185,34 +186,34 @@ const VisitHistoryModal = ({ visible, onClose, visits = [], total = 0, loading =
                                                     <View style={styles.expandedSection}>
                                                         <View style={styles.expandedSectionHeader}>
                                                             <MaterialCommunityIcons name="stethoscope" size={16} color="#64748B" />
-                                                            <Text style={styles.expandedSectionTitle}>Examination</Text>
+                                                            <Text style={styles.expandedSectionTitle}>{t('visit.history_labels.examination')}</Text>
                                                         </View>
 
                                                         <View style={styles.examGrid}>
                                                             <View style={styles.examGridItem}>
-                                                                <Text style={styles.examLabel}>Blood Pressure:</Text>
+                                                                <Text style={styles.examLabel}>{t('visit.history_labels.bloodPressure')}:</Text>
                                                                 <Text style={styles.examValue}>
-                                                                    {visit.examination?.bloodPressure || 'No data available'}
+                                                                    {visit.examination?.bloodPressure || t('visit.history_labels.noData')}
                                                                 </Text>
                                                             </View>
                                                             <View style={styles.examGridItem}>
-                                                                <Text style={styles.examLabel}>General Condition:</Text>
+                                                                <Text style={styles.examLabel}>{t('visit.history_labels.generalCondition')}:</Text>
                                                                 <Text style={styles.examValue}>
-                                                                    {visit.examination?.generalCondition || 'No data available'}
+                                                                    {visit.examination?.generalCondition || t('visit.history_labels.noData')}
                                                                 </Text>
                                                             </View>
                                                         </View>
                                                         <View style={styles.examGrid}>
                                                             <View style={styles.examGridItem}>
-                                                                <Text style={styles.examLabel}>Heart Rate:</Text>
+                                                                <Text style={styles.examLabel}>{t('visit.history_labels.heartRate')}:</Text>
                                                                 <Text style={styles.examValue}>
-                                                                    {visit.examination?.heartRate || 'No data available'}
+                                                                    {visit.examination?.heartRate || t('visit.history_labels.noData')}
                                                                 </Text>
                                                             </View>
                                                             <View style={styles.examGridItem}>
-                                                                <Text style={styles.examLabel}>Temperature:</Text>
+                                                                <Text style={styles.examLabel}>{t('visit.history_labels.temperature')}:</Text>
                                                                 <Text style={styles.examValue}>
-                                                                    {visit.examination?.temperature || 'No data available'}
+                                                                    {visit.examination?.temperature || t('visit.history_labels.noData')}
                                                                 </Text>
                                                             </View>
                                                         </View>
@@ -226,7 +227,7 @@ const VisitHistoryModal = ({ visible, onClose, visits = [], total = 0, loading =
                         ) : (
                             <View style={styles.emptyContainer}>
                                 <Feather name="calendar" size={48} color="#E2E8F0" />
-                                <Text style={styles.noDataText}>No visits found</Text>
+                                <Text style={styles.noDataText}>{t('visit.profile.noVisits')}</Text>
                             </View>
                         )}
                     </View>

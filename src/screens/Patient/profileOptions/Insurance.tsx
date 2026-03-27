@@ -13,6 +13,7 @@ import {
 import Feather from 'react-native-vector-icons/Feather';
 import { GetPatientPersonalData } from '../../../Services/PersonalData.Service';
 import { ActivityIndicator } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -26,6 +27,7 @@ const ActionOutlineButton = ({ title, icon, onPress }: any) => (
 );
 
 const Insurance = ({ patientData }: { patientData: any }) => {
+    const { t } = useTranslation();
     const [expanded, setExpanded] = useState(true);
     const [searchText, setSearchText] = useState('');
     const [personalData, setPersonalData] = useState<any>(null);
@@ -54,7 +56,7 @@ const Insurance = ({ patientData }: { patientData: any }) => {
     };
 
     const formatDate = (dateString: string) => {
-        if (!dateString) return 'N/A';
+        if (!dateString) return t('patientInsurance.na');
         const date = new Date(dateString);
         return date.toLocaleDateString('en-GB', {
             day: 'numeric',
@@ -73,7 +75,7 @@ const Insurance = ({ patientData }: { patientData: any }) => {
                 >
                     <View style={styles.headerLeft}>
                         <Feather name="clock" size={18} color="#58a6b8" style={styles.icon} />
-                        <Text style={styles.title}>INSURANCE HISTORY</Text>
+                        <Text style={styles.title}>{t('patientInsurance.title')}</Text>
                     </View>
                     <Feather name={expanded ? "chevron-up" : "chevron-down"} size={20} color="#94a3b8" />
                 </TouchableOpacity>
@@ -85,15 +87,15 @@ const Insurance = ({ patientData }: { patientData: any }) => {
                                 <Feather name="search" size={18} color="#94a3b8" />
                                 <TextInput 
                                     style={styles.searchInput}
-                                    placeholder="Search in insurance history..."
+                                    placeholder={t('patientInsurance.searchPlaceholder')}
                                     value={searchText}
                                     onChangeText={setSearchText}
                                     placeholderTextColor="#94a3b8"
                                 />
                             </View>
                             <View style={styles.buttonGroup}>
-                                <ActionOutlineButton title="Filter" icon="calendar" />
-                                <ActionOutlineButton title="Export" icon="download" />
+                                <ActionOutlineButton title={t('patientInsurance.filter')} icon="calendar" />
+                                <ActionOutlineButton title={t('patientInsurance.export')} icon="download" />
                             </View>
                         </View>
 
@@ -122,11 +124,11 @@ const Insurance = ({ patientData }: { patientData: any }) => {
                                         </View>
                                         <View style={styles.cardDetails}>
                                             <View style={styles.detailCol}>
-                                                <Text style={styles.detailLabel}>Insurer:</Text>
+                                                <Text style={styles.detailLabel}>{t('patientInsurance.insurer')}</Text>
                                                 <Text style={styles.detailValue}>{item.name}</Text>
                                             </View>
                                             <View style={styles.detailCol}>
-                                                <Text style={styles.detailLabel}>Policy Number:</Text>
+                                                <Text style={styles.detailLabel}>{t('patientInsurance.policyNumber')}</Text>
                                                 <Text style={styles.detailValue}>{item.policyNumber}</Text>
                                             </View>
                                         </View>
@@ -134,7 +136,7 @@ const Insurance = ({ patientData }: { patientData: any }) => {
                                 ))
                         ) : (
                             <View style={styles.emptyContainer}>
-                                <Text style={styles.emptyText}>No insurance history</Text>
+                                <Text style={styles.emptyText}>{t('patientInsurance.noInsuranceHistory')}</Text>
                             </View>
                         )}
                     </View>

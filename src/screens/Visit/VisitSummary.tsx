@@ -14,6 +14,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import LinearGradient from 'react-native-linear-gradient';
 import RecommendationModal from './modals/RecommendationModal';
+import { useTranslation } from 'react-i18next';
 
 interface VisitSummaryProps {
     onBack: () => void;
@@ -23,6 +24,7 @@ interface VisitSummaryProps {
 }
 
 const VisitSummary = ({ onBack, onFinish, visitData, onUpdate }: VisitSummaryProps) => {
+    const { t } = useTranslation();
     const [expandedSections, setExpandedSections] = useState({
         diagnoses: false,
         documents: false,
@@ -125,7 +127,7 @@ const VisitSummary = ({ onBack, onFinish, visitData, onUpdate }: VisitSummaryPro
                             onPress={() => setShowRecommendationModal(true)}
                         >
                             <Feather name="plus" size={16} color="#58A7B3" />
-                            <Text style={styles.addRecommendationsText}>Add Recommendations</Text>
+                            <Text style={styles.addRecommendationsText}>{t('visit.summary.actions.addRecommendations')}</Text>
                         </TouchableOpacity>
                     </View>
                 )}
@@ -137,7 +139,7 @@ const VisitSummary = ({ onBack, onFinish, visitData, onUpdate }: VisitSummaryPro
         <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
             {/* Diagnoses Card */}
             <View style={styles.card}>
-                {renderHeader('Diagnoses', 'activity', 'feather', visitData?.diagnosis?.icd10?.length || 0, 'diagnoses')}
+                {renderHeader(t('visit.summary.sections.diagnoses'), 'activity', 'feather', visitData?.diagnosis?.icd10?.length || 0, 'diagnoses')}
                 {expandedSections.diagnoses && (
                     <View style={styles.cardContent}>
                         {visitData?.diagnosis?.icd10?.length > 0 ? (
@@ -148,8 +150,8 @@ const VisitSummary = ({ onBack, onFinish, visitData, onUpdate }: VisitSummaryPro
                                     </View>
                                 ))}
                             </View>
-                        ) : (
-                            <Text style={styles.placeholderText}>No diagnoses added yet.</Text>
+                             ) : (
+                            <Text style={styles.placeholderText}>{t('visit.summary.emptyDiagnoses')}</Text>
                         )}
                     </View>
                 )}
@@ -157,24 +159,24 @@ const VisitSummary = ({ onBack, onFinish, visitData, onUpdate }: VisitSummaryPro
 
             {/* Issued Documents Card */}
             <View style={styles.card}>
-                {renderHeader('Issued Documents', 'file-text', 'feather', (visitData?.isPrescription ? 1 : 0) + (visitData?.isReferral ? 1 : 0), 'documents')}
+                {renderHeader(t('visit.summary.sections.documents'), 'file-text', 'feather', (visitData?.isPrescription ? 1 : 0) + (visitData?.isReferral ? 1 : 0), 'documents')}
                 {expandedSections.documents && (
                     <View style={styles.cardContent}>
                         {visitData?.isPrescription || visitData?.isReferral ? (
                             <View style={styles.aiGrid}>
                                 {visitData?.isPrescription && (
                                     <View style={styles.aiToolPill}>
-                                        <Text style={styles.aiToolText}>e-Prescription issued</Text>
+                                        <Text style={styles.aiToolText}>{t('visit.summary.prescriptionIssued')}</Text>
                                     </View>
                                 )}
                                 {visitData?.isReferral && (
                                     <View style={styles.aiToolPill}>
-                                        <Text style={styles.aiToolText}>Referral issued</Text>
+                                        <Text style={styles.aiToolText}>{t('visit.summary.referralIssued')}</Text>
                                     </View>
                                 )}
                             </View>
-                        ) : (
-                            <Text style={styles.placeholderText}>No documents issued.</Text>
+                             ) : (
+                            <Text style={styles.placeholderText}>{t('visit.summary.emptyDocuments')}</Text>
                         )}
                     </View>
                 )}
@@ -182,13 +184,13 @@ const VisitSummary = ({ onBack, onFinish, visitData, onUpdate }: VisitSummaryPro
 
             {/* Psychiatric Recommendations Card */}
             <View style={styles.card}>
-                {renderHeader('Psychiatric Recommendations', 'brain', 'material', visitData?.recommendations?.aiAssistance?.features ? Object.values(visitData.recommendations.aiAssistance.features).filter(Boolean).length : 0, 'psychiatric', true)}
+                {renderHeader(t('visit.summary.sections.recommendations'), 'brain', 'material', visitData?.recommendations?.aiAssistance?.features ? Object.values(visitData.recommendations.aiAssistance.features).filter(Boolean).length : 0, 'psychiatric', true)}
                 {expandedSections.psychiatric && (
                     <View style={styles.cardContent}>
                         <View style={styles.aiAssistanceSection}>
-                            <View style={styles.aiAssistanceHeader}>
+                             <View style={styles.aiAssistanceHeader}>
                                 <MaterialCommunityIcons name="brain" size={18} color="#58A7B3" />
-                                <Text style={styles.aiAssistanceTitle}>AI Assistance</Text>
+                                <Text style={styles.aiAssistanceTitle}>{t('visit.summary.aiTitle')}</Text>
                             </View>
                             
                             <View style={styles.aiGrid}>
@@ -204,9 +206,9 @@ const VisitSummary = ({ onBack, onFinish, visitData, onUpdate }: VisitSummaryPro
                                         }
                                         return null;
                                     })
-                                ) : (
+                                 ) : (
                                     <View style={styles.aiToolPill}>
-                                        <Text style={styles.aiToolText}>No AI features enabled</Text>
+                                        <Text style={styles.aiToolText}>{t('visit.summary.noAiFeatures')}</Text>
                                     </View>
                                 )}
                             </View>
@@ -217,12 +219,12 @@ const VisitSummary = ({ onBack, onFinish, visitData, onUpdate }: VisitSummaryPro
 
             {/* Next Visit Card */}
             <View style={styles.card}>
-                {renderHeader('Next Visit', 'calendar', 'feather', undefined, 'nextVisit')}
+                {renderHeader(t('visit.summary.sections.nextVisit'), 'calendar', 'feather', undefined, 'nextVisit')}
                 {expandedSections.nextVisit && (
                     <View style={styles.cardContent}>
-                        <View style={styles.schedulingSection}>
+                         <View style={styles.schedulingSection}>
                             <View style={styles.inputGroup}>
-                                <Text style={styles.inputLabel}>Date</Text>
+                                <Text style={styles.inputLabel}>{t('common.time')}</Text>
                                 <TouchableOpacity 
                                     style={styles.scheduleInputContainer}
                                     onPress={() => setShowDatePicker(true)}
@@ -244,9 +246,9 @@ const VisitSummary = ({ onBack, onFinish, visitData, onUpdate }: VisitSummaryPro
                                 )}
                             </View>
 
-                            <View style={styles.timeRow}>
+                             <View style={styles.timeRow}>
                                 <View style={styles.timeInputWrapper}>
-                                    <Text style={styles.inputLabel}>Start Time</Text>
+                                    <Text style={styles.inputLabel}>{t('common.from')}</Text>
                                     <TouchableOpacity 
                                         style={styles.scheduleInputContainer}
                                         onPress={() => setShowStartTimePicker(true)}
@@ -266,8 +268,8 @@ const VisitSummary = ({ onBack, onFinish, visitData, onUpdate }: VisitSummaryPro
                                         />
                                     )}
                                 </View>
-                                <View style={styles.timeInputWrapper}>
-                                    <Text style={styles.inputLabel}>End Time</Text>
+                                 <View style={styles.timeInputWrapper}>
+                                    <Text style={styles.inputLabel}>{t('common.to')}</Text>
                                     <TouchableOpacity 
                                         style={styles.scheduleInputContainer}
                                         onPress={() => setShowEndTimePicker(true)}
@@ -296,8 +298,8 @@ const VisitSummary = ({ onBack, onFinish, visitData, onUpdate }: VisitSummaryPro
                                     end={{ x: 1, y: 0 }}
                                     style={styles.createVisitGradient}
                                 >
-                                    <Feather name="check" size={18} color="#fff" />
-                                    <Text style={styles.createVisitText}>Create next visit</Text>
+                                     <Feather name="check" size={18} color="#fff" />
+                                    <Text style={styles.createVisitText}>{t('visit.summary.nextVisitLabels.create')}</Text>
                                 </LinearGradient>
                             </TouchableOpacity>
                         </View>
@@ -307,21 +309,21 @@ const VisitSummary = ({ onBack, onFinish, visitData, onUpdate }: VisitSummaryPro
 
             {/* General Recommendations Card */}
             <View style={styles.card}>
-                {renderHeader('General Recommendations', 'clipboard', 'feather', undefined, 'general')}
+                {renderHeader(t('visit.summary.sections.generalRecommendations'), 'clipboard', 'feather', undefined, 'general')}
                 {expandedSections.general && (
                     <View style={styles.cardContent}>
-                        <TextInput
+                         <TextInput
                             style={styles.generalInput}
-                            placeholder="Enter general Recommendations"
+                            placeholder={t('visit.summary.placeholders.recommendations')}
                             placeholderTextColor="#94A3B8"
                             multiline
                             numberOfLines={4}
                             textAlignVertical="top"
                             value={generalRecommendations}
-                            onChangeText={setGeneralRecommendations}
-                            onBlur={() => {
-                                if (onUpdate && (visitData?.recommendations?.specialization !== generalRecommendations)) {
-                                    onUpdate({ recommendations: { specialization: generalRecommendations } });
+                            onChangeText={(text) => {
+                                setGeneralRecommendations(text);
+                                if (onUpdate) {
+                                    onUpdate({ recommendations: { specialization: text } });
                                 }
                             }}
                         />
@@ -330,10 +332,10 @@ const VisitSummary = ({ onBack, onFinish, visitData, onUpdate }: VisitSummaryPro
             </View>
 
             {/* Footer */}
-            <View style={styles.footer}>
+             <View style={styles.footer}>
                 <TouchableOpacity style={styles.backButton} onPress={onBack}>
                     <Feather name="arrow-left" size={18} color="#58A7B3" />
-                    <Text style={styles.backButtonText}>Back</Text>
+                    <Text style={styles.backButtonText}>{t('visit.navigation.previous')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={onFinish}>
@@ -341,9 +343,9 @@ const VisitSummary = ({ onBack, onFinish, visitData, onUpdate }: VisitSummaryPro
                         colors={['#58A7B3', '#8ED1CC']}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
-                        style={styles.finishButton}
+                         style={styles.finishButton}
                     >
-                        <Text style={styles.finishButtonText}>Finish</Text>
+                        <Text style={styles.finishButtonText}>{t('visit.summary.actions.finish')}</Text>
                         <Feather name="arrow-right" size={18} color="#fff" />
                     </LinearGradient>
                 </TouchableOpacity>

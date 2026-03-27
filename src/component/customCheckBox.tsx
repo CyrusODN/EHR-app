@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 interface CustomCheckboxProps {
     label: string;
@@ -9,20 +10,24 @@ interface CustomCheckboxProps {
 }
 
 const CustomCheckbox: React.FC<CustomCheckboxProps> = ({ label, checked, onChange }) => {
+    const { colors: tc } = useThemeColors();
+    
     return (
         <TouchableOpacity
             style={styles.container}
             onPress={() => onChange(!checked)}
+            activeOpacity={0.7}
         >
             <View style={[
                 styles.checkbox,
-                checked && styles.checkedBox
+                { borderColor: tc.borderColor, backgroundColor: tc.buttonMutedBg },
+                checked && { backgroundColor: tc.accent, borderColor: tc.accent }
             ]}>
                 {checked && (
-                    <Ionicons name="checkmark" size={16} color="white" />
+                    <Ionicons name="checkmark" size={14} color="white" />
                 )}
             </View>
-            <Text style={styles.label}>{label}</Text>
+            <Text style={[styles.label, { color: tc.textPrimary }]}>{label}</Text>
         </TouchableOpacity>
     );
 };
@@ -31,25 +36,20 @@ const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginVertical: 8,
+        marginVertical: 6,
     },
     checkbox: {
-        width: 20,
-        height: 20,
+        width: 18,
+        height: 18,
         borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 3,
+        borderRadius: 4,
         justifyContent: 'center',
         alignItems: 'center',
     },
-    checkedBox: {
-        backgroundColor: '#4A90B9',
-        borderColor: '#4A90B9',
-    },
     label: {
         marginLeft: 10,
-        fontSize: 16,
-        color: '#333',
+        fontSize: 14,
+        fontWeight: '500',
     },
 });
 

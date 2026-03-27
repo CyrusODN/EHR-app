@@ -21,12 +21,15 @@ import { GetPatientPersonalData, UpdatePersonalData } from '../../../Services/Pe
 import PrimaryButton from '../../../component/button';
 import DocumentPicker from 'react-native-document-picker';
 import { uploadFileOnServer } from '../../../Services/Upload.Service';
+import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../../hooks/useThemeColors';
+import { useMemo } from 'react';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const AccordionItem = ({ title, icon, children }: { title: string, icon: string, children: React.ReactNode }) => {
+const AccordionItem = ({ title, icon, children, ds, tc }: { title: string, icon: string, children: React.ReactNode, ds: any, tc: any }) => {
     const [expanded, setExpanded] = useState(false);
 
     const toggleExpand = () => {
@@ -35,22 +38,22 @@ const AccordionItem = ({ title, icon, children }: { title: string, icon: string,
     };
 
     return (
-        <View style={styles.accordionContainer}>
+        <View style={ds.accordionContainer}>
             <TouchableOpacity 
-                style={[styles.accordionHeader, expanded && styles.expandedHeader]} 
+                style={[ds.accordionHeader, expanded && ds.expandedHeader]} 
                 onPress={toggleExpand}
                 activeOpacity={0.7}
             >
-                <View style={styles.headerLeft}>
-                    <View style={styles.iconContainer}>
-                        <Feather name={icon} size={18} color="#58a6b8" />
+                <View style={ds.headerLeft}>
+                    <View style={ds.iconContainer}>
+                        <Feather name={icon} size={18} color={tc.accent} />
                     </View>
-                    <Text style={styles.accordionTitle}>{title}</Text>
+                    <Text style={ds.accordionTitle}>{title}</Text>
                 </View>
-                <Feather name={expanded ? "chevron-up" : "chevron-down"} size={20} color="#94a3b8" />
+                <Feather name={expanded ? "chevron-up" : "chevron-down"} size={20} color={tc.textMuted} />
             </TouchableOpacity>
             {expanded && (
-                <View style={styles.accordionContent}>
+                <View style={ds.accordionContent}>
                     {children}
                 </View>
             )}
@@ -58,62 +61,71 @@ const AccordionItem = ({ title, icon, children }: { title: string, icon: string,
     );
 };
 
-const FormInput = ({ label, placeholder, required = false, isDropdown = false, value, onChangeText, onPress, autoCapitalize, keyboardType }: any) => (
-    <View style={styles.inputGroup}>
-        <View style={styles.labelRow}>
-            {required && <Text style={styles.requiredStar}>* </Text>}
-            <Text style={styles.inputLabel}>{label}:</Text>
-        </View>
-        <TouchableOpacity 
-            style={styles.inputWrapper} 
-            activeOpacity={isDropdown ? 0.7 : 1}
-            onPress={isDropdown ? onPress : undefined}
-        >
-            <View style={{ flex: 1 }}>
-                <TextInput 
-                    style={styles.textInput}
-                    placeholder={placeholder}
-                    placeholderTextColor="#cbd5e1"
-                    editable={!isDropdown}
-                    value={value}
-                    onChangeText={onChangeText}
-                    pointerEvents={isDropdown ? 'none' : 'auto'}
-                    autoCapitalize={autoCapitalize}
-                    keyboardType={keyboardType}
-                />
+const FormInput = ({ label, placeholder, required = false, isDropdown = false, value, onChangeText, onPress, autoCapitalize, keyboardType, ds, tc }: any) => {
+    const isDark = tc.isDark; // Simplified check
+    return (
+        <View style={ds.inputGroup}>
+            <View style={ds.labelRow}>
+                {required && <Text style={ds.requiredStar}>* </Text>}
+                <Text style={ds.inputLabel}>{label}:</Text>
             </View>
-            {isDropdown && <Feather name="chevron-down" size={16} color="#cbd5e1" />}
-        </TouchableOpacity>
-    </View>
+            <TouchableOpacity 
+                style={ds.inputWrapper} 
+                activeOpacity={isDropdown ? 0.7 : 1}
+                onPress={isDropdown ? onPress : undefined}
+            >
+                <View style={{ flex: 1 }}>
+                    <TextInput 
+                        style={ds.textInput}
+                        placeholder={placeholder}
+                        placeholderTextColor={tc.textMuted}
+                        editable={!isDropdown}
+                        value={value}
+                        onChangeText={onChangeText}
+                        pointerEvents={isDropdown ? 'none' : 'auto'}
+                        autoCapitalize={autoCapitalize}
+                        keyboardType={keyboardType}
+                    />
+                </View>
+                {isDropdown && <Feather name="chevron-down" size={16} color={tc.textMuted} />}
+            </TouchableOpacity>
+        </View>
+    );
+};
+
+const SectionHeader = ({ title, ds }: { title: string, ds: any }) => (
+    <Text style={ds.sectionSubHeader}>{title}</Text>
 );
 
-const SectionHeader = ({ title }: { title: string }) => (
-    <Text style={styles.sectionSubHeader}>{title}</Text>
-);
-
-const SubmitButton = ({ title, onPress, color = ['#68BFB4', '#4DA1C0'], loading = false }: any) => (
+const SubmitButton = ({ title, onPress, color, loading = false, ds, tc }: any) => (
     <TouchableOpacity 
-        style={[styles.submitButtonContainer, loading && { opacity: 0.7 }]} 
+        style={[ds.submitButtonContainer, loading && { opacity: 0.7 }]} 
         onPress={loading ? undefined : onPress}
     >
         <LinearGradient
-            colors={color}
+            colors={color || [tc.accentGradientStart, tc.accentGradientEnd]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            style={styles.gradientButton}
+            style={ds.gradientButton}
         >
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
                 {loading ? (
                     <ActivityIndicator size="small" color="#ffffff" />
                 ) : (
-                    <Text style={styles.submitButtonText}>{title}</Text>
+                    <Text style={ds.submitButtonText}>{title}</Text>
                 )}
             </View>
         </LinearGradient>
     </TouchableOpacity>
 );
 
+
 const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientData: any, onAlert?: (type: 'success' | 'error' | 'warning', message: string) => void }) => {
+    const { t } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = useMemo(() => createDynamicStyles(tc, isDark), [tc, isDark]);
+    const commonProps = { ds, tc };
+    
     const [patientData, setPatientData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -125,7 +137,7 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
     // Dropdown pickers
     const [showBranchPicker, setShowBranchPicker] = useState(false);
     const [showRightsPicker, setShowRightsPicker] = useState(false);
-
+    
     // Add New Insurer local state
     const [newInsurerData, setNewInsurerData] = useState({
         name: '',
@@ -135,7 +147,7 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
     });
     const [showStartPicker, setShowStartPicker] = useState(false);
     const [showValidPicker, setShowValidPicker] = useState(false);
-
+    
     const nfzBranches = [
         "01 NFZ Dolnośląskie", "02 NFZ Kujawsko-Pomorskie", "03 NFZ Lubelskie",
         "04 NFZ Lubuskie", "05 NFZ Łódzkie", "06 NFZ Małopolskie",
@@ -144,34 +156,34 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
         "13 NFZ Świętokrzyskie", "14 NFZ Warmińsko-Mazurskie",
         "15 NFZ Wielkopolskie", "16 NFZ Zachodniopomorskie"
     ];
-
+    
     const insuranceRights = [
         "X", "DN - Children and youth under 18", "IB - War invalids",
         "IW - Military invalids", "PO - Forced labor workers",
         "WP - Injured veterans", "ZK - Honorary blood donors"
     ];
-
+    
     const voivodeships = [
         "Dolnośląskie", "Kujawsko-pomorskie", "Lubelskie", "Lubuskie",
         "Łódzkie", "Małopolskie", "Mazowieckie", "Opolskie",
         "Podkarpackie", "Podlaskie", "Pomorskie", "Śląskie",
         "Świętokrzyskie", "Warmińsko-mazurskie", "Wielkopolskie", "Zachodniopomorskie"
     ];
-
+    
     const countries = ["Poland", "Germany", "United Kingdom", "France"];
-
+    
     const [showVoivodeshipPicker, setShowVoivodeshipPicker] = useState(false);
     const [showCountryPicker, setShowCountryPicker] = useState(false);
     const [showEmpVoivodeshipPicker, setShowEmpVoivodeshipPicker] = useState(false);
     const [showEmpCountryPicker, setShowEmpCountryPicker] = useState(false);
-
+    
     const authorizedRelationships = ["Spouse", "Parent", "Child", "Sibling", "Other"];
     const authorizedDocumentTypes = ["ID Card", "Passport", "Residence Card", "Other"];
-
+    
     const [showAuthRelationPicker, setShowAuthRelationPicker] = useState(false);
     const [showAuthDocTypePicker, setShowAuthDocTypePicker] = useState(false);
     const [showAuthValidPicker, setShowAuthValidPicker] = useState(false);
-
+    
     const [newAuthPerson, setNewAuthPerson] = useState({
         firstName: '',
         lastName: '',
@@ -185,13 +197,13 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
         validUntil: new Date()
     });
     const [editingAuthPersonId, setEditingAuthPersonId] = useState<string | null>(null);
-
+    
     const [showConsentModal, setShowConsentModal] = useState(false);
     const [activeConsentId, setActiveConsentId] = useState<string | null>(null);
     const [consentFileName, setConsentFileName] = useState<string | null>(null);
     const [consentFile, setConsentFile] = useState<any>(null);
     const [uploadingConsent, setUploadingConsent] = useState(false);
-
+    
     const fetchPersonalData = async () => {
         try {
             const patientId = initialPatientData?.patientId || initialPatientData?.id || initialPatientData?._id;
@@ -209,10 +221,11 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
             setLoading(false);
         }
     };
-
+    
     React.useEffect(() => {
         fetchPersonalData();
     }, [initialPatientData]);
+    
 
     const formatConsentDate = (dateVal: any) => {
         if (!dateVal) return null;
@@ -567,14 +580,13 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
             setIsSaving(true);
             const res: any = await UpdatePersonalData(payload);
             if (res) {
-                onAlert?.('success', `${section.charAt(0).toUpperCase() + section.slice(1)} information updated successfully!`);
+                onAlert?.('success', t('personalData.saveSuccess', { section: section.charAt(0).toUpperCase() + section.slice(1) }));
                 await fetchPersonalData();
             }
         } catch (error) {
             console.error(`Error updating ${section}:`, error);
-            onAlert?.('error', `Failed to update ${section} information.`);
+            onAlert?.('error', t('personalData.saveError', { section: section.charAt(0).toUpperCase() + section.slice(1) }));
         } finally {
-            setIsSaving(true); // Wait, should be false. Fixing in next chunk or same. 
             setIsSaving(false);
         }
     };
@@ -583,7 +595,7 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
         return (
             <View style={{ flex: 1, paddingVertical: 40, alignItems: 'center', justifyContent: 'center' }}>
                 <ActivityIndicator size="large" color="#4A90B9" />
-                <Text style={{ marginTop: 15, color: '#64748b' }}>Fetching profile details...</Text>
+                <Text style={{ marginTop: 15, color: '#64748b' }}>{t('personalData.fetchingDetails')}</Text>
             </View>
         );
     }
@@ -595,33 +607,33 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
             animationType="fade"
             onRequestClose={() => setShowInsurerModal(false)}
         >
-            <View style={styles.modalOverlay}>
-                <View style={styles.modalContent}>
-                    <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>Add New Insurer</Text>
+            <View style={ds.modalOverlay}>
+                <View style={ds.modalContent}>
+                    <View style={ds.modalHeader}>
+                        <Text style={ds.modalTitle}>{t('personalData.addNewInsurer')}</Text>
                         <TouchableOpacity onPress={() => setShowInsurerModal(false)}>
                             <Feather name="x" size={20} color="#94a3b8" />
                         </TouchableOpacity>
                     </View>
                     
-                    <ScrollView style={styles.modalScroll}>
-                        <FormInput 
-                            label="Insurer Name" required placeholder="Enter insurer name" 
+                    <ScrollView style={ds.modalScroll}>
+                        <FormInput {...commonProps} 
+                            label={t('personalData.insurerName')} required placeholder={t('personalData.insurerName')} 
                             value={newInsurerData.name}
                             onChangeText={(val: string) => handleNewInsurerData('name', val)}
                         />
-                        <FormInput 
-                            label="Policy Number" required placeholder="Enter policy number" 
+                        <FormInput {...commonProps} 
+                            label={t('personalData.policyNumber')} required placeholder={t('personalData.policyNumber')} 
                             value={newInsurerData.policy}
                             onChangeText={(val: string) => handleNewInsurerData('policy', val)}
                         />
-                        <FormInput 
-                            label="Start Date" required placeholder="Select date" isDropdown 
+                        <FormInput {...commonProps} 
+                            label={t('personalData.startDate')} required placeholder={t('personalData.selectDate')} isDropdown 
                             value={newInsurerData.startDate.toLocaleDateString()}
                             onPress={() => setShowStartPicker(true)}
                         />
-                        <FormInput 
-                            label="Valid Until" required placeholder="Select date" isDropdown 
+                        <FormInput {...commonProps} 
+                            label={t('personalData.validUntil')} required placeholder={t('personalData.selectDate')} isDropdown 
                             value={newInsurerData.validUntil.toLocaleDateString()}
                             onPress={() => setShowValidPicker(true)}
                         />
@@ -644,18 +656,18 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
                         )}
                     </ScrollView>
 
-                    <View style={styles.modalFooter}>
+                    <View style={ds.modalFooter}>
                         <TouchableOpacity 
-                            style={styles.cancelButton}
+                            style={ds.cancelButton}
                             onPress={() => setShowInsurerModal(false)}
                         >
-                            <Text style={styles.cancelButtonText}>Cancel</Text>
+                            <Text style={ds.cancelButtonText}>{t('personalData.cancel')}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity 
-                            style={styles.addButton}
+                            style={ds.addButton}
                             onPress={addNewInsurer}
                         >
-                            <Text style={styles.addButtonText}>Add</Text>
+                            <Text style={ds.addButtonText}>{t('personalData.add')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -670,10 +682,10 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
             animationType="fade"
             onRequestClose={() => setShowAuthorizedModal(false)}
         >
-            <View style={styles.modalOverlay}>
-                <View style={styles.modalContent}>
-                    <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>{editingAuthPersonId ? 'Edit Authorized Person' : 'Add Authorized Person'}</Text>
+            <View style={ds.modalOverlay}>
+                <View style={ds.modalContent}>
+                    <View style={ds.modalHeader}>
+                        <Text style={ds.modalTitle}>{editingAuthPersonId ? t('personalData.editAuthorizedPerson') : t('personalData.addAuthorizedPerson')}</Text>
                         <TouchableOpacity onPress={() => {
                             setEditingAuthPersonId(null);
                             setNewAuthPerson({
@@ -687,39 +699,39 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
                         </TouchableOpacity>
                     </View>
                     
-                    <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
-                        <View style={styles.row}>
+                    <ScrollView style={ds.modalScroll} showsVerticalScrollIndicator={false}>
+                        <View style={ds.row}>
                             <View style={{ flex: 1, marginRight: 8 }}>
-                                <FormInput 
-                                    label="First Name" required placeholder="Enter first name" 
+                                <FormInput {...commonProps} 
+                                    label={t('personalData.firstName')} required placeholder={t('personalData.firstName')} 
                                     value={newAuthPerson.firstName}
                                     onChangeText={(val: string) => handleNewAuthPersonChange('firstName', val)}
                                 />
                             </View>
                             <View style={{ flex: 1 }}>
-                                <FormInput 
-                                    label="Last Name" required placeholder="Enter last name" 
+                                <FormInput {...commonProps} 
+                                    label={t('personalData.lastName')} required placeholder={t('personalData.lastName')} 
                                     value={newAuthPerson.lastName}
                                     onChangeText={(val: string) => handleNewAuthPersonChange('lastName', val)}
                                 />
                             </View>
                         </View>
                         
-                        <View style={styles.row}>
+                        <View style={ds.row}>
                             <View style={{ flex: 1, marginRight: 8 }}>
-                                <FormInput 
-                                    label="Relationship" required placeholder="Select relationship" isDropdown 
+                                <FormInput {...commonProps} 
+                                    label={t('personalData.relationship')} required placeholder={t('personalData.relationship')} isDropdown 
                                     value={newAuthPerson.relationship}
                                     onPress={() => setShowAuthRelationPicker(!showAuthRelationPicker)}
                                 />
                                 {showAuthRelationPicker && (
-                                    <View style={styles.inlineDropdown}>
+                                    <View style={ds.inlineDropdown}>
                                         {authorizedRelationships.map((opt, idx) => (
                                             <TouchableOpacity 
                                                 key={idx} 
                                                 style={[
-                                                    styles.inlineDropdownOption,
-                                                    newAuthPerson.relationship === opt && styles.inlineDropdownOptionSelected
+                                                    ds.inlineDropdownOption,
+                                                    newAuthPerson.relationship === opt && ds.inlineDropdownOptionSelected
                                                 ]}
                                                 onPress={() => {
                                                     handleNewAuthPersonChange('relationship', opt);
@@ -727,8 +739,8 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
                                                 }}
                                             >
                                                 <Text style={[
-                                                    styles.inlineDropdownOptionText,
-                                                    newAuthPerson.relationship === opt && styles.inlineDropdownOptionTextSelected
+                                                    ds.inlineDropdownOptionText,
+                                                    newAuthPerson.relationship === opt && ds.inlineDropdownOptionTextSelected
                                                 ]}>{opt}</Text>
                                             </TouchableOpacity>
                                         ))}
@@ -736,25 +748,25 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
                                 )}
                             </View>
                             <View style={{ flex: 1 }}>
-                                <FormInput 
-                                    label="PESEL" placeholder="Enter PESEL" 
+                                <FormInput {...commonProps} 
+                                    label={t('personalData.pesel')} placeholder={t('personalData.pesel')} 
                                     value={newAuthPerson.pesel}
                                     onChangeText={(val: string) => handleNewAuthPersonChange('pesel', val)}
                                 />
                             </View>
                         </View>
 
-                        <View style={styles.row}>
+                        <View style={ds.row}>
                             <View style={{ flex: 1, marginRight: 8 }}>
-                                <FormInput 
-                                    label="Phone Number" required placeholder="Enter phone" 
+                                <FormInput {...commonProps} 
+                                    label={t('personalData.phone')} required placeholder={t('personalData.phone')} 
                                     value={newAuthPerson.phone}
                                     onChangeText={(val: string) => handleNewAuthPersonChange('phone', val)}
                                 />
                             </View>
                             <View style={{ flex: 1 }}>
-                                <FormInput 
-                                    label="Email" placeholder="Enter email" 
+                                <FormInput {...commonProps} 
+                                    label={t('personalData.email')} placeholder={t('personalData.email')} 
                                     value={newAuthPerson.email}
                                     onChangeText={(val: string) => handleNewAuthPersonChange('email', val)}
                                     autoCapitalize="none"
@@ -763,25 +775,25 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
                             </View>
                         </View>
 
-                        <FormInput 
-                            label="Address" placeholder="Enter full address" 
+                        <FormInput {...commonProps} 
+                            label={t('personalData.address')} placeholder={t('personalData.address')} 
                             value={newAuthPerson.address}
                             onChangeText={(val: string) => handleNewAuthPersonChange('address', val)}
                         />
 
-                        <FormInput 
-                            label="Document Type" required placeholder="Select document type" isDropdown 
+                        <FormInput {...commonProps} 
+                            label={t('personalData.docType')} required placeholder={t('personalData.docType')} isDropdown 
                             value={newAuthPerson.docType}
                             onPress={() => setShowAuthDocTypePicker(!showAuthDocTypePicker)}
                         />
                         {showAuthDocTypePicker && (
-                            <View style={styles.inlineDropdown}>
+                            <View style={ds.inlineDropdown}>
                                 {authorizedDocumentTypes.map((opt, idx) => (
                                     <TouchableOpacity 
                                         key={idx} 
                                         style={[
-                                            styles.inlineDropdownOption,
-                                            newAuthPerson.docType === opt && styles.inlineDropdownOptionSelected
+                                            ds.inlineDropdownOption,
+                                            newAuthPerson.docType === opt && ds.inlineDropdownOptionSelected
                                         ]}
                                         onPress={() => {
                                             handleNewAuthPersonChange('docType', opt);
@@ -789,25 +801,25 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
                                         }}
                                     >
                                         <Text style={[
-                                            styles.inlineDropdownOptionText,
-                                            newAuthPerson.docType === opt && styles.inlineDropdownOptionTextSelected
+                                            ds.inlineDropdownOptionText,
+                                            newAuthPerson.docType === opt && ds.inlineDropdownOptionTextSelected
                                         ]}>{opt}</Text>
                                     </TouchableOpacity>
                                 ))}
                             </View>
                         )}
 
-                        <View style={styles.row}>
+                        <View style={ds.row}>
                             <View style={{ flex: 1, marginRight: 8 }}>
-                                <FormInput 
-                                    label="Document Number" required placeholder="Enter number" 
+                                <FormInput {...commonProps} 
+                                    label={t('personalData.docNumber')} required placeholder={t('personalData.docNumber')} 
                                     value={newAuthPerson.docNumber}
                                     onChangeText={(val: string) => handleNewAuthPersonChange('docNumber', val)}
                                 />
                             </View>
                             <View style={{ flex: 1 }}>
-                                <FormInput 
-                                    label="Valid Until" required placeholder="Select date" isDropdown 
+                                <FormInput {...commonProps} 
+                                    label={t('personalData.validUntil')} required placeholder={t('personalData.validUntil')} isDropdown 
                                     value={newAuthPerson.validUntil.toLocaleDateString()}
                                     onPress={() => setShowAuthValidPicker(!showAuthValidPicker)}
                                 />
@@ -815,11 +827,11 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
                         </View>
 
                         {showAuthValidPicker && (
-                            <View style={styles.datePickerContainer}>
-                                <View style={styles.datePickerHeader}>
-                                    <Text style={styles.datePickerTitle}>Select Date</Text>
+                            <View style={ds.datePickerContainer}>
+                                <View style={ds.datePickerHeader}>
+                                    <Text style={ds.datePickerTitle}>{t('personalData.validUntil')}</Text>
                                     <TouchableOpacity onPress={() => setShowAuthValidPicker(false)}>
-                                        <Text style={styles.datePickerDone}>Done</Text>
+                                        <Text style={ds.datePickerDone}>{t('common.save')}</Text>
                                     </TouchableOpacity>
                                 </View>
                                 <DateTimePicker
@@ -837,9 +849,9 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
                         )}
                     </ScrollView>
 
-                    <View style={styles.modalFooter}>
+                    <View style={ds.modalFooter}>
                         <TouchableOpacity 
-                            style={styles.cancelButton}
+                            style={ds.cancelButton}
                             onPress={() => {
                                 setEditingAuthPersonId(null);
                                 setNewAuthPerson({
@@ -850,13 +862,13 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
                                 setShowAuthorizedModal(false);
                             }}
                         >
-                            <Text style={styles.cancelButtonText}>Cancel</Text>
+                            <Text style={ds.cancelButtonText}>{t('personalData.cancel')}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity 
-                            style={styles.addButton}
+                            style={ds.addButton}
                             onPress={addNewAuthorizedPerson}
                         >
-                            <Text style={styles.addButtonText}>{editingAuthPersonId ? 'Save' : 'Add'}</Text>
+                            <Text style={ds.addButtonText}>{editingAuthPersonId ? t('personalData.save') : t('personalData.add')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -871,22 +883,22 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
             animationType="fade"
             onRequestClose={() => setShowConsentModal(false)}
         >
-            <View style={styles.modalOverlay}>
-                <View style={styles.modalContent}>
-                    <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>Upload Consent Document</Text>
+            <View style={ds.modalOverlay}>
+                <View style={ds.modalContent}>
+                    <View style={ds.modalHeader}>
+                        <Text style={ds.modalTitle}>{t('personalData.uploadConsentTitle')}</Text>
                         <TouchableOpacity onPress={() => setShowConsentModal(false)}>
                             <Feather name="x" size={20} color="#94a3b8" />
                         </TouchableOpacity>
                     </View>
 
                     <View style={{ padding: 20 }}>
-                        <Text style={styles.consentModalDesc}>
-                            Please upload a scanned copy of the signed consent form before granting consent.
+                        <Text style={ds.consentModalDesc}>
+                            {t('personalData.uploadConsentDesc')}
                         </Text>
 
                         <PrimaryButton
-                            label="Select file"
+                            label={t('personalData.selectFile')}
                             filled
                             onPress={handleSelectFile}
                             icon={<Feather name="upload" size={16} color="#ffffff" />}
@@ -894,23 +906,23 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
                         />
 
                         {consentFileName && (
-                            <View style={styles.selectedFileRow}>
+                            <View style={ds.selectedFileRow}>
                                 <Feather name="file-text" size={16} color="#58a6b8" />
-                                <Text style={styles.selectedFileName}>{consentFileName}</Text>
+                                <Text style={ds.selectedFileName}>{consentFileName}</Text>
                                 <TouchableOpacity onPress={() => { setConsentFileName(null); setConsentFile(null); }}>
                                     <Feather name="x-circle" size={16} color="#ef4444" />
                                 </TouchableOpacity>
                             </View>
                         )}
 
-                        <Text style={styles.fileTypeHint}>
-                            Accepted file types: PDF, JPG, PNG. Maximum size: 5MB.
+                        <Text style={ds.fileTypeHint}>
+                            {t('personalData.acceptedFileTypes')}
                         </Text>
                     </View>
 
-                    <View style={styles.modalFooter}>
+                    <View style={ds.modalFooter}>
                         <PrimaryButton
-                            label="Cancel"
+                            label={t('personalData.cancel')}
                             filled={false}
                             onPress={() => {
                                 setShowConsentModal(false);
@@ -920,7 +932,7 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
                             style={{ flex: 1, marginRight: 10, height: 44, borderRadius: 10 }}
                         />
                         <PrimaryButton
-                            label={uploadingConsent ? 'Uploading...' : 'Upload and grant consent'}
+                            label={uploadingConsent ? t('personalData.uploading') : t('personalData.uploadAndGrant')}
                             filled
                             onPress={handleUploadAndGrant}
                             disabled={!consentFile || uploadingConsent}
@@ -940,10 +952,10 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
             animationType="fade"
             onRequestClose={onClose}
         >
-            <Pressable style={styles.modalOverlay} onPress={onClose}>
-                <View style={[styles.modalContent, { maxHeight: '60%' }]}>
-                    <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>{title}</Text>
+            <Pressable style={ds.modalOverlay} onPress={onClose}>
+                <View style={[ds.modalContent, { maxHeight: '60%' }]}>
+                    <View style={ds.modalHeader}>
+                        <Text style={ds.modalTitle}>{title}</Text>
                         <TouchableOpacity onPress={onClose}>
                             <Feather name="x" size={20} color="#94a3b8" />
                         </TouchableOpacity>
@@ -952,13 +964,13 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
                         {options.map((opt, idx) => (
                             <TouchableOpacity 
                                 key={idx} 
-                                style={styles.selectOption}
+                                style={ds.selectOption}
                                 onPress={() => {
                                     onSelect(opt);
                                     onClose();
                                 }}
                             >
-                                <Text style={styles.selectOptionText}>{opt}</Text>
+                                <Text style={ds.selectOptionText}>{opt}</Text>
                             </TouchableOpacity>
                         ))}
                     </ScrollView>
@@ -968,164 +980,164 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
     );
 
     return (
-        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        <ScrollView style={ds.container} showsVerticalScrollIndicator={false}>
             {renderAddInsurerModal()}
             {renderAddAuthorizedModal()}
             {renderConsentUploadModal()}
-            {renderSelectionModal(showBranchPicker, () => setShowBranchPicker(false), nfzBranches, "Select Branch", (val) => handleInputChange('nfzBranch', val))}
-            {renderSelectionModal(showRightsPicker, () => setShowRightsPicker(false), insuranceRights, "Select Additional Rights", (val) => handleInputChange('additionalRights', val))}
-            {renderSelectionModal(showVoivodeshipPicker, () => setShowVoivodeshipPicker(false), voivodeships, "Select Voivodeship", (val) => handleInputChange('voivodeship', val))}
-            {renderSelectionModal(showCountryPicker, () => setShowCountryPicker(false), countries, "Select Country", (val) => handleInputChange('country', val))}
-            {renderSelectionModal(showEmpVoivodeshipPicker, () => setShowEmpVoivodeshipPicker(false), voivodeships, "Select Voivodeship", (val) => handleEmployerAddressChange('voivodeship', val))}
-            {renderSelectionModal(showEmpCountryPicker, () => setShowEmpCountryPicker(false), countries, "Select Country", (val) => handleEmployerAddressChange('country', val))}
+            {renderSelectionModal(showBranchPicker, () => setShowBranchPicker(false), nfzBranches, t('personalData.nfzBranch'), (val) => handleInputChange('nfzBranch', val))}
+            {renderSelectionModal(showRightsPicker, () => setShowRightsPicker(false), insuranceRights, t('personalData.additionalRights'), (val) => handleInputChange('additionalRights', val))}
+            {renderSelectionModal(showVoivodeshipPicker, () => setShowVoivodeshipPicker(false), voivodeships, t('personalData.voivodeship'), (val) => handleInputChange('voivodeship', val))}
+            {renderSelectionModal(showCountryPicker, () => setShowCountryPicker(false), countries, t('personalData.country'), (val) => handleInputChange('country', val))}
+            {renderSelectionModal(showEmpVoivodeshipPicker, () => setShowEmpVoivodeshipPicker(false), voivodeships, t('personalData.voivodeship'), (val) => handleEmployerAddressChange('voivodeship', val))}
+            {renderSelectionModal(showEmpCountryPicker, () => setShowEmpCountryPicker(false), countries, t('personalData.country'), (val) => handleEmployerAddressChange('country', val))}
             
-            <AccordionItem title="Basic Information" icon="user">
-                <FormInput 
-                    label="First Name" required placeholder="Enter first name" 
+            <AccordionItem {...commonProps} title={t('personalData.basicInformation')} icon="user">
+                <FormInput {...commonProps} 
+                    label={t('personalData.firstName')} required placeholder="Enter first name" 
                     value={patientData?.name} 
                     onChangeText={(text: string) => handleInputChange('name', text)}
                 />
-                <FormInput 
-                    label="Last Name" required placeholder="Enter last name" 
+                <FormInput {...commonProps} 
+                    label={t('personalData.lastName')} required placeholder="Enter last name" 
                     value={patientData?.lastName} 
                     onChangeText={(text: string) => handleInputChange('lastName', text)}
                 />
-                <FormInput 
-                    label="PESEL" required placeholder="Enter PESEL" 
+                <FormInput {...commonProps} 
+                    label={t('personalData.pesel')} required placeholder="Enter PESEL" 
                     value={patientData?.pesel} 
                     onChangeText={(text: string) => handleInputChange('pesel', text)}
                 />
-                <FormInput 
-                    label="Date of Birth" required placeholder="Select date" isDropdown 
+                <FormInput {...commonProps} 
+                    label={t('personalData.dob')} required placeholder="Select date" isDropdown 
                     value={patientData?.dob ? new Date(patientData.dob).toLocaleDateString() : ''} 
                 />
-                <FormInput 
-                    label="Gender" required placeholder="Select gender" isDropdown 
+                <FormInput {...commonProps} 
+                    label={t('personalData.gender')} required placeholder="Select gender" isDropdown 
                     value={patientData?.gender} 
                 />
                 <View style={{ alignItems: 'flex-end', marginTop: 10 }}>
-                    <SubmitButton title="Submit" onPress={() => handleSave('basic')} loading={isSaving} />
+                    <SubmitButton {...commonProps} title={t('personalData.submit')} onPress={() => handleSave('basic')} loading={isSaving} />
                 </View>
             </AccordionItem>
-            <AccordionItem title="More Information" icon="info">
-                <FormInput 
-                    label="Middle Name" placeholder="Enter middle name" 
+            <AccordionItem {...commonProps} title={t('personalData.moreInformation')} icon="info">
+                <FormInput {...commonProps} 
+                    label={t('personalData.middleName')} placeholder="Enter middle name" 
                     value={patientData?.middleName} 
                     onChangeText={(text: string) => handleInputChange('middleName', text)}
                 />
-                <FormInput 
-                    label="Maiden Name" placeholder="Enter maiden name" 
+                <FormInput {...commonProps} 
+                    label={t('personalData.maidenName')} placeholder="Enter maiden name" 
                     value={patientData?.maidenName} 
                     onChangeText={(text: string) => handleInputChange('maidenName', text)}
                 />
-                <FormInput 
-                    label="Birth Place" placeholder="Enter birth place" 
+                <FormInput {...commonProps} 
+                    label={t('personalData.birthPlace')} placeholder="Enter birth place" 
                     value={patientData?.birthPlace} 
                     onChangeText={(text: string) => handleInputChange('birthPlace', text)}
                 />
-                <FormInput 
-                    label="Blood Type" placeholder="A+, O-, etc." 
+                <FormInput {...commonProps} 
+                    label={t('personalData.bloodType')} placeholder="A+, O-, etc." 
                     value={patientData?.bloodType} 
                     onChangeText={(text: string) => handleInputChange('bloodType', text)}
                 />
-                <FormInput 
-                    label="Internal Card Number" placeholder="No." 
+                <FormInput {...commonProps} 
+                    label={t('personalData.internalCardNumber')} placeholder="No." 
                     value={patientData?.internalCardNumber} 
                     onChangeText={(text: string) => handleInputChange('internalCardNumber', text)}
                 />
                 <View style={{ alignItems: 'flex-end', marginTop: 10 }}>
-                    <SubmitButton title="Submit" onPress={() => handleSave('more')} loading={isSaving} />
+                    <SubmitButton {...commonProps} title={t('personalData.submit')} onPress={() => handleSave('more')} loading={isSaving} />
                 </View>
             </AccordionItem>
 
-            <AccordionItem title="Address" icon="map-pin">
-                <FormInput 
-                    label="City" required placeholder="Enter city" 
+            <AccordionItem {...commonProps} title={t('personalData.address')} icon="map-pin">
+                <FormInput {...commonProps} 
+                    label={t('personalData.city')} required placeholder="Enter city" 
                     value={patientData?.city} 
                     onChangeText={(text: string) => handleInputChange('city', text)}
                 />
-                <FormInput 
-                    label="Street" required placeholder="Enter street" 
+                <FormInput {...commonProps} 
+                    label={t('personalData.street')} required placeholder="Enter street" 
                     value={patientData?.street} 
                     onChangeText={(text: string) => handleInputChange('street', text)}
                 />
-                <View style={styles.row}>
+                <View style={ds.row}>
                     <View style={{ flex: 1, marginRight: 8 }}>
-                        <FormInput 
-                            label="House" required placeholder="No." 
+                        <FormInput {...commonProps} 
+                            label={t('personalData.house')} required placeholder="No." 
                             value={patientData?.houseNumber} 
                             onChangeText={(text: string) => handleInputChange('houseNumber', text)}
                         />
                     </View>
                     <View style={{ flex: 1 }}>
-                        <FormInput 
-                            label="Apartment" placeholder="No." 
+                        <FormInput {...commonProps} 
+                            label={t('personalData.apartment')} placeholder="No." 
                             value={patientData?.apartmentNumber} 
                             onChangeText={(text: string) => handleInputChange('apartmentNumber', text)}
                         />
                     </View>
                 </View>
-                <FormInput 
-                    label="Postal Code" required placeholder="Enter code" 
+                <FormInput {...commonProps} 
+                    label={t('personalData.postalCode')} required placeholder="Enter code" 
                     value={patientData?.postalCode} 
                     onChangeText={(text: string) => handleInputChange('postalCode', text)}
                 />
-                <View style={styles.row}>
+                <View style={ds.row}>
                     <View style={{ flex: 1, marginRight: 8 }}>
-                        <FormInput 
-                            label="Voivodeship" required placeholder="Select voivodeship" isDropdown 
+                        <FormInput {...commonProps} 
+                            label={t('personalData.voivodeship')} required placeholder="Select voivodeship" isDropdown 
                             value={patientData?.voivodeship}
                             onPress={() => setShowVoivodeshipPicker(true)}
                         />
                     </View>
                     <View style={{ flex: 1 }}>
-                        <FormInput 
-                            label="Country" required placeholder="Select country" isDropdown 
+                        <FormInput {...commonProps} 
+                            label={t('personalData.country')} required placeholder="Select country" isDropdown 
                             value={patientData?.country}
                             onPress={() => setShowCountryPicker(true)}
                         />
                     </View>
                 </View>
                 <View style={{ alignItems: 'flex-end', marginTop: 10 }}>
-                    <SubmitButton title="Submit" onPress={() => handleSave('address')} loading={isSaving} />
+                    <SubmitButton {...commonProps} title={t('personalData.submit')} onPress={() => handleSave('address')} loading={isSaving} />
                 </View>
             </AccordionItem>
 
-            <AccordionItem title="Insurance" icon="shield">
-                <SectionHeader title="Insured in NFZ:" />
-                <View style={styles.row}>
+            <AccordionItem {...commonProps} title={t('personalData.insurance')} icon="shield">
+                <SectionHeader {...commonProps} title="Insured in NFZ:" />
+                <View style={ds.row}>
                     <View style={{ flex: 1, marginRight: 8 }}>
-                        <FormInput 
-                            label="Branch" required placeholder="Select branch" isDropdown 
+                        <FormInput {...commonProps} 
+                            label={t('personalData.nfzBranch')} required placeholder="Select branch" isDropdown 
                             value={patientData?.nfzBranch}
                             onPress={() => setShowBranchPicker(true)}
                         />
                     </View>
                     <View style={{ flex: 1 }}>
-                        <FormInput 
-                            label="Additional Rights" required placeholder="Select rights" isDropdown 
+                        <FormInput {...commonProps} 
+                            label={t('personalData.additionalRights')} required placeholder="Select rights" isDropdown 
                             value={patientData?.additionalRights}
                             onPress={() => setShowRightsPicker(true)}
                         />
                     </View>
                 </View>
 
-                <View style={[styles.row, { alignItems: 'center', marginTop: 15, justifyContent: 'space-between' }]}>
-                    <SectionHeader title="Private Insurers" />
-                    <View style={styles.miniSearch}>
+                <View style={[ds.row, { alignItems: 'center', marginTop: 15, justifyContent: 'space-between' }]}>
+                    <SectionHeader {...commonProps} title={t('personalData.privateInsurers')} />
+                    <View style={ds.miniSearch}>
                         <Feather name="search" size={14} color="#94a3b8" />
-                        <TextInput style={styles.miniSearchInput} placeholder="Search (Insurer)" placeholderTextColor="#cbd5e1" />
+                        <TextInput style={ds.miniSearchInput} placeholder={t('personalData.searchInsurer')} placeholderTextColor="#cbd5e1" />
                     </View>
                 </View>
 
                 {patientData?.privateInsurers && patientData.privateInsurers.length > 0 ? (
                     patientData.privateInsurers.map((insurer: any, index: number) => (
-                        <View key={insurer.id || `insurer-${index}`} style={styles.insurerCard}>
-                            <View style={styles.insurerCardContent}>
-                                <Text style={styles.insurerName}>{insurer.name}</Text>
-                                <Text style={styles.insurerDetail}>Policy: {insurer.policy}</Text>
-                                <Text style={styles.insurerDetail}>Start Date: {insurer.startDate}</Text>
-                                <Text style={styles.insurerDetail}>Valid until: {insurer.validUntil}</Text>
+                        <View key={insurer.id || `insurer-${index}`} style={ds.insurerCard}>
+                            <View style={ds.insurerCardContent}>
+                                <Text style={ds.insurerName}>{insurer.name}</Text>
+                                <Text style={ds.insurerDetail}>{t('personalData.policyNumber')}: {insurer.policy}</Text>
+                                <Text style={ds.insurerDetail}>{t('personalData.active')}: {insurer.startDate}</Text>
+                                <Text style={ds.insurerDetail}>{t('personalData.validUntil')}: {insurer.validUntil}</Text>
                             </View>
                             <TouchableOpacity onPress={() => removeInsurer(insurer.id)}>
                                 <Feather name="trash-2" size={18} color="#ef4444" />
@@ -1133,132 +1145,132 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
                         </View>
                     ))
                 ) : (
-                    <Text style={styles.noDataTextMinimal}>No private insurers added</Text>
+                    <Text style={ds.noDataTextMinimal}>{t('personalData.noInsurers')}</Text>
                 )}
 
                 <TouchableOpacity 
-                    style={styles.outlineButton}
+                    style={ds.outlineButton}
                     onPress={() => setShowInsurerModal(true)}
                 >
                     <Feather name="plus" size={16} color="#58a6b8" />
-                    <Text style={styles.outlineButtonText}>Add Insurer</Text>
+                    <Text style={ds.outlineButtonText}>{t('personalData.addInsurer')}</Text>
                 </TouchableOpacity>
-
-                <Text style={styles.disclaimerText}>
-                    Please remember to click the Submit button after adding or deleting an insurer to save the changes
+ 
+                <Text style={ds.disclaimerText}>
+                    {t('personalData.disclaimerSave')}
                 </Text>
-
+ 
                 <View style={{ alignItems: 'flex-end', marginTop: 10 }}>
-                    <SubmitButton title="Submit" onPress={() => handleSave('insurance')} loading={isSaving} />
+                    <SubmitButton {...commonProps} title={t('personalData.submit')} onPress={() => handleSave('insurance')} loading={isSaving} />
                 </View>
             </AccordionItem>
-
-            <AccordionItem title="Employer" icon="briefcase">
-                <SectionHeader title="Employer" />
-                <FormInput 
-                    label="Employer Name" required placeholder="" 
+ 
+            <AccordionItem {...commonProps} title={t('personalData.employer')} icon="briefcase">
+                <SectionHeader {...commonProps} title={t('personalData.employer')} />
+                <FormInput {...commonProps} 
+                    label={t('personalData.employerName')} required placeholder="" 
                     value={patientData?.employer?.name || ''} 
                 />
-                <View style={styles.row}>
+                <View style={ds.row}>
                     <View style={{ flex: 1, marginRight: 8 }}>
-                        <FormInput 
-                            label="Employer NIP" required placeholder="" 
+                        <FormInput {...commonProps} 
+                            label={t('personalData.employerNip')} required placeholder="" 
                             value={patientData?.employer?.nip || ''} 
                         />
                     </View>
                     <View style={{ flex: 1 }}>
-                        <FormInput 
-                            label="Occupation" required placeholder="" 
+                        <FormInput {...commonProps} 
+                            label={t('personalData.occupation')} required placeholder="" 
                             value={patientData?.employer?.occupation || ''} 
                         />
                     </View>
                 </View>
-                <FormInput 
-                    label="Production and Service Group Symbol" placeholder="" 
+                <FormInput {...commonProps} 
+                    label={t('personalData.symbol')} placeholder="" 
                     value={patientData?.employer?.symbol || ''} 
                 />
-
-                <SectionHeader title="Address" />
-                <View style={styles.row}>
+ 
+                <SectionHeader {...commonProps} title={t('personalData.address')} />
+                <View style={ds.row}>
                     <View style={{ flex: 1, marginRight: 8 }}>
-                        <FormInput label="Street" required placeholder="" value={patientData?.employer?.address?.street || ''} />
+                        <FormInput {...commonProps} label={t('personalData.street')} required placeholder="" value={patientData?.employer?.address?.street || ''} />
                     </View>
                     <View style={{ flex: 1 }}>
-                        <FormInput label="House Number" required placeholder="" value={patientData?.employer?.address?.houseNumber || ''} />
+                        <FormInput {...commonProps} label={t('personalData.house')} required placeholder="" value={patientData?.employer?.address?.houseNumber || ''} />
                     </View>
                 </View>
-                <View style={styles.row}>
+                <View style={ds.row}>
                     <View style={{ flex: 1, marginRight: 8 }}>
-                        <FormInput label="Apartment Number" placeholder="" value={patientData?.employer?.address?.apartmentNumber || ''} />
+                        <FormInput {...commonProps} label={t('personalData.apartment')} placeholder="" value={patientData?.employer?.address?.apartmentNumber || ''} />
                     </View>
                     <View style={{ flex: 1 }}>
-                        <FormInput label="Postal Code" required placeholder="" value={patientData?.employer?.address?.postalCode || ''} />
+                        <FormInput {...commonProps} label={t('personalData.postalCode')} required placeholder="" value={patientData?.employer?.address?.postalCode || ''} />
                     </View>
                 </View>
-                <View style={styles.row}>
+                <View style={ds.row}>
                     <View style={{ flex: 1, marginRight: 8 }}>
-                        <FormInput label="City" required placeholder="" value={patientData?.employer?.address?.city || ''} />
+                        <FormInput {...commonProps} label={t('personalData.city')} required placeholder="" value={patientData?.employer?.address?.city || ''} />
                     </View>
                     <View style={{ flex: 1 }}>
-                        <FormInput 
-                            label="Voivodeship" required placeholder="Select voivodeship" isDropdown 
+                        <FormInput {...commonProps} 
+                            label={t('personalData.voivodeship')} required placeholder="Select voivodeship" isDropdown 
                             value={patientData?.employer?.address?.voivodeship || ''} 
                             onPress={() => setShowEmpVoivodeshipPicker(true)}
                         />
                     </View>
                 </View>
-                <FormInput 
-                    label="Country" required placeholder="Select country" isDropdown 
+                <FormInput {...commonProps} 
+                    label={t('personalData.country')} required placeholder="Select country" isDropdown 
                     value={patientData?.employer?.address?.country || ''} 
                     onPress={() => setShowEmpCountryPicker(true)}
                 />
-
+ 
                 <View style={{ alignItems: 'flex-end', marginTop: 10 }}>
-                    <SubmitButton title="Submit" onPress={() => handleSave('employer')} loading={isSaving} />
+                    <SubmitButton {...commonProps} title={t('personalData.submit')} onPress={() => handleSave('employer')} loading={isSaving} />
                 </View>
             </AccordionItem>
-
-            <AccordionItem title="AUTHORIZED PERSONS AND LIST OF SHARED MEDICAL DOCUMENTATION" icon="users">
-                <View style={styles.toggleRow}>
-                    <Text style={styles.toggleLabel}>Patient does not authorize anyone:</Text>
+ 
+            <AccordionItem {...commonProps} title={t('personalData.authorizedPersons')} icon="users">
+                <View style={ds.toggleRow}>
+                    <Text style={ds.toggleLabel}>{t('personalData.notAuthorizeAnyone')}</Text>
                     <Switch 
                         value={authorizeAnyone} 
                         onValueChange={setAuthorizeAnyone}
                         trackColor={{ false: '#e2e8f0', true: '#58a6b8' }}
                     />
                 </View>
-                <View style={styles.toggleRow}>
-                    <Text style={styles.toggleLabel}>Patient signed current version of authorization:</Text>
+                <View style={ds.toggleRow}>
+                    <Text style={ds.toggleLabel}>{t('personalData.signedCurrentAuthorization')}</Text>
                     <Switch 
                         value={signedAuthorization} 
                         onValueChange={setSignedAuthorization}
                         trackColor={{ false: '#e2e8f0', true: '#58a6b8' }}
                     />
                 </View>
-
-                <View style={[styles.row, { marginTop: 15, gap: 10, flexWrap: 'wrap' }]}>
-                    <TouchableOpacity style={styles.orangeButton}>
+ 
+                <View style={[ds.row, { marginTop: 15, gap: 10, flexWrap: 'wrap' }]}>
+                    <TouchableOpacity style={ds.orangeButton}>
                         <Feather name="file-text" size={16} color="#ffffff" />
-                        <Text style={styles.orangeButtonText}>NO AUTHORIZATION - STATEMENT</Text>
+                        <Text style={ds.orangeButtonText}>{t('personalData.noAuthorizationStatement')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity 
-                        style={styles.outlineButton}
+                        style={ds.outlineButton}
                         onPress={() => setShowAuthorizedModal(true)}
                     >
                         <Feather name="plus" size={16} color="#58a6b8" />
-                        <Text style={styles.outlineButtonText}>ADD AUTHORIZED PERSON</Text>
+                        <Text style={ds.outlineButtonText}>{t('personalData.addAuthorizedPerson')}</Text>
                     </TouchableOpacity>
                 </View>
 
                 {patientData?.authorizedPersons && patientData.authorizedPersons.length > 0 ? (
                     patientData.authorizedPersons.map((person: any) => (
-                        <View key={person.id} style={styles.authCard}>
-                            <View style={styles.authCardContent}>
-                                <Text style={styles.authName}>{person.name}</Text>
-                                <Text style={styles.authDetail}>{person.relationship.toLowerCase()}</Text>
-                                <Text style={styles.authDetail}>{person.phone}</Text>
+                        <View key={person.id} style={ds.authCard}>
+                            <View style={ds.authCardContent}>
+                                <Text style={ds.authName}>{person.name}</Text>
+                                <Text style={ds.authDetail}>{person.relationship.toLowerCase()}</Text>
+                                <Text style={ds.authDetail}>{person.phone}</Text>
                             </View>
-                            <View style={styles.authActions}>
+                            <View style={ds.authActions}>
                                 <TouchableOpacity style={{ marginRight: 12 }} onPress={() => editAuthorizedPerson(person)}>
                                     <Feather name="edit" size={16} color="#3b82f6" />
                                 </TouchableOpacity>
@@ -1269,23 +1281,23 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
                         </View>
                     ))
                 ) : (
-                    <View style={styles.emptyResultsBox}>
-                        <Text style={styles.noDataTextMinimal}>No authorized persons added</Text>
+                    <View style={ds.emptyResultsBox}>
+                        <Text style={ds.noDataTextMinimal}>{t('personalData.noAuthPersons')}</Text>
                     </View>
                 )}
 
                 <View style={{ alignItems: 'flex-end', marginTop: 15 }}>
-                    <SubmitButton title="Save" onPress={() => handleSave('authorized')} loading={isSaving} />
+                    <SubmitButton {...commonProps} title={t('personalData.save')} onPress={() => handleSave('authorized')} loading={isSaving} />
                 </View>
             </AccordionItem>
-
-            <AccordionItem title="Consent to the processing of personal data" icon="file-text">
-                <View style={styles.infoBanner}>
-                    <Text style={styles.infoBannerText}>
-                        In accordance with Polish law, patient consent requires a physical signed document. Please upload a scanned copy of the signed consent form.
+ 
+            <AccordionItem {...commonProps} title={t('personalData.consentProcessing')} icon="file-text">
+                <View style={ds.infoBanner}>
+                    <Text style={ds.infoBannerText}>
+                        {t('personalData.consentRequirementNotice')}
                     </Text>
                 </View>
-
+ 
                 {(patientData?.consents || [
                     {
                         id: 'personal-data',
@@ -1306,557 +1318,565 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
                         description: 'I consent to receiving medical and organizational information via electronic means (email, SMS).'
                     }
                 ]).map((item: any, index: number) => (
-                    <View key={index} style={styles.consentRow}>
+                    <View key={index} style={ds.consentRow}>
                         <View style={{ flex: 1, paddingRight: 10 }}>
-                            <Text style={styles.consentTitle}>{item.title}</Text>
-                            <Text style={styles.consentDesc}>{item.description}</Text>
+                            <Text style={ds.consentTitle}>{item.title}</Text>
+                            <Text style={ds.consentDesc}>{item.description}</Text>
                         </View>
-                        <View style={styles.consentActions}>
-                            <View style={styles.statusBadge}>
+                        <View style={ds.consentActions}>
+                            <View style={ds.statusBadge}>
                                 <Feather 
                                     name={item.granted ? "check-circle" : "x-circle"} 
                                     size={14} 
                                     color={item.granted ? "#16a34a" : "#ef4444"} 
                                 />
-                                <Text style={[styles.statusText, item.granted && { color: '#16a34a' }]}>
-                                    {item.granted ? 'Granted' : 'No consent'}
+                                <Text style={[ds.statusText, item.granted && { color: '#16a34a' }]}>
+                                    {item.granted ? t('personalData.granted') : t('personalData.noConsent')}
                                 </Text>
                             </View>
                             {item.granted ? (
-                                <View style={styles.grantedDetailsContainer}>
-                                    <Text style={styles.grantedDateText}>
-                                        {formatConsentDate(item.grantedDate || item.date) || '(Date not available)'}
+                                <View style={ds.grantedDetailsContainer}>
+                                    <Text style={ds.grantedDateText}>
+                                        {formatConsentDate(item.grantedDate || item.date) || t('personalData.dateNotAvailable')}
                                     </Text>
-                                    <View style={styles.grantedActionsRow}>
-                                        <TouchableOpacity style={styles.eyeButton}>
+                                    <View style={ds.grantedActionsRow}>
+                                        <TouchableOpacity style={ds.eyeButton}>
                                             <Feather name="eye" size={16} color="#3b82f6" />
                                         </TouchableOpacity>
                                         <TouchableOpacity 
-                                            style={styles.withdrawButton}
+                                            style={ds.withdrawButton}
                                             onPress={() => withdrawConsent(item.id)}
                                         >
-                                            <Text style={styles.withdrawButtonText}>Withdraw</Text>
+                                            <Text style={ds.withdrawButtonText}>{t('personalData.withdraw')}</Text>
                                         </TouchableOpacity>
                                     </View>
                                 </View>
                             ) : (
-                                <TouchableOpacity style={styles.grantButton} onPress={() => openConsentModal(item.id)}>
-                                    <Text style={styles.grantButtonText}>Grant consent</Text>
+                                <TouchableOpacity style={ds.grantButton} onPress={() => openConsentModal(item.id)}>
+                                    <Text style={ds.grantButtonText}>{t('personalData.grantConsent')}</Text>
                                 </TouchableOpacity>
                             )}
                         </View>
                     </View>
                 ))}
-
+ 
                 <View style={{ alignItems: 'flex-end', marginTop: 20 }}>
-                    <SubmitButton title="Save changes" onPress={() => handleSave('consents')} loading={isSaving} />
+                    <SubmitButton {...commonProps} title={t('personalData.save')} onPress={() => handleSave('consents')} loading={isSaving} />
                 </View>
             </AccordionItem>
         </ScrollView>
     );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        paddingHorizontal: 16,
-    },
-    accordionContainer: {
-        backgroundColor: '#ffffff',
-        borderRadius: 12,
-        marginBottom: 12,
-        borderWidth: 1,
-        borderColor: '#f1f5f9',
-        overflow: 'hidden',
-    },
-    accordionHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: 16,
-    },
-    expandedHeader: {
-        borderBottomWidth: 1,
-        borderBottomColor: '#f1f5f9',
-    },
-    headerLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        flex: 1,
-    },
-    iconContainer: {
-        width: 32,
-        height: 32,
-        borderRadius: 8,
-        backgroundColor: '#f0f9f8',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 12,
-    },
-    accordionTitle: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#334155',
-        flex: 1,
-    },
-    accordionContent: {
-        padding: 16,
-        backgroundColor: '#ffffff',
-    },
-    inputGroup: {
-        marginBottom: 15,
-    },
-    labelRow: {
-        flexDirection: 'row',
-        marginBottom: 6,
-    },
-    requiredStar: {
-        color: '#ef4444',
-        fontSize: 14,
-    },
-    inputLabel: {
-        fontSize: 13,
-        color: '#64748b',
-        fontWeight: '500',
-    },
-    inputWrapper: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#e2e8f0',
-        borderRadius: 8,
-        paddingHorizontal: 12,
-        height: 44,
-        backgroundColor: '#ffffff',
-    },
-    textInput: {
-        flex: 1,
-        fontSize: 14,
-        color: '#1e293b',
-        padding: 0,
-    },
-    row: {
-        flexDirection: 'row',
-    },
-    sectionSubHeader: {
-        fontSize: 14,
-        fontWeight: '700',
-        color: '#334155',
-        marginTop: 10,
-        marginBottom: 12,
-    },
-    miniSearch: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#e2e8f0',
-        borderRadius: 6,
-        paddingHorizontal: 10,
-        height: 36,
-        width: 140,
-    },
-    miniSearchInput: {
-        fontSize: 12,
-        marginLeft: 6,
-        color: '#1e293b',
-        flex: 1,
-        padding: 0,
-    },
-    noDataTextMinimal: {
-        fontSize: 13,
-        color: '#94a3b8',
-        fontStyle: 'italic',
-        paddingVertical: 10,
-    },
-    outlineButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#58a6b8',
-        borderRadius: 8,
-        paddingVertical: 10,
-        paddingHorizontal: 15,
-        alignSelf: 'flex-start',
-    },
-    outlineButtonText: {
-        fontSize: 13,
-        fontWeight: '600',
-        color: '#58a6b8',
-        marginLeft: 8,
-    },
-    disclaimerText: {
-        fontSize: 12,
-        color: '#94a3b8',
-        fontStyle: 'italic',
-        marginTop: 15,
-        lineHeight: 18,
-    },
-    submitButtonContainer: {
-        height: 38,
-        width: 140,
-        borderRadius: 8,
-        overflow: 'hidden',
-    },
-    gradientButton: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    submitButtonText: {
-        color: '#ffffff',
-        fontSize: 14,
-        fontWeight: '600',
-    },
-    toggleRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 12,
-    },
-    toggleLabel: {
-        fontSize: 13,
-        color: '#475569',
-        flex: 1,
-        paddingRight: 10,
-    },
-    orangeButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#f97316',
-        borderRadius: 8,
-        paddingVertical: 10,
-        paddingHorizontal: 15,
-    },
-    orangeButtonText: {
-        fontSize: 12,
-        fontWeight: '700',
-        color: '#ffffff',
-        marginLeft: 8,
-    },
-    emptyResultsBox: {
-        backgroundColor: '#f8fafc',
-        borderRadius: 10,
-        padding: 20,
-        marginTop: 15,
-        alignItems: 'flex-start',
-    },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20,
-    },
-    modalContent: {
-        backgroundColor: '#ffffff',
-        borderRadius: 12,
-        width: '100%',
-        maxHeight: '80%',
-        padding: 20,
-    },
-    modalHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 20,
-    },
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: '#1e293b',
-    },
-    modalScroll: {
-        marginBottom: 20,
-    },
-    modalFooter: {
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
-        gap: 12,
-    },
-    cancelButton: {
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#e2e8f0',
-    },
-    cancelButtonText: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#64748b',
-    },
-    addButton: {
-        paddingVertical: 10,
-        paddingHorizontal: 25,
-        borderRadius: 8,
-        backgroundColor: '#3b82f6',
-    },
-    addButtonText: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#ffffff',
-    },
-    infoBanner: {
-        backgroundColor: '#eff6ff',
-        padding: 12,
-        borderRadius: 8,
-        marginBottom: 20,
-        borderWidth: 1,
-        borderColor: '#dbeafe',
-    },
-    infoBannerText: {
-        fontSize: 12,
-        color: '#1e40af',
-        lineHeight: 18,
-    },
-    consentRow: {
-        backgroundColor: '#ffffff',
-        borderWidth: 1,
-        borderColor: '#f1f5f9',
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 12,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    consentTitle: {
-        fontSize: 14,
-        fontWeight: '700',
-        color: '#1e293b',
-        marginBottom: 4,
-    },
-    consentDesc: {
-        fontSize: 12,
-        color: '#64748b',
-        lineHeight: 18,
-    },
-    consentActions: {
-        alignItems: 'flex-end',
-        minWidth: 130,
-    },
-    statusBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 8,
-    },
-    statusText: {
-        fontSize: 12,
-        color: '#ef4444',
-        marginLeft: 6,
-        fontWeight: '500',
-    },
-    grantButton: {
-        backgroundColor: '#f0fdf4',
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        borderRadius: 20,
-        borderWidth: 1,
-        borderColor: '#dcfce7',
-    },
-    grantButtonText: {
-        fontSize: 12,
-        color: '#16a34a',
-        fontWeight: '600',
-    },
-    selectOption: {
-        paddingVertical: 14,
-        paddingHorizontal: 8,
-        borderBottomWidth: 1,
-        borderBottomColor: '#f1f5f9',
-    },
-    selectOptionText: {
-        fontSize: 14,
-        color: '#334155',
-        fontWeight: '500',
-    },
-    insurerCard: {
-        backgroundColor: '#f8fafc',
-        borderRadius: 10,
-        padding: 16,
-        marginBottom: 12,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        borderWidth: 1,
-        borderColor: '#f1f5f9',
-    },
-    insurerCardContent: {
-        flex: 1,
-    },
-    insurerName: {
-        fontSize: 15,
-        fontWeight: '700',
-        color: '#1e293b',
-        marginBottom: 4,
-    },
-    insurerDetail: {
-        fontSize: 13,
-        color: '#64748b',
-        lineHeight: 18,
-    },
-    authCard: {
-        backgroundColor: '#ffffff',
-        borderRadius: 10,
-        padding: 16,
-        marginTop: 15,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        borderWidth: 1,
-        borderColor: '#f1f5f9',
-    },
-    authCardContent: {
-        flex: 1,
-    },
-    authName: {
-        fontSize: 14,
-        fontWeight: '700',
-        color: '#1e293b',
-        marginBottom: 2,
-    },
-    authDetail: {
-        fontSize: 12,
-        color: '#64748b',
-        lineHeight: 16,
-    },
-    authActions: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    inlineDropdown: {
-        backgroundColor: '#f8fafc',
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: '#e2e8f0',
-        marginTop: 4,
-        marginBottom: 8,
-        overflow: 'hidden',
-    },
-    inlineDropdownOption: {
-        paddingVertical: 12,
-        paddingHorizontal: 14,
-        borderBottomWidth: 1,
-        borderBottomColor: '#f1f5f9',
-    },
-    inlineDropdownOptionSelected: {
-        backgroundColor: '#e0f2f1',
-    },
-    inlineDropdownOptionText: {
-        fontSize: 13,
-        color: '#334155',
-        fontWeight: '500',
-    },
-    inlineDropdownOptionTextSelected: {
-        color: '#58a6b8',
-        fontWeight: '700',
-    },
-    datePickerContainer: {
-        backgroundColor: '#f8fafc',
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#e2e8f0',
-        marginTop: 4,
-        marginBottom: 8,
-        overflow: 'hidden',
-    },
-    datePickerHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 14,
-        paddingVertical: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#e2e8f0',
-        backgroundColor: '#ffffff',
-    },
-    datePickerTitle: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#334155',
-    },
-    datePickerDone: {
-        fontSize: 14,
-        fontWeight: '700',
-        color: '#58a6b8',
-    },
-    consentModalDesc: {
-        fontSize: 14,
-        color: '#475569',
-        lineHeight: 20,
-        marginBottom: 20,
-    },
-    selectFileButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#58a6b8',
-        paddingVertical: 12,
-        paddingHorizontal: 20,
-        borderRadius: 10,
-        alignSelf: 'flex-start',
-        marginBottom: 16,
-    },
-    selectFileButtonText: {
-        color: '#ffffff',
-        fontSize: 14,
-        fontWeight: '600',
-    },
-    selectedFileRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#f0f9f8',
-        padding: 12,
-        borderRadius: 8,
-        marginBottom: 16,
-        borderWidth: 1,
-        borderColor: '#d1e7e4',
-    },
-    selectedFileName: {
-        flex: 1,
-        fontSize: 13,
-        color: '#334155',
-        fontWeight: '500',
-        marginLeft: 10,
-        marginRight: 10,
-    },
-    fileTypeHint: {
-        fontSize: 12,
-        color: '#94a3b8',
-        lineHeight: 18,
-    },
-    grantedDateText: {
-        fontSize: 12,
-        color: '#64748b',
-        fontWeight: '500',
-        marginTop: 2,
-    },
-    grantedDetailsContainer: {
-        alignItems: 'flex-end',
-        marginTop: 4,
-    },
-    grantedActionsRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop: 8,
-        gap: 8,
-    },
-    eyeButton: {
-        padding: 4,
-        borderRadius: 6,
-        backgroundColor: '#eff6ff',
-    },
-    withdrawButton: {
-        paddingVertical: 6,
-        paddingHorizontal: 14,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#fca5a5',
-        backgroundColor: '#fef2f2',
-    },
-    withdrawButtonText: {
-        fontSize: 12,
-        color: '#ef4444',
-        fontWeight: '600',
-    },
-});
 
 export default PersonalData;
+    const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
+        container: {
+            paddingHorizontal: 16,
+        },
+        accordionContainer: {
+            backgroundColor: tc.cardBackground,
+            borderRadius: 16,
+            marginBottom: 16,
+            overflow: 'hidden',
+            borderWidth: 1,
+            borderColor: tc.borderColor,
+            ...Platform.select({
+                ios: { shadowColor: tc.shadow, shadowOffset: { width: 0, height: 2 }, shadowOpacity: isDark ? 0 : 0.05, shadowRadius: 10 },
+                android: { elevation: isDark ? 0 : 2 },
+            }),
+        },
+        accordionHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: 16,
+            backgroundColor: tc.cardBackground,
+        },
+        expandedHeader: {
+            borderBottomWidth: 1,
+            borderBottomColor: tc.borderColor,
+        },
+        headerLeft: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            flex: 1,
+        },
+        iconContainer: {
+            width: 36,
+            height: 36,
+            borderRadius: 10,
+            backgroundColor: tc.accentLight,
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginRight: 12,
+        },
+        accordionTitle: {
+            fontSize: 16,
+            fontWeight: '700',
+            color: tc.textPrimary,
+            flex: 1,
+        },
+        accordionContent: {
+            padding: 16,
+            backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : tc.cardBackground,
+        },
+        inputGroup: {
+            marginBottom: 16,
+        },
+        labelRow: {
+            flexDirection: 'row',
+            marginBottom: 6,
+        },
+        requiredStar: {
+            color: tc.accentRed,
+            fontWeight: 'bold',
+        },
+        inputLabel: {
+            fontSize: 13,
+            fontWeight: '600',
+            color: tc.textSecondary,
+        },
+        inputWrapper: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: tc.inputBackground,
+            borderWidth: 1,
+            borderColor: tc.borderColor,
+            borderRadius: 10,
+            paddingHorizontal: 12,
+            height: 48,
+        },
+        textInput: {
+            flex: 1,
+            fontSize: 14,
+            color: tc.textPrimary,
+            padding: 0,
+        },
+        row: {
+            flexDirection: 'row',
+        },
+        sectionSubHeader: {
+            fontSize: 14,
+            fontWeight: '700',
+            color: tc.accent,
+            marginTop: 10,
+            marginBottom: 15,
+            textTransform: 'uppercase',
+            letterSpacing: 0.5,
+        },
+        miniSearch: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderWidth: 1,
+            borderColor: tc.borderColor,
+            borderRadius: 6,
+            paddingHorizontal: 10,
+            height: 36,
+            width: 140,
+            backgroundColor: tc.inputBackground,
+        },
+        miniSearchInput: {
+            fontSize: 12,
+            marginLeft: 6,
+            color: tc.textPrimary,
+            flex: 1,
+            padding: 0,
+        },
+        noDataTextMinimal: {
+            fontSize: 13,
+            color: tc.textMuted,
+            fontStyle: 'italic',
+            paddingVertical: 10,
+        },
+        outlineButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderWidth: 1,
+            borderColor: tc.accent,
+            borderRadius: 8,
+            paddingVertical: 10,
+            paddingHorizontal: 15,
+            alignSelf: 'flex-start',
+            backgroundColor: isDark ? tc.buttonMutedBg : 'transparent',
+        },
+        outlineButtonText: {
+            fontSize: 13,
+            fontWeight: '600',
+            color: tc.accent,
+            marginLeft: 8,
+        },
+        disclaimerText: {
+            fontSize: 12,
+            color: tc.textMuted,
+            fontStyle: 'italic',
+            marginTop: 15,
+            lineHeight: 18,
+        },
+        submitButtonContainer: {
+            height: 48,
+            borderRadius: 10,
+            overflow: 'hidden',
+            marginTop: 10,
+            marginBottom: 5,
+        },
+        gradientButton: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        submitButtonText: {
+            color: '#ffffff',
+            fontSize: 14,
+            fontWeight: '600',
+        },
+        toggleRow: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 12,
+        },
+        toggleLabel: {
+            fontSize: 13,
+            color: tc.textSecondary,
+            flex: 1,
+            paddingRight: 10,
+        },
+        orangeButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: '#f97316',
+            borderRadius: 8,
+            paddingVertical: 10,
+            paddingHorizontal: 15,
+        },
+        orangeButtonText: {
+            fontSize: 12,
+            fontWeight: '700',
+            color: '#ffffff',
+            marginLeft: 8,
+        },
+        emptyResultsBox: {
+            backgroundColor: tc.cardBackgroundAlt,
+            borderRadius: 10,
+            padding: 20,
+            marginTop: 15,
+            alignItems: 'flex-start',
+        },
+        modalOverlay: {
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.6)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: 20,
+        },
+        modalContent: {
+            backgroundColor: tc.modalBg,
+            borderRadius: 12,
+            width: '100%',
+            maxHeight: '80%',
+            padding: 20,
+            borderWidth: isDark ? 1 : 0,
+            borderColor: tc.borderColor,
+        },
+        modalHeader: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 20,
+        },
+        modalTitle: {
+            fontSize: 18,
+            fontWeight: '700',
+            color: tc.textPrimary,
+        },
+        modalScroll: {
+            marginBottom: 20,
+        },
+        modalFooter: {
+            flexDirection: 'row',
+            justifyContent: 'flex-end',
+            gap: 12,
+        },
+        cancelButton: {
+            paddingVertical: 10,
+            paddingHorizontal: 20,
+            borderRadius: 8,
+            borderWidth: 1,
+            borderColor: tc.borderColor,
+            backgroundColor: isDark ? tc.buttonMutedBg : tc.canvas,
+        },
+        cancelButtonText: {
+            fontSize: 14,
+            fontWeight: '600',
+            color: tc.textSecondary,
+        },
+        addButton: {
+            paddingVertical: 10,
+            paddingHorizontal: 25,
+            borderRadius: 8,
+            backgroundColor: tc.accent,
+        },
+        addButtonText: {
+            fontSize: 14,
+            fontWeight: '600',
+            color: '#ffffff',
+        },
+        infoBanner: {
+            backgroundColor: tc.accentLight,
+            padding: 12,
+            borderRadius: 8,
+            marginBottom: 20,
+            borderWidth: 1,
+            borderColor: tc.accent,
+        },
+        infoBannerText: {
+            fontSize: 12,
+            color: isDark ? tc.textPrimary : '#1e40af',
+            lineHeight: 18,
+        },
+        consentRow: {
+            backgroundColor: tc.cardBackgroundAlt,
+            borderWidth: 1,
+            borderColor: tc.borderColor,
+            borderRadius: 12,
+            padding: 16,
+            marginBottom: 12,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+        },
+        consentTitle: {
+            fontSize: 14,
+            fontWeight: '700',
+            color: tc.textPrimary,
+            marginBottom: 4,
+        },
+        consentDesc: {
+            fontSize: 12,
+            color: tc.textSecondary,
+            lineHeight: 18,
+        },
+        consentActions: {
+            alignItems: 'flex-end',
+            minWidth: 130,
+        },
+        statusBadge: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: 8,
+        },
+        statusText: {
+            fontSize: 12,
+            color: tc.accentRed,
+            marginLeft: 6,
+            fontWeight: '500',
+        },
+        grantButton: {
+            backgroundColor: tc.success + '20',
+            paddingVertical: 6,
+            paddingHorizontal: 12,
+            borderRadius: 20,
+            borderWidth: 1,
+            borderColor: tc.success,
+        },
+        grantButtonText: {
+            fontSize: 12,
+            color: tc.success,
+            fontWeight: '600',
+        },
+        selectOption: {
+            paddingVertical: 14,
+            paddingHorizontal: 8,
+            borderBottomWidth: 1,
+            borderBottomColor: tc.borderColor,
+        },
+        selectOptionText: {
+            fontSize: 14,
+            color: tc.textPrimary,
+            fontWeight: '500',
+        },
+        insurerCard: {
+            backgroundColor: tc.cardBackgroundAlt,
+            borderRadius: 10,
+            padding: 16,
+            marginBottom: 12,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderWidth: 1,
+            borderColor: tc.borderColor,
+        },
+        insurerCardContent: {
+            flex: 1,
+        },
+        insurerName: {
+            fontSize: 15,
+            fontWeight: '700',
+            color: tc.textPrimary,
+            marginBottom: 4,
+        },
+        insurerDetail: {
+            fontSize: 13,
+            color: tc.textSecondary,
+            lineHeight: 18,
+        },
+        authCard: {
+            backgroundColor: tc.cardBackgroundAlt,
+            borderRadius: 10,
+            padding: 16,
+            marginTop: 15,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderWidth: 1,
+            borderColor: tc.borderColor,
+        },
+        authCardContent: {
+            flex: 1,
+        },
+        authName: {
+            fontSize: 14,
+            fontWeight: '700',
+            color: tc.textPrimary,
+            marginBottom: 2,
+        },
+        authDetail: {
+            fontSize: 12,
+            color: tc.textSecondary,
+            lineHeight: 16,
+        },
+        authActions: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        inlineDropdown: {
+            backgroundColor: tc.cardBackgroundAlt,
+            borderRadius: 10,
+            borderWidth: 1,
+            borderColor: tc.borderColor,
+            marginTop: 4,
+            marginBottom: 8,
+            overflow: 'hidden',
+        },
+        inlineDropdownOption: {
+            paddingVertical: 12,
+            paddingHorizontal: 14,
+            borderBottomWidth: 1,
+            borderBottomColor: tc.borderColor,
+        },
+        inlineDropdownOptionSelected: {
+            backgroundColor: tc.accentLight,
+        },
+        inlineDropdownOptionText: {
+            fontSize: 13,
+            color: tc.textPrimary,
+            fontWeight: '500',
+        },
+        inlineDropdownOptionTextSelected: {
+            color: tc.accent,
+            fontWeight: '700',
+        },
+        datePickerContainer: {
+            backgroundColor: tc.cardBackgroundAlt,
+            borderRadius: 12,
+            borderWidth: 1,
+            borderColor: tc.borderColor,
+            marginTop: 4,
+            marginBottom: 8,
+            overflow: 'hidden',
+        },
+        datePickerHeader: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingHorizontal: 14,
+            paddingVertical: 10,
+            borderBottomWidth: 1,
+            borderBottomColor: tc.borderColor,
+            backgroundColor: tc.cardBackground,
+        },
+        datePickerTitle: {
+            fontSize: 14,
+            fontWeight: '600',
+            color: tc.textPrimary,
+        },
+        datePickerDone: {
+            fontSize: 14,
+            fontWeight: '700',
+            color: tc.accent,
+        },
+        consentModalDesc: {
+            fontSize: 14,
+            color: tc.textSecondary,
+            lineHeight: 20,
+            marginBottom: 20,
+        },
+        selectFileButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: tc.accent,
+            paddingVertical: 12,
+            paddingHorizontal: 20,
+            borderRadius: 10,
+            alignSelf: 'flex-start',
+            marginBottom: 16,
+        },
+        selectedFileRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: tc.accentLight,
+            padding: 12,
+            borderRadius: 8,
+            marginBottom: 16,
+            borderWidth: 1,
+            borderColor: tc.accent,
+        },
+        selectedFileName: {
+            flex: 1,
+            fontSize: 13,
+            color: tc.textPrimary,
+            fontWeight: '500',
+            marginLeft: 10,
+            marginRight: 10,
+        },
+        fileTypeHint: {
+            fontSize: 12,
+            color: tc.textMuted,
+            lineHeight: 18,
+        },
+        grantedDateText: {
+            fontSize: 12,
+            color: tc.textMuted,
+            fontWeight: '500',
+            marginTop: 2,
+        },
+        grantedDetailsContainer: {
+            alignItems: 'flex-end',
+            marginTop: 4,
+        },
+        grantedActionsRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginTop: 8,
+            gap: 8,
+        },
+        eyeButton: {
+            padding: 4,
+            borderRadius: 6,
+            backgroundColor: tc.accentLight,
+        },
+        withdrawButton: {
+            paddingVertical: 6,
+            paddingHorizontal: 14,
+            borderRadius: 8,
+            borderWidth: 1,
+            borderColor: tc.accentRed,
+            backgroundColor: tc.accentRed + '20',
+        },
+        withdrawButtonText: {
+            fontSize: 12,
+            color: tc.accentRed,
+            fontWeight: '600',
+        },
+    });

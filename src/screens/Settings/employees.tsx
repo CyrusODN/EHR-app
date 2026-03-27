@@ -23,6 +23,7 @@ import ManagePermissionsModal from './modals/ManagePermissionsModal';
 import { ActivityIndicator } from 'react-native';
 import { GetEmployees, SetEmployeeStatus, GetMyPermissions, GiveDirectorPrivilege, GetGroupPermissions, UpdateGroupPermissions, DeleteEmployee } from '../../Services/settingServices';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 
 
@@ -46,6 +47,7 @@ interface EmployeesProps {
 }
 
 const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
+    const { t } = useTranslation();
     const navigation = useNavigation<any>();
 
     const showAlert = (type: string, message: string) => {
@@ -54,7 +56,7 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
         }
     };
 
-    const [activeTab, setActiveTab] = useState('Doctors, Dentists, and Paramedics');
+    const [activeTab, setActiveTab] = useState('doctors');
     const [searchLastName, setSearchLastName] = useState('');
     const [searchFirstName, setSearchFirstName] = useState('');
     const [searchPWZ, setSearchPWZ] = useState('');
@@ -79,15 +81,15 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
     const recordsOptions = [10, 25, 50];
 
     const employeeTabs = [
-        'Doctors, Dentists, and Paramedics',
-        'Nurses and Midwives',
-        'Receptionists',
+        'doctors',
+        'nurses',
+        'receptionists',
     ];
 
     const roleMapping: { [key: string]: string } = {
-        'Doctors, Dentists, and Paramedics': 'doctor',
-        'Nurses and Midwives': 'nurse',
-        'Receptionists': 'receptionist',
+        'doctors': 'doctor',
+        'nurses': 'nurse',
+        'receptionists': 'receptionist',
     };
 
     const fetchEmployees = async () => {
@@ -105,7 +107,7 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
             }
         } catch (error: any) {
             console.error('Fetch Employees Error:', error);
-            showAlert('error', 'Failed to fetch employees.');
+            showAlert('error', t('settings.employees.alerts.fetch_error'));
         } finally {
             setLoading(false);
         }
@@ -115,12 +117,12 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
         try {
             const response = await SetEmployeeStatus(employeeId);
             if (response) {
-                showAlert('success', 'Status updated successfully.');
+                showAlert('success', t('settings.employees.alerts.status_success'));
                 fetchEmployees();
             }
         } catch (error: any) {
             console.error('Toggle Status Error:', error);
-            showAlert('error', error.message || 'Failed to update status.');
+            showAlert('error', error.message || t('settings.employees.alerts.status_error'));
         }
     };
 
@@ -133,12 +135,12 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
             const newElevated = !currentIsElevated;
             const response = await GiveDirectorPrivilege(employeeId, newElevated);
             if (response) {
-                showAlert('success', newElevated ? 'Director privilege granted.' : 'Director privilege revoked.');
+                showAlert('success', newElevated ? t('settings.employees.alerts.director_granted') : t('settings.employees.alerts.director_revoked'));
                 fetchEmployees();
             }
         } catch (error: any) {
             console.error('Toggle Director Privilege Error:', error);
-            showAlert('error', error.message || 'Failed to update director privilege.');
+            showAlert('error', error.message || t('settings.employees.alerts.director_error'));
         }
     };
 
@@ -212,7 +214,7 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
                     <View style={styles.headerIconBox}>
                         <Feather name="users" size={22} color="#4A90B9" />
                     </View>
-                    <Text style={styles.headerTitle}>Employees</Text>
+                    <Text style={styles.headerTitle}>{t('settings.employees.title')}</Text>
                 </View>
 
                 {/* Main Card */}
@@ -238,7 +240,7 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
                                     styles.tabChipText,
                                     activeTab === tab && styles.tabChipTextActive
                                 ]}>
-                                    {tab}
+                                    {t(`settings.employees.tabs.${tab}`)}
                                 </Text>
                             </TouchableOpacity>
                         ))}
@@ -248,23 +250,26 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
                     <View style={styles.actionsRow}>
                         <View style={styles.actionsLeft}>
                             <PrimaryButton
-                                label="GROUP PERMISSIONS"
+                                label={t('settings.employees.buttons.group_permissions')}
                                 filled={false}
                                 onPress={() => setShowGroupPermissionsModal(true)}
                                 style={styles.outlineBtn}
+                                image={undefined} iconStyle={undefined} imageStyle={undefined} loading={false} disabled={false}
                             />
                             <PrimaryButton
-                                label="RATINGS"
+                                label={t('settings.employees.buttons.ratings')}
                                 filled={false}
                                 onPress={() => { }}
                                 style={styles.outlineBtnSmall}
+                                image={undefined} iconStyle={undefined} imageStyle={undefined} loading={false} disabled={false}
                             />
                         </View>
                         <PrimaryButton
-                            label={`+ Add ${activeTab === 'Doctors, Dentists, and Paramedics' ? 'Doctor/Dentist/Paramedic' : activeTab === 'Nurses and Midwives' ? 'Nurse/Midwife' : 'Receptionist'}`}
+                            label={t('settings.employees.buttons.add_employee', { role: t(`settings.employees.roles.${roleMapping[activeTab]}`) })}
                             filled={true}
                             onPress={() => setShowAddDoctorModal(true)}
                             style={styles.addBtn}
+                            image={undefined} iconStyle={undefined} imageStyle={undefined} loading={false} disabled={false}
                         />
                     </View>
 
@@ -272,7 +277,11 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
                     <View style={styles.infoBanner}>
                         <Feather name="users" size={18} color="#2563EB" />
                         <Text style={styles.infoBannerText}>
-                            Total number of users eligible for subscription fees: (3. Maximum number of users from purchased packages 7). 0
+                            {t('settings.employees.info_banner', { 
+                                current: 3, 
+                                max: 7, 
+                                extra: "0" 
+                            })}
                         </Text>
                     </View>
 
@@ -282,7 +291,7 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
                             <Ionicons name="search-outline" size={16} color="#9CA3AF" style={styles.searchFieldIcon} />
                             <TextInput
                                 style={styles.searchFieldInput}
-                                placeholder="Last Name"
+                                placeholder={t('settings.employees.filters.lastName')}
                                 placeholderTextColor="#9CA3AF"
                                 value={searchLastName}
                                 onChangeText={setSearchLastName}
@@ -292,18 +301,18 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
                             <Ionicons name="search-outline" size={16} color="#9CA3AF" style={styles.searchFieldIcon} />
                             <TextInput
                                 style={styles.searchFieldInput}
-                                placeholder="First Name"
+                                placeholder={t('settings.employees.filters.firstName')}
                                 placeholderTextColor="#9CA3AF"
                                 value={searchFirstName}
                                 onChangeText={setSearchFirstName}
                             />
                         </View>
-                        {activeTab === 'Doctors, Dentists, and Paramedics' && (
+                        {activeTab === 'doctors' && (
                             <View style={styles.searchField}>
                                 <Ionicons name="search-outline" size={16} color="#9CA3AF" style={styles.searchFieldIcon} />
                                 <TextInput
                                     style={styles.searchFieldInput}
-                                    placeholder="PWZ"
+                                    placeholder={t('settings.employees.filters.pwz')}
                                     placeholderTextColor="#9CA3AF"
                                     value={searchPWZ}
                                     onChangeText={setSearchPWZ}
@@ -313,7 +322,7 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
                     </View>
 
                     <View style={styles.filterExtrasRow}>
-                        <CustomCheckbox label="Only Active" checked={onlyActive} onChange={setOnlyActive} />
+                        <CustomCheckbox label={t('settings.employees.filters.onlyActive')} checked={onlyActive} onChange={setOnlyActive} />
                         <TouchableOpacity style={styles.searchIconBtn}>
                             <Ionicons name="search" size={18} color="#4A90B9" />
                         </TouchableOpacity>
@@ -324,18 +333,18 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
                         <View style={styles.tableInner}>
                             {/* Table Header */}
                             <View style={styles.tableHeader}>
-                                <Text style={[styles.tableHeaderCell, { width: 180 }]}>LAST NAME AND FIRST NAME</Text>
-                                <Text style={[styles.tableHeaderCell, { width: 140 }]}>LOGIN</Text>
-                                <Text style={[styles.tableHeaderCell, { width: 120 }]}>PWZ/PESEL</Text>
-                                <Text style={[styles.tableHeaderCell, { width: 140 }]}>ACTIVATION STATUS</Text>
-                                <Text style={[styles.tableHeaderCell, { width: 220, textAlign: 'right' }]}>ACTIONS</Text>
+                                <Text style={[styles.tableHeaderCell, { width: 180 }]}>{t('settings.employees.table.name')}</Text>
+                                <Text style={[styles.tableHeaderCell, { width: 140 }]}>{t('settings.employees.table.login')}</Text>
+                                <Text style={[styles.tableHeaderCell, { width: 120 }]}>{t('settings.employees.table.pwz_pesel')}</Text>
+                                <Text style={[styles.tableHeaderCell, { width: 140 }]}>{t('settings.employees.table.status')}</Text>
+                                <Text style={[styles.tableHeaderCell, { width: 220, textAlign: 'right' }]}>{t('settings.employees.table.actions')}</Text>
                             </View>
 
                             {/* Employee Rows */}
                             {loading ? (
                                 <View style={styles.loadingWrapper}>
                                     <ActivityIndicator size="large" color="#4A90B9" />
-                                    <Text style={styles.loadingText}>Loading employees...</Text>
+                                    <Text style={styles.loadingText}>{t('settings.employees.table.loading')}</Text>
                                 </View>
                             ) : employees.length > 0 ? (
                                 employees.map((item) => (
@@ -390,7 +399,7 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
                                 ))
                             ) : (
                                 <View style={styles.emptyState}>
-                                    <Text style={styles.emptyStateText}>No employees found</Text>
+                                    <Text style={styles.emptyStateText}>{t('settings.employees.table.empty')}</Text>
                                 </View>
                             )}
                         </View>
@@ -429,14 +438,14 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
                                 </View>
                             )}
                         </View>
-                        <Text style={styles.paginationInfo}>records per page</Text>
+                        <Text style={styles.paginationInfo}>{t('settings.employees.pagination.records_per_page')}</Text>
                         <View style={styles.paginationControls}>
                             <TouchableOpacity 
                                 style={[styles.paginationBtn, currentPage === 1 && { opacity: 0.5 }]}
                                 disabled={currentPage === 1}
                                 onPress={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                             >
-                                <Text style={styles.paginationBtnText}>Prev</Text>
+                                <Text style={styles.paginationBtnText}>{t('settings.employees.pagination.prev')}</Text>
                             </TouchableOpacity>
                             <View style={styles.pageNumber}>
                                 <Text style={styles.pageNumberText}>{currentPage}</Text>
@@ -446,10 +455,10 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
                                 disabled={(currentPage * recordsPerPage) >= totalRecords}
                                 onPress={() => setCurrentPage(prev => prev + 1)}
                             >
-                                <Text style={styles.paginationBtnText}>Next</Text>
+                                <Text style={styles.paginationBtnText}>{t('settings.employees.pagination.next')}</Text>
                             </TouchableOpacity>
                         </View>
-                        <Text style={styles.paginationTotal}>Total results: {totalRecords}</Text>
+                        <Text style={styles.paginationTotal}>{t('settings.employees.pagination.total', { total: totalRecords })}</Text>
                     </View>
                 </View>
 
@@ -472,7 +481,7 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
                     setShowEditModal(false);
                     setSelectedEmployee(null);
                     fetchEmployees();
-                    showAlert('success', 'Employee updated successfully.');
+                    showAlert('success', t('settings.employees.alerts.update_success'));
                 }}
                 employee={selectedEmployee}
             />
@@ -486,7 +495,7 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
                     setShowPermissionsModal(false);
                     setPermissionsEmployee(null);
                     fetchEmployees();
-                    showAlert('success', 'Permissions updated successfully.');
+                    showAlert('success', t('settings.employees.alerts.permissions_success'));
                 }}
                 employeeId={permissionsEmployee?.id || null}
                 employeeName={permissionsEmployee ? `${permissionsEmployee.name} ${permissionsEmployee.lastName}` : ''}
@@ -500,11 +509,11 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
                     const role = roleMapping[activeTab] || 'doctor';
                     fetchGroupPermissions(role);
                     fetchEmployees();
-                    showAlert('success', 'Group permissions updated successfully.');
+                    showAlert('success', t('settings.employees.alerts.group_permissions_success'));
                 }}
                 employeeId={null}
                 initialPermissions={groupPermissions}
-                title="Manage Group Permissions"
+                title={t('settings.employees.buttons.group_permissions')}
                 onSavePermissions={async (permissions) => {
                     const role = roleMapping[activeTab] || 'doctor';
                     return await UpdateGroupPermissions({ role, permissions });
@@ -526,13 +535,9 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
                         <View style={styles.deleteIconContainer}>
                             <Feather name="alert-triangle" size={32} color="#FF6B6B" />
                         </View>
-                        <Text style={styles.deleteModalTitle}>Delete Employee</Text>
+                        <Text style={styles.deleteModalTitle}>{t('settings.employees.delete_modal.title')}</Text>
                         <Text style={styles.deleteModalMessage}>
-                            Are you sure you want to delete{' '}
-                            <Text style={{ fontWeight: '700' }}>
-                                {deleteEmployee ? `${deleteEmployee.name} ${deleteEmployee.lastName}` : ''}
-                            </Text>
-                            ? This action cannot be undone.
+                            {t('settings.employees.delete_modal.message', { name: `${deleteEmployee?.name} ${deleteEmployee?.lastName}` })}
                         </Text>
                         <View style={styles.deleteModalButtons}>
                             <TouchableOpacity
@@ -542,7 +547,7 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
                                     setDeleteEmployeeTarget(null);
                                 }}
                             >
-                                <Text style={styles.deleteModalCancelText}>Cancel</Text>
+                                <Text style={styles.deleteModalCancelText}>{t('settings.employees.delete_modal.cancel')}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 style={[styles.deleteModalDeleteBtn, deleting && { opacity: 0.6 }]}
@@ -552,7 +557,7 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
                                 {deleting ? (
                                     <ActivityIndicator size="small" color="#FFFFFF" />
                                 ) : (
-                                    <Text style={styles.deleteModalDeleteText}>Delete</Text>
+                                    <Text style={styles.deleteModalDeleteText}>{t('settings.employees.delete_modal.delete')}</Text>
                                 )}
                             </TouchableOpacity>
                         </View>

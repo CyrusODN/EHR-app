@@ -149,7 +149,7 @@ const Profile = ({ onAlert }: { onAlert?: (config: any) => void }) => {
             if (onAlert) {
                 onAlert({
                     visible: true,
-                    message: "Profile updated successfully!",
+                    message: t('settings.profile.alerts.update_success'),
                     type: 'success'
                 });
             }
@@ -161,7 +161,7 @@ const Profile = ({ onAlert }: { onAlert?: (config: any) => void }) => {
             if (onAlert) {
                 onAlert({
                     visible: true,
-                    message: error.message || "Failed to update profile",
+                    message: error.message || t('settings.profile.alerts.update_error'),
                     type: 'error'
                 });
             }
@@ -228,10 +228,10 @@ const Profile = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                                 <View style={styles.halfField}>
                                     <View style={styles.labelContainer}>
                                         <Text style={styles.requiredStar}>* </Text>
-                                        <Text style={styles.fieldLabel}>First Name</Text>
+                                        <Text style={styles.fieldLabel}>{t('settings.profile.labels.first_name')}</Text>
                                     </View>
                                     <CustomTextInput
-                                        placeholder="First Name"
+                                        placeholder={t('settings.profile.labels.first_name')}
                                         value={firstName}
                                         onChangeText={setFirstName}
                                     />
@@ -239,10 +239,10 @@ const Profile = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                                 <View style={styles.halfField}>
                                     <View style={styles.labelContainer}>
                                         <Text style={styles.requiredStar}>* </Text>
-                                        <Text style={styles.fieldLabel}>Last Name</Text>
+                                        <Text style={styles.fieldLabel}>{t('settings.profile.labels.last_name')}</Text>
                                     </View>
                                     <CustomTextInput
-                                        placeholder="Last Name"
+                                        placeholder={t('settings.profile.labels.last_name')}
                                         value={lastName}
                                         onChangeText={setLastName}
                                     />
@@ -250,9 +250,9 @@ const Profile = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                             </View>
 
                             <View style={styles.fullField}>
-                                <Text style={styles.fieldLabel}>Email</Text>
+                                <Text style={styles.fieldLabel}>{t('settings.profile.labels.email')}</Text>
                                 <CustomTextInput
-                                    placeholder="Email"
+                                    placeholder={t('settings.profile.labels.email')}
                                     value={email}
                                     onChangeText={setEmail}
                                     editable={false}
@@ -265,10 +265,10 @@ const Profile = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                                     style={styles.cancelButton} 
                                     onPress={() => setIsEditing(false)}
                                 >
-                                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                                    <Text style={styles.cancelButtonText}>{t('settings.profile.buttons.cancel')}</Text>
                                 </TouchableOpacity>
                                 <PrimaryButton
-                                    label="Save Changes"
+                                    label={t('settings.profile.buttons.save_changes')}
                                     filled={true}
                                     onPress={handleSaveUserInfo}
                                     style={{ width: '50%', height: 45 }}
@@ -352,7 +352,7 @@ const Profile = ({ onAlert }: { onAlert?: (config: any) => void }) => {
 
                         <View style={{ backgroundColor: "white", paddingBottom: 20 }}>
                             <PrimaryButton
-                                label="Save Changes"
+                                label={t('settings.profile.buttons.save_changes')}
                                 filled={true}
                                 onPress={handleSaveUserInfo}
                                 style={{ alignSelf: "center" }}

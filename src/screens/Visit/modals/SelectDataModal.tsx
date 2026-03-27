@@ -7,22 +7,26 @@ import {
     Modal,
     Animated,
     Dimensions,
+    ScrollView,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import { useTranslation } from 'react-i18next';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface SelectDataModalProps {
     visible: boolean;
     onClose: () => void;
+    previousVisits?: any[];
 }
 
-const SelectDataModal = ({ visible, onClose }: SelectDataModalProps) => {
+const SelectDataModal = ({ visible, onClose, previousVisits = [] }: SelectDataModalProps) => {
+    const { t, i18n } = useTranslation();
     const [selectedItems, setSelectedItems] = useState<string[]>(['current']);
     const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
     
-    useEffect(() => {
+    useEffect(() => { 
         if (visible) {
             Animated.spring(slideAnim, {
                 toValue: 0,
@@ -47,6 +51,15 @@ const SelectDataModal = ({ visible, onClose }: SelectDataModalProps) => {
         }
     };
 
+    const formatVisitDate = (dateStr: string) => {
+        if (!dateStr) return 'N/A';
+        const date = new Date(dateStr);
+        const day = date.getDate();
+        const month = date.toLocaleString(i18n.language || 'en', { month: 'long' });
+        const year = date.getFullYear();
+        return `${day} ${month} ${year}`;
+    };
+
     return (
         <Modal
             transparent
@@ -67,14 +80,14 @@ const SelectDataModal = ({ visible, onClose }: SelectDataModalProps) => {
                     ]}
                 >
                     <View style={styles.header}>
-                        <Text style={styles.title}>Select data for analysis</Text>
+                        <Text style={styles.title}>{t('clinicalDecisionSupport.dataSelector.title')}</Text>
                         <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
                             <Feather name="x" size={24} color="#64748B" />
                         </TouchableOpacity>
                     </View>
 
-                    <View style={styles.content}>
-                        <Text style={styles.sectionTitle}>Current visit</Text>
+                    <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+                        <Text style={styles.sectionTitle}>{t('clinicalDecisionSupport.dataSelector.currentVisit.section')}</Text>
                         
                         <TouchableOpacity 
                             style={styles.selectionCard}
@@ -90,17 +103,46 @@ const SelectDataModal = ({ visible, onClose }: SelectDataModalProps) => {
                                 )}
                             </View>
                             <View style={styles.cardInfo}>
-                                <Text style={styles.cardTitle}>Current visit interview</Text>
+                                <Text style={styles.cardTitle}>{t('clinicalDecisionSupport.dataSelector.currentVisit.interview')}</Text>
                                 <Text style={styles.cardSubtitle}>
-                                    Analysis of current visit data, including scales and observations
+                                    {t('clinicalDecisionSupport.dataSelector.currentVisit.description')}
                                 </Text>
                             </View>
                         </TouchableOpacity>
 
-                        <Text style={styles.sectionTitle}>Previous visits</Text>
-                        <View style={styles.emptyState}>
-                            <Text style={styles.emptyStateText}>No previous visits to display</Text>
-                        </View>
+                        <Text style={styles.sectionTitle}>{t('clinicalDecisionSupport.dataSelector.previousVisits.section')}</Text>
+                        {previousVisits && previousVisits.length > 0 ? (
+                            previousVisits.map((visit, index) => {
+                                const visitId = `prev_${visit.id || visit._id || index}`;
+                                return (
+                                    <TouchableOpacity 
+                                        key={visitId}
+                                        style={styles.selectionCard}
+                                        onPress={() => toggleItem(visitId)}
+                                        activeOpacity={0.7}
+                                    >
+                                        <View style={[
+                                            styles.checkbox, 
+                                            selectedItems.includes(visitId) && styles.checkboxActive
+                                        ]}>
+                                            {selectedItems.includes(visitId) && (
+                                                <Feather name="check" size={14} color="#fff" />
+                                            )}
+                                        </View>
+                                        <View style={styles.cardInfo}>
+                                            <Text style={styles.cardTitle}>{formatVisitDate(visit.date)}</Text>
+                                            <Text style={styles.cardSubtitle}>
+                                                {visit.visitType || t('common.noData')} - {visit.doctor?.name || visit.doctorName || t('common.noData')}
+                                            </Text>
+                                        </View>
+                                    </TouchableOpacity>
+                                );
+                            })
+                        ) : (
+                            <View style={styles.emptyState}>
+                                <Text style={styles.emptyStateText}>{t('clinicalDecisionSupport.dataSelector.previousVisits.emptyText')}</Text>
+                            </View>
+                        )}
 
                         <TouchableOpacity 
                             style={styles.analysisButton}
@@ -110,9 +152,9 @@ const SelectDataModal = ({ visible, onClose }: SelectDataModalProps) => {
                             }}
                         >
                             <Feather name="bar-chart-2" size={20} color="#fff" />
-                            <Text style={styles.analysisButtonText}>Perform Analysis</Text>
+                            <Text style={styles.analysisButtonText}>{t('clinicalDecisionSupport.dataSelector.analyze')}</Text>
                         </TouchableOpacity>
-                    </View>
+                    </ScrollView>
                 </Animated.View>
             </View>
         </Modal>

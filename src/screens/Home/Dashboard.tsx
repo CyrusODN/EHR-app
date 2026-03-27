@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
     View, ScrollView,
     StyleSheet,
@@ -6,6 +6,7 @@ import {
     BackHandler,
     Platform,
     ActivityIndicator,
+    StatusBar,
 } from 'react-native';
 import { Text, Card, Searchbar, IconButton, useTheme } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -27,12 +28,14 @@ import { GetDashboardVisits } from '../../Services/DashboardServices';
 import { Modal } from 'react-native';
 import CustomAlert from '../../component/customAlert';
 import { useRoute } from '@react-navigation/native';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 const Dashboard = () => {
     const { t } = useTranslation();
     const { loggedInUser } = userStore();
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
+    const { colors: tc, isDark } = useThemeColors();
 
     useEffect(() => {
         console.log("loggedInUser", loggedInUser);
@@ -223,13 +226,29 @@ const Dashboard = () => {
     const getStatusStyle = (status: string) => {
         switch (status) {
             case 'Scheduled':
-                return { bg: '#EFF6FF', text: '#2563EB', icon: 'clock' };
+                return {
+                    bg: isDark ? 'rgba(37,99,235,0.15)' : '#EFF6FF',
+                    text: isDark ? '#60A5FA' : '#2563EB',
+                    icon: 'clock',
+                };
             case 'In Progress':
-                return { bg: '#FEF3C7', text: '#D97706', icon: 'play-circle' };
+                return {
+                    bg: isDark ? 'rgba(217,119,6,0.15)' : '#FEF3C7',
+                    text: isDark ? '#FBBF24' : '#D97706',
+                    icon: 'play-circle',
+                };
             case 'Completed':
-                return { bg: '#ECFDF5', text: '#059669', icon: 'check-circle' };
+                return {
+                    bg: isDark ? 'rgba(5,150,105,0.15)' : '#ECFDF5',
+                    text: isDark ? '#34D399' : '#059669',
+                    icon: 'check-circle',
+                };
             default:
-                return { bg: '#F3F4F6', text: '#6B7280', icon: 'circle' };
+                return {
+                    bg: isDark ? 'rgba(107,114,128,0.15)' : '#F3F4F6',
+                    text: isDark ? '#9CA3AF' : '#6B7280',
+                    icon: 'circle',
+                };
         }
     };
 
@@ -237,25 +256,32 @@ const Dashboard = () => {
         return name.split(' ').map(n => n[0]).join('').toUpperCase();
     };
 
+    // Build theme-aware dynamic styles
+    const ds = useMemo(() => createDynamicStyles(tc, isDark), [tc, isDark]);
+
     return (
-        <View style={styles.container}>
+        <View style={ds.container}>
+            <StatusBar
+                barStyle={tc.statusBarStyle}
+                backgroundColor={tc.headerBg}
+            />
             <Header onMenuPress={() => { setDrawerVisible(true) }} />
 
             <ScrollView
-                style={styles.scrollView}
-                contentContainerStyle={styles.scrollContent}
+                style={ds.scrollView}
+                contentContainerStyle={ds.scrollContent}
                 showsVerticalScrollIndicator={false}
             >
                 {/* Welcome Section */}
-                <View style={styles.welcomeSection}>
+                <View style={ds.welcomeSection}>
                     <View style={{ flex: 1 }}>
-                        <Text style={styles.greeting}>
+                        <Text style={ds.greeting}>
                             {t('dashboard.title')}
                         </Text>
-                        <Text style={styles.subtitle}>Overview of key information</Text>
+                        <Text style={ds.subtitle}>{t('dashboard.overview')}</Text>
                     </View>
                     <TouchableOpacity 
-                        style={styles.calendarTriggerBtn}
+                        style={ds.calendarTriggerBtn}
                         onPress={() => setCalendarModalVisible(true)}
                         activeOpacity={0.8}
                     >
@@ -263,20 +289,20 @@ const Dashboard = () => {
                             colors={['#4A90B9', '#68BFB3']}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 1 }}
-                            style={styles.calendarTriggerGradient}
+                            style={ds.calendarTriggerGradient}
                         >
                             <Icon name="calendar-month-outline" size={26} color="white" />
                         </LinearGradient>
-                        <View style={styles.dateBadge}>
-                            <Text style={styles.dateBadgeText}>{selectedDate.getDate()}</Text>
+                        <View style={ds.dateBadge}>
+                            <Text style={ds.dateBadgeText}>{selectedDate.getDate()}</Text>
                         </View>
                     </TouchableOpacity>
                 </View>
 
                 {/* Action Buttons */}
-                <View style={styles.actionButtonsRow}>
+                <View style={ds.actionButtonsRow}>
                     <TouchableOpacity
-                        style={styles.newVisitBtn}
+                        style={ds.newVisitBtn}
                         onPress={() => setCreateVisitModalVisible(true)}
                         activeOpacity={0.85}
                     >
@@ -284,35 +310,35 @@ const Dashboard = () => {
                             colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 0 }}
-                            style={styles.gradientBtn}
+                            style={ds.gradientBtn}
                         >
-                            <View style={styles.btnIconCircle}>
+                            <View style={ds.btnIconCircle}>
                                 <FontAwesome6 name="plus" size={12} color="#4A90B9" />
                             </View>
-                            <Text style={styles.newVisitBtnText}>New Visit</Text>
+                            <Text style={ds.newVisitBtnText}>{t('dashboard.quickActions.newVisit')}</Text>
                         </LinearGradient>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                        style={styles.newPatientBtn}
+                        style={ds.newPatientBtn}
                         onPress={() => navigation.navigate('New-Patient')}
                         activeOpacity={0.85}
                     >
-                        <View style={styles.patientBtnIcon}>
+                        <View style={ds.patientBtnIcon}>
                             <Feather name="user-plus" size={14} color="#4A90B9" />
                         </View>
-                        <Text style={styles.newPatientBtnText}>New Patient</Text>
+                        <Text style={ds.newPatientBtnText}>{t('dashboard.quickActions.newPatient')}</Text>
                     </TouchableOpacity>
                 </View>
 
                 {/* Search Bar */}
-                <View style={styles.searchContainer}>
-                    <Feather name="search" size={18} color="#9CA3AF" style={{ marginLeft: 2 }} />
+                <View style={ds.searchContainer}>
+                    <Feather name="search" size={18} color={tc.textMuted} style={{ marginLeft: 2 }} />
                     <Searchbar
                         placeholder={t('nav.patients.search') + '...'}
-                        placeholderTextColor="#9CA3AF"
-                        style={styles.searchBar}
-                        inputStyle={styles.searchInput}
+                        placeholderTextColor={tc.textMuted}
+                        style={ds.searchBar}
+                        inputStyle={[ds.searchInput, { color: tc.textPrimary }]}
                         icon={() => null}
                         value={''}
                     />
@@ -337,44 +363,44 @@ const Dashboard = () => {
                     onRequestClose={() => setCalendarModalVisible(false)}
                 >
                     <TouchableOpacity 
-                        style={styles.modalOverlay} 
+                        style={ds.modalOverlay} 
                         activeOpacity={1} 
                         onPress={() => setCalendarModalVisible(false)}
                     >
-                        <View style={styles.calendarModalContent}>
-                            <View style={styles.calendarCardModal}>
-                                <View style={styles.calendarHeader}>
-                                    <View style={styles.calendarHeaderLeft}>
-                                        <View style={styles.calendarIconBg}>
+                        <View style={ds.calendarModalContent}>
+                            <View style={ds.calendarCardModal}>
+                                <View style={ds.calendarHeader}>
+                                    <View style={ds.calendarHeaderLeft}>
+                                        <View style={ds.calendarIconBg}>
                                             <Icon name="calendar-month" size={18} color="#4A90B9" />
                                         </View>
-                                        <Text style={styles.calendarTitle}>{currentMonthDisplay}</Text>
+                                        <Text style={ds.calendarTitle}>{currentMonthDisplay}</Text>
                                     </View>
-                                    <View style={styles.calendarNavigation}>
-                                        <TouchableOpacity style={styles.calendarNavBtn} onPress={handlePrevMonth}>
-                                            <Feather name="chevron-left" size={18} color="#6B7280" />
+                                    <View style={ds.calendarNavigation}>
+                                        <TouchableOpacity style={ds.calendarNavBtn} onPress={handlePrevMonth}>
+                                            <Feather name="chevron-left" size={18} color={tc.textSecondary} />
                                         </TouchableOpacity>
-                                        <TouchableOpacity style={styles.calendarNavBtn} onPress={handleNextMonth}>
-                                            <Feather name="chevron-right" size={18} color="#6B7280" />
+                                        <TouchableOpacity style={ds.calendarNavBtn} onPress={handleNextMonth}>
+                                            <Feather name="chevron-right" size={18} color={tc.textSecondary} />
                                         </TouchableOpacity>
                                     </View>
                                 </View>
 
                                 {/* Weekday Headers */}
-                                <View style={styles.weekdayRow}>
+                                <View style={ds.weekdayRow}>
                                     {weekdays.map((day, index) => (
-                                        <Text key={index} style={styles.weekdayText}>
+                                        <Text key={index} style={ds.weekdayText}>
                                             {day}
                                         </Text>
                                     ))}
                                 </View>
 
                                 {/* Calendar Days Grid */}
-                                <View style={styles.calendarGrid}>
+                                <View style={ds.calendarGrid}>
                                     {days.map((item, index) => (
                                         <TouchableOpacity
                                             key={index}
-                                            style={styles.calendarDay}
+                                            style={ds.calendarDay}
                                             onPress={() => {
                                                 handleDateSelect(item);
                                                 setCalendarModalVisible(false);
@@ -385,22 +411,22 @@ const Dashboard = () => {
                                                     colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
                                                     start={{ x: 0, y: 0 }}
                                                     end={{ x: 1, y: 0 }}
-                                                    style={styles.selectedDateGradient}
+                                                    style={ds.selectedDateGradient}
                                                 >
-                                                    <Text style={styles.selectedDateText}>
+                                                    <Text style={ds.selectedDateText}>
                                                         {item.day}
                                                     </Text>
                                                 </LinearGradient>
                                             ) : (
                                                 <View style={[
-                                                    styles.dayContainer,
-                                                    item.isToday && !item.isSelected ? styles.todayContainer : null,
+                                                    ds.dayContainer,
+                                                    item.isToday && !item.isSelected ? ds.todayContainer : null,
                                                 ]}>
                                                     <Text
                                                         style={[
-                                                            styles.calendarDayText,
-                                                            !item.isCurrentMonth ? styles.otherMonthText : null,
-                                                            item.isToday && !item.isSelected ? styles.todayText : null,
+                                                            ds.calendarDayText,
+                                                            !item.isCurrentMonth ? ds.otherMonthText : null,
+                                                            item.isToday && !item.isSelected ? ds.todayText : null,
                                                         ]}
                                                     >
                                         {item.day}
@@ -412,10 +438,10 @@ const Dashboard = () => {
                                 </View>
 
                                 <TouchableOpacity 
-                                    style={styles.closeCalendarBtn}
+                                    style={ds.closeCalendarBtn}
                                     onPress={() => setCalendarModalVisible(false)}
                                 >
-                                    <Text style={styles.closeCalendarText}>Close</Text>
+                                    <Text style={ds.closeCalendarText}>{t('dashboard.calendar.close')}</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -423,31 +449,31 @@ const Dashboard = () => {
                 </Modal>
 
                 {/* Appointments Section */}
-                <View style={styles.appointmentsHeader}>
+                <View style={ds.appointmentsHeader}>
                     <View>
-                        <Text style={styles.appointmentsTitle}>
-                            {isToday(selectedDate) ? "Today's Visits" : `Visits for ${formatHeaderDate(selectedDate)}`}
+                        <Text style={ds.appointmentsTitle}>
+                            {isToday(selectedDate) ? t('dashboard.todaysVisits') : `${t('dashboard.calendar.title')} ${formatHeaderDate(selectedDate)}`}
                         </Text>
-                        <Text style={styles.appointmentsSubtitle}>
-                            {getFormattedSelectedDate()} · {appointments.length} visits
+                        <Text style={ds.appointmentsSubtitle}>
+                            {getFormattedSelectedDate()} · {appointments.length} {t('dashboard.calendar.visitsCount')}
                         </Text>
                     </View>
                 </View>
 
                 {/* Loading State */}
                 {visitsLoading && (
-                    <View style={styles.visitsLoadingContainer}>
+                    <View style={ds.visitsLoadingContainer}>
                         <ActivityIndicator size="small" color="#4A90B9" />
-                        <Text style={styles.visitsLoadingText}>Loading visits...</Text>
+                        <Text style={ds.visitsLoadingText}>{t('dashboard.loadingVisits')}</Text>
                     </View>
                 )}
 
                 {/* Empty State */}
                 {!visitsLoading && appointments.length === 0 && (
-                    <View style={styles.emptyVisitsContainer}>
-                        <Icon name="calendar-blank-outline" size={48} color="#D1D5DB" />
-                        <Text style={styles.emptyVisitsTitle}>No visits found</Text>
-                        <Text style={styles.emptyVisitsSubtitle}>There are no visits scheduled for this date</Text>
+                    <View style={ds.emptyVisitsContainer}>
+                        <Icon name="calendar-blank-outline" size={48} color={tc.emptyIcon} />
+                        <Text style={ds.emptyVisitsTitle}>{t('dashboard.calendar.noVisitsFound')}</Text>
+                        <Text style={ds.emptyVisitsSubtitle}>{t('dashboard.calendar.noVisits')}</Text>
                     </View>
                 )}
 
@@ -457,7 +483,7 @@ const Dashboard = () => {
                     return (
                         <TouchableOpacity
                             key={index}
-                            style={styles.appointmentCard}
+                            style={ds.appointmentCard}
                             activeOpacity={0.7}
                             onPress={() => {
                                 setSelectedAppointment(appointment);
@@ -465,52 +491,52 @@ const Dashboard = () => {
                             }}
                         >
                             {/* Time Indicator */}
-                            <View style={styles.timeIndicator}>
-                                <View style={[styles.timeDot, { backgroundColor: statusStyle.text }]} />
-                                <Text style={styles.appointmentTime}>{appointment.time}</Text>
+                            <View style={ds.timeIndicator}>
+                                <View style={[ds.timeDot, { backgroundColor: statusStyle.text }]} />
+                                <Text style={ds.appointmentTime}>{appointment.time}</Text>
                             </View>
 
                             {/* Card Content */}
-                            <View style={styles.appointmentContent}>
-                                <View style={styles.appointmentTopRow}>
-                                    <View style={styles.patientInfo}>
-                                        <View style={styles.avatarContainer}>
+                            <View style={ds.appointmentContent}>
+                                <View style={ds.appointmentTopRow}>
+                                    <View style={ds.patientInfo}>
+                                        <View style={ds.avatarContainer}>
                                             <LinearGradient
                                                 colors={['#4A90B9', '#68BFB3']}
                                                 start={{ x: 0, y: 0 }}
                                                 end={{ x: 1, y: 1 }}
-                                                style={styles.avatar}
+                                                style={ds.avatar}
                                             >
-                                                <Text style={styles.avatarText}>
+                                                <Text style={ds.avatarText}>
                                                     {getInitials(appointment.patient)}
                                                 </Text>
                                             </LinearGradient>
                                         </View>
-                                        <View style={styles.patientDetails}>
-                                            <Text style={styles.patientName} numberOfLines={1}>
+                                        <View style={ds.patientDetails}>
+                                            <Text style={ds.patientName} numberOfLines={1}>
                                                 {appointment.patient}
                                             </Text>
-                                             <Text style={styles.patientId} numberOfLines={1}>
+                                             <Text style={ds.patientId} numberOfLines={1}>
                                                  ID: {appointment.patientSlug || appointment.patientId}
                                              </Text>
                                         </View>
                                     </View>
 
-                                    <View style={styles.moreButton}>
-                                        <Icon name="dots-vertical" size={20} color="#9CA3AF" />
+                                    <View style={ds.moreButton}>
+                                        <Icon name="dots-vertical" size={20} color={tc.textMuted} />
                                     </View>
                                 </View>
 
-                                <View style={styles.appointmentBottomRow}>
-                                    <View style={[styles.statusChip, { backgroundColor: statusStyle.bg }]}>
+                                <View style={ds.appointmentBottomRow}>
+                                    <View style={[ds.statusChip, { backgroundColor: statusStyle.bg }]}>
                                         <Feather name={statusStyle.icon} size={12} color={statusStyle.text} />
-                                        <Text style={[styles.statusText, { color: statusStyle.text }]}>
+                                        <Text style={[ds.statusText, { color: statusStyle.text }]}>
                                             {appointment.status}
                                         </Text>
                                     </View>
-                                    <View style={styles.typeChip}>
+                                    <View style={ds.typeChip}>
                                         <Icon name="stethoscope" size={13} color="#4A90B9" />
-                                        <Text style={styles.typeText}>{appointment.type}</Text>
+                                        <Text style={ds.typeText}>{appointment.type}</Text>
                                     </View>
                                 </View>
                             </View>
@@ -559,12 +585,12 @@ const Dashboard = () => {
             />
 
             {/* FAB */}
-            <TouchableOpacity style={styles.fab} activeOpacity={0.9}>
+            <TouchableOpacity style={ds.fab} activeOpacity={0.9}>
                 <LinearGradient
                     colors={['#4A90B9', '#68BFB3']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
-                    style={styles.fabGradient}
+                    style={ds.fabGradient}
                 >
                     <Icon name="help-circle-outline" size={24} color="#ffffff" />
                 </LinearGradient>
@@ -580,507 +606,515 @@ const Dashboard = () => {
     );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F3F6F8',
-    },
-    scrollView: {
-        flex: 1,
-    },
-    scrollContent: {
-        paddingHorizontal: wp(4),
-    },
-    // Welcome
-    welcomeSection: {
-        paddingTop: 20,
-        paddingBottom: 6,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    greeting: {
-        fontSize: 26,
-        fontWeight: '800',
-        color: '#1F2937',
-        letterSpacing: -0.3,
-    },
-    subtitle: {
-        fontSize: 14,
-        color: '#9CA3AF',
-        marginTop: 3,
-    },
-    calendarTriggerBtn: {
-        width: 52,
-        height: 52,
-        borderRadius: 16,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#fff',
-        borderWidth: 1.5,
-        borderColor: '#EBF5F7',
-        ...Platform.select({
-            ios: {
-                shadowColor: '#4A90B9',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.1,
-                shadowRadius: 8,
-            },
-            android: { elevation: 3 },
-        }),
-    },
-    calendarTriggerGradient: {
-        width: '100%',
-        height: '100%',
-        borderRadius: 14,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    dateBadge: {
-        position: 'absolute',
-        top: -5,
-        right: -5,
-        backgroundColor: '#FF6B6B',
-        borderRadius: 10,
-        minWidth: 20,
-        height: 20,
-        paddingHorizontal: 4,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 2,
-        borderColor: '#fff',
-    },
-    dateBadgeText: {
-        color: 'white',
-        fontSize: 10,
-        fontWeight: '800',
-    },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20,
-    },
-    calendarModalContent: {
-        width: '100%',
-        maxWidth: 400,
-    },
-    calendarCardModal: {
-        backgroundColor: '#fff',
-        borderRadius: 24,
-        padding: 20,
-        ...Platform.select({
-            ios: {
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 10 },
-                shadowOpacity: 0.2,
-                shadowRadius: 20,
-            },
-            android: { elevation: 10 },
-        }),
-    },
-    closeCalendarBtn: {
-        marginTop: 20,
-        backgroundColor: '#F3F4F6',
-        paddingVertical: 12,
-        borderRadius: 14,
-        alignItems: 'center',
-    },
-    closeCalendarText: {
-        color: '#4B5563',
-        fontWeight: '700',
-        fontSize: 15,
-    },
-    // Action Buttons
-    actionButtonsRow: {
-        flexDirection: 'row',
-        marginTop: 16,
-        marginBottom: 14,
-        gap: 10,
-    },
-    newVisitBtn: {
-        flex: 1,
-        height: 50,
-        borderRadius: 14,
-        overflow: 'hidden',
-        ...Platform.select({
-            ios: {
-                shadowColor: '#4A90B9',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.25,
-                shadowRadius: 8,
-            },
-            android: { elevation: 4 },
-        }),
-    },
-    gradientBtn: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    btnIconCircle: {
-        width: 26,
-        height: 26,
-        borderRadius: 13,
-        backgroundColor: 'rgba(255,255,255,0.9)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 8,
-    },
-    newVisitBtnText: {
-        color: 'white',
-        fontSize: 15,
-        fontWeight: '700',
-    },
-    newPatientBtn: {
-        flex: 1,
-        height: 50,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: 14,
-        backgroundColor: '#fff',
-        borderWidth: 1.5,
-        borderColor: '#E0EBF0',
-    },
-    patientBtnIcon: {
-        width: 26,
-        height: 26,
-        borderRadius: 13,
-        backgroundColor: '#EBF5F7',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 8,
-    },
-    newPatientBtnText: {
-        color: '#4A90B9',
-        fontSize: 15,
-        fontWeight: '600',
-    },
-    // Search
-    searchContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#fff',
-        borderRadius: 14,
-        marginBottom: 14,
-        paddingHorizontal: wp(2.5),
-        borderWidth: 1,
-        borderColor: '#E8EDF2',
-        height: 50,
-    },
-    searchBar: {
-        flex: 1,
-        backgroundColor: 'transparent',
-        elevation: 0,
-        height: '100%',
-        justifyContent: 'center',
-    },
-    searchInput: {
-        fontSize: 14,
-        paddingLeft: 0,
-        marginLeft: -29,
-        minHeight: 0,
-    },
-    // Calendar
-    calendarCard: {
-        backgroundColor: '#fff',
-        borderRadius: 16,
-        padding: 16,
-        marginTop: 6,
-        marginBottom: 8,
-        ...Platform.select({
-            ios: {
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.06,
-                shadowRadius: 10,
-            },
-            android: { elevation: 2 },
-        }),
-    },
-    calendarHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 12,
-    },
-    calendarHeaderLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    calendarIconBg: {
-        width: 32,
-        height: 32,
-        borderRadius: 9,
-        backgroundColor: '#EBF5FA',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 10,
-    },
-    calendarTitle: {
-        fontSize: 17,
-        fontWeight: '700',
-        color: '#1F2937',
-    },
-    calendarNavigation: {
-        flexDirection: 'row',
-        gap: 4,
-    },
-    calendarNavBtn: {
-        width: 32,
-        height: 32,
-        borderRadius: 9,
-        backgroundColor: '#F3F4F6',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    weekdayRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        paddingVertical: 8,
-        borderBottomWidth: 1,
-        borderBottomColor: '#F3F4F6',
-        marginBottom: 4,
-    },
-    weekdayText: {
-        width: 30,
-        textAlign: 'center',
-        color: '#9CA3AF',
-        fontSize: 12,
-        fontWeight: '600',
-    },
-    calendarGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-    },
-    calendarDay: {
-        width: '14.28%',
-        height: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    dayContainer: {
-        width: 34,
-        height: 34,
-        borderRadius: 17,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    calendarDayText: {
-        textAlign: 'center',
-        fontSize: 13,
-        fontWeight: '500',
-        color: '#374151',
-    },
-    otherMonthText: {
-        color: '#D1D5DB',
-    },
-    todayContainer: {
-        backgroundColor: '#F0F7FA',
-        borderWidth: 1.5,
-        borderColor: '#4A90B9',
-    },
-    todayText: {
-        color: '#4A90B9',
-        fontWeight: '700',
-    },
-    selectedDateGradient: {
-        width: 34,
-        height: 34,
-        borderRadius: 17,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    selectedDateText: {
-        color: 'white',
-        fontWeight: '700',
-        fontSize: 13,
-    },
-    // Appointments
-    appointmentsHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginTop: 16,
-        marginBottom: 12,
-    },
-    appointmentsTitle: {
-        fontSize: 19,
-        fontWeight: '700',
-        color: '#1F2937',
-    },
-    appointmentsSubtitle: {
-        fontSize: 13,
-        color: '#9CA3AF',
-        marginTop: 2,
-    },
-    appointmentCard: {
-        flexDirection: 'row',
-        backgroundColor: '#fff',
-        borderRadius: 14,
-        marginBottom: 10,
-        overflow: 'hidden',
-        ...Platform.select({
-            ios: {
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.05,
-                shadowRadius: 8,
-            },
-            android: { elevation: 1 },
-        }),
-    },
-    timeIndicator: {
-        width: 56,
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 16,
-        borderRightWidth: 1,
-        borderRightColor: '#F3F4F6',
-    },
-    timeDot: {
-        width: 6,
-        height: 6,
-        borderRadius: 3,
-        marginBottom: 6,
-    },
-    appointmentTime: {
-        fontSize: 13,
-        fontWeight: '700',
-        color: '#374151',
-    },
-    appointmentContent: {
-        flex: 1,
-        padding: 14,
-    },
-    appointmentTopRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-    },
-    patientInfo: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        flex: 1,
-    },
-    avatarContainer: {
-        marginRight: 10,
-    },
-    avatar: {
-        width: 38,
-        height: 38,
-        borderRadius: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    avatarText: {
-        color: 'white',
-        fontWeight: '700',
-        fontSize: 13,
-    },
-    patientDetails: {
-        flex: 1,
-    },
-    patientName: {
-        fontWeight: '600',
-        fontSize: 15,
-        color: '#1F2937',
-    },
-    patientId: {
-        color: '#9CA3AF',
-        fontSize: 12,
-        marginTop: 2,
-    },
-    moreButton: {
-        padding: 4,
-    },
-    appointmentBottomRow: {
-        flexDirection: 'row',
-        marginTop: 10,
-        gap: 8,
-    },
-    statusChip: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 4,
-        paddingHorizontal: 10,
-        borderRadius: 20,
-        gap: 5,
-    },
-    statusText: {
-        fontSize: 12,
-        fontWeight: '600',
-    },
-    typeChip: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 4,
-        paddingHorizontal: 10,
-        borderRadius: 20,
-        backgroundColor: '#EBF5FA',
-        gap: 5,
-    },
-    typeText: {
-        fontSize: 12,
-        color: '#4A90B9',
-        fontWeight: '500',
-    },
-    // FAB
-    fab: {
-        position: 'absolute',
-        right: 16,
-        bottom: hp(5),
-        borderRadius: 28,
-        ...Platform.select({
-            ios: {
-                shadowColor: '#4A90B9',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 8,
-            },
-            android: { elevation: 6 },
-        }),
-    },
-    fabGradient: {
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    // Visits loading / empty states
-    visitsLoadingContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingVertical: 30,
-        gap: 10,
-    },
-    visitsLoadingText: {
-        fontSize: 14,
-        color: '#9CA3AF',
-    },
-    emptyVisitsContainer: {
-        alignItems: 'center',
-        paddingVertical: 40,
-        backgroundColor: '#fff',
-        borderRadius: 14,
-        marginBottom: 10,
-    },
-    emptyVisitsTitle: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#6B7280',
-        marginTop: 12,
-    },
-    emptyVisitsSubtitle: {
-        fontSize: 13,
-        color: '#9CA3AF',
-        marginTop: 4,
-    },
-});
+/** Creates theme-aware styles based on the current color palette */
+const createDynamicStyles = (tc: any, isDark: boolean) =>
+    StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: tc.screenBackground,
+        },
+        scrollView: {
+            flex: 1,
+        },
+        scrollContent: {
+            paddingHorizontal: wp(4),
+        },
+        // Welcome
+        welcomeSection: {
+            paddingTop: 20,
+            paddingBottom: 6,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+        },
+        greeting: {
+            fontSize: 26,
+            fontWeight: '800',
+            color: tc.textPrimary,
+            letterSpacing: -0.3,
+        },
+        subtitle: {
+            fontSize: 14,
+            color: tc.textMuted,
+            marginTop: 3,
+        },
+        calendarTriggerBtn: {
+            width: 52,
+            height: 52,
+            borderRadius: 16,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: tc.cardBackground,
+            borderWidth: 1.5,
+            borderColor: tc.borderColor,
+            ...Platform.select({
+                ios: {
+                    shadowColor: tc.shadow,
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: isDark ? 0 : 0.1,
+                    shadowRadius: 8,
+                },
+                android: { elevation: isDark ? 0 : 3 },
+            }),
+        },
+        calendarTriggerGradient: {
+            width: '100%',
+            height: '100%',
+            borderRadius: 14,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        dateBadge: {
+            position: 'absolute',
+            top: -5,
+            right: -5,
+            backgroundColor: '#FF6B6B',
+            borderRadius: 10,
+            minWidth: 20,
+            height: 20,
+            paddingHorizontal: 4,
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderWidth: 2,
+            borderColor: tc.screenBackground,
+        },
+        dateBadgeText: {
+            color: 'white',
+            fontSize: 10,
+            fontWeight: '800',
+        },
+        modalOverlay: {
+            flex: 1,
+            backgroundColor: isDark ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.5)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: 20,
+        },
+        calendarModalContent: {
+            width: '100%',
+            maxWidth: 400,
+        },
+        calendarCardModal: {
+            backgroundColor: tc.cardBackground,
+            borderRadius: 24,
+            padding: 20,
+            borderWidth: isDark ? 1 : 0,
+            borderColor: tc.borderColor,
+            ...Platform.select({
+                ios: {
+                    shadowColor: tc.shadow,
+                    shadowOffset: { width: 0, height: 10 },
+                    shadowOpacity: isDark ? 0 : 0.2,
+                    shadowRadius: 20,
+                },
+                android: { elevation: isDark ? 0 : 10 },
+            }),
+        },
+        closeCalendarBtn: {
+            marginTop: 20,
+            backgroundColor: tc.buttonMutedBg,
+            paddingVertical: 12,
+            borderRadius: 14,
+            alignItems: 'center',
+        },
+        closeCalendarText: {
+            color: tc.textSecondary,
+            fontWeight: '700',
+            fontSize: 15,
+        },
+        // Action Buttons
+        actionButtonsRow: {
+            flexDirection: 'row',
+            marginTop: 16,
+            marginBottom: 14,
+            gap: 10,
+        },
+        newVisitBtn: {
+            flex: 1,
+            height: 50,
+            borderRadius: 14,
+            overflow: 'hidden',
+            ...Platform.select({
+                ios: {
+                    shadowColor: '#4A90B9',
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: isDark ? 0.15 : 0.25,
+                    shadowRadius: 8,
+                },
+                android: { elevation: 4 },
+            }),
+        },
+        gradientBtn: {
+            flex: 1,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        btnIconCircle: {
+            width: 26,
+            height: 26,
+            borderRadius: 13,
+            backgroundColor: 'rgba(255,255,255,0.9)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginRight: 8,
+        },
+        newVisitBtnText: {
+            color: 'white',
+            fontSize: 15,
+            fontWeight: '700',
+        },
+        newPatientBtn: {
+            flex: 1,
+            height: 50,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 14,
+            backgroundColor: tc.buttonOutlineBg,
+            borderWidth: 1.5,
+            borderColor: tc.buttonOutlineBorder,
+        },
+        patientBtnIcon: {
+            width: 26,
+            height: 26,
+            borderRadius: 13,
+            backgroundColor: tc.accentLight,
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginRight: 8,
+        },
+        newPatientBtnText: {
+            color: '#4A90B9',
+            fontSize: 15,
+            fontWeight: '600',
+        },
+        // Search
+        searchContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: tc.searchBarBg,
+            borderRadius: 14,
+            marginBottom: 14,
+            paddingHorizontal: wp(2.5),
+            borderWidth: 1,
+            borderColor: tc.searchBarBorder,
+            height: 50,
+        },
+        searchBar: {
+            flex: 1,
+            backgroundColor: 'transparent',
+            elevation: 0,
+            height: '100%',
+            justifyContent: 'center',
+        },
+        searchInput: {
+            fontSize: 14,
+            paddingLeft: 0,
+            marginLeft: -29,
+            minHeight: 0,
+        },
+        // Calendar
+        calendarCard: {
+            backgroundColor: tc.cardBackground,
+            borderRadius: 16,
+            padding: 16,
+            marginTop: 6,
+            marginBottom: 8,
+            ...Platform.select({
+                ios: {
+                    shadowColor: tc.shadow,
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: isDark ? 0 : 0.06,
+                    shadowRadius: 10,
+                },
+                android: { elevation: isDark ? 0 : 2 },
+            }),
+        },
+        calendarHeader: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 12,
+        },
+        calendarHeaderLeft: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        calendarIconBg: {
+            width: 32,
+            height: 32,
+            borderRadius: 9,
+            backgroundColor: tc.accentLight,
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginRight: 10,
+        },
+        calendarTitle: {
+            fontSize: 17,
+            fontWeight: '700',
+            color: tc.textPrimary,
+        },
+        calendarNavigation: {
+            flexDirection: 'row',
+            gap: 4,
+        },
+        calendarNavBtn: {
+            width: 32,
+            height: 32,
+            borderRadius: 9,
+            backgroundColor: tc.buttonMutedBg,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        weekdayRow: {
+            flexDirection: 'row',
+            justifyContent: 'space-around',
+            paddingVertical: 8,
+            borderBottomWidth: 1,
+            borderBottomColor: tc.borderLight,
+            marginBottom: 4,
+        },
+        weekdayText: {
+            width: 30,
+            textAlign: 'center',
+            color: tc.textMuted,
+            fontSize: 12,
+            fontWeight: '600',
+        },
+        calendarGrid: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+        },
+        calendarDay: {
+            width: '14.28%',
+            height: 40,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        dayContainer: {
+            width: 34,
+            height: 34,
+            borderRadius: 17,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        calendarDayText: {
+            textAlign: 'center',
+            fontSize: 13,
+            fontWeight: '500',
+            color: tc.calendarDayText,
+        },
+        otherMonthText: {
+            color: tc.calendarOtherMonth,
+        },
+        todayContainer: {
+            backgroundColor: tc.todayBg,
+            borderWidth: 1.5,
+            borderColor: '#4A90B9',
+        },
+        todayText: {
+            color: '#4A90B9',
+            fontWeight: '700',
+        },
+        selectedDateGradient: {
+            width: 34,
+            height: 34,
+            borderRadius: 17,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        selectedDateText: {
+            color: 'white',
+            fontWeight: '700',
+            fontSize: 13,
+        },
+        // Appointments
+        appointmentsHeader: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginTop: 16,
+            marginBottom: 12,
+        },
+        appointmentsTitle: {
+            fontSize: 19,
+            fontWeight: '700',
+            color: tc.textPrimary,
+        },
+        appointmentsSubtitle: {
+            fontSize: 13,
+            color: tc.textMuted,
+            marginTop: 2,
+        },
+        appointmentCard: {
+            flexDirection: 'row',
+            backgroundColor: tc.cardBackground,
+            borderRadius: 14,
+            marginBottom: 10,
+            overflow: 'hidden',
+            borderWidth: isDark ? 1 : 0,
+            borderColor: tc.borderColor,
+            ...Platform.select({
+                ios: {
+                    shadowColor: tc.shadow,
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: isDark ? 0 : 0.05,
+                    shadowRadius: 8,
+                },
+                android: { elevation: isDark ? 0 : 1 },
+            }),
+        },
+        timeIndicator: {
+            width: 56,
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingVertical: 16,
+            borderRightWidth: 1,
+            borderRightColor: tc.borderLight,
+        },
+        timeDot: {
+            width: 6,
+            height: 6,
+            borderRadius: 3,
+            marginBottom: 6,
+        },
+        appointmentTime: {
+            fontSize: 13,
+            fontWeight: '700',
+            color: tc.textPrimary,
+        },
+        appointmentContent: {
+            flex: 1,
+            padding: 14,
+        },
+        appointmentTopRow: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+        },
+        patientInfo: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            flex: 1,
+        },
+        avatarContainer: {
+            marginRight: 10,
+        },
+        avatar: {
+            width: 38,
+            height: 38,
+            borderRadius: 12,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        avatarText: {
+            color: 'white',
+            fontWeight: '700',
+            fontSize: 13,
+        },
+        patientDetails: {
+            flex: 1,
+        },
+        patientName: {
+            fontWeight: '600',
+            fontSize: 15,
+            color: tc.textPrimary,
+        },
+        patientId: {
+            color: tc.textMuted,
+            fontSize: 12,
+            marginTop: 2,
+        },
+        moreButton: {
+            padding: 4,
+        },
+        appointmentBottomRow: {
+            flexDirection: 'row',
+            marginTop: 10,
+            gap: 8,
+        },
+        statusChip: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingVertical: 4,
+            paddingHorizontal: 10,
+            borderRadius: 20,
+            gap: 5,
+        },
+        statusText: {
+            fontSize: 12,
+            fontWeight: '600',
+        },
+        typeChip: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingVertical: 4,
+            paddingHorizontal: 10,
+            borderRadius: 20,
+            backgroundColor: tc.chipBg,
+            gap: 5,
+        },
+        typeText: {
+            fontSize: 12,
+            color: tc.chipText,
+            fontWeight: '500',
+        },
+        // FAB
+        fab: {
+            position: 'absolute',
+            right: 16,
+            bottom: hp(5),
+            borderRadius: 28,
+            ...Platform.select({
+                ios: {
+                    shadowColor: '#4A90B9',
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 8,
+                },
+                android: { elevation: 6 },
+            }),
+        },
+        fabGradient: {
+            width: 56,
+            height: 56,
+            borderRadius: 28,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        // Visits loading / empty states
+        visitsLoadingContainer: {
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingVertical: 30,
+            gap: 10,
+        },
+        visitsLoadingText: {
+            fontSize: 14,
+            color: tc.textMuted,
+        },
+        emptyVisitsContainer: {
+            alignItems: 'center',
+            paddingVertical: 40,
+            backgroundColor: tc.emptyBg,
+            borderRadius: 14,
+            marginBottom: 10,
+            borderWidth: isDark ? 1 : 0,
+            borderColor: tc.borderColor,
+        },
+        emptyVisitsTitle: {
+            fontSize: 16,
+            fontWeight: '600',
+            color: tc.textSecondary,
+            marginTop: 12,
+        },
+        emptyVisitsSubtitle: {
+            fontSize: 13,
+            color: tc.textMuted,
+            marginTop: 4,
+        },
+    });
 
 export default Dashboard;

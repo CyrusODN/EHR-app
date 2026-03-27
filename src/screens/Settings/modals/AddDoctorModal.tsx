@@ -19,8 +19,7 @@ import Gap from '../../../component/gap';
 import { AddEmployee, GetDirectorSetting } from '../../../Services/settingServices';
 import userStore from '../../../store/user';
 import { Alert, ActivityIndicator } from 'react-native';
-
-
+import { useTranslation } from 'react-i18next';
 
 interface AddDoctorModalProps {
     visible: boolean;
@@ -31,6 +30,7 @@ interface AddDoctorModalProps {
 }
 
 const AddDoctorModal: React.FC<AddDoctorModalProps> = ({ visible, onClose, onAdd, onAlert, activeTab }) => {
+    const { t } = useTranslation();
     const { loggedInUser } = userStore();
     const [loading, setLoading] = useState(false);
     
@@ -70,13 +70,19 @@ const AddDoctorModal: React.FC<AddDoctorModalProps> = ({ visible, onClose, onAdd
         value: off._id
     }));
 
+    const getRoleTranslationKey = () => {
+        if (activeTab === 'Nurses and Midwives') return 'nurse';
+        if (activeTab === 'Receptionists') return 'receptionist';
+        return 'doctor';
+    };
+
     const handleAdd = async () => {
         // Basic validation
         if (!formData.firstName || !formData.lastName || !formData.email || !formData.office) {
             onAlert?.({
                 visible: true,
                 type: 'error',
-                message: 'Please fill in all required fields.',
+                message: t('employee_modals.add_employee.alerts.required_fields'),
             });
             return;
         }
@@ -85,12 +91,13 @@ const AddDoctorModal: React.FC<AddDoctorModalProps> = ({ visible, onClose, onAdd
             onAlert?.({
                 visible: true,
                 type: 'error',
-                message: 'Emails do not match.',
+                message: t('employee_modals.add_employee.alerts.email_mismatch'),
             });
             return;
         }
 
         setLoading(true);
+        const roleKey = getRoleTranslationKey();
         try {
             const selectedOffice = offices.find((off: any) => off._id === formData.office);
             
@@ -117,7 +124,9 @@ const AddDoctorModal: React.FC<AddDoctorModalProps> = ({ visible, onClose, onAdd
                 onAlert?.({
                     visible: true,
                     type: 'success',
-                    message: `${activeTab === 'Nurses and Midwives' ? 'Nurse' : activeTab === 'Receptionists' ? 'Receptionist' : 'Doctor'} invitation has been sent successfully.`,
+                    message: t('employee_modals.add_employee.alerts.success', { 
+                        role: t(`employee_modals.add_employee.title_${roleKey}`)
+                    }),
                 });
                 setFormData({
                     firstName: '',
@@ -136,7 +145,9 @@ const AddDoctorModal: React.FC<AddDoctorModalProps> = ({ visible, onClose, onAdd
             onAlert?.({
                 visible: true,
                 type: 'error',
-                message: error.message || `An error occurred while adding the ${activeTab === 'Nurses and Midwives' ? 'nurse' : activeTab === 'Receptionists' ? 'receptionist' : 'doctor'}.`,
+                message: error.message || t('employee_modals.add_employee.alerts.error', { 
+                    role: t(`employee_modals.add_employee.title_${roleKey}`).toLowerCase() 
+                }),
             });
         } finally {
             setLoading(false);
@@ -150,6 +161,11 @@ const AddDoctorModal: React.FC<AddDoctorModalProps> = ({ visible, onClose, onAdd
             <Text style={styles.asterisk}> *</Text>
         </View>
     );
+
+    const getTitle = () => {
+        const roleKey = getRoleTranslationKey();
+        return t(`employee_modals.add_employee.title_${roleKey}`);
+    };
 
     return (
         <Modal
@@ -166,7 +182,7 @@ const AddDoctorModal: React.FC<AddDoctorModalProps> = ({ visible, onClose, onAdd
                     <View style={styles.modalContent}>
                         {/* Header */}
                         <View style={styles.header}>
-                            <Text style={styles.headerTitle}>Add {activeTab === 'Nurses and Midwives' ? 'Nurse' : activeTab === 'Receptionists' ? 'Receptionist' : 'Doctor'}</Text>
+                            <Text style={styles.headerTitle}>{getTitle()}</Text>
                             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                                 <Feather name="x" size={24} color="#64748B" />
                             </TouchableOpacity>
@@ -178,7 +194,7 @@ const AddDoctorModal: React.FC<AddDoctorModalProps> = ({ visible, onClose, onAdd
                             contentContainerStyle={styles.scrollContent}
                         >
                             {/* First Name */}
-                            {renderLabel('First Name')}
+                            {renderLabel(t('employee_modals.add_employee.labels.firstName'))}
                             <CustomTextInput
                                 placeholder=""
                                 value={formData.firstName}
@@ -187,7 +203,7 @@ const AddDoctorModal: React.FC<AddDoctorModalProps> = ({ visible, onClose, onAdd
                             <Gap height={hp(1.5)} />
 
                             {/* Last Name */}
-                            {renderLabel('Last Name')}
+                            {renderLabel(t('employee_modals.add_employee.labels.lastName'))}
                             <CustomTextInput
                                 placeholder=""
                                 value={formData.lastName}
@@ -196,7 +212,7 @@ const AddDoctorModal: React.FC<AddDoctorModalProps> = ({ visible, onClose, onAdd
                             <Gap height={hp(1.5)} />
 
                             {/* Email */}
-                            {renderLabel('Email')}
+                            {renderLabel(t('employee_modals.add_employee.labels.email'))}
                             <CustomTextInput
                                 placeholder=""
                                 value={formData.email}
@@ -207,7 +223,7 @@ const AddDoctorModal: React.FC<AddDoctorModalProps> = ({ visible, onClose, onAdd
                             <Gap height={hp(1.5)} />
 
                             {/* Confirm Email */}
-                            {renderLabel('Confirm Email')}
+                            {renderLabel(t('employee_modals.add_employee.labels.confirmEmail'))}
                             <CustomTextInput
                                 placeholder=""
                                 value={formData.confirmEmail}
@@ -220,7 +236,7 @@ const AddDoctorModal: React.FC<AddDoctorModalProps> = ({ visible, onClose, onAdd
                             {/* PWZ Number */}
                             {(!activeTab || activeTab === 'Doctors, Dentists, and Paramedics') && (
                                 <>
-                                    {renderLabel('PWZ Number')}
+                                    {renderLabel(t('employee_modals.add_employee.labels.pwzNumber'))}
                                     <CustomTextInput
                                         placeholder=""
                                         value={formData.pwzNumber}
@@ -232,7 +248,7 @@ const AddDoctorModal: React.FC<AddDoctorModalProps> = ({ visible, onClose, onAdd
                             )}
 
                             {/* PESEL Number */}
-                            {renderLabel('PESEL Number')}
+                            {renderLabel(t('employee_modals.add_employee.labels.peselNumber'))}
                             <CustomTextInput
                                 placeholder=""
                                 value={formData.peselNumber}
@@ -242,9 +258,9 @@ const AddDoctorModal: React.FC<AddDoctorModalProps> = ({ visible, onClose, onAdd
                             <Gap height={hp(1.5)} />
 
                             {/* Offices */}
-                            {renderLabel('Offices')}
+                            {renderLabel(t('employee_modals.add_employee.labels.offices'))}
                             <CustomDropdown
-                                placeholder="Select Offices"
+                                placeholder={t('employee_modals.add_employee.placeholders.offices')}
                                 options={officeOptions}
                                 value={formData.office}
                                 onChange={(val) => setFormData({ ...formData, office: val })}
@@ -255,7 +271,7 @@ const AddDoctorModal: React.FC<AddDoctorModalProps> = ({ visible, onClose, onAdd
                             <View style={styles.warningBox}>
                                 <MaterialCommunityIcons name="alert-triangle-outline" size={24} color="#EF4444" />
                                 <Text style={styles.warningText}>
-                                    By adding a user to your facility's account, you confirm that this user, after accepting the invitation and your confirmation, will have access to your facility's data. Remember to grant such permissions only to authorized persons.
+                                    {t('employee_modals.add_employee.warning')}
                                 </Text>
                             </View>
 
@@ -264,13 +280,13 @@ const AddDoctorModal: React.FC<AddDoctorModalProps> = ({ visible, onClose, onAdd
                             {/* Action Buttons */}
                             <View style={styles.footerButtons}>
                                 <PrimaryButton
-                                    label="Cancel"
+                                    label={t('employee_modals.add_employee.buttons.cancel')}
                                     filled={false}
                                     onPress={onClose}
                                     style={styles.cancelButton}
                                 />
                                 <PrimaryButton
-                                    label={`Add ${activeTab === 'Nurses and Midwives' ? 'Nurse' : activeTab === 'Receptionists' ? 'Receptionist' : 'Doctor'}`}
+                                    label={t(`employee_modals.add_employee.buttons.add_${getRoleTranslationKey()}`)}
                                     filled={true}
                                     onPress={handleAdd}
                                     style={styles.addButton}
@@ -283,7 +299,6 @@ const AddDoctorModal: React.FC<AddDoctorModalProps> = ({ visible, onClose, onAdd
                     </View>
                 </KeyboardAvoidingView>
             </View>
-
         </Modal>
     );
 };

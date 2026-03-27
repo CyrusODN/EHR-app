@@ -8,12 +8,14 @@ import { LineChart, BarChart, PieChart } from "react-native-gifted-charts";
 import PrimaryButton from '../../../component/button';
 import Gap from '../../../component/gap';
 import { Dropdown } from 'react-native-element-dropdown';
+import { useTranslation } from 'react-i18next';
 
 import { getVisitStatistics, getClinicalStatistics, getDemographicsStatistics, getSummaryStatistics, getReferralStatistics } from '../../../Services/Statistics.Service';
 
 const { width } = Dimensions.get('window');
 
 const StatisticalAnalysis = () => {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState('Overview');
     const [timeframe, setTimeframe] = useState('Last Month');
     const [loading, setLoading] = useState(false);
@@ -25,9 +27,9 @@ const StatisticalAnalysis = () => {
     const [referralData, setReferralData] = useState<any>(null);
 
     const timeframeOptions = [
-        { label: 'Last Month', value: 'Last Month' },
-        { label: 'Last Quarter', value: 'Last Quarter' },
-        { label: 'Last Year', value: 'Last Year' },
+        { label: t('aiAssistant.statisticalAnalysis.lastMonth'), value: 'Last Month' },
+        { label: t('aiAssistant.statisticalAnalysis.lastQuarter'), value: 'Last Quarter' },
+        { label: t('aiAssistant.statisticalAnalysis.lastYear'), value: 'Last Year' },
     ];
 
     const tabs = ['Overview', 'Clinical', 'Demographics', 'Referrals'];
@@ -173,8 +175,8 @@ const StatisticalAnalysis = () => {
     const renderHeader = () => (
         <View style={styles.header}>
             <View>
-                <Text style={styles.headerTitle}>Statistical Analysis</Text>
-                <Text style={styles.headerSubtitle}>Comprehensive insights into your facility's performance</Text>
+                <Text style={styles.headerTitle}>{t('aiAssistant.statisticalAnalysis.title')}</Text>
+                <Text style={styles.headerSubtitle}>{t('aiAssistant.statisticalAnalysis.subtitle')}</Text>
             </View>
             <Gap height={15} />
             <View style={styles.headerActions}>
@@ -186,13 +188,13 @@ const StatisticalAnalysis = () => {
                     maxHeight={300}
                     labelField="label"
                     valueField="value"
-                    placeholder="Select"
+                    placeholder={t('aiAssistant.statisticalAnalysis.select')}
                     value={timeframe}
                     onChange={item => setTimeframe(item.value)}
                 />
                 <TouchableOpacity style={styles.exportBtn}>
                     <Feather name="download" size={16} color="#4A90B9" />
-                    <Text style={styles.exportBtnText}>Export Report</Text>
+                    <Text style={styles.exportBtnText}>{t('aiAssistant.statisticalAnalysis.exportReport')}</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -210,9 +212,9 @@ const StatisticalAnalysis = () => {
                     <MaterialCommunityIcons name="pulse" size={20} color="#3B82F6" />
                 </View>
                 <MaterialCommunityIcons name="pulse" size={80} color="#3B82F6" style={styles.kpiBgIcon} />
-                <Text style={styles.kpiLabel}>Total Visits</Text>
+                <Text style={styles.kpiLabel}>{t('aiAssistant.statisticalAnalysis.totalVisits')}</Text>
                 <Text style={styles.kpiValue}>{summaryData?.totalVisits || 0}</Text>
-                <Text style={styles.kpiComparison}>Overall total</Text>
+                <Text style={styles.kpiComparison}>{t('aiAssistant.statisticalAnalysis.overallTotal')}</Text>
             </View>
 
             <View style={styles.kpiCard}>
@@ -220,9 +222,9 @@ const StatisticalAnalysis = () => {
                     <Ionicons name="people-outline" size={20} color="#A855F7" />
                 </View>
                 <Ionicons name="people-outline" size={80} color="#A855F7" style={styles.kpiBgIcon} />
-                <Text style={styles.kpiLabel}>Total Patients</Text>
+                <Text style={styles.kpiLabel}>{t('aiAssistant.statisticalAnalysis.totalPatients')}</Text>
                 <Text style={styles.kpiValue}>{summaryData?.totalPatients || 0}</Text>
-                <Text style={styles.kpiComparison}>Unique patients</Text>
+                <Text style={styles.kpiComparison}>{t('aiAssistant.statisticalAnalysis.uniquePatients')}</Text>
             </View>
 
             <View style={styles.kpiCard}>
@@ -230,9 +232,9 @@ const StatisticalAnalysis = () => {
                     <Feather name="file-text" size={20} color="#EA580C" />
                 </View>
                 <Feather name="file-text" size={80} color="#EA580C" style={styles.kpiBgIcon} />
-                <Text style={styles.kpiLabel}>Referrals</Text>
+                <Text style={styles.kpiLabel}>{t('aiAssistant.statisticalAnalysis.referrals')}</Text>
                 <Text style={styles.kpiValue}>{summaryData?.totalReferrals || 0}</Text>
-                <Text style={styles.kpiComparison}>Total referrals</Text>
+                <Text style={styles.kpiComparison}>{t('aiAssistant.statisticalAnalysis.totalReferrals')}</Text>
             </View>
 
             <View style={styles.kpiCard}>
@@ -240,9 +242,9 @@ const StatisticalAnalysis = () => {
                     <Feather name="calendar" size={20} color="#16A34A" />
                 </View>
                 <Feather name="calendar" size={80} color="#16A34A" style={styles.kpiBgIcon} />
-                <Text style={styles.kpiLabel}>Today's Visits</Text>
+                <Text style={styles.kpiLabel}>{t('aiAssistant.statisticalAnalysis.todaysVisits')}</Text>
                 <Text style={styles.kpiValue}>{summaryData?.todayVisits || 0}</Text>
-                <Text style={styles.kpiComparison}>Scheduled for today</Text>
+                <Text style={styles.kpiComparison}>{t('aiAssistant.statisticalAnalysis.scheduledForToday')}</Text>
             </View>
         </ScrollView>
     );
@@ -262,7 +264,12 @@ const StatisticalAnalysis = () => {
                             {tab === 'Demographics' && <Ionicons name="people-outline" size={18} color={activeTab === tab ? '#4A90B9' : '#9CA3AF'} />}
                             {tab === 'Referrals' && <Feather name="calendar" size={18} color={activeTab === tab ? '#4A90B9' : '#9CA3AF'} />}
                             <Gap width={8} />
-                            <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>{tab}</Text>
+                            <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
+                                {tab === 'Overview' ? t('aiAssistant.statisticalAnalysis.tabs.overview') :
+                                 tab === 'Clinical' ? t('aiAssistant.statisticalAnalysis.tabs.clinical') :
+                                 tab === 'Demographics' ? t('aiAssistant.statisticalAnalysis.tabs.demographics') :
+                                 t('aiAssistant.statisticalAnalysis.tabs.referrals')}
+                            </Text>
                         </View>
                         {activeTab === tab && <View style={styles.tabIndicator} />}
                     </TouchableOpacity>
@@ -274,7 +281,7 @@ const StatisticalAnalysis = () => {
     const renderOverview = () => (
         <View>
             <View style={styles.chartCard}>
-                <Text style={styles.chartTitle}>Visits Over Time</Text>
+                <Text style={styles.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.visitsOverTime')}</Text>
                 <Gap height={20} />
                 <LineChart
                     areaChart
@@ -301,7 +308,7 @@ const StatisticalAnalysis = () => {
 
             <View style={styles.chartGrid}>
                 <View style={styles.smallChartCard}>
-                    <Text style={styles.chartTitle}>Visit Status</Text>
+                    <Text style={styles.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.visitStatus')}</Text>
                     <Gap height={20} />
                     <View style={styles.donutContainer}>
                         <PieChart
@@ -322,7 +329,7 @@ const StatisticalAnalysis = () => {
                 </View>
 
                 <View style={styles.smallChartCard}>
-                    <Text style={styles.chartTitle}>Visit Types</Text>
+                    <Text style={styles.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.visitTypes')}</Text>
                     <Gap height={20} />
                     <BarChart
                         data={visitTypeData}
@@ -338,7 +345,7 @@ const StatisticalAnalysis = () => {
             </View>
 
             <View style={styles.chartCard}>
-                <Text style={styles.chartTitle}>Modality Distribution</Text>
+                <Text style={styles.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.modalityDistribution')}</Text>
                 <Gap height={20} />
                 <PieChart
                     radius={80}
@@ -362,14 +369,14 @@ const StatisticalAnalysis = () => {
 
     const renderClinical = () => (
         <View style={styles.chartCard}>
-            <Text style={styles.chartTitle}>Top Diagnoses</Text>
+            <Text style={styles.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.topDiagnoses')}</Text>
             {clinicalData?.topDiagnoses?.length > 0 ? (
                 <View style={{ width: '100%', marginTop: 20 }}>
                      {/* Map handles clinical labels later */}
                 </View>
             ) : (
                 <View style={styles.emptyChartState}>
-                    <Text style={{ color: 'gray' }}>No diagnosis data for this period</Text>
+                    <Text style={{ color: 'gray' }}>{t('aiAssistant.statisticalAnalysis.charts.noDiagnosisData')}</Text>
                     <View style={styles.emptyPlaceholderLine} />
                 </View>
             )}
@@ -380,7 +387,7 @@ const StatisticalAnalysis = () => {
         <View>
             <View style={styles.chartGrid}>
                 <View style={styles.smallChartCard}>
-                    <Text style={styles.chartTitle}>Gender Distribution</Text>
+                    <Text style={styles.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.genderDistribution')}</Text>
                     <Gap height={20} />
                     <PieChart
                         radius={70}
@@ -401,7 +408,7 @@ const StatisticalAnalysis = () => {
                 </View>
 
                 <View style={styles.smallChartCard}>
-                    <Text style={styles.chartTitle}>Age Groups</Text>
+                    <Text style={styles.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.ageGroups')}</Text>
                     <Gap height={20} />
                     <BarChart
                         data={ageGroupData}
@@ -417,7 +424,7 @@ const StatisticalAnalysis = () => {
             </View>
 
             <View style={styles.chartCard}>
-                <Text style={styles.chartTitle}>Patient Distribution by City</Text>
+                <Text style={styles.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.patientsByCity')}</Text>
                 <Gap height={20} />
                 <BarChart
                     data={cityData}
@@ -437,7 +444,7 @@ const StatisticalAnalysis = () => {
     const renderReferralsTab = () => (
         <View style={styles.chartGrid}>
             <View style={styles.smallChartCard}>
-                <Text style={styles.chartTitle}>Referral Status</Text>
+                <Text style={styles.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.referralStatus')}</Text>
                 <Gap height={20} />
                 <View style={styles.donutContainer}>
                     <PieChart
@@ -455,13 +462,13 @@ const StatisticalAnalysis = () => {
                 <View style={styles.legendContainer}>
                     <View style={styles.legendItem}>
                         <View style={[styles.legendDot, { backgroundColor: '#3B82F6' }]} />
-                        <Text style={styles.legendText}>pending</Text>
+                        <Text style={styles.legendText}>{t('aiAssistant.statisticalAnalysis.charts.pending')}</Text>
                     </View>
                 </View>
             </View>
 
             <View style={styles.smallChartCard}>
-                <Text style={styles.chartTitle}>Top Specializations</Text>
+                <Text style={styles.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.topSpecializations')}</Text>
                 <Gap height={20} />
                 <View style={{ marginLeft: -20 }}>
                     <BarChart

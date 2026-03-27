@@ -12,10 +12,10 @@ import {
     heightPercentageToDP as hp,
     widthPercentageToDP as wp
 } from 'react-native-responsive-screen';
-
+import { useTranslation } from 'react-i18next';
 
 const ModuleSelection = () => {
-
+    const { t } = useTranslation();
     const { colors } = useTheme();
     const navigation = useNavigation();
     const setSelectedModule = userStore((state: any) => state.setSelectedModule);
@@ -27,7 +27,7 @@ const ModuleSelection = () => {
             <LogoSvg size={'small'} />
             <>
                 <Text style={[styles.subHeaderText, { color: colors.onSurface }]}>
-                    Select a module to start working
+                    {t('moduleSelection.selection.subHeader')}
                 </Text>
                 <Gap height={20} />
 
@@ -55,18 +55,18 @@ const ModuleSelection = () => {
                                     </View>
 
                                     <View>
-                                        <Text style={[styles.moduleTitle, { color: colors.surface }]}>Psychiatry</Text>
-                                        <Text style={[styles.moduleDescription, { color: colors.surface }]}>Psychiatric module</Text>
+                                        <Text style={[styles.moduleTitle, { color: colors.surface }]}>{t('moduleSelection.selection.psychiatry.title')}</Text>
+                                        <Text style={[styles.moduleDescription, { color: colors.surface }]}>{t('moduleSelection.selection.psychiatry.subtitle')}</Text>
                                     </View>
                                 </View>
-                                <Text style={[styles.toolDescription, { color: colors.surface }]}>Comprehensive tool for psychiatric documentation, powered by AI.</Text>
+                                <Text style={[styles.toolDescription, { color: colors.surface }]}>{t('moduleSelection.selection.psychiatry.description')}</Text>
                                 <View style={styles.bulletPoints}>
                                     <Text style={[styles.bullet, { color: colors.surface }]}>
-                                        • Intelligent psychiatric scales</Text>
+                                        {t('moduleSelection.selection.psychiatry.bullet1')}</Text>
                                     <Text style={[styles.bullet, { color: colors.surface }]}>
-                                        • Emotion and behavior analysis</Text>
+                                        {t('moduleSelection.selection.psychiatry.bullet2')}</Text>
                                     <Text style={[styles.bullet, { color: colors.surface }]}>
-                                        • AI diagnostic assistant</Text>
+                                        {t('moduleSelection.selection.psychiatry.bullet3')}</Text>
                                 </View>
                             </Card.Content>
                         </LinearGradient>
@@ -91,19 +91,20 @@ const ModuleSelection = () => {
                                     />
                                 </View>
                                 <View>
-                                    <Text style={[styles.moduleTitle, { color: '#999' }]}>POZ</Text>
-                                    <Text style={[styles.moduleDescription, { color: colors.onSurfaceVariant }]}>Primary Healthcare</Text>
+                                    <Text style={[styles.moduleTitle, { color: '#999' }]}>{t('moduleSelection.selection.poz.title')}</Text>
+                                    <Text style={[styles.moduleDescription, { color: colors.onSurfaceVariant }]}>{t('moduleSelection.selection.poz.subtitle')}</Text>
                                 </View>
                             </View>
                             <Text style={[styles.toolDescription, { color: colors.onSurfaceVariant }]}>
-                                Comprehensive system for managing primary care practice, with e-prescription and e-referral integration.</Text>
+                                {t('moduleSelection.selection.poz.description')}
+                            </Text>
                             <View style={styles.bulletPoints}>
                                 <Text style={[styles.bullet, { color: colors.onSurfaceVariant }]}>
-                                    • P1 Integration</Text>
+                                    {t('moduleSelection.selection.poz.bullet1')}</Text>
                                 <Text style={[styles.bullet, { color: colors.onSurfaceVariant }]}>
-                                    • Declaration management</Text>
+                                    {t('moduleSelection.selection.poz.bullet2')}</Text>
                                 <Text style={[styles.bullet, { color: colors.onSurfaceVariant }]}>
-                                    • NFZ settlements</Text>
+                                    {t('moduleSelection.selection.poz.bullet3')}</Text>
                             </View>
                             <View style={styles.comingSoon}>
                                 <AntDesign
@@ -112,7 +113,7 @@ const ModuleSelection = () => {
                                     color={colors.surface}
                                 />
                                 <View style={{ width: 5 }} />
-                                <Text style={{ fontWeight: "bold", fontSize: 12, color: colors.surface }}>Coming Soon</Text>
+                                <Text style={{ fontWeight: "bold", fontSize: 12, color: colors.surface }}>{t('moduleSelection.selection.poz.comingSoon')}</Text>
                             </View>
 
                         </Card.Content>

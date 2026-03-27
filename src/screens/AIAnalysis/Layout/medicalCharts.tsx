@@ -2,8 +2,11 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { LineChart, BarChart } from "react-native-gifted-charts";
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import { useTranslation } from 'react-i18next';
 
 const MedicalCharts = () => {
+    const { t } = useTranslation();
+
     // Colors for line series
     const lineColors = ['#4A90B9', '#5EC4B6', '#88C3D8'];
 
@@ -37,17 +40,17 @@ const MedicalCharts = () => {
 
     // Data for Treatment Results Bar Chart
     const barData = [
-        { value: 60, label: 'Remission', frontColor: '#cccccc' },
-        { value: 45, label: 'Partial', frontColor: '#4A90B9' },
-        { value: 35, label: 'Stabilize', frontColor: '#4A90B9' },
-        { value: 15, label: 'No imp.', frontColor: '#4A90B9' },
+        { value: 60, label: t('aiAnalysis.charts.remission'), frontColor: '#cccccc' },
+        { value: 45, label: t('aiAnalysis.charts.partial'), frontColor: '#4A90B9' },
+        { value: 35, label: t('aiAnalysis.charts.stabilize'), frontColor: '#4A90B9' },
+        { value: 15, label: t('aiAnalysis.charts.noImprovement'), frontColor: '#4A90B9' },
     ];
 
     return (
         <View style={styles.container}>
             {/* Diagnostic Trends Chart */}
             <View style={styles.chartContainer}>
-                <Text style={styles.chartTitle}>Diagnostic trends</Text>
+                <Text style={styles.chartTitle}>{t('aiAnalysis.charts.diagnosticTrends')}</Text>
                 <View style={styles.chartInner}>
                     <LineChart
                         data={lineData1}
@@ -103,7 +106,7 @@ const MedicalCharts = () => {
 
             {/* Treatment Results Chart */}
             <View style={[styles.chartContainer, { marginVertical: 20 }]}>
-                <Text style={styles.chartTitle}>Treatment Results</Text>
+                <Text style={styles.chartTitle}>{t('aiAnalysis.charts.treatmentResults')}</Text>
                 <View style={styles.chartInner}>
                     <BarChart
                         data={barData}

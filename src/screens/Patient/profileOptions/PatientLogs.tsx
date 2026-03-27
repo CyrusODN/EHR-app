@@ -14,6 +14,7 @@ import {
     Pressable
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
+import { useTranslation } from 'react-i18next';
 import { GetPatientLogs } from '../../../Services/PatientLogs.Service';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -86,6 +87,7 @@ const getIconColor = (type: string) => {
 };
 
 const PatientLogs = ({ patientData }: { patientData: any }) => {
+    const { t } = useTranslation();
     const [logs, setLogs] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [expanded, setExpanded] = useState(true);
@@ -93,7 +95,7 @@ const PatientLogs = ({ patientData }: { patientData: any }) => {
     const [selectedCategory, setSelectedCategory] = useState('All Categories');
     const [showDropdown, setShowDropdown] = useState(false);
 
-    const categories = ['All Categories', 'Medical', 'Other', 'Personal', 'System'];
+    const categories = [t('patientLogs.allCategories'), t('patientLogs.medical'), t('patientLogs.other'), t('patientLogs.personal'), t('patientLogs.system')];
 
     const toggleExpand = () => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -127,18 +129,18 @@ const PatientLogs = ({ patientData }: { patientData: any }) => {
             (log.performedBy?.name || '').toLowerCase().includes(searchText.toLowerCase()) ||
             formatSummary(log).toLowerCase().includes(searchText.toLowerCase());
         
-        if (selectedCategory === 'All Categories') return matchesSearch;
+        if (selectedCategory === t('patientLogs.allCategories')) return matchesSearch;
         
         let categoryMatch = false;
         const logType = log.type.toLowerCase();
         
-        if (selectedCategory === 'System') {
+        if (selectedCategory === t('patientLogs.system')) {
             categoryMatch = ['medical_record_accessed', 'profile_viewed'].includes(logType);
-        } else if (selectedCategory === 'Medical') {
+        } else if (selectedCategory === t('patientLogs.medical')) {
             categoryMatch = ['medical_data_updated', 'visit_scheduled', 'prescription_added'].includes(logType);
-        } else if (selectedCategory === 'Personal') {
+        } else if (selectedCategory === t('patientLogs.personal')) {
             categoryMatch = ['personal_data_updated'].includes(logType);
-        } else if (selectedCategory === 'Other') {
+        } else if (selectedCategory === t('patientLogs.other')) {
             categoryMatch = ['patient_record_updated'].includes(logType);
         }
         
@@ -153,7 +155,7 @@ const PatientLogs = ({ patientData }: { patientData: any }) => {
                     onPress={toggleExpand}
                     activeOpacity={0.7}
                 >
-                    <Text style={styles.title}>Patient Activity Logs</Text>
+                    <Text style={styles.title}>{t('patientLogs.patientActivityLogs')}</Text>
                     <Feather name={expanded ? "chevron-up" : "chevron-down"} size={20} color="#94a3b8" />
                 </TouchableOpacity>
 
@@ -164,7 +166,7 @@ const PatientLogs = ({ patientData }: { patientData: any }) => {
                                 <Feather name="search" size={16} color="#94a3b8" />
                                 <TextInput 
                                     style={styles.searchInput}
-                                    placeholder="Search logs..."
+                                    placeholder={t('patientLogs.searchLogs')}
                                     value={searchText}
                                     onChangeText={setSearchText}
                                     placeholderTextColor="#94a3b8"
@@ -221,27 +223,27 @@ const PatientLogs = ({ patientData }: { patientData: any }) => {
                                 </TouchableOpacity>
                             </View>
                             <Text style={styles.showingText}>
-                                Showing {filteredLogs.length} of {logs.length} logs
+                                {t('patientLogs.showingLogs', { count: filteredLogs.length, total: logs.length })}
                             </Text>
                         </View>
 
                         {loading ? (
                             <View style={{ paddingVertical: 40, alignItems: 'center' }}>
                                 <ActivityIndicator size="small" color="#4DA1C0" />
-                                <Text style={{ marginTop: 10, color: '#94a3b8', fontSize: 12 }}>Loading logs...</Text>
+                                <Text style={{ marginTop: 10, color: '#94a3b8', fontSize: 12 }}>{t('patientLogs.loadingLogs')}</Text>
                             </View>
                         ) : (
                             <View style={styles.tableContainer}>
                                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                                     <View style={styles.tableMinWidth}>
                                         <View style={styles.tableHeader}>
-                                            <Text style={[styles.columnLabel, { width: 180 }]}>ACTIVITY TYPE</Text>
-                                            <Text style={[styles.columnLabel, { width: 140 }]}>PERFORMED BY</Text>
+                                            <Text style={[styles.columnLabel, { width: 180 }]}>{t('patientLogs.activityType')}</Text>
+                                            <Text style={[styles.columnLabel, { width: 140 }]}>{t('patientLogs.performedBy')}</Text>
                                             <View style={[styles.columnLabel, { width: 140, flexDirection: 'row', alignItems: 'center' }]}>
-                                                <Text style={styles.columnLabelText}>DATE & TIME</Text>
+                                                <Text style={styles.columnLabelText}>{t('patientLogs.dateTime')}</Text>
                                                 <Feather name="arrow-down" size={12} color="#94a3b8" style={{ marginLeft: 4 }} />
                                             </View>
-                                            <Text style={[styles.columnLabel, { width: 220 }]}>SUMMARY</Text>
+                                            <Text style={[styles.columnLabel, { width: 220 }]}>{t('patientLogs.summary')}</Text>
                                         </View>
 
                                         {filteredLogs.length > 0 ? (
@@ -269,7 +271,7 @@ const PatientLogs = ({ patientData }: { patientData: any }) => {
                                             })
                                         ) : (
                                             <View style={{ padding: 20, alignItems: 'center', width: 680 }}>
-                                                <Text style={{ color: '#94a3b8', fontSize: 12 }}>No logs found</Text>
+                                                <Text style={{ color: '#94a3b8', fontSize: 12 }}>{t('patientLogs.noLogsFound')}</Text>
                                             </View>
                                         )}
                                     </View>

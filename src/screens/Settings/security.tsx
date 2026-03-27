@@ -18,8 +18,10 @@ import { useNavigation } from '@react-navigation/native';
 import PrimaryButton from '../../component/button';
 import userStore from '../../store/user';
 import { Enable2FA } from '../../Services/User.Service';
+import { useTranslation } from 'react-i18next';
 
 const Security = () => {
+    const { t } = useTranslation();
     const navigation = useNavigation<any>();
     const { loggedInUser } = userStore() as any;
 
@@ -33,7 +35,7 @@ const Security = () => {
             const userId = loggedInUser?.id || loggedInUser?._id;
             
             if (!userId) {
-                Alert.alert("Error", "User not identified. Please try logging in again.");
+                Alert.alert(t('settings.security.alerts.error_title'), t('settings.security.alerts.user_not_found'));
                 return;
             }
 
@@ -46,11 +48,11 @@ const Security = () => {
             const response = await Enable2FA(payload);
             
             console.log('2FA Update result:', response);
-            Alert.alert("Success", "Security settings updated successfully.");
+            Alert.alert(t('settings.security.alerts.success_title'), t('settings.security.alerts.update_success'));
             
         } catch (error: any) {
             console.error('Failed to update security settings:', error);
-            Alert.alert("Error", error?.message || "Something went wrong while updating settings.");
+            Alert.alert(t('settings.security.alerts.error_title'), error?.message || t('settings.security.alerts.update_error'));
         }
     };
 
@@ -66,7 +68,7 @@ const Security = () => {
                     <View style={styles.headerIconContainer}>
                         <Feather name="shield" size={24} color="#4A90B9" />
                     </View>
-                    <Text style={styles.headerTitle}>Security Settings</Text>
+                    <Text style={styles.headerTitle}>{t('settings.security.title')}</Text>
                 </View>
 
                 {/* Security Options Card */}
@@ -76,10 +78,10 @@ const Security = () => {
                     <View style={styles.optionContainer}>
                         <View style={styles.optionTitleRow}>
                             <Feather name="shield" size={18} color="#4A90B9" />
-                            <Text style={styles.optionTitle}>Two-Factor Authentication</Text>
+                            <Text style={styles.optionTitle}>{t('settings.security.two_factor.title')}</Text>
                             {twoFactorEnabled && (
                                 <View style={styles.badge}>
-                                    <Text style={styles.badgeText}>Enabled</Text>
+                                    <Text style={styles.badgeText}>{t('settings.security.two_factor.enabled')}</Text>
                                 </View>
                             )}
                         </View>
@@ -89,16 +91,16 @@ const Security = () => {
                                 <Feather name="info" size={16} color="#2563EB" />
                             </View>
                             <View style={styles.infoContent}>
-                                <Text style={styles.infoTitleText}>Two-factor authentication is a double identity check during login.</Text>
+                                <Text style={styles.infoTitleText}>{t('settings.security.two_factor.info_title')}</Text>
                                 <Text style={styles.infoDescText}>
-                                    For additional account security, during login the user must enter a code that is sent through their chosen communication channel - email, SMS, or mobile app.
+                                    {t('settings.security.two_factor.info_desc')}
                                 </Text>
                             </View>
                         </View>
 
                         <View style={styles.buttonRow}>
                             <PrimaryButton
-                                label={twoFactorEnabled ? "Disable" : "Enable"}
+                                label={twoFactorEnabled ? t('settings.security.buttons.disable') : t('settings.security.buttons.enable')}
                                 filled={false}
                                 onPress={() => setTwoFactorEnabled(!twoFactorEnabled)}
                                 style={styles.actionButton}
@@ -110,14 +112,14 @@ const Security = () => {
 
                     {/* Trusted Devices */}
                     <View style={styles.optionContainer}>
-                        <Text style={styles.optionTitle}>Allow users to save trusted devices</Text>
+                        <Text style={styles.optionTitle}>{t('settings.security.trusted_devices.title')}</Text>
                         <Text style={styles.optionDesc}>
-                            The second verification step on a given device will then only occur every 30 days, not every time
+                            {t('settings.security.trusted_devices.description')}
                         </Text>
 
                         <View style={styles.buttonRow}>
                             <PrimaryButton
-                                label={trustDevicesEnabled ? "Disable" : "Enable"}
+                                label={trustDevicesEnabled ? t('settings.security.buttons.disable') : t('settings.security.buttons.enable')}
                                 filled={false}
                                 onPress={() => setTrustDevicesEnabled(!trustDevicesEnabled)}
                                 style={styles.actionButton}
@@ -130,7 +132,7 @@ const Security = () => {
                     {/* Save Button */}
                     <View style={styles.footerAction}>
                         <PrimaryButton
-                            label="Save Changes"
+                            label={t('settings.security.buttons.save_changes')}
                             filled={true}
                             onPress={handleSave}
                             style={styles.saveBtn}

@@ -5,8 +5,10 @@ import Feather from 'react-native-vector-icons/Feather';
 import PrimaryButton from '../../../component/button';
 import CustomTextInput from '../../../component/customTextInput';
 import Gap from '../../../component/gap';
+import { useTranslation } from 'react-i18next';
 
 const Diagnosis = () => {
+    const { t } = useTranslation();
     const [symptoms, setSymptoms] = useState('');
     const [symptomsList, setSymptomsList] = useState<string[]>([]);
 
@@ -19,16 +21,16 @@ const Diagnosis = () => {
 
     return (
         <View style={styles.contentContainer}>
-            <Text style={styles.sectionTitle}>Differential Diagnosis Assistant</Text>
+            <Text style={styles.sectionTitle}>{t('aiAssistant.diagnosis.title')}</Text>
             <Text style={{ color: "black" }} >
-                Symptoms
+                {t('aiAssistant.diagnosis.symptoms')}
             </Text>
             <Gap height={hp(1)} />
             <View style={styles.symptomsContainer}>
 
                 <View style={{ flex: 1, marginEnd: 10 }}>
                     <CustomTextInput
-                        placeholder={"Enter symptom..."}
+                        placeholder={t('aiAssistant.diagnosis.enterSymptom')}
                         value={symptoms}
                         onChangeText={setSymptoms}
                         icon={undefined}
@@ -39,7 +41,7 @@ const Diagnosis = () => {
                 </View>
 
                 <PrimaryButton
-                    label={"+ Add"}
+                    label={t('aiAssistant.diagnosis.add')}
                     filled={false}
                     onPress={handleAddSymptom}
                     style={{ width: '25%', marginBottom: 0 }}
@@ -50,7 +52,7 @@ const Diagnosis = () => {
                 />
             </View>
             <PrimaryButton
-                label={"Analyze"}
+                label={t('aiAssistant.diagnosis.analyze')}
                 filled={true}
                 onPress={() => { }}
                 style={{ width: '100%', marginBottom: 0 }}

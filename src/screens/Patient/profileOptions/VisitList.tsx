@@ -12,37 +12,48 @@ import {
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import { GetPatientVisits } from '../../../Services/Visit.Service';
+import { useTranslation } from 'react-i18next';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const formatDate = (dateString: string) => {
-    if (!dateString) return 'No date';
-    const date = new Date(dateString);
-    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
-};
 
-const formatTime = (start: string, end: string) => {
-    if (!start || !end) return 'N/A';
-    return `${start} - ${end}`;
-};
 
-const StatusBadge = ({ status }: { status: string }) => {
+ 
+
+const StatusBadge = ({ status, t }: { status: string, t: any }) => {
     const isScheduled = status?.toLowerCase() === 'scheduled';
     return (
         <View style={[styles.statusBadge, isScheduled && styles.scheduledBadge]}>
-            <Text style={[styles.statusText, isScheduled && styles.scheduledText]}>{status}</Text>
+            <Text style={[styles.statusText, isScheduled && styles.scheduledText]}>
+                {t(`visitList.${status?.toLowerCase()?.replace(/\s+/g, '') || 'noData'}`, { defaultValue: status })}
+            </Text>
         </View>
     );
 };
 
 const VisitList = ({ patientData }: { patientData: any }) => {
+    const { t, i18n } = useTranslation();
     const [visitsData, setVisitsData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [expanded, setExpanded] = useState(true);
     const [expandedVisitId, setExpandedVisitId] = useState<string | null>(null);
+ 
+    const formatTime = (start: string, end: string) => {
+        if (!start || !end) return t('visitList.noData');
+        return `${start} - ${end}`;
+    };
+
+    const formatDate = (dateString: string) => {
+        if (!dateString) return t('visitList.noData');
+        const date = new Date(dateString);
+        return date.toLocaleDateString(i18n.language === 'pl' ? 'pl-PL' : 'en-US', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+    };
 
     React.useEffect(() => {
         const fetchVisits = async () => {
@@ -80,7 +91,7 @@ const VisitList = ({ patientData }: { patientData: any }) => {
         return (
             <View style={{ flex: 1, paddingVertical: 40, alignItems: 'center', justifyContent: 'center' }}>
                 <ActivityIndicator size="large" color="#4A90B9" />
-                <Text style={{ marginTop: 15, color: '#64748b' }}>Fetching visit history...</Text>
+                <Text style={{ marginTop: 15, color: '#64748b' }}>{t('visitList.fetchingVisitHistory')}</Text>
             </View>
         );
     }
@@ -95,7 +106,7 @@ const VisitList = ({ patientData }: { patientData: any }) => {
                 >
                     <View style={styles.headerLeft}>
                         <Feather name="calendar" size={18} color="#58a6b8" style={styles.icon} />
-                        <Text style={styles.title}>VISIT HISTORY</Text>
+                        <Text style={styles.title}>{t('visitList.visitHistory')}</Text>
                     </View>
                     <Feather name={expanded ? "chevron-up" : "chevron-down"} size={20} color="#94a3b8" />
                 </TouchableOpacity>
@@ -103,8 +114,8 @@ const VisitList = ({ patientData }: { patientData: any }) => {
                 {expanded && (
                     <View style={styles.content}>
                         <View style={styles.sectionHeaderRow}>
-                            <Text style={styles.subHeader}>Visit History</Text>
-                            <Text style={styles.totalText}>Total visits: {visitsData?.total || 0}</Text>
+                            <Text style={styles.subHeader}>{t('visitList.visitHistory')}</Text>
+                            <Text style={styles.totalText}>{t('visitList.totalVisits', { count: visitsData?.total || 0 })}</Text>
                         </View>
                         
                         {visitsData?.visits?.length > 0 ? (
@@ -121,11 +132,13 @@ const VisitList = ({ patientData }: { patientData: any }) => {
                                             </View>
                                             <View style={styles.visitBasicInfo}>
                                                 <Text style={styles.visitDateText}>{formatDate(visit.date)}</Text>
-                                                <Text style={styles.visitTypeText}>{visit.visitType || 'regular'}</Text>
+                                                <Text style={styles.visitTypeText}>
+                                                    {visit.visitType ? t(`visitList.${visit.visitType.toLowerCase()}`, { defaultValue: visit.visitType }) : t('visitList.regular')}
+                                                </Text>
                                                 <Text style={styles.visitTimeText}>{formatTime(visit.startTime, visit.endTime)}</Text>
                                             </View>
                                             <View style={styles.visitRightSection}>
-                                                <StatusBadge status={visit.status} />
+                                                <StatusBadge status={visit.status} t={t} />
                                                 <Feather 
                                                     name={expandedVisitId === (visit.id || visit._id) ? "chevron-up" : "chevron-down"} 
                                                     size={18} 
@@ -140,46 +153,46 @@ const VisitList = ({ patientData }: { patientData: any }) => {
                                         <View style={styles.visitExpandedContent}>
                                             <View style={styles.infoRow}>
                                                 <Feather name="user" size={14} color="#64748b" />
-                                                <Text style={styles.infoLabel}>Doctor</Text>
+                                                <Text style={styles.infoLabel}>{t('visitList.doctor')}</Text>
                                             </View>
-                                            <Text style={styles.infoValue}>{visit.doctor?.name || 'N/A'}</Text>
+                                            <Text style={styles.infoValue}>{visit.doctor?.name || t('visitList.noData')}</Text>
+ 
+                                            <View style={styles.infoRow}>
+                                                <Feather name="file-text" size={14} color="#64748b" />
+                                                <Text style={styles.infoLabel}>{t('visitList.notes')}</Text>
+                                            </View>
+                                            <Text style={styles.infoValue}>{visit.notes || t('visitList.noNotes')}</Text>
 
                                             <View style={styles.infoRow}>
                                                 <Feather name="file-text" size={14} color="#64748b" />
-                                                <Text style={styles.infoLabel}>Notes</Text>
-                                            </View>
-                                            <Text style={styles.infoValue}>{visit.notes || 'No notes available'}</Text>
-
-                                            <View style={styles.infoRow}>
-                                                <Feather name="file-text" size={14} color="#64748b" />
-                                                <Text style={styles.infoLabel}>Medical Interview</Text>
+                                                <Text style={styles.infoLabel}>{t('visitList.medicalInterview')}</Text>
                                             </View>
                                             <View style={styles.subInfoSection}>
-                                                <Text style={styles.subInfoLabel}>Main Symptoms</Text>
-                                                <Text style={styles.subInfoValue}>No data available</Text>
+                                                <Text style={styles.subInfoLabel}>{t('visitList.mainSymptoms')}</Text>
+                                                <Text style={styles.subInfoValue}>{t('visitList.noData')}</Text>
                                                 
                                                 <View style={styles.infoRowSmall}>
                                                     <Feather name="brain" size={14} color="#64748b" />
-                                                    <Text style={styles.infoLabel}>Psychiatric Scales</Text>
+                                                    <Text style={styles.infoLabel}>{t('visitList.psychiatricScales')}</Text>
                                                 </View>
                                             </View>
 
                                             <View style={styles.infoRow}>
                                                 <Feather name="activity" size={14} color="#64748b" />
-                                                <Text style={styles.infoLabel}>Examination</Text>
+                                                <Text style={styles.infoLabel}>{t('visitList.examination')}</Text>
                                             </View>
                                             <View style={styles.examGrid}>
                                                 <View style={styles.examItem}>
-                                                    <Text style={styles.examLabel}>Blood Pressure: <Text style={styles.examValue}>No data available</Text></Text>
+                                                    <Text style={styles.examLabel}>{t('visitList.bloodPressure')}: <Text style={styles.examValue}>{t('visitList.noData')}</Text></Text>
                                                 </View>
                                                 <View style={styles.examItem}>
-                                                    <Text style={styles.examLabel}>General Condition: <Text style={styles.examValue}>No data available</Text></Text>
+                                                    <Text style={styles.examLabel}>{t('visitList.generalCondition')}: <Text style={styles.examValue}>{t('visitList.noData')}</Text></Text>
                                                 </View>
                                                 <View style={styles.examItem}>
-                                                    <Text style={styles.examLabel}>Heart Rate: <Text style={styles.examValue}>No data available</Text></Text>
+                                                    <Text style={styles.examLabel}>{t('visitList.heartRate')}: <Text style={styles.examValue}>{t('visitList.noData')}</Text></Text>
                                                 </View>
                                                 <View style={styles.examItem}>
-                                                    <Text style={styles.examLabel}>Temperature: <Text style={styles.examValue}>No data available</Text></Text>
+                                                    <Text style={styles.examLabel}>{t('visitList.temperature')}: <Text style={styles.examValue}>{t('visitList.noData')}</Text></Text>
                                                 </View>
                                             </View>
                                         </View>
@@ -188,7 +201,7 @@ const VisitList = ({ patientData }: { patientData: any }) => {
                             ))
                         ) : (
                             <View style={styles.emptyContainer}>
-                                <Text style={styles.emptyText}>No visits found</Text>
+                                <Text style={styles.emptyText}>{t('visitList.noVisits')}</Text>
                             </View>
                         )}
                     </View>

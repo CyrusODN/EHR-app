@@ -10,6 +10,7 @@ import {
 import Feather from 'react-native-vector-icons/Feather';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import LinearGradient from 'react-native-linear-gradient';
+import { useTranslation } from 'react-i18next';
 
 interface VisitDiagnosisProps {
     onNext: () => void;
@@ -18,6 +19,7 @@ interface VisitDiagnosisProps {
 }
 
 const VisitDiagnosis = ({ onNext, onBack, visitData }: VisitDiagnosisProps) => {
+    const { t } = useTranslation();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedDiagnoses, setSelectedDiagnoses] = useState<any[]>(visitData?.diagnosis?.icd10 || []);
 
@@ -30,15 +32,15 @@ const VisitDiagnosis = ({ onNext, onBack, visitData }: VisitDiagnosisProps) => {
     return (
         <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
             <View style={styles.card}>
-                <Text style={styles.title}>Diagnosis (ICD-10)</Text>
+                <Text style={styles.title}>{t('visit.diagnosis.title')}</Text>
 
                 <View style={styles.searchSection}>
-                    <Text style={styles.searchLabel}>Search ICD-10 code or diagnosis name...</Text>
+                    <Text style={styles.searchLabel}>{t('visit.diagnosis.search_title')}</Text>
                     <View style={styles.searchInputContainer}>
                         <Feather name="search" size={20} color="#94A3B8" style={styles.searchIcon} />
                         <TextInput
                             style={styles.searchInput}
-                            placeholder="Search by code (e.g., F32.1) or description (e.g., depression)..."
+                            placeholder={t('visit.diagnosis.search_placeholder')}
                             placeholderTextColor="#94A3B8"
                             value={searchQuery}
                             onChangeText={setSearchQuery}
@@ -47,14 +49,14 @@ const VisitDiagnosis = ({ onNext, onBack, visitData }: VisitDiagnosisProps) => {
                 </View>
 
                 <View style={styles.selectedSection}>
-                    <Text style={styles.selectedLabel}>Selected diagnoses</Text>
+                    <Text style={styles.selectedLabel}>{t('visit.diagnosis.selected')}</Text>
                     
                     {selectedDiagnoses.length > 0 ? (
                         <View style={styles.diagnosesList}>
                             {selectedDiagnoses.map((diag, index) => (
                                 <View key={index} style={styles.diagnosisItem}>
                                     <Text style={styles.diagnosisCode}>{diag.code || diag}</Text>
-                                    <Text style={styles.diagnosisName}>{diag.name || diag.description || 'Diagnosis'}</Text>
+                                    <Text style={styles.diagnosisName}>{diag.name || diag.description || t('visit.diagnosis.title')}</Text>
                                 </View>
                             ))}
                         </View>
@@ -63,8 +65,8 @@ const VisitDiagnosis = ({ onNext, onBack, visitData }: VisitDiagnosisProps) => {
                             <View style={styles.emptyIconCircle}>
                                 <Feather name="search" size={40} color="#CBD5E1" />
                             </View>
-                            <Text style={styles.emptyTitle}>No diagnoses selected</Text>
-                            <Text style={styles.emptySubtitle}>Search and select ICD-10 codes above</Text>
+                            <Text style={styles.emptyTitle}>{t('visit.diagnosis.empty')}</Text>
+                            <Text style={styles.emptySubtitle}>{t('visit.diagnosis.empty_desc')}</Text>
                         </View>
                     )}
                 </View>
@@ -74,7 +76,7 @@ const VisitDiagnosis = ({ onNext, onBack, visitData }: VisitDiagnosisProps) => {
             <View style={styles.footer}>
                 <TouchableOpacity style={styles.backButton} onPress={onBack}>
                     <Feather name="arrow-left" size={18} color="#58A7B3" />
-                    <Text style={styles.backButtonText}>Back</Text>
+                    <Text style={styles.backButtonText}>{t('visit.navigation.previous')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={onNext}>
@@ -84,7 +86,7 @@ const VisitDiagnosis = ({ onNext, onBack, visitData }: VisitDiagnosisProps) => {
                         end={{ x: 1, y: 0 }}
                         style={styles.nextButton}
                     >
-                        <Text style={styles.nextButtonText}>Next</Text>
+                        <Text style={styles.nextButtonText}>{t('visit.navigation.next')}</Text>
                         <Feather name="arrow-right" size={18} color="#fff" />
                     </LinearGradient>
                 </TouchableOpacity>

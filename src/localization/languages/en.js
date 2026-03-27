@@ -14,10 +14,14 @@ export const en = {
         next: 'Next',
         finish: 'Finish',
         loading: 'Loading...',
-        noData: 'No data',
+        noData: 'No data available',
         yes: 'Yes',
         no: 'No',
         total: 'total',
+        months: [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ],
         view: 'View',
         more: 'More',
         time: 'Time',
@@ -30,7 +34,10 @@ export const en = {
         to: 'To',
         "add": "Add",
         "update": "Update",
-
+        "or": "or",
+        dateLocale: 'en-GB',
+        datePlaceholder: 'dd/mm/yyyy',
+        na: 'N/A'
     },
     loading: {
         psychiatricModule: 'Psychiatric Module',
@@ -40,7 +47,8 @@ export const en = {
         login: 'Login',
         logout: 'Logout',
         email: 'Email',
-        password: 'Password'
+        password: 'Password',
+        error_default: 'Something went wrong. Please try again.'
     },
 
     dashboard: {
@@ -50,18 +58,73 @@ export const en = {
         pendingReports: 'Pending Reports',
         scheduledVisits: 'Scheduled Visits',
         completedVisits: 'Completed Visits',
+        total: 'total',
+        todaysVisits: "Today's Visits",
+        loadingVisits: 'Loading visits...',
         calendar: {
             title: 'Visits for',
-            noVisits: 'No scheduled visits for this day'
+            noVisits: 'There are no visits scheduled for this date',
+            visitsCount: 'visits',
+            noVisitsFound: 'No visits found',
+            close: 'Close'
         },
         quickActions: {
             title: 'Quick Actions',
             scheduleVisit: 'Schedule Visit',
+            newVisit: 'New Visit',
+            newPatient: 'New Patient',
             newDocument: 'New Document',
             messages: 'Messages',
             teleVisit: 'Tele-visit',
             reports: 'Reports',
             patients: 'Patients'
+        },
+        actionModal: {
+            visitActions: 'Visit Actions',
+            viewDetails: 'View Details',
+            addNote: 'Add a Note',
+            notePlaceholder: 'Write your note here...',
+            saveNote: 'Save Note'
+        },
+        createVisit: {
+            title: 'Create New Visit',
+            subtitle: 'Fill in the visit details below',
+            patientSection: 'Patient',
+            searchPatientPlaceholder: 'Search patient (min. 3 characters)...',
+            dateTimeSection: 'Date & Time',
+            today: 'Today',
+            tomorrow: 'Tomorrow',
+            nextWeek: 'Next Week',
+            yesterday: 'Yesterday',
+            dateLabel: 'Date',
+            timeLabel: 'Time',
+            from: 'FROM',
+            to: 'TO',
+            visitDetailsSection: 'Visit Details',
+            doctorLabel: 'Doctor',
+            doctorPlaceholder: 'Select doctor',
+            officeLabel: 'Office',
+            officePlaceholder: 'Select office',
+            typeLabel: 'Type',
+            typePlaceholder: 'Select type',
+            specializationLabel: 'Specialization',
+            specializationPlaceholder: 'Select specialization',
+            types: {
+                private: 'Private',
+                public: 'Public',
+                insurance: 'Insurance'
+            },
+            specializations: {
+                psychiatry: 'Psychiatry',
+                neurology: 'Neurology',
+                cardiology: 'Cardiology'
+            },
+            optionsSection: 'Options',
+            eVisit: 'E-visit',
+            prescriptionOnly: 'Prescription only',
+            referral: 'Referral',
+            notesSection: 'Notes',
+            notesPlaceholder: 'Additional notes...'
         }
     },
     patients: {
@@ -92,6 +155,7 @@ export const en = {
     visit: {
         new: 'New visit',
         start: 'Start Visit',
+        activeVisit: 'Active Visit',
         type: {
             followUp: 'Follow-up',
             first: 'First Visit',
@@ -113,10 +177,30 @@ export const en = {
             allergies: 'Allergies',
             chronicDiseases: 'Chronic Diseases',
             history: 'Visit History',
+            history_total: 'Total visits: {{total}}',
             audit: 'Change History',
             trends: 'Trend Analysis',
             noAllergies: 'No known allergies',
-            noDiseases: 'No chronic diseases'
+            noDiseases: 'No chronic diseases',
+            noVisits: 'No visits found',
+            tabs: {
+                basic: 'Basic Information',
+                history: 'Visit History'
+            }
+        },
+        history_labels: {
+            doctor: 'Doctor',
+            notes: 'Notes',
+            interview: 'Medical Interview',
+            mainSymptoms: 'Main Symptoms',
+            scales: 'Psychiatric Scales',
+            examination: 'Examination',
+            bloodPressure: 'Blood Pressure',
+            generalCondition: 'General Condition',
+            heartRate: 'Heart Rate',
+            temperature: 'Temperature',
+            noData: 'No data available',
+            defaultNote: 'New Patient'
         },
         interview: {
             title: 'Medical Interview',
@@ -146,7 +230,13 @@ export const en = {
             weight: 'Weight',
             height: 'Height',
             generalCondition: 'General Condition',
-            additionalFindings: 'Additional Findings'
+            additionalFindings: 'Additional Findings',
+            placeholders: {
+                bp: 'e.g. 120/80 mmHg',
+                hr: 'e.g. 72',
+                temp: 'e.g. 36.6',
+                findings: 'Other observations...'
+            }
         },
         diagnosis: {
             title: 'Diagnosis (ICD-10)',
@@ -158,32 +248,48 @@ export const en = {
             actions: {
                 add: 'Add diagnosis',
                 remove: 'Remove'
-            }
+            },
+            search_title: 'Search ICD-10 code or diagnosis name...',
+            search_placeholder: 'Search by code (e.g., F32.1) or description (e.g., depression)...',
+            selected: 'Selected diagnoses',
+            empty: 'No diagnoses selected',
+            empty_desc: 'Search and select ICD-10 codes above'
         },
         documents: {
             title: 'Documents',
+            additionalNotes: 'Additional Notes',
             prescriptions: {
                 title: 'Prescriptions',
                 new: 'New Prescription',
-                refills: 'Number of Refills',
-                searchMed: 'Search medication...',
-                dosage: 'Dosage',
-                quantity: 'Quantity',
-                instructions: 'Additional Instructions'
+                description: 'Issue electronic prescriptions compatible with the P1 system. You can save the prescription as a draft and sign it later.',
+                add_med: 'Add medication'
             },
             sickLeave: {
                 title: 'Sick Leave',
-                add: 'Add Sick Leave',
-                remove: 'Remove Sick Leave',
-                startDate: 'Start Date',
-                endDate: 'End Date',
-                reason: 'Reason',
-                recommendations: 'Recommendations'
+                new: 'Issue sick leave',
+                ezla: 'e-ZLA',
+                patient_info: 'Patient Information',
+                patient_info_desc: 'Patient data will be automatically retrieved from the ZUS system after entering the PESEL number.',
+                period: 'Sick Leave Period',
+                from: 'Date from',
+                to: 'Date to',
+                hospital: 'Hospital stay',
+                medical_data: 'Medical Data',
+                icd10_label: 'Statistical disease number (ICD-10)',
+                icd10_search: 'Search ICD-10 code',
+                literal_codes: 'Literal Codes',
+                recommendations: "Doctor's recommendations and instructions",
+                recommendations_placeholder: 'E.g. bed rest, medication, rehabilitation...',
+                payers: 'Payers',
+                add_payer: 'Add payer',
+                payer_search: 'Search payer by name or NIP...',
+                no_payers: 'No payers added'
             },
             referrals: {
                 title: 'Referrals',
                 new: 'New Referral',
                 specialization: 'Specialization',
+                specialization_placeholder: 'e.g. Cardiology',
                 reason: 'Reason for Referral',
                 urgency: {
                     label: 'Urgency',
@@ -206,6 +312,18 @@ export const en = {
             actions: {
                 addRecommendations: 'Add Recommendations',
                 finish: 'Finish Visit'
+            },
+            emptyDiagnoses: 'No diagnoses added yet.',
+            emptyDocuments: 'No documents issued.',
+            prescriptionIssued: 'e-Prescription issued',
+            referralIssued: 'Referral issued',
+            aiTitle: 'AI Assistance',
+            noAiFeatures: 'No AI features enabled',
+            nextVisitLabels: {
+                create: 'Create next visit'
+            },
+            placeholders: {
+                recommendations: 'Enter general Recommendations'
             }
         },
         ai: {
@@ -216,12 +334,199 @@ export const en = {
                 transcription: 'Documentation Assistant',
                 interactions: 'Drug Knowledge',
                 icd10: 'ICD-10 Assistant'
+            },
+            badge: 'AI Powered',
+            interview: {
+                title: 'Medical Interview Coach',
+                subtitle: 'AI-powered medical interview Coach',
+                noData: 'No data available for analysis',
+                noDataDesc: 'Please conduct a medical interview to analyze communication quality.',
+                suggestedCount: 'Suggested questions {{count}}',
+                tabs: {
+                    suggestions: 'Question suggestions',
+                    analysis: 'Communication analysis',
+                    literature: 'Literature'
+                },
+                analysis: {
+                    clusters: 'Symptom Clusters',
+                    identified: 'Identified Areas',
+                    potential: 'Potential Diagnoses',
+                    toConsider: 'To Consider',
+                    gaps: 'Diagnostic Gaps',
+                    attention: 'Require Attention',
+                    recommendations: 'Clinical Recommendations'
+                }
+            },
+            transcription: {
+                smart: 'Smart Transcription',
+                smartDesc: 'AI-powered transcription of medical conversations',
+                consult: 'Remedius Consult',
+                consultDesc: 'AI-powered clinical assistant for medical consultations...',
+                pharmacopedia: 'Pharmacopedia',
+                pharmacopediaDesc: 'Comprehensive AI-driven drug information and interaction checker'
+            },
+            medInfo: {
+                title: 'Medicine Information',
+                search: 'Search Medicine',
+                placeholder: 'Enter medicine name (min. 3 characters)...',
+                empty: 'Search for a medicine to view details'
             }
         },
         navigation: {
             previous: 'Back',
             next: 'Next',
             finish: 'Finish'
+        },
+        recommendations: {
+            modal_title: 'Recommendations for Patient Portal',
+            medication_schedule: 'Medication Schedule',
+            search_medication: 'Search medication...',
+            scale_monitoring: 'Scale Monitoring',
+            add_to_monitoring: 'Add to monitoring',
+            ai_assistant: {
+                title: 'AI Assistant',
+                enable: 'Enable AI assistant',
+                tools: {
+                    mood: {
+                        title: 'Intelligent Mood Tracking',
+                        description: 'AI analyzes mood patterns and suggests interventions'
+                    },
+                    meds: {
+                        title: 'Adaptive Medication Reminders',
+                        description: "AI adjusts reminders to the patient's daily rhythm"
+                    },
+                    crisis: {
+                        title: 'Crisis Support',
+                        description: 'AI detects warning signals and suggests appropriate actions'
+                    },
+                    coping: {
+                        title: 'Personalized Coping Strategies',
+                        description: "AI proposes techniques tailored to the patient's situation"
+                    }
+                }
+            },
+            share_emergency: 'Share emergency contacts in the portal',
+            save: 'Save Recommendations',
+            assessments: {
+                depression: 'Depression Assessment',
+                anxiety: 'Anxiety Assessment',
+                mental_health: 'Mental Health Assessment',
+                ptsd_trauma: 'PTSD and Trauma Assessment',
+                addiction: 'Addiction Assessment',
+                sleep: 'Sleep Assessment'
+            }
+        },
+        scales: {
+            question_progress: 'Question {{current}} of {{total}}',
+            buttons: {
+                cancel: 'Cancel',
+                back: 'Back',
+                finish: 'Finish'
+            },
+            questions: {
+                hamd: {
+                    q1: { title: 'Depressed mood (sadness, hopeless, helpless, worthless)', o0: 'Absent', o1: 'These feeling states indicated only on questioning', o2: 'These feeling states spontaneously reported verbally', o3: 'Communicates feeling states non-verbally', o4: 'Patient reports virtually only these feeling states' },
+                    q2: { title: 'Feelings of guilt', o0: 'Absent', o1: 'Self reproach, feels he/she has let people down', o2: 'Ideas of guilt or rumination over past errors', o3: 'Present illness is a punishment. Delusions of guilt', o4: 'Hears accusatory or denunciatory voices' },
+                    q3: { title: 'Suicide', o0: 'Absent', o1: 'Feels life is not worth living', o2: 'Wishes he/she were dead', o3: 'Ideas or gestures of suicide', o4: 'Attempts at suicide' },
+                    q4: { title: 'Insomnia: Early in the night', o0: 'No difficulty falling asleep', o1: 'Complains of occasional difficulty falling asleep', o2: 'Complains of nightly difficulty falling asleep' },
+                    q5: { title: 'Insomnia: Middle of the night', o0: 'No difficulty', o1: 'Restless and disturbed during the night', o2: 'Waking during the night' },
+                    q6: { title: 'Insomnia: Early hours of the morning', o0: 'No difficulty', o1: 'Waking in early hours but goes back to sleep', o2: 'Unable to fall asleep again' },
+                    q7: { title: 'Work and activities', o0: 'No difficulty', o1: 'Thoughts and feelings of incapacity or weakness', o2: 'Loss of interest in activity, hobbies or work', o3: 'Decrease in actual time spent in activities', o4: 'Stopped working because of present illness' },
+                    q8: { title: 'Retardation (slowness of thought and speech)', o0: 'Normal speech and thought', o1: 'Slight retardation at interview', o2: 'Obvious retardation at interview', o3: 'Interview difficult', o4: 'Complete stupor' },
+                    q9: { title: 'Agitation', o0: 'None', o1: 'Fidgetiness', o2: 'Playing with hands, hair, etc.', o3: 'Moving about, can\'t sit still', o4: 'Hand wringing, nail biting, etc.' },
+                    q10: { title: 'Anxiety psychic', o0: 'No difficulty', o1: 'Subjective tension and irritability', o2: 'Worrying about minor matters', o3: 'Apprehensive attitude apparent in face or speech', o4: 'Fears expressed without questioning' },
+                    q11: { title: 'Anxiety somatic', o0: 'Absent', o1: 'Mild', o2: 'Moderate', o3: 'Severe', o4: 'Incapacitating' },
+                    q12: { title: 'Somatic symptoms gastro-intestinal', o0: 'None', o1: 'Loss of appetite', o2: 'Difficulty eating without urging' },
+                    q13: { title: 'Somatic symptoms - General', o0: 'None', o1: 'Heaviness in limbs, back or head', o2: 'Any clear-cut symptom' },
+                    q14: { title: 'Genital symptoms', o0: 'Absent', o1: 'Mild', o2: 'Severe' },
+                    q15: { title: 'Hypochondriasis', o0: 'Not present', o1: 'Self-absorption (bodily)', o2: 'Preoccupation with health', o3: 'Frequent complaints, requests for help', o4: 'Hypochondriacal delusions' },
+                    q16: { title: 'Loss of weight', o0: 'No weight loss', o1: 'Probable weight loss', o2: 'Definite weight loss' },
+                    q17: { title: 'Insight', o0: 'Acknowledges being depressed and ill', o1: 'Attributes cause to bad food, climate, etc.', o2: 'Denies being ill at all' }
+                },
+                madrs: {
+                    q1: { title: 'Reported sadness', o0: { title: 'Absent', desc: 'Occasionally sad in keeping with circumstances' }, o1: { title: 'Mild', desc: 'Sad or downcast but brightens up without difficulty' }, o2: { title: 'Moderate', desc: 'Pervasive feeling of sadness or pessimism' }, o3: { title: 'Severe', desc: 'Continuous or unchanging sadness, misery' } },
+                    q2: { title: 'Apparent sadness', o0: { title: 'Absent', desc: 'No sadness' }, o1: { title: 'Mild', desc: 'Appears disheartened but brightens up' }, o2: { title: 'Moderate', desc: 'Appears sad and unhappy most of the time' }, o3: { title: 'Severe', desc: 'Appears very unhappy all the time' } },
+                    q3: { title: 'Inner tension', o0: { title: 'Absent', desc: 'Calm. Only transient inner tension' }, o1: { title: 'Mild', desc: 'Occasional feelings of edginess' }, o2: { title: 'Moderate', desc: 'Constant feeling of inner tension' }, o3: { title: 'Severe', desc: 'Unrelenting dread or anguish' } },
+                    q4: { title: 'Reduced sleep', o0: { title: 'Absent', desc: 'Sleeps as usual' }, o1: { title: 'Mild', desc: 'Slight difficulty falling asleep' }, o2: { title: 'Moderate', desc: 'Sleep reduced or broken by at least two hours' }, o3: { title: 'Severe', desc: 'Less than two or three hours of sleep' } },
+                    q5: { title: 'Reduced appetite', o0: { title: 'Absent', desc: 'Normal or increased appetite' }, o1: { title: 'Mild', desc: 'Slightly reduced appetite' }, o2: { title: 'Moderate', desc: 'No appetite. Food without taste' }, o3: { title: 'Severe', desc: 'Needs persuasion to eat at all' } },
+                    q6: { title: 'Concentration difficulties', o0: { title: 'Absent', desc: 'No difficulties in concentrating' }, o1: { title: 'Mild', desc: 'Occasional difficulties in collecting thoughts' }, o2: { title: 'Moderate', desc: 'Difficulties with reading or conversation' }, o3: { title: 'Severe', desc: 'Inability to read or sustain conversation' } },
+                    q7: { title: 'Lassitude', o0: { title: 'Absent', desc: 'No sluggishness' }, o1: { title: 'Mild', desc: 'Difficulties in starting activities' }, o2: { title: 'Moderate', desc: 'Simple routine activities only with effort' }, o3: { title: 'Severe', desc: 'Complete lassitude. Unable to do anything' } },
+                    q8: { title: 'Inability to feel', o0: { title: 'Absent', desc: 'Normal interest in surroundings' }, o1: { title: 'Mild', desc: 'Reduced ability to enjoy usual interests' }, o2: { title: 'Moderate', desc: 'Loss of interest and feelings' }, o3: { title: 'Severe', desc: 'Experience of being emotionally paralysed' } },
+                    q9: { title: 'Pessimistic thoughts', o0: { title: 'Absent', desc: 'No pessimistic thoughts' }, o1: { title: 'Mild', desc: 'Fluctuating ideas of failure' }, o2: { title: 'Moderate', desc: 'Persistent self-accusations' }, o3: { title: 'Severe', desc: 'Delusions of ruin, guilt or sin' } },
+                    q10: { title: 'Suicidal thoughts', o0: { title: 'Absent', desc: 'Enjoys life' }, o1: { title: 'Mild', desc: 'Weary of life. Fleeting suicidal thoughts' }, o2: { title: 'Moderate', desc: 'Probably better off dead. Suicidal thoughts common' }, o3: { title: 'Severe', desc: 'Explicit plans for suicide' } }
+                },
+                asrs: {
+                    part_a: 'Part A',
+                    part_b: 'Part B',
+                    options: {
+                        never: 'Never',
+                        rarely: 'Rarely',
+                        sometimes: 'Sometimes',
+                        often: 'Often',
+                        very_often: 'Very Often'
+                    },
+                    q1: { title: 'How often do you have trouble finishing the final details of a project?' },
+                    q2: { title: 'How often do you have trouble organizing tasks that require planning?' },
+                    q3: { title: 'How often do you have problems remembering appointments or commitments?' },
+                    q4: { title: 'How often do you avoid or delay starting a task that requires a lot of thinking?' },
+                    q5: { title: 'How often do you fidget or move your hands or feet?' },
+                    q6: { title: 'How often do you feel overly active and compelled to do things?' },
+                    q7: { title: 'How often do you make careless mistakes?' },
+                    q8: { title: 'How often do you have difficulty keeping your attention?' },
+                    q9: { title: 'How often do you have difficulty concentrating on what people say?' },
+                    q10: { title: 'How often do you misplace or have difficulty finding things?' },
+                    q11: { title: 'How often are you distracted by activity or noise?' },
+                    q12: { title: 'How often do you leave your seat in meetings?' },
+                    q13: { title: 'How often do you feel restless or fidgety?' },
+                    q14: { title: 'How often do you have difficulty unwinding and relaxing?' },
+                    q15: { title: 'How often do you find yourself talking too much?' },
+                    q16: { title: 'How often do you find yourself finishing the sentences of others?' },
+                    q17: { title: 'How often do you have difficulty waiting your turn?' },
+                    q18: { title: 'How often do you interrupt others when they are busy?' }
+                },
+                hama: {
+                    q1: { title: 'Anxious mood', o0: { title: 'Not present', desc: 'No anxious mood' }, o1: { title: 'Mild', desc: 'Mild worries or anticipation' }, o2: { title: 'Moderate', desc: 'Moderate anxious mood' }, o3: { title: 'Severe', desc: 'Severe anxious mood' }, o4: { title: 'Very severe', desc: 'Overwhelming anxious mood' } },
+                    q2: { title: 'Tension', o0: { title: 'Not present', desc: 'No tension' }, o1: { title: 'Mild', desc: 'Mild tension or restlessness' }, o2: { title: 'Moderate', desc: 'Moderate tension' }, o3: { title: 'Severe', desc: 'Severe tension' }, o4: { title: 'Very severe', desc: 'Extreme tension' } },
+                    q3: { title: 'Fears', o0: { title: 'Not present', desc: 'No fears' }, o1: { title: 'Mild', desc: 'Mild fears' }, o2: { title: 'Moderate', desc: 'Moderate fears' }, o3: { title: 'Severe', desc: 'Severe fears' }, o4: { title: 'Very severe', desc: 'Overwhelming fears' } },
+                    q4: { title: 'Insomnia', o0: { title: 'Not present', desc: 'Normal sleep' }, o1: { title: 'Mild', desc: 'Mild sleep disturbances' }, o2: { title: 'Moderate', desc: 'Moderate insomnia' }, o3: { title: 'Severe', desc: 'Severe insomnia' }, o4: { title: 'Very severe', desc: 'Extreme insomnia' } },
+                    q5: { title: 'Intellectual', o0: { title: 'Not present', desc: 'Normal concentration' }, o1: { title: 'Mild', desc: 'Mild difficulty concentrating' }, o2: { title: 'Moderate', desc: 'Moderate cognitive difficulties' }, o3: { title: 'Severe', desc: 'Severe concentration problems' }, o4: { title: 'Very severe', desc: 'Unable to concentrate' } },
+                    q6: { title: 'Depressed mood', o0: { title: 'Not present', desc: 'No depression' }, o1: { title: 'Mild', desc: 'Boredom, loss of interest' }, o2: { title: 'Moderate', desc: 'Clearly depressed, weepy' }, o3: { title: 'Severe', desc: 'Deeply depressed, pessimistic' }, o4: { title: 'Very severe', desc: 'Hopelessness' } },
+                    q7: { title: 'Somatic symptoms (sensory)', o0: { title: 'Not present', desc: 'No sensory symptoms' }, o1: { title: 'Mild', desc: 'Tinnitus, blurred vision' }, o2: { title: 'Moderate', desc: 'Hot and cold flushes, weakness' }, o3: { title: 'Severe', desc: 'Prickling sensation' }, o4: { title: 'Very severe', desc: 'Extreme discomfort' } },
+                    q8: { title: 'Somatic symptoms (muscular)', o0: { title: 'Not present', desc: 'No muscular symptoms' }, o1: { title: 'Mild', desc: 'Pains and aches, twitching' }, o2: { title: 'Moderate', desc: 'Muscle stiffness, clonic jerks' }, o3: { title: 'Severe', desc: 'Grinding teeth, unsteady voice' }, o4: { title: 'Very severe', desc: 'Extreme muscular tension' } },
+                    q9: { title: 'Cardiovascular symptoms', o0: { title: 'Not present', desc: 'No cardiovascular symptoms' }, o1: { title: 'Mild', desc: 'Tachycardia, palpitations' }, o2: { title: 'Moderate', desc: 'Chest pain, throbbing of vessels' }, o3: { title: 'Severe', desc: 'Fainting feelings' }, o4: { title: 'Very severe', desc: 'Extreme cardiac distress' } },
+                    q10: { title: 'Respiratory symptoms', o0: { title: 'Not present', desc: 'No respiratory symptoms' }, o1: { title: 'Mild', desc: 'Chest pressure, sighing' }, o2: { title: 'Moderate', desc: 'Dyspnea, choking feelings' }, o3: { title: 'Severe', desc: 'Extreme hyperventilation' }, o4: { title: 'Very severe', desc: 'Inability to breathe' } },
+                    q11: { title: 'Gastrointestinal symptoms', o0: { title: 'Not present', desc: 'No gastrointestinal symptoms' }, o1: { title: 'Mild', desc: 'Difficulty swallowing, wind' }, o2: { title: 'Moderate', desc: 'Abdominal pain' }, o3: { title: 'Severe', desc: 'Nausea, vomiting' }, o4: { title: 'Very severe', desc: 'Extreme digestive distress' } },
+                    q12: { title: 'Genitourinary symptoms', o0: { title: 'Not present', desc: 'No genitourinary symptoms' }, o1: { title: 'Mild', desc: 'Frequency of micturition' }, o2: { title: 'Moderate', desc: 'Urgency, amenorrhea' }, o3: { title: 'Severe', desc: 'Ejaculatio praecox, loss of libido' }, o4: { title: 'Very severe', desc: 'Impotence, menstrual issues' } },
+                    q13: { title: 'Autonomic symptoms', o0: { title: 'Not present', desc: 'No autonomic symptoms' }, o1: { title: 'Mild', desc: 'Dry mouth, flushing' }, o2: { title: 'Moderate', desc: 'Pallor, tendency to sweat' }, o3: { title: 'Severe', desc: 'Giddiness, tension headache' }, o4: { title: 'Very severe', desc: 'Gooseflesh' } },
+                    q14: { title: 'Behavior at interview', o0: { title: 'Not present', desc: 'Relaxed behavior' }, o1: { title: 'Mild', desc: 'Fidgeting, restless, pacing' }, o2: { title: 'Moderate', desc: 'Tremor of hands, furrowed brow' }, o3: { title: 'Severe', desc: 'Strained face, rapid breathing' }, o4: { title: 'Very severe', desc: 'Facial pallor, swallowing' } }
+                },
+                isi: {
+                    q1: { title: 'Difficulty falling asleep', o0: { title: 'None', desc: 'No problems falling asleep' }, o1: { title: 'Mild', desc: 'Slight difficulties' }, o2: { title: 'Moderate', desc: 'Noticeable difficulties' }, o3: { title: 'Severe', desc: 'Significant difficulties' }, o4: { title: 'Very Severe', desc: 'Extreme difficulties' } },
+                    q2: { title: 'Difficulty maintaining sleep', o0: { title: 'None', desc: 'No night awakenings' }, o1: { title: 'Mild', desc: 'Occasional awakenings' }, o2: { title: 'Moderate', desc: 'Regular awakenings' }, o3: { title: 'Severe', desc: 'Frequent awakenings' }, o4: { title: 'Very Severe', desc: 'Constant awakenings' } },
+                    q3: { title: 'Problems with early morning awakening', o0: { title: 'None', desc: 'Waking up at planned time' }, o1: { title: 'Mild', desc: 'Waking up slightly early' }, o2: { title: 'Moderate', desc: 'Noticeably early waking' }, o3: { title: 'Severe', desc: 'Significantly early waking' }, o4: { title: 'Very Severe', desc: 'Extremely early waking' } },
+                    q4: { title: 'How satisfied are you with your sleep?', o0: { title: 'Very satisfied', desc: 'Sleep is satisfying' }, o1: { title: 'Satisfied', desc: 'Sleep is generally good' }, o2: { title: 'Moderately satisfied', desc: 'Sleep is acceptable' }, o3: { title: 'Dissatisfied', desc: 'Sleep is insufficient' }, o4: { title: 'Very dissatisfied', desc: 'Sleep is unsatisfying' } },
+                    q5: { title: 'Interference with daily functioning', o0: { title: 'Not at all', desc: 'No impact' }, o1: { title: 'Slightly', desc: 'Minimal impact' }, o2: { title: 'Moderately', desc: 'Noticeable impact' }, o3: { title: 'Very much', desc: 'Significant impact' }, o4: { title: 'Extremely', desc: 'Severe impairment' } },
+                    q6: { title: 'Noticeable quality of life impairment', o0: { title: 'Not at all', desc: 'Not visible to others' }, o1: { title: 'A little', desc: 'Signs of fatigue' }, o2: { title: 'Somewhat', desc: 'Sometimes noticeable' }, o3: { title: 'Much', desc: 'Clearly visible' }, o4: { title: 'Very much', desc: 'Others are very aware' } },
+                    q7: { title: 'Worried/distressed about sleep', o0: { title: 'Not at all', desc: 'No concern' }, o1: { title: 'A little', desc: 'Occasional concern' }, o2: { title: 'Somewhat', desc: 'Regular concern' }, o3: { title: 'Much', desc: 'Frequently worried' }, o4: { title: 'Very much', desc: 'Constant distress' } }
+                },
+                cars2: {
+                    q1: { title: 'Relationships with people', o0: { title: 'Within normal limits', desc: 'Age-appropriate behavior' }, o1: { title: 'Mildly atypical', desc: 'Slight difficulties' }, o2: { title: 'Moderately atypical', desc: 'Noticeable difficulties' }, o3: { title: 'Significantly atypical', desc: 'Severe difficulties' } },
+                    q2: { title: 'Imitation', o0: { title: 'Within normal limits', desc: 'Imitates appropriately' }, o1: { title: 'Mildly atypical', desc: 'Imitates most of the time' }, o2: { title: 'Moderately atypical', desc: 'Imitates only occasionally' }, o3: { title: 'Significantly atypical', desc: 'Rarely or never imitates' } },
+                    q3: { title: 'Emotional responses', o0: { title: 'Within normal limits', desc: 'Appropriate to situation' }, o1: { title: 'Mildly atypical', desc: 'Occasionally inappropriate' }, o2: { title: 'Moderately atypical', desc: 'Frequently inappropriate' }, o3: { title: 'Significantly atypical', desc: 'Extremely inappropriate' } },
+                    q4: { title: 'Use of body', o0: { title: 'Within normal limits', desc: 'Movements typical for age' }, o1: { title: 'Mildly atypical', desc: 'Slight oddities' }, o2: { title: 'Moderately atypical', desc: 'Noticeable unusual movements' }, o3: { title: 'Significantly atypical', desc: 'Frequent odd movements' } },
+                    q5: { title: 'Use of objects', o0: { title: 'Within normal limits', desc: 'Appropriate use' }, o1: { title: 'Mildly atypical', desc: 'Less interest or unusual use' }, o2: { title: 'Moderately atypical', desc: 'Little interest in function' }, o3: { title: 'Significantly atypical', desc: 'Focus on unusual aspects' } },
+                    q6: { title: 'Adaptation to change', o0: { title: 'Within normal limits', desc: 'Adapts easily' }, o1: { title: 'Mildly atypical', desc: 'Difficulties with new tasks' }, o2: { title: 'Moderately atypical', desc: 'Strongly resists change' }, o3: { title: 'Significantly atypical', desc: 'Severe reactions' } },
+                    q7: { title: 'Visual response', o0: { title: 'Within normal limits', desc: 'Normal eye contact' }, o1: { title: 'Mildly atypical', desc: 'Occasional staring' }, o2: { title: 'Moderately atypical', desc: 'Frequent odd use of eyes' }, o3: { title: 'Significantly atypical', desc: 'Extreme visual avoidance' } },
+                    q8: { title: 'Listening response', o0: { title: 'Within normal limits', desc: 'Normal response' }, o1: { title: 'Mildly atypical', desc: 'Sometimes disregards sounds' }, o2: { title: 'Moderately atypical', desc: 'Often disregards sounds' }, o3: { title: 'Significantly atypical', desc: 'Marked overreaction' } },
+                    q9: { title: 'Taste, smell, and touch response', o0: { title: 'Within normal limits', desc: 'Normal use' }, o1: { title: 'Mildly atypical', desc: 'May occasionally overreact' }, o2: { title: 'Moderately atypical', desc: 'Frequently preoccupied' }, o3: { title: 'Significantly atypical', desc: 'Severe reactions' } },
+                    q10: { title: 'Fear or nervousness', o0: { title: 'Within normal limits', desc: 'Normal for situation' }, o1: { title: 'Mildly atypical', desc: 'More or less fear than expected' }, o2: { title: 'Moderately atypical', desc: 'Fear is frequent, extreme' }, o3: { title: 'Significantly atypical', desc: 'Persistent fear' } },
+                    q11: { title: 'Verbal communication', o0: { title: 'Within normal limits', desc: 'Normal development' }, o1: { title: 'Mildly atypical', desc: 'Slow development' }, o2: { title: 'Moderately atypical', desc: 'Unusual speech, repetition' }, o3: { title: 'Significantly atypical', desc: 'No meaningful speech' } },
+                    q12: { title: 'Nonverbal communication', o0: { title: 'Within normal limits', desc: 'Normal use of gestures' }, o1: { title: 'Mildly atypical', desc: 'Immature or awkward' }, o2: { title: 'Moderately atypical', desc: 'Frequent difficulty' }, o3: { title: 'Significantly atypical', desc: 'Peculiar or absent' } },
+                    q13: { title: 'Activity level', o0: { title: 'Within normal limits', desc: 'Appropriate for age' }, o1: { title: 'Mildly atypical', desc: 'Slightly hyper or lethargic' }, o2: { title: 'Moderately atypical', desc: 'Frequently restless' }, o3: { title: 'Significantly atypical', desc: 'Extreme activity levels' } },
+                    q14: { title: 'Intellectual response', o0: { title: 'Within normal limits', desc: 'Normal performance' }, o1: { title: 'Mildly atypical', desc: 'Not as high as it seems' }, o2: { title: 'Moderately atypical', desc: 'Significant delays' }, o3: { title: 'Significantly atypical', desc: 'Severe impairment' } },
+                    q15: { title: 'General impressions', o0: { title: 'Within normal limits', desc: 'No signs of autism' }, o1: { title: 'Mild symptoms', desc: 'Fulfills criteria for mild autism' }, o2: { title: 'Moderate symptoms', desc: 'Clear signs of autism' }, o3: { title: 'Severe symptoms', desc: 'Extreme symptoms' } }
+                }
+            }
         }
     },
     ai: {
@@ -286,7 +591,8 @@ export const en = {
             search: 'Search patient',
             new: 'New patient',
             list: 'Patient list',
-            appointments: 'Scheduled visits'
+            appointments: 'Scheduled visits',
+            referrals: 'Referrals'
         },
         services: {
             title: 'Services',
@@ -302,56 +608,640 @@ export const en = {
             aiAnalysis: 'AI Analysis',
             medicalReports: 'Medical reports',
             billing: 'Billing'
+        },
+        actions: {
+            spotlight: 'Spotlight'
+        },
+        options: {
+            darkMode: 'Dark Mode',
+            settings: 'Settings',
+            logout: 'Logout'
         }
     },
-    newPatient: {
-        title: 'New Patient',
-        description: 'Enter new patient data',
-        personalData: 'Personal Data',
-        form: {
-            firstName: 'First Name',
-            lastName: 'Last Name',
-            pesel: 'PESEL',
-            dateOfBirth: 'Date of Birth',
-            gender: 'Gender',
-            selectGender: 'Select gender',
-            genders: {
-                male: 'Male',
-                female: 'Female',
-                other: 'Other'
+
+    moduleSelection: {
+        loading: {
+            title: "Psychiatric Module",
+            initializing: "Initializing module..."
+        },
+        selection: {
+            subHeader: "Select a module to start working",
+            psychiatry: {
+                title: "Psychiatry",
+                subtitle: "Psychiatric module",
+                description: "Comprehensive tool for psychiatric documentation, powered by AI.",
+                bullet1: "• Intelligent psychiatric scales",
+                bullet2: "• Emotion and behavior analysis",
+                bullet3: "• AI diagnostic assistant"
             },
-            phone: 'Phone',
-            address: {
-                title: 'Address',
-                street: 'Street',
-                houseNumber: 'House No.',
-                apartmentNumber: 'Apartment No.',
-                postalCode: 'Postal Code',
-                city: 'City'
-            },
-            insurance: {
-                title: 'Insurance',
-                type: 'Insurance Type',
-                types: {
-                    nfz: 'NFZ',
-                    private: 'Private',
-                    none: 'None'
-                },
-                number: 'Insurance No.'
-            },
-            submit: 'Save patient'
+            poz: {
+                title: "POZ",
+                subtitle: "Primary Healthcare",
+                description: "Comprehensive system for managing primary care practice, with e-prescription and e-referral integration.",
+                bullet1: "• P1 Integration",
+                bullet2: "• Declaration management",
+                bullet3: "• NFZ settlements",
+                comingSoon: "Coming Soon"
+            }
         }
+    },
+
+    patientAction: {
+        viewDetails: "View Details",
+        patientProfile: "Patient Profile",
+        addInCalendar: "Add in Calendar",
+        deletePatient: "Delete Patient",
+        saveNote: "Save Note",
+        enterNote: "Enter your note here...",
+        cancel: "Cancel"
+    },
+
+    patientDetailsModal: {
+        sections: {
+            basicInfo: "BASIC INFORMATION",
+            address: "ADDRESS",
+            insurance: "INSURANCE",
+            portal: "PATIENT PORTAL / NOTIFICATIONS",
+            employer: "EMPLOYER",
+            authorizedPersons: "AUTHORIZED PERSONS AND LIST OF SHARED MEDICAL RECORDS",
+            consents: "CONSENT TO PROCESS PERSONAL DATA"
+        },
+        labels: {
+            pesel: "PESEL:",
+            dob: "Date of birth:",
+            insuranceType: "Type:",
+            insuranceNumber: "Number:",
+            portalAccount: "Portal account:",
+            notifications: "Notifications:",
+            idCard: "ID card:",
+            validUntil: "valid until:"
+        },
+        status: {
+            active: "Active",
+            granted: "Granted",
+            notGranted: "Not Granted"
+        },
+        empty: {
+            none: "None",
+            na: "N/A",
+            noAuthorizedPersons: "No authorized persons",
+            noConsents: "No consents provided"
+        },
+        buttons: {
+            close: "Close",
+            editData: "Edit data"
+        }
+    },
+
+    patientDocuments: {
+        title: "MEDICAL DOCUMENTATION",
+        fetchingDocuments: "Fetching documents...",
+        searchPlaceholder: "Search in documents...",
+        newDocument: "New document",
+        uploadTitle: "Upload New Document",
+        documentCategory: "Document Category",
+        selectCategory: "Select a category",
+        categoryLabResults: "Laboratory Results",
+        categoryInformedConsent: "Informed Consent",
+        documentFile: "Document File",
+        uploadAreaText: "Click or drag file to this area to upload",
+        uploadAreaSubText: "Support for a single file upload. PDF, DOC, DOCX, JPG, PNG formats.",
+        description: "Description",
+        descriptionPlaceholder: "Enter document description here...",
+        addDocument: "Add Document",
+        documentsToUpload: "Documents to Upload",
+        cancel: "Cancel",
+        uploadDocuments: "Upload Documents",
+        untitledDocument: "Untitled Document",
+        noDate: "No date",
+        author: "Author:",
+        system: "System",
+        noDescription: "No description provided for this document.",
+        noSearchMatch: "No documents match your search",
+        noDocuments: "No documents found",
+        selectFileCategory: "Please select a file and a category",
+        uploadSuccess: "Patient medical record updated successfully!",
+        uploadFailed: "Failed to update medical record",
+        uploadError: "An error occurred during upload"
+    },
+
+    patientInsurance: {
+        title: "INSURANCE HISTORY",
+        searchPlaceholder: "Search in insurance history...",
+        filter: "Filter",
+        export: "Export",
+        insurer: "Insurer:",
+        policyNumber: "Policy Number:",
+        noInsuranceHistory: "No insurance history",
+        na: "N/A"
+    },
+
+    patientLaboratory: {
+        title: "TEST RESULTS",
+        fetchingRecords: "Fetching lab records...",
+        searchPlaceholder: "Search lab results...",
+        addResults: "Add Results",
+        addLabResults: "Add Lab Results",
+        basicInformation: "Basic Information",
+        testName: "Test Name",
+        testNamePlaceholder: "e.g. Blood Morphology, Lipid Profile",
+        orderDate: "Order Date",
+        selectDate: "Select date",
+        done: "Done",
+        labReferenceNumber: "Lab Reference Number",
+        labRefPlaceholder: "e.g. LAB/2024/001",
+        testParameters: "Test Parameters",
+        addParameter: "Add Parameter",
+        parameterName: "Parameter Name",
+        normalRange: "Normal Range",
+        normalRangePlaceholder: "e.g. 4.0-10.0, <200, >40",
+        unit: "Unit",
+        unitPlaceholder: "e.g. g/dL, 10^3/\u03bcL",
+        value: "Value",
+        cancel: "Cancel",
+        addResult: "Add Result",
+        noParametersAdded: "No parameters added. Click 'Add Parameter' to start.",
+        laboratoryTest: "Laboratory Test",
+        orderNumber: "Order number:",
+        normalRangeLabel: "Normal range:",
+        noParametersRecorded: "No parameters recorded for this test.",
+        noSearchMatch: "No lab results match your search",
+        noLabResults: "No lab results found",
+        enterTestNameRef: "Please enter test name and reference number",
+        addSuccess: "Laboratory result added successfully",
+        addFailed: "Failed to update laboratory records"
+    },
+
+    medicalData: {
+        fetchingHistory: "Fetching medical history...",
+        medications: "Medications",
+        diagnoses: "Diagnoses",
+        allergies: "Allergies",
+        chronicConditions: "Chronic Conditions",
+        familyHistory: "Family History",
+        riskFactors: "Risk Factors",
+        addMedication: "Add Medication",
+        addDiagnosis: "Add Diagnosis",
+        addAllergy: "Add Allergy",
+        addChronicCondition: "Add Chronic Condition",
+        addFamilyHistory: "Add Family History",
+        addRiskFactor: "Add Risk Factor",
+        medicationName: "Medication Name",
+        medicationNamePlaceholder: "Enter medication name",
+        genericName: "Common Name (Generic)",
+        genericNamePlaceholder: "Enter generic name",
+        form: "Form",
+        dose: "Dose",
+        dosePlaceholder: "e.g. 500",
+        dosageInstructions: "Dosage Instructions",
+        dosageInstructionsPlaceholder: "e.g. 1 tablet twice daily",
+        startDate: "Start Date",
+        notes: "Notes",
+        notesPlaceholder: "Add any additional notes...",
+        regularMedication: "Regular medication (taken on schedule)",
+        diagnosisDescription: "Description",
+        diagnosisCode: "Code",
+        diagnosisCodePlaceholder: "e.g. F32.1",
+        diagnosisType: "Diagnosis Type",
+        primaryDiagnosis: "Primary diagnosis",
+        secondaryDiagnosis: "Secondary diagnosis",
+        allergyType: "Allergy Type",
+        allergenName: "Allergen Name",
+        allergenNamePlaceholder: "Enter allergen name...",
+        allergicReaction: "Allergic Reaction",
+        allergicReactionPlaceholder: "Describe allergic reaction...",
+        severity: "Severity",
+        selectSeverity: "Select severity",
+        conditionName: "Condition Name",
+        conditionNamePlaceholder: "Enter condition name...",
+        status: "Status",
+        selectStatus: "Select status",
+        currentTreatment: "Current Treatment",
+        currentTreatmentPlaceholder: "Describe treatment plan...",
+        diseaseName: "Disease Name",
+        diseaseNamePlaceholder: "e.g. Hypertension",
+        relationship: "Relationship",
+        selectRelationship: "Select relationship",
+        ageOfOnset: "Age of Onset",
+        ageOfOnsetPlaceholder: "e.g. 45",
+        riskFactor: "Factor",
+        riskFactorPlaceholder: "e.g. Smoking",
+        riskCategory: "Risk Category",
+        selectCategory: "Select category",
+        riskLevel: "Level",
+        done: "Done",
+        cancel: "Cancel",
+        add: "Add",
+        saveChanges: "Save Changes",
+        updateSuccess: "{{section}} updated successfully",
+        updateFailed: "Failed to update {{section}}"
+    },
+
+    patientLogs: {
+        title: "Patient Activity Logs",
+        searchPlaceholder: "Search logs...",
+        allCategories: "All Categories",
+        medical: "Medical",
+        other: "Other",
+        personal: "Personal",
+        system: "System",
+        activityType: "ACTIVITY TYPE",
+        performedBy: "PERFORMED BY",
+        dateTime: "DATE & TIME",
+        summary: "SUMMARY",
+        loadingLogs: "Loading logs...",
+        noLogsFound: "No logs found",
+        showingLogs: "Showing {{filtered}} of {{total}} logs",
+        na: "N/A",
+        viewedMedicalInfo: "Viewed Medical Information",
+        updated: "Updated {{field}}"
+    },
+
+    personalData: {
+        fetchingDetails: "Fetching profile details...",
+        basicInformation: "Basic Information",
+        moreInformation: "More Information",
+        address: "Address",
+        insurance: "Insurance",
+        employer: "Employer",
+        authorizedPersons: "Authorized Persons",
+        consentProcessing: "Consents & Processing",
+        firstName: "First Name",
+        lastName: "Last Name",
+        middleName: "Middle Name",
+        maidenName: "Maiden Name",
+        pesel: "PESEL",
+        dob: "Date of Birth",
+        gender: "Gender",
+        phone: "Phone Number",
+        altPhone: "Alternative Phone",
+        email: "E-mail",
+        birthPlace: "Place of Birth",
+        bloodType: "Blood Type",
+        internalCardNumber: "Internal Card Number",
+        documentType: "Document Type",
+        foreignerStatus: "Foreigner Status",
+        city: "City",
+        street: "Street",
+        house: "House Number",
+        apartment: "Apartment Number",
+        postalCode: "Postal Code",
+        voivodeship: "Voivodeship",
+        country: "Country",
+        municipalityTeryt: "Municipality TERYT Code",
+        nfzBranch: "NFZ Branch",
+        additionalRights: "Additional Rights",
+        employerName: "Employer Name",
+        employerNip: "Employer NIP",
+        occupation: "Occupation",
+        symbol: "Production Symbol",
+        relationship: "Relationship",
+        docType: "Document Type",
+        docNumber: "Document Number",
+        validUntil: "Valid Until",
+        addNewInsurer: "Add New Insurer",
+        insurerName: "Insurer Name",
+        policyNumber: "Policy Number",
+        addAuthorizedPerson: "Add Authorized Person",
+        editAuthorizedPerson: "Edit Authorized Person",
+        noAuthorizationStatement: "Statement of No Authorization",
+        consentConfirmation: "Consent Confirmation",
+        saveChanges: "Save Changes",
+        add: "Add",
+        save: "Save",
+        cancel: "Cancel",
+        edit: "Edit",
+        remove: "Remove",
+        selectFile: "Select File",
+        grantConsent: "Grant Consent",
+        withdraw: "Withdraw",
+        granted: "Granted",
+        noConsent: "No Consent",
+        notAuthorizeAnyone: "Patient does not authorize anyone:",
+        signedCurrentAuthorization: "Patient signed current version of authorization:",
+        consentRequirementNotice: "In accordance with Polish law, patient consent requires a physical signed document. Please upload a scanned copy of the signed consent form.",
+        uploadConsentTitle: "Upload Consent Document",
+        uploadConsentDesc: "Please upload a scanned copy of the signed consent form before granting consent.",
+        acceptedFileTypes: "Accepted file types: PDF, JPG, PNG. Maximum size: 5MB.",
+        uploadAndGrant: "Upload and grant consent",
+        uploading: "Uploading...",
+        dateNotAvailable: "(Date not available)",
+        noInsurers: "No private insurers added",
+        noAuthPersons: "No authorized persons added",
+        searchInsurer: "Search (Insurer)",
+        insurerPolicy: "Policy: {{policy}}",
+        insurerStart: "Start Date: {{date}}",
+        insurerValid: "Valid until: {{date}}",
+        disclaimerSave: "Please remember to click the Submit button after adding or deleting an insurer to save the changes",
+        submit: "Save",
+        startDate: "Start Date",
+        selectDate: "Select Date",
+        saveSuccess: "Information for {{section}} updated!",
+        saveError: "Failed to update information for {{section}}.",
+        consentUploadSuccess: "Consent document uploaded and consent granted successfully!",
+        consentWithdrawSuccess: "Consent has been withdrawn successfully.",
+        na: "N/A"
+    },
+
+    medicalData: {
+        medicines: "Medicines",
+        regularMedications: "Regular Medications",
+        addMedication: "Add Medication",
+        noRegularMedications: "No regular medications added",
+        asNeededMedications: "As Needed Medications",
+        noAsNeededMedications: "No as-needed medications added",
+        medicationHistory: "Medication History",
+        noMedicationHistory: "No medication history found",
+        saving: "Saving...",
+        save: "Save",
+        add: "Add",
+        diagnosis: "Diagnosis",
+        activeDiagnoses: "Active Diagnoses",
+        addDiagnosis: "Add Diagnosis",
+        noActiveDiagnoses: "No active diagnoses recorded",
+        diagnosisHistory: "Diagnosis History",
+        noDiagnosisHistory: "No historical diagnoses found",
+        allergiesAndIntolerances: "Allergies & Intolerances",
+        addAllergy: "Add Allergy",
+        noRegisteredAllergies: "No registered allergies",
+        pastAllergies: "Past Allergies",
+        noAllergyHistory: "No allergy history recorded",
+        chronicDiseases: "Chronic Diseases",
+        chronicConditions: "Chronic Conditions",
+        addCondition: "Add Condition",
+        noChronicConditions: "No record of chronic diseases",
+        chronicDiseaseHistory: "Chronic Disease History",
+        noChronicConditionHistory: "No historical records of chronic conditions",
+        familyInterview: "Family Interview",
+        familyHistory: "Family History",
+        addEntry: "Add Entry",
+        noFamilyHistoryEntries: "No family history entries recorded",
+        pastFamilyHistory: "Past Family History",
+        noHistoricalEntries: "No historical family history entries",
+        riskFactors: "Risk Factors",
+        addRiskFactor: "Add Risk Factor",
+        noRiskFactorsRecorded: "No risk factors recorded",
+        riskFactorHistory: "Risk Factor History",
+        noRiskHistory: "No historical records of risk factors",
+        medicationName: "Medication Name",
+        commonName: "Common Name",
+        form: "Form",
+        dose: "Dose",
+        dosageInstructions: "Dosage Instructions",
+        startDate: "Start Date",
+        notes: "Notes",
+        notesPlaceholder: "Add any relevant notes here...",
+        regularMedication: "This is a regular medication",
+        cancel: "Cancel",
+        description: "Description",
+        code: "Code",
+        diagnosisType: "Diagnosis Type",
+        primaryDiagnosis: "Primary Diagnosis",
+        secondaryDiagnosis: "Secondary Diagnosis",
+        diagnosisNotesPlaceholder: "Describe the diagnosis in detail...",
+        allergyType: "Allergy Type",
+        allergenName: "Allergen Name",
+        allergicReaction: "Allergic Reaction",
+        severity: "Severity",
+        conditionName: "Condition Name",
+        status: "Status",
+        currentTreatment: "Current Treatment",
+        diseaseName: "Disease Name",
+        relationship: "Relationship",
+        ageOfOnset: "Age of Onset",
+        riskCategory: "Risk Category",
+        riskFactor: "Risk Factor",
+        riskLevel: "Risk Level",
+        dosage: "Dosage",
+        from: "From",
+        diagnosed: "Diagnosed",
+        reaction: "Reaction",
+        treatment: "Treatment",
+        category: "Category",
+        saveSuccess: "{{section}} information updated successfully!",
+        saveError: "Failed to update {{section}} information.",
+        fetchingHistory: "Fetching medical history...",
+        active: "Active",
+        end: "End",
+        done: "Done",
+        placeholderMedName: "e.g. Paracetamol",
+        placeholderGenericName: "Enter generic name",
+        placeholderForm: "Tablet",
+        placeholderDose: "e.g. 500",
+        placeholderInstructions: "e.g. 1 tablet twice daily",
+        placeholderSelectDate: "Select date",
+        placeholderDiagnosisCode: "e.g. F32.1",
+        placeholderSelectType: "Select type",
+        placeholderAllergenName: "Enter allergen name...",
+        placeholderAllergicReaction: "Describe allergic reaction...",
+        placeholderSelectSeverity: "Select severity",
+        placeholderConditionName: "Enter condition name...",
+        placeholderSelectStatus: "Select status",
+        placeholderTreatmentPlan: "Describe treatment plan...",
+        placeholderDiseaseName: "e.g. Depression",
+        placeholderSelectRelationship: "Select relationship",
+        placeholderAgeOfOnset: "e.g. 45 years",
+        placeholderSelectCategory: "Select category",
+        placeholderEnterRiskFactor: "Enter or select risk factor...",
+
+        options: {
+            medicationForms: {
+                Tablet: "Tablet",
+                Capsule: "Capsule",
+                Liquid: "Liquid",
+                Injection: "Injection",
+                Inhaler: "Inhaler",
+                Patch: "Patch",
+                Cream: "Cream",
+                Other: "Other"
+            },
+            severityLevels: {
+                Low: "Low",
+                Mild: "Mild",
+                Moderate: "Moderate",
+                Severe: "Severe",
+                High: "High"
+            },
+            conditionStatuses: {
+                Active: "Active",
+                Remission: "Remission",
+                Resolved: "Resolved"
+            },
+            relationships: {
+                Mother: "Mother",
+                Father: "Father",
+                Sister: "Sister",
+                Brother: "Brother",
+                "Grandmother (maternal)": "Grandmother (maternal)",
+                "Grandmother (paternal)": "Grandmother (paternal)",
+                "Grandfather (maternal)": "Grandfather (maternal)",
+                "Grandfather (paternal)": "Grandfather (paternal)",
+                "Aunt (maternal)": "Aunt (maternal)",
+                "Aunt (paternal)": "Aunt (paternal)",
+                "Uncle (maternal)": "Uncle (maternal)",
+                "Uncle (paternal)": "Uncle (paternal)"
+            },
+            riskCategories: {
+                Lifestyle: "Lifestyle",
+                Genetic: "Genetic",
+                "Medical History": "Medical History",
+                Environmental: "Environmental"
+            },
+            allergyTypes: {
+                Drug: "Drug",
+                Food: "Food",
+                Environment: "Environment",
+                Other: "Other"
+            },
+            diagnosisTypes: {
+                Primary: "Primary",
+                Secondary: "Secondary"
+            }
+        }
+    },
+
+    createVisit: {},
+    spotlight: {
+        title: 'Spotlight',
+        subtitle: 'Securely share anonymized patient data for clinical research',
+        newSubmission: 'New Submission',
+        mySubmission: 'My Submission',
+        patientSelection: 'Patient Selection',
+        searchPatient: 'Search patient',
+        myRequests: 'My submissions in Spotlight',
+        status: {
+            pending: 'Pending',
+            accepted: 'Accepted'
+        },
+        patientId: 'Patient ID',
+        submissionDate: 'Submission Date',
+        view: 'View',
+        includeInStudy: 'Include in study',
+        clinicalCenter: 'Clinical Research Center',
+        migraineStudy: 'A study on the effectiveness of a new therapy in the treatment of migraine'
+    },
+    visitList: {
+        visitHistory: "VISIT HISTORY",
+        totalVisits: "Total visits: {{count}}",
+        fetchingVisitHistory: "Fetching visit history...",
+        doctor: "Doctor",
+        notes: "Notes",
+        noNotes: "No notes",
+        medicalInterview: "Medical interview",
+        mainSymptoms: "Main symptoms",
+        psychiatricScales: "Psychiatric scales",
+        examination: "Examination",
+        bloodPressure: "Blood pressure",
+        generalCondition: "General condition",
+        heartRate: "Heart rate",
+        temperature: "Temperature",
+        noData: "No data",
+        noVisits: "No visits found",
+        regular: "regular",
+        scheduled: "scheduled",
+        completed: "completed",
+        cancelled: "cancelled",
+        inprogress: "in progress"
+    },
+    newPatient: {
+        newPatient: 'New Patient',
+        enterNewPatientData: 'Enter new patient data',
+        personalData: 'Personal Data',
+        firstName: 'First Name',
+        firstNamePlaceholder: 'Enter first name',
+        lastName: 'Last Name',
+        lastNamePlaceholder: 'Enter last name',
+        pesel: 'PESEL',
+        peselPlaceholder: 'Enter PESEL number',
+        dob: 'Date of Birth',
+        selectDate: 'Select date',
+        confirm: 'Confirm',
+        gender: 'Gender',
+        selectGender: 'Select gender',
+        phone: 'Phone',
+        phonePlaceholder: 'Enter phone number',
+        middleName: 'Middle Name',
+        middleNamePlaceholder: 'Enter middle name',
+        maidenName: 'Maiden Name',
+        maidenNamePlaceholder: 'Enter maiden name',
+        alternativePhone: 'Alternative Phone',
+        altPhonePlaceholder: 'Enter alternative phone',
+        email: 'Email',
+        emailPlaceholder: 'Enter email address',
+        birthPlace: 'Place of Birth',
+        birthPlacePlaceholder: 'Enter place of birth',
+        documentType: 'Document Type',
+        selectDocumentType: 'Select document type',
+        bloodType: 'Blood Type',
+        selectBloodType: 'Select blood type',
+        internalCardNo: 'Internal Card No.',
+        internalCardNoPlaceholder: 'Enter internal card number',
+        foreigner: 'Foreigner',
+        select: 'Select',
+        address: 'Address',
+        street: 'Street',
+        streetPlaceholder: 'Enter street',
+        houseNo: 'House No.',
+        houseNoPlaceholder: 'Enter house number',
+        apartmentNo: 'Apartment No.',
+        apartmentNoPlaceholder: 'Enter apartment number',
+        postalCode: 'Postal Code',
+        postalCodePlaceholder: 'Enter postal code (e.g. 00-000)',
+        city: 'City',
+        cityPlaceholder: 'Enter city',
+        voivodeship: 'Voivodeship',
+        country: 'Country',
+        municipalityTeryt: 'Municipality (TERYT)',
+        municipalityTerytPlaceholder: 'Enter TERYT code',
+        insurance: 'Insurance',
+        insuranceType: 'Insurance Type',
+        selectInsuranceType: 'Select insurance type',
+        insuranceNo: 'Insurance No.',
+        insuranceNoPlaceholder: 'Enter insurance number',
+        savePatient: 'Save Patient',
+        male: 'Male',
+        female: 'Female',
+        other: 'Other',
+        nfz: 'NFZ',
+        private: 'Private',
+        none: 'None',
+        residenceCard: 'Residence Card',
+        idCard: 'ID Card',
+        ehic: 'EHIC (EKUZ)',
+        euEogId: 'EU/EOG Identity Card',
+        foreignLicense: 'Foreign Driving License',
+        noneInfant: 'None (Infant)',
+        noneNn: 'None (NN)',
+        noneNw: 'None (NW)',
+        yes: 'Yes',
+        no: 'No',
+        poland: 'Poland',
+        germany: 'Germany',
+        unitedKingdom: 'United Kingdom',
+        france: 'France',
+        fillCompulsoryFields: 'Please fill all compulsory fields marked with *',
+        phoneLengthError: 'Phone number must be exactly 9 digits',
+        peselLengthError: 'PESEL must be exactly 11 digits',
+        altPhoneLengthError: 'Alternative phone must be exactly 9 digits',
+        invalidEmail: 'Please enter a valid email address',
+        postalCodeFormatError: 'Postal code must be in 00-000 format',
+        createSuccess: 'Patient created successfully',
+        createError: 'Failed to create patient'
     },
     patientSearch: {
         title: 'Search Patients',
+        subtitle: 'Search patients by name, PESEL number or card number',
         description: 'Search patients by name, PESEL number or card number',
-        searchPlaceholder: 'Name, PESEL or card number...',
+        filtersLabel: 'Filters',
+        placeholders: {
+            search: 'Name, PESEL or card number...',
+        },
         enterCriteria: 'Enter search criteria to see results',
         filters: {
-            birthDate: 'Date of Birth',
-            gender: 'Gender',
-            allGenders: 'All',
-            genders: {
+            dob: 'Date of Birth',
+            gender: {
+                label: 'Gender',
+                all: 'All',
                 male: 'Male',
                 female: 'Female',
                 other: 'Other'
@@ -363,33 +1253,57 @@ export const en = {
             isDeceased: 'Deceased',
             hasDebt: 'Has Debt',
             isActive: 'Active',
-            longAbsent: 'Long Absent',
-            clear: 'Clear filters',
-            apply: 'Apply filters'
+            isLongAbsent: 'Long Absent',
+            placeholders: {
+                gender: 'Select gender',
+                dob: 'dd/mm/yyyy'
+            }
+        },
+        buttons: {
+            clearFilters: 'Clear filters',
+            applyFilters: 'Apply filters'
         }
     },
     patientList: {
-        title: 'Patient List',
-        description: 'Manage patient records',
-        table: {
-            patient: 'Patient',
-            pesel: 'PESEL',
-            dateOfBirth: 'Date of birth',
-            lastVisit: 'Last visit',
-            status: 'Status',
-            actions: 'Actions'
-        },
-        actions: {
-            export: 'Export',
-            print: 'Print',
-            filters: 'Filters'
-        },
-        status: {
-            active: 'Active',
-            inactive: 'Inactive',
-            archived: 'Archived'
-        },
-        noData: 'No patients to display'
+        patientList: "Patient List",
+        manageRecords: "Manage patient records",
+        patient: "PATIENT",
+        pesel: "PESEL",
+        dob: "DATE OF BIRTH",
+        referral: "REFERRAL",
+        status: "STATUS",
+        actions: "ACTIONS",
+        export: "Export",
+        print: "Print",
+        filters: "Filters",
+        dateOfBirth: "Date of Birth",
+        gender: "Gender",
+        hasPesel: "Has PESEL",
+        hasDeclaration: "Has Declaration",
+        active: "Active",
+        inactive: "Inactive",
+        deceased: "Deceased",
+        longAbsent: "Long Absent",
+        hasDebt: "Has Debt",
+        clearFilters: "Clear filters",
+        applyFilters: "Apply filters",
+        loadingPatients: "Loading patients...",
+        itemsRange: "{{start}}-{{end}} of {{total}} items",
+        itemsPerPage: "{{count}} / page",
+        deletePatientTitle: "Delete Patient",
+        deletePatientConfirm: "Are you sure you want to delete patient {{name}}?",
+        deleteSuccess: "Patient and all related data have been deleted successfully",
+        deleteError: "Failed to delete patient",
+        deleteErrorGeneral: "An error occurred while deleting patient",
+        cancel: "Cancel",
+        delete: "Delete",
+        all: "All",
+        selectGender: "Select gender",
+        male: "Male",
+        female: "Female",
+        other: "Other",
+        idLabel: "ID:",
+        done: "Done"
     },
     appointments: {
         title: 'Scheduled Visits',
@@ -436,7 +1350,68 @@ export const en = {
         calendar: {
             day: 'Day',
             week: 'Week',
-            month: 'Month'
+            month: 'Month',
+            mon: 'Mon',
+            tue: 'Tue',
+            wed: 'Wed',
+            thu: 'Thu',
+            fri: 'Fri',
+            sat: 'Sat',
+            sun: 'Sun'
+        },
+        more: '+ {{count}} more',
+        visitCreated: 'Visit created successfully'
+    },
+    referrals: {
+        title: 'Referrals',
+        newReferral: 'New Referral',
+        incoming: 'Incoming Referrals',
+        outgoing: 'Outgoing Referrals',
+        emptyIncoming: 'No incoming referrals',
+        emptyOutgoing: 'No outgoing referrals',
+        table: {
+            patient: 'PATIENT',
+            referredBy: 'REFERRED BY',
+            referredTo: 'REFERRED TO',
+            reason: 'REASON FOR REFERRAL',
+            status: 'STATUS',
+            date: 'DATE',
+            actions: 'ACTIONS'
+        },
+        modal: {
+            title: 'New Referral',
+            doctor: 'Doctor',
+            nurse: 'Nurse',
+            patient: 'Patient',
+            referredTo: 'Referred To',
+            specialization: 'Specialization',
+            reason: 'Reason for Referral',
+            notes: 'Notes',
+            placeholders: {
+                patient: 'Select patient',
+                provider: 'Select provider',
+                specialization: 'Enter specialization',
+                reason: 'Enter reason',
+                notes: 'Enter additional notes'
+            }
+        },
+        details: {
+            title: 'Referral Details',
+            patient: 'Patient',
+            status: 'Status',
+            referredTo: 'Referred To',
+            referredBy: 'Referred By',
+            date: 'Date',
+            specialization: 'Specialization',
+            reason: 'Reason for Referral',
+            notes: 'Notes',
+            created: 'Created',
+            lastUpdated: 'Last Updated'
+        },
+        messages: {
+            success: 'Referral created successfully',
+            error: 'Failed to create referral',
+            requiredFields: 'Please fill in all required fields'
         }
     },
     module: {
@@ -471,7 +1446,12 @@ export const en = {
         "forgot_password": "Forgot password?",
         "no_account": "Don't have an account?",
         "sign_up": "Sign up",
-        "login_success": "Login successful!!"
+        "login_success": "Login successful!",
+        "signing_in": "Signing in...",
+        "play_services_error": "Play services not available or outdated",
+        "google_signin_error": "Error Signing In with Google",
+        "google_signin_success": "Google Sign-In success",
+        "google_login_failed": "Failed to initiate Google login"
     },
 
     signup: {
@@ -490,8 +1470,11 @@ export const en = {
         "continue_with_google": "Continue with Google",
         "have_account": "Already have an account?",
         "sign_in": "Sign In",
-        "registration_success": "Registration successful. Please check your email for verification."
-
+        "registration_success": "User signed up successfully! Please verify your email address to login",
+        "signing_up": "Signing up...",
+        "google_signup_success": "Google Sign-Up successful!",
+        "google_signup_failed": "Failed to initiate Google sign-up",
+        "restriction_text": "Registration is restricted to authorized email addresses only."
     },
     forgot_password: {
         "title": "Forgot Password",
@@ -533,7 +1516,6 @@ export const en = {
       "reset_button": "Reset Password",
       "back_to_login": "Back to Login",
       "reset_success": "Reset password successful."
-
     },
     "patient_profile": {
         "title": "Patient Profile",
@@ -2033,6 +3015,7 @@ export const en = {
             },
             "previousVisits": {
                 "section": "Previous visits",
+                "emptyText": "No previous visits to display",
                 "visitType": "{{type}} - {{diagnosis}}"
             }
         },
@@ -2041,6 +3024,20 @@ export const en = {
             "moderate": "MODERATE",
             "high": "HIGH"
         }
+    },
+
+    "trends": {
+        "title": "Clinical Trends Analysis",
+        "subtitle": "Analysis of psychiatric scale changes over time",
+        "emptyTitle": "No psychiatric scale data available",
+        "emptySubtitle": "Complete assessments during visits to see trends",
+        "aiInsights": "AI Insights",
+        "insufficientData": "Insufficient scale data for trend analysis. Consider completing psychiatric assessments in future visits.",
+        "analyzing": "Psychiatric assessments found across {{count}} visits. Analyzing trends...",
+        "totalVisits": "Total Visits",
+        "visitHistory": "Patient visit history",
+        "scalesCompleted": "Scales Completed",
+        "combinedScales": "HAM-D and MADRS combined"
     },
 
     "interviewCoach": {
@@ -3195,6 +4192,93 @@ export const en = {
         "dateFormat": "Invalid date format"
     },
 
+    "newPatient": {
+        "newPatient": "New Patient",
+        "enterNewPatientData": "Enter new patient data",
+        "personalData": "Personal Data",
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "pesel": "PESEL",
+        "dob": "Date of Birth",
+        "gender": "Gender",
+        "phone": "Phone",
+        "middleName": "Middle Name",
+        "maidenName": "Maiden Name",
+        "alternativePhone": "Alternative Phone",
+        "email": "Email",
+        "birthPlace": "Place of Birth",
+        "documentType": "Document Type",
+        "bloodType": "Blood Type",
+        "internalCardNo": "Internal Card No.",
+        "foreigner": "Foreigner",
+        "address": "Address",
+        "street": "Street",
+        "houseNo": "House No.",
+        "apartmentNo": "Apartment No.",
+        "postalCode": "Postal Code",
+        "city": "City",
+        "voivodeship": "Voivodeship",
+        "country": "Country",
+        "municipalityTeryt": "Municipality (TERYT)",
+        "insurance": "Insurance",
+        "insuranceType": "Insurance Type",
+        "insuranceNo": "Insurance No.",
+        "savePatient": "Save Patient",
+        "fillCompulsoryFields": "Please fill in all compulsory fields marked with *",
+        "phoneLengthError": "Phone number must be exactly 9 digits",
+        "peselLengthError": "PESEL must be exactly 11 digits",
+        "altPhoneLengthError": "Alternative phone number must be exactly 9 digits",
+        "invalidEmail": "Please enter a valid email address",
+        "postalCodeFormatError": "Postal code must be in 00-000 format",
+        "createSuccess": "Patient created successfully!",
+        "createError": "Failed to create patient",
+        "selectDate": "Select date",
+        "selectGender": "Select gender",
+        "selectDocumentType": "Select document type",
+        "selectBloodType": "Select blood type",
+        "select": "Select",
+        "selectInsuranceType": "Select insurance type",
+        "confirm": "Confirm",
+        "male": "Male",
+        "female": "Female",
+        "other": "Other",
+        "nfz": "NFZ",
+        "private": "Private",
+        "none": "None",
+        "residenceCard": "Residence Card",
+        "idCard": "ID Card",
+        "ehic": "EHIC (EKUZ)",
+        "euEogId": "EU/EOG Identity Card",
+        "foreignLicense": "Foreign Driving License",
+        "noneInfant": "None (Infant)",
+        "noneNn": "None (NN)",
+        "noneNw": "None (NW)",
+        "yes": "Yes",
+        "no": "No",
+        "poland": "Poland",
+        "germany": "Germany",
+        "unitedKingdom": "United Kingdom",
+        "france": "France",
+        "firstNamePlaceholder": "Enter first name",
+        "lastNamePlaceholder": "Enter last name",
+        "peselPlaceholder": "Enter PESEL number",
+        "phonePlaceholder": "Enter phone number",
+        "middleNamePlaceholder": "Enter middle name",
+        "maidenNamePlaceholder": "Enter maiden name",
+        "altPhonePlaceholder": "Enter alternative phone",
+        "emailPlaceholder": "Enter email address",
+        "birthPlacePlaceholder": "Enter place of birth",
+        "internalCardNoPlaceholder": "Enter internal card no.",
+        "streetPlaceholder": "Enter street name",
+        "houseNoPlaceholder": "Enter house number",
+        "apartmentNoPlaceholder": "Enter apartment number",
+        "postalCodePlaceholder": "Enter postal code",
+        "cityPlaceholder": "Enter city name",
+        "municipalityTerytPlaceholder": "Enter municipality TERYT",
+        "insuranceNoPlaceholder": "Enter insurance number"
+    },
+
+
     "medications_form": {
         "sections": {
             "regular": "Regular Medications",
@@ -3658,6 +4742,729 @@ export const en = {
         "electronicComm": {
             "title": "Electronic Communication",
             "description": "I consent to receiving medical and organizational information via electronic means (email, SMS)."
+        }
+    },
+    "aiAnalysis": {
+        "header": {
+            "title": "Statistical analysis AI",
+            "subtitle": "Advanced clinical data analysis supported by artificial intelligence"
+        },
+        "tabs": {
+            "analysis": "Analysis",
+            "summary": "Summary",
+            "recommendations": "Recommendations"
+        },
+        "filterForm": {
+            "timeRange": "Time Range",
+            "lastMonth": "Last month",
+            "lastWeek": "Last Week",
+            "lastYear": "Last Year",
+            "branch": "Branch",
+            "allBranches": "All branches",
+            "cardiology": "Cardiology",
+            "neurology": "Neurology",
+            "surgery": "Surgery",
+            "doctors": "Doctors",
+            "allDoctors": "All doctors",
+            "metrics": "Metrics",
+            "visits": "Visits",
+            "recognitions": "Recognitions"
+        },
+        "statCards": {
+            "visits": "Visits",
+            "avgTimeToRemission": "Average time to remission",
+            "treatmentEffectiveness": "Treatment effectiveness",
+            "adherence": "Adherence",
+            "vsPreviousPeriod": "+{{percentage}}% vs\n previous period"
+        },
+        "charts": {
+            "diagnosticTrends": "Diagnostic trends",
+            "treatmentResults": "Treatment Results",
+            "remission": "Remission",
+            "partial": "Partial",
+            "stabilize": "Stabilize",
+            "noImprovement": "No imp."
+        },
+        "conclusions": {
+            "title": "Conclusions AI",
+            "subtitle": "Powered by advanced machine learning algorithms",
+            "clinicalPatterns": "Clinical patterns",
+            "pattern1": "A 23% increase in F32.1 diagnoses (Moderate depressive episode) was observed in the 25-35 age group. Main risk factors: occupational stress, social isolation.",
+            "pattern2": "Therapy effectiveness increased by 15% with early intervention (up to 2 weeks from first symptoms) and regular monitoring using clinical scales.",
+            "therapeuticRecommendations": "Therapeutic recommendations",
+            "recommendation1": "Patients with a combination of pharmacotherapy and psychotherapy show 35% higher treatment effectiveness compared to monotherapy.",
+            "recommendation2": "An increased risk of treatment discontinuation was identified at weeks 4-6 of therapy. Implementation of additional support and monitoring during this period is recommended."
+        },
+        "demographics": {
+            "title": "Patients demographics",
+            "middleAge": "Middle age",
+            "middleAgeValue": "42.5 years",
+            "genderDistribution": "Gender distribution",
+            "genderDistributionValue": "F: 65% | M: 35%",
+            "newPatients": "New Patients",
+            "newPatientsValue": "+124 (30d)"
+        },
+        "treatmentMetrics": {
+            "title": "Treatment metrics",
+            "avgTherapyLength": "Average length of therapy",
+            "avgTherapyLengthValue": "4.2 months",
+            "remissionRate": "Remission rate",
+            "remissionRateValue": "72.5%",
+            "continuationOfTreatment": "Continuation of treatment",
+            "continuationOfTreatmentValue": "85.4%"
+        },
+        "qualityIndicators": {
+            "title": "Quality indicators",
+            "patientSatisfaction": "Patient satisfaction",
+            "patientSatisfactionValue": "4.8/5.0",
+            "readmissions": "Readmissions",
+            "readmissionsValue": "3.2%",
+            "documentationCompleteness": "Completeness of documentation",
+            "documentationCompletenessValue": "98.7%"
+        }
+    },
+    "aiAssistant": {
+        "header": {
+            "title": "AI Assistants",
+            "subtitle": "Advanced AI tools supporting doctor's work"
+        },
+        "tabs": {
+            "remediusConsult": "Remedius Consult",
+            "remediusPathfinder": "Remedius Pathfinder",
+            "pharmacopedia": "Pharmacopedia",
+            "diagnosis": "Diagnosis",
+            "clinicalTrials": "Clinical Trials",
+            "statisticalAnalysis": "Statistical Analysis"
+        },
+        "consultChat": {
+            "visitHistory": "Visit History",
+            "clinicalAssistant": "Clinical Assistant",
+            "selectionDesc": "Start a new consultation session to get AI-powered medical guidance",
+            "selectSpecialty": "Select Specialty",
+            "chooseSpecialty": "Choose a specialty",
+            "startNewConsultation": "+ Start New Consultation",
+            "childPsychiatry": "Child Psychiatry",
+            "adultPsychiatry": "Adult Psychiatry",
+            "internalMedicine": "Internal Medicine",
+            "childPsychShort": "Child Psych",
+            "adultPsychShort": "Adult Psych",
+            "internalShort": "Internal",
+            "generalShort": "General",
+            "session": "Session",
+            "askPlaceholder": "Ask about patient's condition...",
+            "aiThinking": "AI is thinking...",
+            "sessionDeletedSuccess": "Session deleted successfully",
+            "failedDeleteSession": "Failed to delete session",
+            "welcomeMessage": "Hello! I'm your {{specialty}} AI assistant. I'm here to help based on evidence-based clinical guidelines. How can I assist you with the patient's condition?",
+            "simulationMode": "Simulation: I am in local mode because no session was established."
+        },
+        "pharmacopedia": {
+            "title": "Pharmacopedia",
+            "drugQueries": "Drug Queries",
+            "query": "Query",
+            "landingDesc": "Get evidence-based drug information from Stahl's Essential Psychopharmacology Prescriber's Guide with AI-powered search.",
+            "startNewQuery": "+ Start New Query",
+            "creating": "Creating...",
+            "askPlaceholder": "Ask about medications...",
+            "aiThinking": "AI is thinking...",
+            "ragEnhanced": "RAG-Enhanced AI",
+            "welcomeMessage": "Welcome to Pharmacopedia! I can help you with drug information, dosing guidelines, interactions, and side effects. What would you like to know?",
+            "failedCreateQuery": "Failed to create new query. Please try again.",
+            "queryDeletedSuccess": "Query deleted successfully",
+            "failedDeleteQuery": "Failed to delete query. Please try again.",
+            "failedAiResponse": "Failed to get AI response. Please try again."
+        },
+        "diagnosis": {
+            "title": "Differential Diagnosis Assistant",
+            "symptoms": "Symptoms",
+            "enterSymptom": "Enter symptom...",
+            "add": "+ Add",
+            "analyze": "Analyze"
+        },
+        "clinicalTrials": {
+            "diagnosis": "Diagnosis",
+            "diagnosisPlaceholder": "e.g. Migraine",
+            "location": "Location",
+            "locationPlaceholder": "e.g. Warsaw",
+            "searching": "Searching...",
+            "searchTrials": "Search trials",
+            "foundTrials": "Found trials ({{count}})",
+            "id": "ID",
+            "sponsor": "Sponsor",
+            "phase": "Phase",
+            "inclusionCriteria": "Inclusion criteria:",
+            "exclusionCriteria": "Exclusion criteria:",
+            "details": "Details",
+            "noResults": "No clinical trials found for your search.",
+            "enterDiagnosis": "Please enter a diagnosis",
+            "fetchFailed": "Failed to fetch clinical trials"
+        },
+        "pathfinder": {
+            "title": "Remedius Pathfinder",
+            "subtitle": "AI-powered research publication assistant",
+            "heroTitle": "Create Your First Research Project",
+            "heroDesc": "Upload documents, set a research topic, and generate academic publications with AI assistance",
+            "researchTopic": "Research Topic",
+            "researchTopicPlaceholder": "Enter your research topic or focus area...",
+            "uploadDocuments": "Upload Documents",
+            "uploadText": "Tap to browse and upload files",
+            "uploadSubText": "Supports PDF, DOC, DOCX (max 25MB each)",
+            "chooseFiles": "Choose Files",
+            "researchConfig": "Research Configuration",
+            "hideAdvanced": "Hide Advanced Options",
+            "showAdvanced": "Show Advanced Options",
+            "contentType": "Content Type",
+            "citationStyle": "Citation Style",
+            "keywordsFocus": "Keywords/Focus",
+            "researchPrompt": "Research Prompt",
+            "createProject": "Create Project",
+            "createFooter": "Project will be created with your selected configuration",
+            "researchProjects": "Research\nProjects",
+            "newProject": "New\nProject",
+            "noProjectsYet": "No research projects yet",
+            "createFirstProject": "Create your first research project",
+            "contentTypes": {
+                "literatureReview": "Literature Review",
+                "introduction": "Introduction",
+                "methodology": "Methodology",
+                "discussion": "Discussion",
+                "summary": "Summary",
+                "fullArticle": "Full Article (Draft)"
+            }
+        },
+        "statisticalAnalysis": {
+            "title": "Statistical Analysis",
+            "subtitle": "Comprehensive insights into your facility's performance",
+            "exportReport": "Export Report",
+            "select": "Select",
+            "lastMonth": "Last Month",
+            "lastQuarter": "Last Quarter",
+            "lastYear": "Last Year",
+            "totalVisits": "Total Visits",
+            "overallTotal": "Overall total",
+            "totalPatients": "Total Patients",
+            "uniquePatients": "Unique patients",
+            "referrals": "Referrals",
+            "totalReferrals": "Total referrals",
+            "todaysVisits": "Today's Visits",
+            "scheduledForToday": "Scheduled for today",
+            "tabs": {
+                "overview": "Overview",
+                "clinical": "Clinical",
+                "demographics": "Demographics",
+                "referrals": "Referrals"
+            },
+            "charts": {
+                "visitsOverTime": "Visits Over Time",
+                "visitStatus": "Visit Status",
+                "visitTypes": "Visit Types",
+                "modalityDistribution": "Modality Distribution",
+                "topDiagnoses": "Top Diagnoses",
+                "noDiagnosisData": "No diagnosis data for this period",
+                "genderDistribution": "Gender Distribution",
+                "ageGroups": "Age Groups",
+                "patientsByCity": "Patient Distribution by City",
+                "referralStatus": "Referral Status",
+                "pending": "pending",
+                "topSpecializations": "Top Specializations"
+            }
+        }
+    },
+    employee_modals: {
+        add_employee: {
+            title_doctor: "Add Doctor",
+            title_nurse: "Add Nurse",
+            title_receptionist: "Add Receptionist",
+            labels: {
+                firstName: "First Name",
+                lastName: "Last Name",
+                email: "Email",
+                confirmEmail: "Confirm Email",
+                pwzNumber: "PWZ Number",
+                peselNumber: "PESEL Number",
+                offices: "Offices"
+            },
+            placeholders: {
+                offices: "Select Offices"
+            },
+            warning: "By adding a user to your facility's account, you confirm that this user, after accepting the invitation and your confirmation, will have access to your facility's data. Remember to grant such permissions only to authorized persons.",
+            buttons: {
+                cancel: "Cancel",
+                add_doctor: "Add Doctor",
+                add_nurse: "Add Nurse",
+                add_receptionist: "Add Receptionist"
+            },
+            alerts: {
+                required_fields: "Please fill in all required fields.",
+                email_mismatch: "Emails do not match.",
+                success: "{{role}} invitation has been sent successfully.",
+                error: "An error occurred while adding the {{role}}."
+            }
+        },
+        edit_employee: {
+            title: "Edit Employee",
+            labels: {
+                firstName: "First Name",
+                lastName: "Last Name",
+                email: "Email",
+                pesel: "PESEL",
+                status: "Status",
+                assignedOffices: "Assigned Offices"
+            },
+            placeholders: {
+                status: "Select Status",
+                addOffice: "Add Office"
+            },
+            status: {
+                active: "Active",
+                inactive: "Inactive"
+            },
+            buttons: {
+                cancel: "Cancel",
+                save: "Save"
+            },
+            alerts: {
+                required_fields: "Please fill in all required fields.",
+                error: "An error occurred while updating the employee."
+            }
+        },
+        permissions: {
+            title: "Manage User Permissions",
+            labels: {
+                add_patient: "Add Patients",
+                view_all_patients: "View All Patients",
+                view_own_patients: "View Own Patients",
+                view_all_visits: "View All Visits",
+                view_own_visits: "View Own Visits",
+                add_visits: "Add Visits",
+                cancel_visit: "Cancel Visit",
+                view_employees: "View Employees",
+                add_employees: "Add Employees",
+                delete_employees: "Delete Employees",
+                view_permissions: "View Permissions",
+                edit_permissions: "Edit Permissions",
+                update_facility: "Update Facility",
+                refer_patients: "Refer Patients",
+                view_audit_logs: "View Audit Logs"
+            },
+            requires: "Requires: {{label}}",
+            buttons: {
+                cancel: "Cancel",
+                save: "Save Permissions"
+            },
+            alerts: {
+                error: "Failed to update permissions."
+            }
+        }
+    },
+    settings: {
+        client_portal: {
+            title: "Patient Portal",
+            info_box: {
+                title: "Patient Portal - Functions and Capabilities",
+                description: "Configure which patient portal functions should be available. You can enable or disable specific modules and their detailed functions."
+            },
+            modules: {
+                appointment_scheduling: {
+                    title: "Appointment Scheduling",
+                    description: "Patients can independently schedule and manage appointments",
+                    reservation: "Appointment Reservation",
+                    reservation_desc: "Ability to reserve new appointments",
+                    rescheduling: "Appointment Rescheduling",
+                    rescheduling_desc: "Ability to reschedule appointments",
+                    cancellation: "Appointment Cancellation",
+                    cancellation_desc: "Ability to cancel appointments"
+                },
+                medical_documentation: {
+                    title: "Medical Documentation",
+                    description: "Access to medical documentation and test results",
+                    visit_history: "Visit History",
+                    visit_history_desc: "Overview of visit history and recommendations",
+                    test_results: "Test Results",
+                    test_results_desc: "Access to test results",
+                    prescriptions: "Prescriptions",
+                    prescriptions_desc: "History and status of prescriptions"
+                },
+                communication: {
+                    title: "Communication",
+                    description: "Secure communication with medical staff",
+                    chat: "Chat with Doctor",
+                    chat_desc: "Secure text communication",
+                    notifications: "Notifications",
+                    notifications_desc: "Notifications about appointments and recommendations"
+                },
+                scales_questionnaires: {
+                    title: "Scales and Questionnaires",
+                    description: "Regular completion of scales and questionnaires",
+                    mood_scales: "Mood Scales",
+                    mood_scales_desc: "PHQ-9, GAD-7, etc.",
+                    quality_of_life: "Quality of Life",
+                    quality_of_life_desc: "Quality of life questionnaires"
+                },
+                test_results: {
+                    title: "Test Results",
+                    description: "Access to test results with interpretation",
+                    view: "Results View",
+                    view_desc: "Access to test results",
+                    history: "Results History",
+                    history_desc: "History of all tests"
+                },
+                ai_assistant: {
+                    title: "AI Assistant",
+                    description: "Intelligent assistant supporting the patient",
+                    powered_tag: "AI Powered",
+                    requires_plan: "Requires AI Powered plan"
+                }
+            },
+            security: {
+                title: "Data Security",
+                description: "All data in the patient portal is encrypted and protected in accordance with GDPR requirements. Access to the portal requires strong authentication, and all activity is monitored and logged."
+            },
+            buttons: {
+                save: "Save Settings"
+            }
+        },
+        employees: {
+            title: "Employees",
+            tabs: {
+                doctors: "Doctors, Dentists, and Paramedics",
+                nurses: "Nurses and Midwives",
+                receptionists: "Receptionists"
+            },
+            roles: {
+                doctor: "Doctor",
+                nurse: "Nurse",
+                receptionist: "Receptionist"
+            },
+            buttons: {
+                group_permissions: "GROUP PERMISSIONS",
+                ratings: "RATINGS",
+                add_employee: "+ Add {{role}}"
+            },
+            info_banner: "Total number of users eligible for subscription fees: ({{current}}. Maximum number of users from purchased packages {{max}}). {{extra}}",
+            filters: {
+                lastName: "Last Name",
+                firstName: "First Name",
+                pwz: "PWZ",
+                onlyActive: "Only Active"
+            },
+            table: {
+                name: "LAST NAME AND FIRST NAME",
+                login: "LOGIN",
+                pwz_pesel: "PWZ/PESEL",
+                status: "ACTIVATION STATUS",
+                actions: "ACTIONS",
+                loading: "Loading employees...",
+                empty: "No employees found"
+            },
+            pagination: {
+                records_per_page: "records per page",
+                prev: "Prev",
+                next: "Next",
+                total: "Total results: {{total}}"
+            },
+            delete_modal: {
+                title: "Delete Employee",
+                message: "Are you sure you want to delete {{name}}? This action cannot be undone.",
+                cancel: "Cancel",
+                delete: "Delete"
+            },
+            alerts: {
+                fetch_error: "Failed to fetch employees.",
+                status_success: "Status updated successfully.",
+                director_granted: "Director privilege granted.",
+                director_revoked: "Director privilege revoked.",
+                delete_success: "Employee deleted successfully.",
+                update_success: "Employee updated successfully.",
+                permissions_success: "Permissions updated successfully.",
+                group_permissions_success: "Group permissions updated successfully."
+            }
+        },
+        ewus: {
+            title: "eWUŚ",
+            auto_verification: "Automatic Insurance Verification:",
+            system_status: "System eWUŚ",
+            labels: {
+                branch: "Branch:",
+                contractor_type: "Contractor Type:",
+                login: "Login:",
+                password: "Password:"
+            },
+            placeholders: {
+                personnel_code: "Enter Personnel Code",
+                login: "Enter Login"
+            },
+            password_not_changed: "(not changed)",
+            buttons: {
+                save_verify: "Save and verify data accuracy",
+                change_password: "Change Password",
+                check_now: "Check Now"
+            },
+            options: {
+                branches: {
+                    maritime: "Maritime (11)",
+                    masovian: "Masovian (07)",
+                    silesian: "Silesian (12)"
+                },
+                contractors: {
+                    doctor: "Doctor",
+                    clinic: "Clinic",
+                    hospital: "Hospital"
+                }
+            }
+        },
+        facility_data: {
+            title: "Facility Data",
+            sections: {
+                basic: "Basic Information",
+                contact: "Contact & Address",
+                workflow: "Workflow Settings",
+                logo_consent: "Facility logo / Document"
+            },
+            labels: {
+                name: "Name",
+                regon: "REGON",
+                nip: "NIP",
+                bdo: "BDO Number",
+                registry: "Registry No.",
+                type: "Facility Type",
+                phone: "Phone",
+                email: "Email",
+                website: "Website",
+                account_number: "Account Number",
+                street: "Street",
+                house: "House",
+                apt: "Apt No.",
+                postal_code: "Postal Code",
+                city: "City",
+                teryt: "TERYT Code",
+                nfz: "NFZ Code",
+                hours_from: "Working hours from",
+                hours_to: "Working hours to",
+                duration: "Visit Duration (min)",
+                visit_type: "Visit Type",
+                reception_mode: "Default Reception Mode",
+                consent: "Personal data processing consent text (change default)",
+                required_note: "* Required field"
+            },
+            placeholders: {
+                facility_name: "Facility Name",
+                regon: "REGON",
+                nip: "NIP",
+                bdo: "BDO",
+                registry: "Registry",
+                select_type: "Select type",
+                phone: "Phone",
+                email: "Email",
+                website_url: "Enter website URL",
+                account_number: "Account number",
+                street: "Street name",
+                house_no: "No.",
+                apt_no: "Apt.",
+                postal_code: "XX-XXX",
+                city: "City name",
+                search_teryt: "Search TERYT...",
+                select_nfz: "Select NFZ branch",
+                duration: "30",
+                select_reception: "Select mode"
+            },
+            options: {
+                facility_types: {
+                    individual: "Individual practice",
+                    group: "Group practice",
+                    hospital: "Hospital",
+                    clinic: "Clinic"
+                },
+                visit_types: {
+                    private: "Private",
+                    nfz: "NFZ",
+                    mixed: "Mixed"
+                },
+                reception_modes: {
+                    in_person: "In Person",
+                    online: "Online",
+                    telephone: "Telephone"
+                }
+            },
+            buttons: {
+                change_file: "CHANGE FILE",
+                choose_file: "CHOOSE FILE",
+                save: "Save Changes",
+                done: "Done"
+            },
+            alerts: {
+                save_success: "Facility Settings updated successfully!",
+                save_error: "Failed to update facility settings",
+                fetch_error: "Failed to load facility data",
+                pick_error: "Failed to pick file"
+            }
+        },
+        facility_stats: {
+            title: "Facility Statistics",
+            loading: "Loading statistics...",
+            retry: "Retry",
+            error_default: "Failed to fetch statistics",
+            stats: {
+                departments: "Departments",
+                doctors: "Doctors",
+                offices: "Offices",
+                nurses: "Nurses",
+                patients: "Patients",
+                receptionists: "Receptionists"
+            }
+        },
+        index: {
+            title: "Settings",
+            subtitle: "Manage facility settings and system configuration",
+            tabs: {
+                statistics: "Facility Statistics",
+                facility_data: "Facility Data",
+                offices: "Offices",
+                security: "Security",
+                subscription: "Subscription",
+                patient_portal: "Patient Portal",
+                profile: "Profile",
+                employees: "Employees",
+                ewus: "eWUŚ"
+            }
+        },
+        office_certs: {
+            title: "Offices & Certificates",
+            offices: {
+                title: "Offices",
+                buttons: {
+                    add_office: "Add office",
+                    hide_form: "Hide Form",
+                    cancel: "Cancel",
+                    save: "Save"
+                },
+                form: {
+                    name: "Office Name",
+                    floor: "Floor",
+                    number: "Number",
+                    number_placeholder: "Office Number",
+                    type: "Office Type",
+                    type_placeholder: "Select Type",
+                    equipment: "Equipment",
+                    equipment_placeholder: "Equipment list (one per line)"
+                },
+                types: {
+                    medical: "Medical office",
+                    therapy: "Therapy office",
+                    diagnostic: "Diagnostic office"
+                },
+                details: {
+                    floor: "Floor",
+                    number: "No",
+                    type: "Type",
+                    equipment: "Equipment"
+                }
+            },
+            certificates: {
+                title: "Certificates P1",
+                p1_id: "P1 Identifier",
+                p1_placeholder: "Enter P1 identifier",
+                tls_label: "TLS Certificate",
+                tls_placeholder: "Choose TLS certificate file",
+                wls_label: "WLS Certificate",
+                wls_placeholder: "Choose WLS certificate file",
+                uploading: "Uploading..."
+            },
+            buttons: {
+                save_changes: "Save Changes"
+            },
+            alerts: {
+                save_success: "Director Settings updated successfully!",
+                save_error: "Failed to update settings",
+                upload_error: "Failed to upload certificate"
+            }
+        },
+        profile: {
+            labels: {
+                first_name: "First Name",
+                last_name: "Last Name",
+                email: "Email"
+            },
+            buttons: {
+                cancel: "Cancel",
+                save_changes: "Save Changes"
+            },
+            alerts: {
+                update_success: "Profile updated successfully!",
+                update_error: "Failed to update profile"
+            }
+        },
+        security: {
+            title: "Security Settings",
+            two_factor: {
+                title: "Two-Factor Authentication",
+                enabled: "Enabled",
+                info_title: "Two-factor authentication is a double identity check during login.",
+                info_desc: "For additional account security, during login the user must enter a code that is sent through their chosen communication channel - email, SMS, or mobile app."
+            },
+            trusted_devices: {
+                title: "Allow users to save trusted devices",
+                description: "The second verification step on a given device will then only occur every 30 days, not every time"
+            },
+            buttons: {
+                enable: "Enable",
+                disable: "Disable",
+                save_changes: "Save Changes"
+            },
+            alerts: {
+                success_title: "Success",
+                error_title: "Error",
+                update_success: "Security settings updated successfully.",
+                update_error: "Something went wrong while updating settings.",
+                user_not_found: "User not identified. Please try logging in again."
+            }
+        },
+        subscription: {
+            title: "Purchased Plans",
+            plans_title: "Plans",
+            summary: {
+                active_users: "Number of active users",
+                nfz_settlements: "NFZ Settlements",
+                next_payment: "Next payment"
+            },
+            buttons: {
+                pay_now: "PAY NOW",
+                cancel_subscription: "CANCEL SUBSCRIPTION"
+            },
+            details: {
+                name: "Name",
+                valid_from: "Valid from",
+                valid_to: "Valid to",
+                next_payment: "Next payment"
+            },
+            modules: {
+                without_nfz: "WITHOUT NFZ MODULE",
+                nfz_settlement: "NFZ SETTLEMENT MODULE",
+                coming_soon: "Coming Soon"
+            },
+            plan_card: {
+                best_offer: "Best offer for you",
+                ai_powered: "AI Powered",
+                up_to: "up to",
+                users: "users",
+                gross: "gross",
+                without_nfz: "without NFZ module",
+                current_plan: "Current plan",
+                select: "SELECT"
+            },
+            ai_info: {
+                title: "What is the AI Powered subscription?",
+                description: "AI Powered subscription provides access to advanced features supported by artificial intelligence that help in daily work:",
+                features: {
+                    documentation: "Medical documentation assistant with voice transcription",
+                    clinical_decision: "Clinical decision support system",
+                    icd10: "Intelligent ICD-10 coding assistant",
+                    drug_interaction: "Drug interaction analysis with knowledge graph",
+                    interview: "Interview assistant with emotion analysis",
+                    diagnostic: "Automatic diagnostic suggestions",
+                    trends: "Analysis of trends and patterns in patient data"
+                }
+            }
         }
     }
 }

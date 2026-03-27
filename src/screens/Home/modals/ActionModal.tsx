@@ -15,6 +15,7 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 import Feather from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 const ActionModal = ({ visible, onClose, onView, onStart, onAddNote }: {
     visible: boolean;
@@ -23,6 +24,7 @@ const ActionModal = ({ visible, onClose, onView, onStart, onAddNote }: {
     onStart: () => void;
     onAddNote: (note?: string) => void;
 }) => {
+    const { t } = useTranslation();
     const insets = useSafeAreaInsets();
     const [showNoteInput, setShowNoteInput] = useState(false);
     const [note, setNote] = useState('');
@@ -86,14 +88,14 @@ const ActionModal = ({ visible, onClose, onView, onStart, onAddNote }: {
     const actions = [
         {
             icon: 'eye',
-            label: 'View Details',
+            label: t('dashboard.actionModal.viewDetails'),
             color: '#4A90B9',
             bg: '#EBF5FA',
             onPress: onView,
         },
         {
             icon: 'file-text',
-            label: 'Add a Note',
+            label: t('dashboard.actionModal.addNote'),
             color: '#8B5CF6',
             bg: '#EDE9FE',
             onPress: handleAddNote,
@@ -126,7 +128,7 @@ const ActionModal = ({ visible, onClose, onView, onStart, onAddNote }: {
 
                 {/* Header */}
                 <View style={styles.header}>
-                    <Text style={styles.headerText}>Visit Actions</Text>
+                    <Text style={styles.headerText}>{t('dashboard.actionModal.visitActions')}</Text>
                     <TouchableOpacity onPress={handleClose} style={styles.closeBtn}>
                         <Feather name="x" size={18} color="#9CA3AF" />
                     </TouchableOpacity>
@@ -146,7 +148,7 @@ const ActionModal = ({ visible, onClose, onView, onStart, onAddNote }: {
                             style={styles.startVisitGradient}
                         >
                             <Feather name="play" size={18} color="white" />
-                            <Text style={styles.startVisitText}>Start Visit</Text>
+                            <Text style={styles.startVisitText}>{t('visit.start')}</Text>
                         </LinearGradient>
                     </TouchableOpacity>
 
@@ -171,7 +173,7 @@ const ActionModal = ({ visible, onClose, onView, onStart, onAddNote }: {
                         <View style={styles.noteInputContainer}>
                             <TextInput
                                 style={styles.noteInput}
-                                placeholder="Write your note here..."
+                                placeholder={t('dashboard.actionModal.notePlaceholder')}
                                 placeholderTextColor="#9CA3AF"
                                 multiline
                                 value={note}
@@ -179,7 +181,7 @@ const ActionModal = ({ visible, onClose, onView, onStart, onAddNote }: {
                                 autoFocus
                             />
                             <TouchableOpacity style={styles.submitNoteBtn} onPress={handleAddNote}>
-                                <Text style={styles.submitNoteText}>Save Note</Text>
+                                <Text style={styles.submitNoteText}>{t('dashboard.actionModal.saveNote')}</Text>
                             </TouchableOpacity>
                         </View>
                     )}
@@ -190,7 +192,7 @@ const ActionModal = ({ visible, onClose, onView, onStart, onAddNote }: {
                         onPress={handleClose}
                         activeOpacity={0.7}
                     >
-                        <Text style={styles.cancelText}>Cancel</Text>
+                        <Text style={styles.cancelText}>{t('common.cancel')}</Text>
                     </TouchableOpacity>
                 </View>
             </Animated.View>

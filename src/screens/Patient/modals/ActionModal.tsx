@@ -9,6 +9,8 @@ import {
     Dimensions,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
+import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 const { width } = Dimensions.get('window');
 
@@ -24,6 +26,10 @@ interface ActionModalProps {
 
 
 const ActionModal = ({ visible, onClose, onView, onStart, onDelete, onPatientProfile, onAddNote }: ActionModalProps) => {
+    const { t } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
+    
     const [showNoteInput, setShowNoteInput] = useState(false);
     const [note, setNote] = useState('');
 
@@ -55,76 +61,58 @@ const ActionModal = ({ visible, onClose, onView, onStart, onDelete, onPatientPro
             onRequestClose={onClose}
         >
             <TouchableWithoutFeedback onPress={onClose}>
-                <View style={styles.overlay}>
+                <View style={ds.overlay}>
                     <TouchableWithoutFeedback onPress={() => { }}>
-                        <View style={styles.modalContainer}>
-                            <View style={styles.header}>
+                        <View style={ds.modalContainer}>
+                            <View style={ds.header}>
 
                                 <TouchableOpacity
                                     onPress={onClose}
-                                    style={styles.viewButton}>
-                                    <Feather name="x" size={18} color="black" />
+                                    style={ds.viewButton}>
+                                    <Feather name="x" size={18} color={tc.textPrimary} />
                                 </TouchableOpacity>
                             </View>
 
-                            <View style={styles.content}>
-                                {/* {showNoteInput ? (
-                                    <View style={styles.noteInputContainer}>
-                                        <TextInput
-                                            style={styles.noteInput}
-                                            placeholder="Enter your note here..."
-                                            multiline={true}
-                                            value={note}
-                                            onChangeText={setNote}
-                                            autoFocus={true}
-                                        />
-                                        <TouchableOpacity
-                                            style={styles.submitNoteButton}
-                                            onPress={handleAddNote}
-                                        >
-                                            <Text style={styles.submitNoteText}>Save Note</Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                ) : ( */}
+                            <View style={ds.content}>
                                 <>
                                     <TouchableOpacity
-                                        style={styles.actionButton}
+                                        style={ds.actionButton}
                                         onPress={onView}
                                     >
-                                        <View style={styles.buttonContent}>
-                                            <View style={styles.viewButton}>
-                                                <Feather name="eye" size={18} color="#58a6b8" />
+                                        <View style={ds.buttonContent}>
+                                            <View style={ds.viewButton}>
+                                                <Feather name="eye" size={18} color={tc.accent} />
                                             </View>
                                             <View style={{ width: 5 }} />
-                                            <Text style={styles.actionButtonText}>View Details</Text>
+                                            <Text style={ds.actionButtonText}>{t('patientAction.viewDetails')}</Text>
                                         </View>
                                     </TouchableOpacity>
 
                                     <TouchableOpacity
-                                        style={styles.actionButton}
+                                        style={ds.actionButton}
                                         onPress={onPatientProfile}
                                     >
-                                        <View style={styles.buttonContent}>
-                                            <View style={styles.viewButton}>
-                                                <Feather name="user" size={18} color="#58a6b8" />
+                                        <View style={ds.buttonContent}>
+                                            <View style={ds.viewButton}>
+                                                <Feather name="user" size={18} color={tc.accent} />
                                             </View>
                                             <View style={{ width: 8 }} />
-                                            <Text style={styles.actionButtonText}>Patient Profile</Text>
+                                            <Text style={ds.actionButtonText}>{t('patientAction.patientProfile')}</Text>
                                         </View>
                                     </TouchableOpacity>
 
                                     <TouchableOpacity
-                                        style={[styles.actionButton]}
+                                        style={[ds.actionButton]}
                                         onPress={onStart}
                                     >
 
-                                        <View style={styles.buttonContent}>
-                                            <View style={styles.viewButton}>
-                                                <Feather name="calendar" size={18} color="#58a6b8" />
+                                        <View style={ds.buttonContent}>
+                                            <View style={ds.viewButton}>
+                                                <Feather name="calendar" size={18} color={tc.accent} />
                                             </View>
                                             <View style={{ width: 5 }} />
-                                            <Text style={styles.actionButtonText}>
-                                                Add in Calendar
+                                            <Text style={ds.actionButtonText}>
+                                                {t('patientAction.addInCalendar')}
                                             </Text>
                                         </View>
 
@@ -132,32 +120,18 @@ const ActionModal = ({ visible, onClose, onView, onStart, onDelete, onPatientPro
 
 
                                     <TouchableOpacity
-                                        style={[styles.actionButton, styles.deleteButton]}
+                                        style={[ds.actionButton, ds.deleteButton]}
                                         onPress={onDelete}
                                     >
-                                        <View style={styles.buttonContent}>
-                                            <View style={styles.viewButton}>
-                                                <Feather name="trash-2" size={18} color="#FF3B30" />
+                                        <View style={ds.buttonContent}>
+                                            <View style={ds.viewButton}>
+                                                <Feather name="trash-2" size={18} color={tc.error} />
                                             </View>
                                             <View style={{ width: 8 }} />
-                                            <Text style={[styles.actionButtonText, styles.deleteButtonText]}>Delete Patient</Text>
+                                            <Text style={[ds.actionButtonText, ds.deleteButtonText]}>{t('patientAction.deletePatient')}</Text>
                                         </View>
                                     </TouchableOpacity>
-
-                                    {/* <TouchableOpacity
-                                            style={[styles.actionButton]}
-                                            onPress={handleCancel}
-                                        >
-                                            <View style={styles.buttonContent}>
-                                                <View style={styles.viewButton}>
-                                                    <Feather name="x" size={18} color="red" />
-                                                </View>
-                                                <View style={{ width: 5 }} />
-                                                <Text style={styles.cancelButtonText}>Cancel</Text>
-                                            </View>
-                                        </TouchableOpacity> */}
                                 </>
-                                {/* )} */}
                             </View>
                         </View>
                     </TouchableWithoutFeedback>
@@ -167,15 +141,15 @@ const ActionModal = ({ visible, onClose, onView, onStart, onDelete, onPatientPro
     );
 };
 
-const styles = StyleSheet.create({
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     overlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
         justifyContent: 'center',
         alignItems: 'center',
     },
     modalContainer: {
-        backgroundColor: 'white',
+        backgroundColor: tc.cardBackground,
         borderRadius: 20,
         width: '65%',
         paddingVertical: 10,
@@ -184,9 +158,11 @@ const styles = StyleSheet.create({
             width: 0,
             height: 4,
         },
-        shadowOpacity: 0.25,
+        shadowOpacity: isDark ? 0.5 : 0.25,
         shadowRadius: 10,
         elevation: 10,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: tc.borderSubtle,
     },
     header: {
         flexDirection: "row",
@@ -199,7 +175,7 @@ const styles = StyleSheet.create({
     headerText: {
         fontSize: 18,
         fontWeight: '600',
-        color: '#333',
+        color: tc.textPrimary,
     },
     content: {
         padding: 15,
@@ -210,10 +186,10 @@ const styles = StyleSheet.create({
         width: '100%',
         alignItems: "center",
         justifyContent: "space-around",
-        marginBottom: 5,
-        borderRadius: 10,
-        backgroundColor: '#f8f8f8',
-        borderColor: "#4A90B9",
+        marginBottom: 10,
+        borderRadius: 12,
+        backgroundColor: tc.layer1,
+        borderColor: tc.borderSubtle,
         borderWidth: 1,
         overflow: "hidden"
     },
@@ -224,16 +200,16 @@ const styles = StyleSheet.create({
         width: "100%",
     },
     actionButtonText: {
-        fontSize: 16,
-        color: '#1A1C1E',
+        fontSize: 15,
+        color: tc.textPrimary,
         fontWeight: '500',
     },
     deleteButton: {
-        backgroundColor: '#FFF5F5',
-        borderColor: '#FFE4E4',
+        backgroundColor: isDark ? 'rgba(239, 68, 68, 0.1)' : '#FFF5F5',
+        borderColor: isDark ? 'rgba(239, 68, 68, 0.2)' : '#FFE4E4',
     },
     deleteButtonText: {
-        color: '#FF3B30',
+        color: tc.error,
         fontWeight: '600',
     },
     viewButton: {
@@ -262,18 +238,18 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius: 20,
-        backgroundColor: '#f0f8fa',
+        backgroundColor: tc.layer2,
     },
     cancelButton: {
-        backgroundColor: 'white',
+        backgroundColor: tc.cardBackground,
         borderWidth: 1,
-        borderColor: '#e0e0e0',
+        borderColor: tc.borderColor,
         justifyContent: 'center',
         alignItems: 'center',
     },
     cancelButtonText: {
         fontSize: 16,
-        color: '#666',
+        color: tc.textSecondary,
         fontWeight: '500',
     },
     noteInputContainer: {
@@ -281,17 +257,18 @@ const styles = StyleSheet.create({
     },
     noteInput: {
         borderWidth: 1,
-        borderColor: '#e0e0e0',
+        borderColor: tc.borderColor,
         borderRadius: 8,
         padding: 12,
         fontSize: 16,
         minHeight: 120,
         textAlignVertical: 'top',
-        backgroundColor: '#f9f9f9',
+        backgroundColor: tc.inputBackground,
+        color: tc.textPrimary,
         marginBottom: 15,
     },
     submitNoteButton: {
-        backgroundColor: '#58a6b8',
+        backgroundColor: tc.accent,
         paddingVertical: 12,
         borderRadius: 8,
         alignItems: 'center',

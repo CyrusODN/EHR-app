@@ -20,6 +20,7 @@ import Gap from '../../../component/gap';
 import { UpdateEmployee } from '../../../Services/settingServices';
 import userStore from '../../../store/user';
 import CustomAlert from '../../../component/customAlert';
+import { useTranslation } from 'react-i18next';
 
 interface Employee {
     id: string;
@@ -41,6 +42,7 @@ interface EditEmployeeModalProps {
 }
 
 const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ visible, onClose, onSave, employee }) => {
+    const { t } = useTranslation();
     const { loggedInUser } = userStore();
     const [loading, setLoading] = useState(false);
     const [alertConfig, setAlertConfig] = useState<any>({
@@ -58,8 +60,8 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ visible, onClose,
     });
 
     const statusOptions = [
-        { label: 'Active', value: 'active' },
-        { label: 'Inactive', value: 'inactive' },
+        { label: t('employee_modals.edit_employee.status.active'), value: 'active' },
+        { label: t('employee_modals.edit_employee.status.inactive'), value: 'inactive' },
     ];
 
     const [selectedOffices, setSelectedOffices] = useState<any[]>([]);
@@ -99,7 +101,7 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ visible, onClose,
             setAlertConfig({
                 visible: true,
                 type: 'error',
-                message: 'Please fill in all required fields.',
+                message: t('employee_modals.edit_employee.alerts.required_fields'),
             });
             return;
         }
@@ -125,7 +127,7 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ visible, onClose,
             setAlertConfig({
                 visible: true,
                 type: 'error',
-                message: error.message || 'An error occurred while updating the employee.',
+                message: error.message || t('employee_modals.edit_employee.alerts.error'),
             });
         } finally {
             setLoading(false);
@@ -154,7 +156,7 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ visible, onClose,
                     <View style={styles.modalContent}>
                         {/* Header */}
                         <View style={styles.header}>
-                            <Text style={styles.headerTitle}>Edit Employee</Text>
+                            <Text style={styles.headerTitle}>{t('employee_modals.edit_employee.title')}</Text>
                             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                                 <Feather name="x" size={24} color="#64748B" />
                             </TouchableOpacity>
@@ -168,7 +170,7 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ visible, onClose,
                             {/* First Name & Last Name Row */}
                             <View style={styles.row}>
                                 <View style={styles.halfField}>
-                                    {renderLabel('First Name')}
+                                    {renderLabel(t('employee_modals.edit_employee.labels.firstName'))}
                                     <CustomTextInput
                                         placeholder=""
                                         value={formData.firstName}
@@ -176,7 +178,7 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ visible, onClose,
                                     />
                                 </View>
                                 <View style={styles.halfField}>
-                                    {renderLabel('Last Name')}
+                                    {renderLabel(t('employee_modals.edit_employee.labels.lastName'))}
                                     <CustomTextInput
                                         placeholder=""
                                         value={formData.lastName}
@@ -187,7 +189,7 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ visible, onClose,
                             <Gap height={hp(1.5)} />
 
                             {/* Email */}
-                            {renderLabel('Email')}
+                            {renderLabel(t('employee_modals.edit_employee.labels.email'))}
                             <CustomTextInput
                                 placeholder=""
                                 value={formData.email}
@@ -198,7 +200,7 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ visible, onClose,
                             <Gap height={hp(1.5)} />
 
                             {/* PESEL */}
-                            {renderLabel('PESEL', false)}
+                            {renderLabel(t('employee_modals.edit_employee.labels.pesel'), false)}
                             <View style={styles.disabledInput}>
                                 <TextInput
                                     style={styles.disabledInputText}
@@ -211,9 +213,9 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ visible, onClose,
                             <Gap height={hp(1.5)} />
 
                             {/* Status */}
-                            {renderLabel('Status')}
+                            {renderLabel(t('employee_modals.edit_employee.labels.status'))}
                             <CustomDropdown
-                                placeholder="Select Status"
+                                placeholder={t('employee_modals.edit_employee.placeholders.status')}
                                 options={statusOptions}
                                 value={formData.status}
                                 onChange={(val) => setFormData({ ...formData, status: val as string })}
@@ -221,7 +223,7 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ visible, onClose,
                             <Gap height={hp(1.5)} />
 
                             {/* Assigned Offices */}
-                            <Text style={styles.sectionTitle}>Assigned Offices</Text>
+                            <Text style={styles.sectionTitle}>{t('employee_modals.edit_employee.labels.assignedOffices')}</Text>
                             <View style={styles.officeChipsContainer}>
                                 {selectedOffices.map((office: any) => (
                                     <View key={office.officeId} style={styles.officeChip}>
@@ -236,7 +238,7 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ visible, onClose,
                                 <>
                                     <Gap height={hp(1)} />
                                     <CustomDropdown
-                                        placeholder="Add Office"
+                                        placeholder={t('employee_modals.edit_employee.placeholders.addOffice')}
                                         options={officeOptions.filter(
                                             (opt: any) => !selectedOffices.find((o: any) => o.officeId === opt.value)
                                         )}
@@ -251,13 +253,13 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ visible, onClose,
                             {/* Action Buttons */}
                             <View style={styles.footerButtons}>
                                 <PrimaryButton
-                                    label="Cancel"
+                                    label={t('employee_modals.edit_employee.buttons.cancel')}
                                     filled={false}
                                     onPress={onClose}
                                     style={styles.cancelButton}
                                 />
                                 <PrimaryButton
-                                    label="Save"
+                                    label={t('employee_modals.edit_employee.buttons.save')}
                                     filled={true}
                                     onPress={handleSave}
                                     style={styles.saveButton}

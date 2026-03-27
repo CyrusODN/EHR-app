@@ -17,8 +17,10 @@ import PrimaryButton from '../../component/button';
 import Feather from 'react-native-vector-icons/Feather';
 import Gap from '../../component/gap';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 
 const EWUS = () => {
+    const { t } = useTranslation();
     const navigation = useNavigation<any>();
     // State for switches and inputs
     const [autoInsuranceCheck, setAutoInsuranceCheck] = useState(true);
@@ -31,16 +33,16 @@ const EWUS = () => {
 
     // Departments
     const departments = [
-        { label: 'Maritime (11)', value: 'Maritime (11)' },
-        { label: 'Masovian (07)', value: 'Masovian (07)' },
-        { label: 'Silesian (12)', value: 'Silesian (12)' }
+        { label: t('settings.ewus.departments.maritime'), value: 'Maritime (11)' },
+        { label: t('settings.ewus.departments.masovian'), value: 'Masovian (07)' },
+        { label: t('settings.ewus.departments.silesian'), value: 'Silesian (12)' }
     ];
 
     // Contractor Types
     const contractorTypes = [
-        { label: 'Doctor', value: 'Doctor' },
-        { label: 'Clinic', value: 'Clinic' },
-        { label: 'Hospital', value: 'Hospital' }
+        { label: t('settings.ewus.contractor_types.doctor'), value: 'Doctor' },
+        { label: t('settings.ewus.contractor_types.clinic'), value: 'Clinic' },
+        { label: t('settings.ewus.contractor_types.hospital'), value: 'Hospital' }
     ];
 
     return (
@@ -55,13 +57,13 @@ const EWUS = () => {
                     <View style={styles.headerIconContainer}>
                         <Ionicons name="shield-outline" size={24} color="#4A90B9" />
                     </View>
-                    <Text style={styles.headerTitle}>eWUŚ</Text>
+                    <Text style={styles.headerTitle}>{t('settings.ewus.title')}</Text>
                 </View>
 
                 {/* Automatic Insurance Check */}
                 <View style={styles.settingRow}>
                     <View style={styles.settingTextContainer}>
-                        <Text style={styles.settingTitle}>Automatic Insurance Verification:</Text>
+                        <Text style={styles.settingTitle}>{t('settings.ewus.auto_insurance')}</Text>
                         <Ionicons
                             name="information-circle-outline"
                             size={20}
@@ -79,7 +81,7 @@ const EWUS = () => {
 
                 {/* eWUŚ System */}
                 <View style={styles.settingRow}>
-                    <Text style={styles.settingTitle}>System eWUŚ</Text>
+                    <Text style={styles.settingTitle}>{t('settings.ewus.system_ewus')}</Text>
                     <Switch
                         value={eWUSSystem}
                         onValueChange={setEWUSSystem}
@@ -90,10 +92,10 @@ const EWUS = () => {
 
                 {/* Branch Dropdown */}
                 <View style={styles.inputContainer}>
-                    <Text style={styles.inputLabel}>Branch:</Text>
+                    <Text style={styles.inputLabel}>{t('settings.ewus.branch')}</Text>
                     <View style={styles.pickerContainer}>
                         <CustomDropdown
-                            placeholder="Maritime(11)"
+                            placeholder={t('settings.ewus.placeholders.maritime')}
                             options={departments}
                             value={branch}
                             onChange={setBranch}
@@ -104,10 +106,10 @@ const EWUS = () => {
 
                 {/* Contractor Type Dropdown */}
                 <View style={styles.inputContainer}>
-                    <Text style={styles.inputLabel}>Contractor Type:</Text>
+                    <Text style={styles.inputLabel}>{t('settings.ewus.contractor_type')}</Text>
                     <View style={styles.pickerContainer}>
                         <CustomDropdown
-                            placeholder="Doctor"
+                            placeholder={t('settings.ewus.placeholders.doctor')}
                             options={contractorTypes}
                             value={contractor}
                             onChange={setContractor}
@@ -118,31 +120,31 @@ const EWUS = () => {
 
                 {/* Personnel Code Input */}
                 <View style={styles.inputContainer}>
-                    <Text style={styles.inputLabel}>Login:</Text>
+                    <Text style={styles.inputLabel}>{t('settings.ewus.personnel_code')}</Text>
                     <TextInput
                         style={styles.textInput}
                         value={personnelCode}
                         onChangeText={setPersonnelCode}
-                        placeholder="Enter Personnel Code"
+                        placeholder={t('settings.ewus.placeholders.enter_personnel_code')}
                     />
                 </View>
 
                 {/* Password Input */}
                 <View style={styles.inputContainer}>
-                    <Text style={styles.inputLabel}>Password:</Text>
+                    <Text style={styles.inputLabel}>{t('settings.ewus.login')}</Text>
                     <TextInput
                         style={styles.textInput}
                         value={login}
                         onChangeText={setLogin}
-                        placeholder="Enter Login"
+                        placeholder={t('settings.ewus.placeholders.enter_login')}
                         secureTextEntry
                     />
                 </View>
 
                 {/* Password Section */}
                 <View style={styles.inputContainer}>
-                    <Text style={styles.inputLabel}>Password:</Text>
-                    <Text style={styles.passwordText}>(not changed)</Text>
+                    <Text style={styles.inputLabel}>{t('settings.ewus.password')}</Text>
+                    <Text style={styles.passwordText}>{t('settings.ewus.not_changed')}</Text>
                 </View>
                 <View style={{ backgroundColor: "white" }}>
 

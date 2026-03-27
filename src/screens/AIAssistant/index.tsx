@@ -14,6 +14,7 @@ import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-nat
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import CustomAlert from '../../component/customAlert';
+import { useTranslation } from 'react-i18next';
 
 // AI Tools Components
 import ConsultChat from './AI_Tools/consultChat';
@@ -28,6 +29,7 @@ const { width } = Dimensions.get('window');
 
 export const AIAssistantScreen = () => {
     const navigation = useNavigation<any>();
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState('Remedius Consult');
     const [serviceToken, setServiceToken] = useState<string | null>(null);
     const [alertConfig, setAlertConfig] = useState<{ visible: boolean; message: string; type: 'success' | 'warning' | 'error' }>({
@@ -87,6 +89,18 @@ export const AIAssistantScreen = () => {
         'Statistical Analysis'
     ];
 
+    const getTabLabel = (tab: string) => {
+        switch (tab) {
+            case 'Remedius Consult': return t('aiAssistant.tabs.remediusConsult');
+            case 'Remedius Pathfinder': return t('aiAssistant.tabs.remediusPathfinder');
+            case 'Pharmacopedia': return t('aiAssistant.tabs.pharmacopedia');
+            case 'Diagnosis': return t('aiAssistant.tabs.diagnosis');
+            case 'Clinical Trials': return t('aiAssistant.tabs.clinicalTrials');
+            case 'Statistical Analysis': return t('aiAssistant.tabs.statisticalAnalysis');
+            default: return tab;
+        }
+    };
+
     return (
         <View style={{ flex: 1 }}>
             <KeyboardAvoidingView
@@ -98,9 +112,9 @@ export const AIAssistantScreen = () => {
                     {/* Header */}
                     <View style={styles.header}>
                         <View>
-                            <Text style={styles.headerTitle}>AI Assistants</Text>
+                            <Text style={styles.headerTitle}>{t('aiAssistant.header.title')}</Text>
                             <Text style={styles.headerSubtitle}>
-                                Advanced AI tools supporting doctor's work
+                                {t('aiAssistant.header.subtitle')}
                             </Text>
                         </View>
                         <TouchableOpacity
@@ -133,7 +147,7 @@ export const AIAssistantScreen = () => {
                                     styles.tabText,
                                     activeTab === tab && styles.activeTabText
                                 ]}>
-                                    {tab}
+                                    {getTabLabel(tab)}
                                 </Text>
                             </TouchableOpacity>
                         ))}

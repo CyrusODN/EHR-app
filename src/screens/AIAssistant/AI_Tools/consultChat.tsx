@@ -17,6 +17,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import PrimaryButton from '../../../component/button';
 import CustomDropdown from '../../../component/customDropDown';
 import Gap from '../../../component/gap';
+import { useTranslation } from 'react-i18next';
 import { getConsultSessions, createConsultSession, getConsultSessionDetails, sendConsultMessage, deleteConsultSession } from '../../../Services/ConsultTool.Service';
 interface Message {
     id: string;
@@ -31,6 +32,7 @@ interface ConsultChatProps {
 }
 
 const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
+    const { t, i18n } = useTranslation();
     const [selectedSpecialty, setSelectedSpecialty] = useState('Child Psychiatry');
     const [chatStarted, setChatStarted] = useState(false);
     const [messageText, setMessageText] = useState('');
@@ -109,9 +111,9 @@ const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
     }, [isAiThinking]);
 
     const specialtyOptions = [
-        { label: 'Child Psychiatry', value: 'Child Psychiatry' },
-        { label: 'Adult Psychiatry', value: 'Adult Psychiatry' },
-        { label: 'Internal Medicine', value: 'Internal Medicine' },
+        { label: t('aiAssistant.consultChat.childPsychiatry'), value: 'Child Psychiatry' },
+        { label: t('aiAssistant.consultChat.adultPsychiatry'), value: 'Adult Psychiatry' },
+        { label: t('aiAssistant.consultChat.internalMedicine'), value: 'Internal Medicine' },
     ];
 
     const getCurrentTime = () => {
@@ -154,7 +156,7 @@ const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
         setMessages([
             {
                 id: '1',
-                text: `Hello! I'm your ${selectedSpecialty} AI assistant. I'm here to help based on evidence-based clinical guidelines. How can I assist you with the patient's condition?`,
+                text: t('aiAssistant.consultChat.welcomeMessage', { specialty: selectedSpecialty }),
                 sender: 'ai',
                 time: time,
             },
@@ -208,7 +210,7 @@ const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
                 const aiTime = getCurrentTime();
                 const aiMessage: Message = {
                     id: (Date.now() + 1).toString(),
-                    text: 'Simulation: I am in local mode because no session was established.',
+                    text: t('aiAssistant.consultChat.simulationMode'),
                     sender: 'ai',
                     time: aiTime,
                 };
@@ -311,13 +313,13 @@ const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
                 }
 
                 if (onShowAlert) {
-                    onShowAlert("Session deleted successfully", 'success');
+                    onShowAlert(t('aiAssistant.consultChat.sessionDeletedSuccess'), 'success');
                 }
                 console.log("[ConsultChat] Session deleted and list updated");
             } else {
                 console.warn("[ConsultChat] Failed to delete session:", response?.message);
                 if (onShowAlert) {
-                    onShowAlert(response?.message || "Failed to delete session", 'error');
+                    onShowAlert(response?.message || t('aiAssistant.consultChat.failedDeleteSession'), 'error');
                 }
             }
         } catch (error) {
@@ -331,7 +333,7 @@ const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
             {/* History Drawer */}
             <Animated.View style={[styles.drawer, { left: drawerAnim }]}>
                 <View style={styles.drawerHeader}>
-                    <Text style={styles.drawerTitle}>Visit History</Text>
+                    <Text style={styles.drawerTitle}>{t('aiAssistant.consultChat.visitHistory')}</Text>
                     <View style={styles.drawerHeaderActions}>
                         <TouchableOpacity onPress={handleNewSession} style={styles.drawerActionBtn}>
                             <Feather name="plus" size={20} color="#1E293B" />
@@ -352,19 +354,19 @@ const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
                                 <Ionicons name="chatbubble-outline" size={18} color="#4A90B9" />
                             </View>
                             <View style={styles.sessionInfo}>
-                                <Text style={styles.sessionIdText}>Session #{session.sessionId?.substring(0, 8)}</Text>
+                                <Text style={styles.sessionIdText}>{t('aiAssistant.consultChat.session')} #{session.sessionId?.substring(0, 8)}</Text>
                                 <View style={styles.sessionMetaRow}>
                                     <View style={styles.sessionTag}>
                                         <Text style={styles.sessionTagText}>
-                                            {session.metadata?.speciality === 'childPsychiatry' ? 'Child Psych' : 
-                                             session.metadata?.speciality === 'adultPsychiatry' ? 'Adult Psych' :
-                                             session.metadata?.speciality === 'internalMedicine' ? 'Internal' : 'General'}
+                                            {session.metadata?.speciality === 'childPsychiatry' ? t('aiAssistant.consultChat.childPsychShort') : 
+                                             session.metadata?.speciality === 'adultPsychiatry' ? t('aiAssistant.consultChat.adultPsychShort') :
+                                             session.metadata?.speciality === 'internalMedicine' ? t('aiAssistant.consultChat.internalShort') : t('aiAssistant.consultChat.generalShort')}
                                         </Text>
                                     </View>
                                     <View style={styles.sessionDateRow}>
                                         <Feather name="clock" size={12} color="#94A3B8" />
                                         <Text style={styles.sessionDateText}>
-                                            {session.createdAt ? new Date(session.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '10 Mar'}
+                                            {session.createdAt ? new Date(session.createdAt).toLocaleDateString(i18n.language === 'pl' ? 'pl-PL' : 'en-GB', { day: 'numeric', month: 'short' }) : '10 Mar'}
                                         </Text>
                                     </View>
                                 </View>
@@ -388,7 +390,7 @@ const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
                             <Feather name="menu" size={22} color="#1E293B" />
                         </TouchableOpacity>
                         <View style={styles.chatHeaderTitleContainer}>
-                            <Text style={styles.chatHeaderTitle}>Clinical Assistant</Text>
+                            <Text style={styles.chatHeaderTitle}>{t('aiAssistant.consultChat.clinicalAssistant')}</Text>
                         </View>
                     </View>
 
@@ -402,16 +404,16 @@ const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
                             <Gap height={hp(2)} />
 
                             <Text style={styles.selectionDesc}>
-                                Start a new consultation session to get AI-powered medical guidance
+                                {t('aiAssistant.consultChat.selectionDesc')}
                             </Text>
 
                             <Gap height={hp(3)} />
 
                             {/* Specialty Dropdown */}
-                            <Text style={styles.selectLabel}>Select Specialty</Text>
+                            <Text style={styles.selectLabel}>{t('aiAssistant.consultChat.selectSpecialty')}</Text>
                             <Gap height={hp(1)} />
                             <CustomDropdown
-                                placeholder="Choose a specialty"
+                                placeholder={t('aiAssistant.consultChat.chooseSpecialty')}
                                 options={specialtyOptions}
                                 value={selectedSpecialty}
                                 onChange={(value) => setSelectedSpecialty(String(value))}
@@ -422,7 +424,7 @@ const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
 
                             {/* Start Button */}
                             <PrimaryButton
-                                label="+ Start New Consultation"
+                                label={t('aiAssistant.consultChat.startNewConsultation')}
                                 filled={true}
                                 onPress={handleStartConsultation}
                                 style={styles.startBtn}
@@ -443,7 +445,7 @@ const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
                             <Feather name="menu" size={22} color="#1E293B" />
                         </TouchableOpacity>
                         <View style={styles.chatHeaderTitleContainer}>
-                            <Text style={styles.chatHeaderTitle}>Clinical Assistant</Text>
+                            <Text style={styles.chatHeaderTitle}>{t('aiAssistant.consultChat.clinicalAssistant')}</Text>
                         </View>
                     </View>
 
@@ -498,7 +500,7 @@ const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
                                             <Animated.View style={[styles.thinkingDot, { opacity: dot2 }]} />
                                             <Animated.View style={[styles.thinkingDot, { opacity: dot3 }]} />
                                         </View>
-                                        <Text style={styles.thinkingText}>AI is thinking...</Text>
+                                        <Text style={styles.thinkingText}>{t('aiAssistant.consultChat.aiThinking')}</Text>
                                     </View>
                                 </View>
                             </View>
@@ -509,7 +511,7 @@ const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
                     <View style={styles.inputBar}>
                         <TextInput
                             style={styles.chatInput}
-                            placeholder="Ask about patient's condition..."
+                            placeholder={t('aiAssistant.consultChat.askPlaceholder')}
                             placeholderTextColor="#9CA3AF"
                             value={messageText}
                             onChangeText={setMessageText}

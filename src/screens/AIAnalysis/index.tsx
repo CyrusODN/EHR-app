@@ -19,11 +19,17 @@ import Gap from '../../component/gap';
 import StatCard from './Layout/statCard';
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 import MedicalCharts from './Layout/medicalCharts';
+import { useTranslation } from 'react-i18next';
 
 
 const AIAnalysis = ({ }) => {
     const navigation = useNavigation();
-    const tabs = ['Analysis', 'Summary', 'Recommendations'];
+    const { t } = useTranslation();
+    const tabs = [
+        t('aiAnalysis.tabs.analysis'),
+        t('aiAnalysis.tabs.summary'),
+        t('aiAnalysis.tabs.recommendations')
+    ];
     const [activeTab, setActiveTab] = useState(tabs[0]);
 
     return (
@@ -43,9 +49,9 @@ const AIAnalysis = ({ }) => {
                     <Image source={require('../../assets/images/brain-primary.png')} style={{ height: 25, width: 25 }} />
                 </View>
                 <View style={{ width: wp(65) }}>
-                    <Text style={styles.headerTitle}>Statistical analysis AI</Text>
+                    <Text style={styles.headerTitle}>{t('aiAnalysis.header.title')}</Text>
                     <Text style={styles.headerSubtitle}>
-                        Advanced clinical data analysis supported by artificial intelligence
+                        {t('aiAnalysis.header.subtitle')}
                     </Text>
                 </View>
                 <TouchableOpacity
@@ -66,30 +72,30 @@ const AIAnalysis = ({ }) => {
                     width: "100%", flexDirection: "row", justifyContent: "space-between"
                 }} >
                     <StatCard
-                        title={"Visits"}
+                        title={t('aiAnalysis.statCards.visits')}
                         icon={<Feather name="calendar" color='#4A90B9' size={20} />}
                         score={"1,234"}
-                        subtitle={"+12.5% vs\n previous period"} />
+                        subtitle={t('aiAnalysis.statCards.vsPreviousPeriod', { percentage: '12.5' })} />
                     <StatCard
-                        title={"Average time to remission"}
+                        title={t('aiAnalysis.statCards.avgTimeToRemission')}
                         icon={<Feather name="clock" color='#4A90B9' size={20} />}
                         score={"8.5 tyg"}
-                        subtitle={"+15.3% vs\n previous period"} />
+                        subtitle={t('aiAnalysis.statCards.vsPreviousPeriod', { percentage: '15.3' })} />
                 </View>
                 <Gap height={hp(2)} />
                 <View style={{
                     width: "100%", flexDirection: "row", justifyContent: "space-between"
                 }} >
                     <StatCard
-                        title={"Treatment effectiveness"}
+                        title={t('aiAnalysis.statCards.treatmentEffectiveness')}
                         icon={<Image source={require("../../assets/images/chartbeat.png")} style={{ height: 20, width: 20 }} />}
                         score={"78.5%"}
-                        subtitle={"+5.2% vs\n previous period"} />
+                        subtitle={t('aiAnalysis.statCards.vsPreviousPeriod', { percentage: '5.2' })} />
                     <StatCard
-                        title={"Adherence"}
+                        title={t('aiAnalysis.statCards.adherence')}
                         icon={<Image source={require("../../assets/images/adherenece.png")} style={{ height: 20, width: 20 }} />}
                         score={"92.3%"}
-                        subtitle={"+3.1% vs\n previous period"} />
+                        subtitle={t('aiAnalysis.statCards.vsPreviousPeriod', { percentage: '3.1' })} />
                 </View>
                 <Gap height={hp(3)} />
 
@@ -114,19 +120,19 @@ const AIAnalysis = ({ }) => {
                     <View style={{ flexDirection: "row", width: "100%", alignItems: "center", justifyContent: "space-between" }} >
                         <Image source={require('../../assets/images/brain-primary.png')} style={{ height: 25, width: 25, alignSelf: "flex-start", marginTop: hp(0.5) }} />
                         <View style={{ width: wp(80) }}>
-                            <Text style={styles.headerTitle}>Conclusions AI</Text>
+                            <Text style={styles.headerTitle}>{t('aiAnalysis.conclusions.title')}</Text>
                             <Gap height={hp(0.5)} />
                             <View style={{ flexDirection: "row" }} >
                                 <Image source={require('../../assets/images/stars.png')} style={{ width: 20, height: 20, marginRight: 10 }} />
                                 <Text style={styles.headerSubtitle}>
-                                    Powered by advanced machine learning algorithms
+                                    {t('aiAnalysis.conclusions.subtitle')}
                                 </Text>
                             </View>
                         </View>
                     </View>
 
                     <Gap height={hp(2)} />
-                    <Text style={{ fontSize: 16, fontWeight: "bold" }}>Clinical patterns</Text>
+                    <Text style={{ fontSize: 16, fontWeight: "bold" }}>{t('aiAnalysis.conclusions.clinicalPatterns')}</Text>
                     <Gap height={hp(1)} />
                     <View style={{
                         flexDirection: "row",
@@ -137,7 +143,7 @@ const AIAnalysis = ({ }) => {
                     }} >
                         <Image source={require('../../assets/images/chartbeat.png')} style={{ height: 20, width: 20, alignSelf: 'flex-start', marginTop: hp(0.5) }} />
                         <Text style={{ width: "90%", color: "#4A90B9" }}>
-                            Zaobserwowano 23% wzrost rozpoznań F32.1 (Epizod depresyjny umiarkowany) w grupie wiekowej 25-35 lat. Główne czynniki ryzyka: stres zawodowy, izolacja społeczna.
+                            {t('aiAnalysis.conclusions.pattern1')}
                         </Text>
                     </View>
                     <Gap height={hp(1)} />
@@ -150,11 +156,11 @@ const AIAnalysis = ({ }) => {
                     }} >
                         <Feather name="trending-up" size={20} color={'#22c55e'} style={{ alignSelf: "flex-start", marginTop: hp(0.5) }} />
                         <Text style={{ width: "90%", color: "#166534" }}>
-                            Skuteczność terapii wzrosła o 15% przy wczesnej interwencji (do 2 tygodni od pierwszych objawów) i regularnym monitorowaniu z użyciem skal klinicznych.
+                            {t('aiAnalysis.conclusions.pattern2')}
                         </Text>
                     </View>
                     <Gap height={hp(2)} />
-                    <Text style={{ fontSize: 16, fontWeight: "bold" }}>Therapeutic recommendations</Text>
+                    <Text style={{ fontSize: 16, fontWeight: "bold" }}>{t('aiAnalysis.conclusions.therapeuticRecommendations')}</Text>
                     <Gap height={hp(1)} />
                     <View style={{
                         flexDirection: "row",
@@ -167,7 +173,7 @@ const AIAnalysis = ({ }) => {
                             source={require('../../assets/images/brain-purple.png')}
                             style={{ height: 20, width: 20, alignSelf: 'flex-start', marginTop: hp(0.5) }} />
                         <Text style={{ width: "90%", color: "#6b21a8" }}>
-                            Pacjenci z kombinacją farmakoterapii i psychoterapii wykazują o 35% wyższą skuteczność leczenia w porównaniu do monoterapii.
+                            {t('aiAnalysis.conclusions.recommendation1')}
                         </Text>
                     </View>
                     <Gap height={hp(1)} />
@@ -180,7 +186,7 @@ const AIAnalysis = ({ }) => {
                     }} >
                         <Feather name="info" size={20} color={'#f97316'} style={{ alignSelf: "flex-start", marginTop: hp(0.5) }} />
                         <Text style={{ width: "90%", color: "#9a3412" }}>
-                            Zidentyfikowano wzrost ryzyka przerwania leczenia w 4-6 tygodniu terapii. Zalecane wdrożenie dodatkowego wsparcia i monitoringu w tym okresie.
+                            {t('aiAnalysis.conclusions.recommendation2')}
                         </Text>
                     </View>
                 </View>
@@ -203,7 +209,7 @@ const AIAnalysis = ({ }) => {
                     <View style={{ flexDirection: "row", width: "100%", alignItems: "center", justifyContent: "space-between" }} >
                         <Feather name={"users"} color={"#4A90B9"} size={20} />
                         <View style={{ width: wp(80) }}>
-                            <Text style={{ fontSize: 16, fontWeight: "bold" }}>Patients demographics</Text>
+                            <Text style={{ fontSize: 16, fontWeight: "bold" }}>{t('aiAnalysis.demographics.title')}</Text>
                         </View>
                     </View>
                     <Gap height={hp(1)} />
@@ -212,24 +218,24 @@ const AIAnalysis = ({ }) => {
                         width: "100%",
                         alignItems: "center", justifyContent: "space-between", marginVertical: 5
                     }}>
-                        <Text style={{ fontSize: 16 }} >Middle age</Text>
-                        <Text style={{ fontSize: 16 }} >42.5 lat</Text>
+                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.demographics.middleAge')}</Text>
+                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.demographics.middleAgeValue')}</Text>
                     </View>
                     <View style={{
                         flexDirection: "row",
                         width: "100%",
                         alignItems: "center", justifyContent: "space-between", marginVertical: 5
                     }}>
-                        <Text style={{ fontSize: 16 }} >Gender distribution</Text>
-                        <Text style={{ fontSize: 16 }} >K: 65% | M: 35%</Text>
+                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.demographics.genderDistribution')}</Text>
+                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.demographics.genderDistributionValue')}</Text>
                     </View>
                     <View style={{
                         flexDirection: "row",
                         width: "100%",
                         alignItems: "center", justifyContent: "space-between", marginVertical: 5
                     }}>
-                        <Text style={{ fontSize: 16 }} >New Patients</Text>
-                        <Text style={{ fontSize: 16 }} >+124 (30d)</Text>
+                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.demographics.newPatients')}</Text>
+                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.demographics.newPatientsValue')}</Text>
                     </View>
                 </View>
                 <Gap height={hp(3)} />
@@ -248,7 +254,7 @@ const AIAnalysis = ({ }) => {
                     <View style={{ flexDirection: "row", width: "100%", alignItems: "center", justifyContent: "space-between" }} >
                         <Image source={require('../../assets/images/chartbeat.png')} style={{ height: 20, width: 20 }} />
                         <View style={{ width: wp(80) }}>
-                            <Text style={{ fontSize: 16, fontWeight: "bold" }}>Treatment metrics</Text>
+                            <Text style={{ fontSize: 16, fontWeight: "bold" }}>{t('aiAnalysis.treatmentMetrics.title')}</Text>
                         </View>
                     </View>
                     <Gap height={hp(1)} />
@@ -257,24 +263,24 @@ const AIAnalysis = ({ }) => {
                         width: "100%",
                         alignItems: "center", justifyContent: "space-between", marginVertical: 5
                     }}>
-                        <Text style={{ fontSize: 16 }} >Average length of theraphy</Text>
-                        <Text style={{ fontSize: 16 }} >4.2 months</Text>
+                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.treatmentMetrics.avgTherapyLength')}</Text>
+                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.treatmentMetrics.avgTherapyLengthValue')}</Text>
                     </View>
                     <View style={{
                         flexDirection: "row",
                         width: "100%",
                         alignItems: "center", justifyContent: "space-between", marginVertical: 5
                     }}>
-                        <Text style={{ fontSize: 16 }} >Remission rate</Text>
-                        <Text style={{ fontSize: 16 }} >72.5%</Text>
+                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.treatmentMetrics.remissionRate')}</Text>
+                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.treatmentMetrics.remissionRateValue')}</Text>
                     </View>
                     <View style={{
                         flexDirection: "row",
                         width: "100%",
                         alignItems: "center", justifyContent: "space-between", marginVertical: 5
                     }}>
-                        <Text style={{ fontSize: 16 }} >Continuation of treatment</Text>
-                        <Text style={{ fontSize: 16 }} >85.4%</Text>
+                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.treatmentMetrics.continuationOfTreatment')}</Text>
+                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.treatmentMetrics.continuationOfTreatmentValue')}</Text>
                     </View>
                 </View>
                 <Gap height={hp(3)} />
@@ -293,7 +299,7 @@ const AIAnalysis = ({ }) => {
                     <View style={{ flexDirection: "row", width: "100%", alignItems: "center", justifyContent: "space-between" }} >
                         <Feather name={"bar-chart-2"} color={"#4A90B9"} size={20} />
                         <View style={{ width: wp(80) }}>
-                            <Text style={{ fontSize: 16, fontWeight: "bold" }}>Quality indicators</Text>
+                            <Text style={{ fontSize: 16, fontWeight: "bold" }}>{t('aiAnalysis.qualityIndicators.title')}</Text>
                         </View>
                     </View>
                     <View style={{
@@ -301,24 +307,24 @@ const AIAnalysis = ({ }) => {
                         width: "100%",
                         alignItems: "center", justifyContent: "space-between", marginVertical: 5
                     }}>
-                        <Text style={{ fontSize: 16 }} >Patient satisfaction</Text>
-                        <Text style={{ fontSize: 16 }} >4.8/5.0</Text>
+                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.qualityIndicators.patientSatisfaction')}</Text>
+                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.qualityIndicators.patientSatisfactionValue')}</Text>
                     </View>
                     <View style={{
                         flexDirection: "row",
                         width: "100%",
                         alignItems: "center", justifyContent: "space-between", marginVertical: 5
                     }}>
-                        <Text style={{ fontSize: 16 }} >Readmisje</Text>
-                        <Text style={{ fontSize: 16 }} >3.2%</Text>
+                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.qualityIndicators.readmissions')}</Text>
+                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.qualityIndicators.readmissionsValue')}</Text>
                     </View>
                     <View style={{
                         flexDirection: "row",
                         width: "100%",
                         alignItems: "center", justifyContent: "space-between", marginVertical: 5
                     }}>
-                        <Text style={{ fontSize: 16 }} >Completeness of documentation</Text>
-                        <Text style={{ fontSize: 16 }} >98.7%</Text>
+                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.qualityIndicators.documentationCompleteness')}</Text>
+                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.qualityIndicators.documentationCompletenessValue')}</Text>
                     </View>
                 </View>
                 <Gap height={hp(10)} />

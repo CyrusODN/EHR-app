@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
 import {
     View,
     Text,
@@ -26,6 +26,8 @@ import userStore from '../../store/user';
 const { width } = Dimensions.get('window');
 import LinearGradient from 'react-native-linear-gradient';
 import LogoSvg from '../../component/logo';
+import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 const SlidingDrawerModal = ({ visible, onClose }: { visible: boolean, onClose: () => void }) => {
     const slideAnim = useRef(new Animated.Value(-width)).current;
@@ -33,13 +35,23 @@ const SlidingDrawerModal = ({ visible, onClose }: { visible: boolean, onClose: (
     const insets = useSafeAreaInsets();
     const navigation = useNavigation<any>();
     const { purgeAuth, loggedInUser } = userStore() as any;
+    const { i18n, t } = useTranslation();
+    const { colors: tc, isDark, toggleTheme } = useThemeColors();
     const [openSections, setOpenSections] = useState({
         patients: true,
         services: false,
         reports: false
     });
-    const [language, setLanguage] = useState('en');
-    const [isDarkMode, setIsDarkMode] = useState(false);
+    
+    // Fallback to exactly 'en' or 'pl' if i18n.language has country codes
+    const currentLang = i18n.language?.startsWith('pl') ? 'pl' : 'en';
+    const [language, setLanguageState] = useState(currentLang);
+
+    const changeLanguage = (lang: string) => {
+        setLanguageState(lang);
+        i18n.changeLanguage(lang);
+    };
+
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
     // Profile data from store with fallbacks
@@ -80,6 +92,9 @@ const SlidingDrawerModal = ({ visible, onClose }: { visible: boolean, onClose: (
         onClose();
     };
 
+    // Build theme-aware dynamic styles
+    const ds = useMemo(() => createDynamicStyles(tc, isDark), [tc, isDark]);
+
     return (
         <Modal
             transparent
@@ -88,11 +103,11 @@ const SlidingDrawerModal = ({ visible, onClose }: { visible: boolean, onClose: (
             onRequestClose={handleClose}
         >
             <TouchableWithoutFeedback onPress={handleClose}>
-                <View style={styles.modalOverlay}>
+                <View style={ds.modalOverlay}>
                     <TouchableWithoutFeedback>
                         <Animated.View
                             style={[
-                                styles.modalContent,
+                                ds.modalContent,
                                 {
                                     transform: [{ translateX: slideAnim }],
                                     marginTop: insets.top + 10,
@@ -101,147 +116,147 @@ const SlidingDrawerModal = ({ visible, onClose }: { visible: boolean, onClose: (
                                 },
                             ]}
                         >
-                            <View style={styles.drawerHeader}>
-                                <View style={styles.logoWrapper}>
+                            <View style={ds.drawerHeader}>
+                                <View style={ds.logoWrapper}>
                                     <LogoSvg size='small' />
                                 </View>
-                                <TouchableOpacity onPress={handleClose} style={styles.closeButtonRelative}>
-                                    <View style={styles.closeIconBg}>
-                                        <Feather name="x" size={20} color="#666" />
+                                <TouchableOpacity onPress={handleClose} style={ds.closeButtonRelative}>
+                                    <View style={ds.closeIconBg}>
+                                        <Feather name="x" size={20} color={tc.textSecondary} />
                                     </View>
                                 </TouchableOpacity>
                             </View>
 
                             <ScrollView
-                                style={styles.menuContainer}
+                                style={ds.menuContainer}
                                 contentContainerStyle={{ paddingBottom: 20 }}
                                 showsVerticalScrollIndicator={false}
                             >
                                 {/* Patients Dropdown */}
-                                <View style={styles.dropdownSection}>
+                                <View style={ds.dropdownSection}>
                                     <TouchableOpacity 
-                                        style={styles.dropdownHeader} 
+                                        style={ds.dropdownHeader} 
                                         onPress={() => toggleSection('patients')}
                                         activeOpacity={0.7}
                                     >
-                                        <View style={styles.dropdownHeaderLeft}>
-                                            <Feather name="users" size={20} color="#4B5563" />
-                                            <Text style={styles.dropdownTitle}>Patients</Text>
+                                        <View style={ds.dropdownHeaderLeft}>
+                                            <Feather name="users" size={20} color={tc.textSecondary} />
+                                            <Text style={ds.dropdownTitle}>{t('nav.patients.title')}</Text>
                                         </View>
                                         <Feather 
                                             name={openSections.patients ? "chevron-up" : "chevron-down"} 
                                             size={18} 
-                                            color="#9CA3AF" 
+                                            color={tc.textMuted} 
                                         />
                                     </TouchableOpacity>
                                     
                                     {openSections.patients && (
-                                        <View style={styles.dropdownContent}>
+                                        <View style={ds.dropdownContent}>
                                             <TouchableOpacity
                                                 onPress={() => { onClose(); navigation.navigate("Search-Patient"); }}
-                                                style={styles.subMenuItem}>
-                                                <Feather name="search" size={18} color="#64748B" />
-                                                <Text style={styles.subMenuItemText}>Search patient</Text>
+                                                style={ds.subMenuItem}>
+                                                <Feather name="search" size={18} color={tc.textMuted} />
+                                                <Text style={ds.subMenuItemText}>{t('nav.patients.search')}</Text>
                                             </TouchableOpacity>
                                             <TouchableOpacity
                                                 onPress={() => { onClose(); navigation.navigate("New-Patient"); }}
-                                                style={styles.subMenuItem}>
-                                                <Feather name="plus-circle" size={18} color="#64748B" />
-                                                <Text style={styles.subMenuItemText}>New patient</Text>
+                                                style={ds.subMenuItem}>
+                                                <Feather name="plus-circle" size={18} color={tc.textMuted} />
+                                                <Text style={ds.subMenuItemText}>{t('nav.patients.new')}</Text>
                                             </TouchableOpacity>
                                             <TouchableOpacity
                                                 onPress={() => { onClose(); navigation.navigate("Patient-List"); }}
-                                                style={styles.subMenuItem}>
-                                                <Feather name="users" size={18} color="#64748B" />
-                                                <Text style={styles.subMenuItemText}>Patient list</Text>
+                                                style={ds.subMenuItem}>
+                                                <Feather name="users" size={18} color={tc.textMuted} />
+                                                <Text style={ds.subMenuItemText}>{t('nav.patients.list')}</Text>
                                             </TouchableOpacity>
                                             <TouchableOpacity
                                                 onPress={() => { onClose(); navigation.navigate("Schedule-Visits"); }}
-                                                style={styles.subMenuItem}>
-                                                <Feather name="calendar" size={18} color="#64748B" />
-                                                <Text style={styles.subMenuItemText}>Scheduled visits</Text>
+                                                style={ds.subMenuItem}>
+                                                <Feather name="calendar" size={18} color={tc.textMuted} />
+                                                <Text style={ds.subMenuItemText}>{t('nav.patients.appointments')}</Text>
                                             </TouchableOpacity>
                                             <TouchableOpacity
                                                 onPress={() => { onClose(); navigation.navigate("Referrals"); }}
-                                                style={styles.subMenuItem}>
-                                                <Feather name="clipboard" size={18} color="#64748B" />
-                                                <Text style={styles.subMenuItemText}>Referrals</Text>
+                                                style={ds.subMenuItem}>
+                                                <Feather name="clipboard" size={18} color={tc.textMuted} />
+                                                <Text style={ds.subMenuItemText}>{t('nav.patients.referrals')}</Text>
                                             </TouchableOpacity>
                                         </View>
                                     )}
                                 </View>
 
                                 {/* Services Dropdown */}
-                                <View style={styles.dropdownSection}>
+                                <View style={ds.dropdownSection}>
                                     <TouchableOpacity 
-                                        style={styles.dropdownHeader} 
+                                        style={ds.dropdownHeader} 
                                         onPress={() => toggleSection('services')}
                                         activeOpacity={0.7}
                                     >
-                                        <View style={styles.dropdownHeaderLeft}>
-                                            <FontAwesome5 name="stethoscope" size={18} color="#4B5563" />
-                                            <Text style={styles.dropdownTitle}>Services</Text>
+                                        <View style={ds.dropdownHeaderLeft}>
+                                            <FontAwesome5 name="stethoscope" size={18} color={tc.textSecondary} />
+                                            <Text style={ds.dropdownTitle}>{t('nav.services.title')}</Text>
                                         </View>
                                         <Feather 
                                             name={openSections.services ? "chevron-up" : "chevron-down"} 
                                             size={18} 
-                                            color="#9CA3AF" 
+                                            color={tc.textMuted} 
                                         />
                                     </TouchableOpacity>
                                     
                                     {openSections.services && (
-                                        <View style={styles.dropdownContent}>
-                                            <TouchableOpacity style={styles.subMenuItem}>
-                                                <Feather name="file-text" size={18} color="#64748B" />
-                                                <Text style={styles.subMenuItemText}>Documentation</Text>
+                                        <View style={ds.dropdownContent}>
+                                            <TouchableOpacity style={ds.subMenuItem}>
+                                                <Feather name="file-text" size={18} color={tc.textMuted} />
+                                                <Text style={ds.subMenuItemText}>{t('nav.services.documents')}</Text>
                                             </TouchableOpacity>
                                             <TouchableOpacity
                                                 onPress={() => { onClose(); navigation.navigate("AI-Assistant"); }}
-                                                style={styles.subMenuItem}>
-                                                <MaterialCommunityIcons name="robot-outline" size={18} color="#64748B" />
-                                                <Text style={styles.subMenuItemText}>AI Assistants</Text>
+                                                style={ds.subMenuItem}>
+                                                <MaterialCommunityIcons name="robot-outline" size={18} color={tc.textMuted} />
+                                                <Text style={ds.subMenuItemText}>{t('nav.services.aiAssistants')}</Text>
                                             </TouchableOpacity>
                                         </View>
                                     )}
                                 </View>
 
                                 {/* Reports Dropdown */}
-                                <View style={styles.dropdownSection}>
+                                <View style={ds.dropdownSection}>
                                     <TouchableOpacity 
-                                        style={styles.dropdownHeader} 
+                                        style={ds.dropdownHeader} 
                                         onPress={() => toggleSection('reports')}
                                         activeOpacity={0.7}
                                     >
-                                        <View style={styles.dropdownHeaderLeft}>
-                                            <Feather name="bar-chart-2" size={20} color="#4B5563" />
-                                            <Text style={styles.dropdownTitle}>Reports</Text>
+                                        <View style={ds.dropdownHeaderLeft}>
+                                            <Feather name="bar-chart-2" size={20} color={tc.textSecondary} />
+                                            <Text style={ds.dropdownTitle}>{t('nav.reports.title')}</Text>
                                         </View>
                                         <Feather 
                                             name={openSections.reports ? "chevron-up" : "chevron-down"} 
                                             size={18} 
-                                            color="#9CA3AF" 
+                                            color={tc.textMuted} 
                                         />
                                     </TouchableOpacity>
                                     
                                     {openSections.reports && (
-                                        <View style={styles.dropdownContent}>
-                                            <TouchableOpacity style={styles.subMenuItem}>
-                                                <Feather name="bar-chart-2" size={18} color="#64748B" />
-                                                <Text style={styles.subMenuItemText}>Statistics</Text>
+                                        <View style={ds.dropdownContent}>
+                                            <TouchableOpacity style={ds.subMenuItem}>
+                                                <Feather name="bar-chart-2" size={18} color={tc.textMuted} />
+                                                <Text style={ds.subMenuItemText}>{t('nav.reports.statistics')}</Text>
                                             </TouchableOpacity>
                                             <TouchableOpacity
                                                 onPress={() => { onClose(); navigation.navigate('AI-Analysis'); }}
-                                                style={styles.subMenuItem}>
-                                                <FontAwesome5 name="brain" size={16} color="#64748B" />
-                                                <Text style={styles.subMenuItemText}>AI Analysis</Text>
+                                                style={ds.subMenuItem}>
+                                                <FontAwesome5 name="brain" size={16} color={tc.textMuted} />
+                                                <Text style={ds.subMenuItemText}>{t('nav.reports.aiAnalysis')}</Text>
                                             </TouchableOpacity>
-                                            <TouchableOpacity style={styles.subMenuItem}>
-                                                <FontAwesome5 name="database" size={14} color="#64748B" />
-                                                <Text style={styles.subMenuItemText}>Medical reports</Text>
+                                            <TouchableOpacity style={ds.subMenuItem}>
+                                                <FontAwesome5 name="database" size={14} color={tc.textMuted} />
+                                                <Text style={ds.subMenuItemText}>{t('nav.reports.medicalReports')}</Text>
                                             </TouchableOpacity>
-                                            <TouchableOpacity style={styles.subMenuItem}>
-                                                <Feather name="file-text" size={18} color="#64748B" />
-                                                <Text style={styles.subMenuItemText}>Billing</Text>
+                                            <TouchableOpacity style={ds.subMenuItem}>
+                                                <Feather name="file-text" size={18} color={tc.textMuted} />
+                                                <Text style={ds.subMenuItemText}>{t('nav.reports.billing')}</Text>
                                             </TouchableOpacity>
                                         </View>
                                     )}
@@ -252,72 +267,72 @@ const SlidingDrawerModal = ({ visible, onClose }: { visible: boolean, onClose: (
                                 {/* Spotlight Button */}
                                 <TouchableOpacity
                                     onPress={() => { onClose(); navigation.navigate('SpotLight'); }}
-                                    style={styles.spotlightBtnContainer}
+                                    style={ds.spotlightBtnContainer}
                                 >
-                                    <View style={styles.spotlightShadowWrapper}>
+                                    <View style={ds.spotlightShadowWrapper}>
                                         <LinearGradient
                                             colors={['#4A90B9', '#68BFB4']}
                                             start={{ x: 0, y: 0 }}
                                             end={{ x: 1, y: 0 }}
-                                            style={styles.spotlightGradient}
+                                            style={ds.spotlightGradient}
                                         >
                                             <Feather name="zap" size={18} color="#fff" />
-                                            <Text style={styles.spotlightBtnText}>Spotlight</Text>
+                                            <Text style={ds.spotlightBtnText}>{t('nav.actions.spotlight')}</Text>
                                         </LinearGradient>
                                     </View>
                                 </TouchableOpacity>
                             </ScrollView>
 
                             {/* Sticky Footer Area */}
-                            <View style={styles.stickyFooter}>
+                            <View style={ds.stickyFooter}>
                                 {/* Language Selector (Always visible above Profile area) */}
-                                <View style={styles.languageContainer}>
+                                <View style={ds.languageContainer}>
                                     <TouchableOpacity 
-                                        style={[styles.langPill, language === 'pl' && styles.langPillActive]}
-                                        onPress={() => setLanguage('pl')}
+                                        style={[ds.langPill, language === 'pl' && ds.langPillActive]}
+                                        onPress={() => changeLanguage('pl')}
                                     >
-                                        <Text style={styles.langEmoji}>🇵🇱</Text>
-                                        <Text style={[styles.langText, language === 'pl' && styles.langTextActive]}>Polski</Text>
+                                        <Text style={ds.langEmoji}>🇵🇱</Text>
+                                        <Text style={[ds.langText, language === 'pl' && ds.langTextActive]}>Polski</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity 
-                                        style={[styles.langPill, language === 'en' && styles.langPillActive]}
-                                        onPress={() => setLanguage('en')}
+                                        style={[ds.langPill, language === 'en' && ds.langPillActive]}
+                                        onPress={() => changeLanguage('en')}
                                     >
-                                        <Text style={styles.langEmoji}>🇬🇧</Text>
-                                        <Text style={[styles.langText, language === 'en' && styles.langTextActive]}>English</Text>
+                                        <Text style={ds.langEmoji}>🇬🇧</Text>
+                                        <Text style={[ds.langText, language === 'en' && ds.langTextActive]}>English</Text>
                                     </TouchableOpacity>
                                 </View>
 
-                                <View style={styles.footerSeparator} />
+                                <View style={ds.footerSeparator} />
 
                                 {/* Reordered Footer: Options now appear ABOVE the profile when toggled */}
                                 {isProfileMenuOpen && (
-                                    <View style={styles.footerOptionsContainer}>
-                                        <TouchableOpacity style={styles.footerOptionItem} onPress={() => setIsDarkMode(!isDarkMode)}>
-                                            <View style={styles.optionIconLabel}>
-                                                <Feather name={isDarkMode ? "sun" : "moon"} size={20} color="#4B5563" />
-                                                <Text style={styles.footerOptionText}>Dark Mode</Text>
+                                    <View style={ds.footerOptionsContainer}>
+                                        <TouchableOpacity style={ds.footerOptionItem} onPress={toggleTheme}>
+                                            <View style={ds.optionIconLabel}>
+                                                <Feather name={isDark ? "sun" : "moon"} size={20} color={isDark ? '#FBBF24' : tc.textSecondary} />
+                                                <Text style={ds.footerOptionText}>{t('nav.options.darkMode')}</Text>
                                             </View>
-                                            <View style={[styles.toggleBase, isDarkMode && styles.toggleBaseActive]}>
-                                                <View style={[styles.toggleCircle, isDarkMode && styles.toggleCircleActive]} />
+                                            <View style={[ds.toggleBase, isDark && ds.toggleBaseActive]}>
+                                                <Animated.View style={[ds.toggleCircle, isDark && ds.toggleCircleActive]} />
                                             </View>
                                         </TouchableOpacity>
 
                                         <TouchableOpacity 
-                                            style={styles.footerOptionItem} 
+                                            style={ds.footerOptionItem} 
                                             onPress={() => { onClose(); navigation.navigate('Settings'); }}
                                         >
-                                            <View style={styles.optionIconLabel}>
-                                                <Feather name="settings" size={20} color="#4B5563" />
-                                                <Text style={styles.footerOptionText}>Settings</Text>
+                                            <View style={ds.optionIconLabel}>
+                                                <Feather name="settings" size={20} color={tc.textSecondary} />
+                                                <Text style={ds.footerOptionText}>{t('nav.options.settings')}</Text>
                                             </View>
-                                            <Feather name="chevron-right" size={18} color="#9CA3AF" />
+                                            <Feather name="chevron-right" size={18} color={tc.textMuted} />
                                         </TouchableOpacity>
 
-                                        <TouchableOpacity style={styles.footerOptionItem} onPress={purgeAuth}>
-                                            <View style={styles.optionIconLabel}>
+                                        <TouchableOpacity style={ds.footerOptionItem} onPress={purgeAuth}>
+                                            <View style={ds.optionIconLabel}>
                                                 <Feather name="log-out" size={20} color="#EF4444" />
-                                                <Text style={[styles.footerOptionText, { color: '#EF4444' }]}>Logout</Text>
+                                                <Text style={[ds.footerOptionText, { color: '#EF4444' }]}>{t('common.logout')}</Text>
                                             </View>
                                         </TouchableOpacity>
                                     </View>
@@ -325,35 +340,35 @@ const SlidingDrawerModal = ({ visible, onClose }: { visible: boolean, onClose: (
 
                                 {/* Profile Section Header (Clickable to toggle options above) */}
                                 <TouchableOpacity 
-                                    style={styles.profileSection} 
+                                    style={ds.profileSection} 
                                     onPress={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
                                     activeOpacity={0.8}
                                 >
-                                    <View style={styles.avatarContainer}>
-                                        <View style={styles.avatarCircle}>
+                                    <View style={ds.avatarContainer}>
+                                        <View style={ds.avatarCircle}>
                                             {loggedInUser?.profileImage ? (
                                                 <Image 
                                                     source={{ uri: loggedInUser.profileImage }} 
-                                                    style={styles.avatarImage} 
+                                                    style={ds.avatarImage} 
                                                 />
                                             ) : (
                                                 <Feather name="user" size={26} color="#4A90B9" />
                                             )}
                                         </View>
-                                        <View style={styles.statusDot} />
+                                        <View style={ds.statusDot} />
                                     </View>
-                                    <View style={styles.profileInfo}>
-                                        <View style={styles.nameHeader}>
-                                            <Text style={styles.profileName}>{userName}</Text>
+                                    <View style={ds.profileInfo}>
+                                        <View style={ds.nameHeader}>
+                                            <Text style={ds.profileName}>{userName}</Text>
                                             <Feather 
                                                 name={isProfileMenuOpen ? "chevron-down" : "chevron-up"} 
                                                 size={16} 
-                                                color="#9CA3AF" 
+                                                color={tc.textMuted} 
                                             />
                                         </View>
-                                        <Text style={styles.profileEmail}>{userEmail}</Text>
-                                        <View style={styles.roleTag}>
-                                            <Text style={styles.roleTagText}>{userRole}</Text>
+                                        <Text style={ds.profileEmail}>{userEmail}</Text>
+                                        <View style={ds.roleTag}>
+                                            <Text style={ds.roleTagText}>{userRole}</Text>
                                         </View>
                                     </View>
                                 </TouchableOpacity>
@@ -366,286 +381,291 @@ const SlidingDrawerModal = ({ visible, onClose }: { visible: boolean, onClose: (
     );
 };
 
-const styles = StyleSheet.create({
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    modalContent: {
-        width: '80%',
-        backgroundColor: '#fff',
-        borderTopRightRadius: 30,
-        borderBottomRightRadius: 0,
-        ...Platform.select({
-            ios: {
-                shadowColor: '#000',
-                shadowOffset: { width: 5, height: 0 },
-                shadowOpacity: 0.15,
-                shadowRadius: 15,
-            },
-            android: { elevation: 12 },
-        }),
-    },
-    drawerHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 25,
-        paddingTop: 20,
-        paddingBottom: 10,
-    },
-    logoWrapper: {
-        width: 150,
-        height: 40,
-        justifyContent: 'center',
-    },
-    closeButtonRelative: {
-        padding: 5,
-    },
-    closeIconBg: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        backgroundColor: '#F9FAFB',
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#F1F5F9',
-    },
-    menuContainer: {
-        flex: 1,
-    },
-    dropdownSection: {
-        paddingHorizontal: 20,
-        marginBottom: 4,
-    },
-    dropdownHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingVertical: 12,
-        paddingHorizontal: 12,
-        borderRadius: 12,
-    },
-    dropdownHeaderLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    dropdownTitle: {
-        fontSize: 17,
-        fontWeight: '600',
-        color: '#334155',
-        marginLeft: 14,
-    },
-    dropdownContent: {
-        paddingLeft: 46,
-        paddingTop: 2,
-        paddingBottom: 8,
-    },
-    subMenuItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 10,
-    },
-    subMenuItemText: {
-        fontSize: 15,
-        color: '#64748B',
-        fontWeight: '400',
-        marginLeft: 12,
-    },
-    spotlightBtnContainer: {
-        width: '88%',
-        alignSelf: 'center',
-        marginTop: 15,
-    },
-    spotlightGradient: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: 50,
-        borderRadius: 15,
-    },
-    spotlightShadowWrapper: {
-        borderRadius: 15,
-        shadowColor: '#4A90B9',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 6,
-        elevation: 4,
-        backgroundColor: 'white', // Helps with shadow calculation
-    },
-    spotlightBtnText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: '700',
-        marginLeft: 10,
-    },
-    languageContainer: {
-        flexDirection: 'row',
-        alignSelf: 'center',
-        backgroundColor: '#F1F5F9',
-        borderRadius: 25,
-        padding: 4,
-        width: '88%',
-        marginBottom: 10,
-    },
-    footerSeparator: {
-        height: 1,
-        backgroundColor: '#F1F5F9',
-        width: '88%',
-        alignSelf: 'center',
-        marginBottom: 5,
-    },
-    footerOptionsContainer: {
-        paddingHorizontal: 10,
-        backgroundColor: '#fff',
-    },
-    langPill: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 8,
-        borderRadius: 22,
-    },
-    langPillActive: {
-        backgroundColor: '#fff',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-        elevation: 1,
-    },
-    langEmoji: {
-        fontSize: 16,
-        marginRight: 8,
-    },
-    langText: {
-        fontSize: 14,
-        color: '#94A3B8',
-        fontWeight: '600',
-    },
-    langTextActive: {
-        color: '#334155',
-    },
-    stickyFooter: {
-        marginTop: 'auto',
-        backgroundColor: '#fff',
-        paddingTop: 15,
-        borderTopWidth: 1,
-        borderTopColor: '#F1F5F9',
-        paddingBottom: hp(1.5), // Added padding for bottom area
-    },
-    profileSection: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 25,
-        paddingVertical: 18,
-    },
-    avatarContainer: {
-        position: 'relative',
-    },
-    avatarCircle: {
-        width: 52,
-        height: 52,
-        borderRadius: 26,
-        backgroundColor: '#F0F9FF',
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#E0F2FE',
-        overflow: 'hidden',
-    },
-    avatarImage: {
-        width: 52,
-        height: 52,
-        borderRadius: 26,
-    },
-    statusDot: {
-        position: 'absolute',
-        bottom: 2,
-        right: 2,
-        width: 14,
-        height: 14,
-        borderRadius: 7,
-        backgroundColor: '#10B981',
-        borderWidth: 2,
-        borderColor: '#fff',
-    },
-    profileInfo: {
-        flex: 1,
-        marginLeft: 15,
-    },
-    nameHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        width: '100%',
-    },
-    profileName: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: '#0F172A',
-    },
-    profileEmail: {
-        fontSize: 14,
-        color: '#64748B',
-        marginTop: 1,
-    },
-    roleTag: {
-        backgroundColor: '#E0F2FE',
-        paddingHorizontal: 12,
-        paddingVertical: 4,
-        borderRadius: 15,
-        alignSelf: 'flex-start',
-        marginTop: 8,
-    },
-    roleTagText: {
-        fontSize: 13,
-        fontWeight: '600',
-        color: '#0369A1',
-    },
-    footerOptions: {
-        paddingHorizontal: 10,
-        paddingBottom: 5,
-    },
-    footerOptionItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingVertical: 14,
-        paddingHorizontal: 15,
-        borderRadius: 12,
-    },
-    optionIconLabel: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    footerOptionText: {
-        fontSize: 16,
-        fontWeight: '500',
-        color: '#334155',
-        marginLeft: 15,
-    },
-    toggleBase: {
-        width: 44,
-        height: 24,
-        borderRadius: 12,
-        backgroundColor: '#E2E8F0',
-        padding: 2,
-    },
-    toggleBaseActive: {
-        backgroundColor: '#4A90B9',
-    },
-    toggleCircle: {
-        width: 20,
-        height: 20,
-        borderRadius: 10,
-        backgroundColor: '#fff',
-    },
-    toggleCircleActive: {
-        transform: [{ translateX: 20 }],
-    },
-});
+/** Creates theme-aware styles for the drawer */
+const createDynamicStyles = (tc: any, isDark: boolean) =>
+    StyleSheet.create({
+        modalOverlay: {
+            flex: 1,
+            backgroundColor: isDark ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.5)',
+        },
+        modalContent: {
+            width: '80%',
+            backgroundColor: tc.drawerBg,
+            borderTopRightRadius: 30,
+            borderBottomRightRadius: 0,
+            ...Platform.select({
+                ios: {
+                    shadowColor: tc.shadow,
+                    shadowOffset: { width: 5, height: 0 },
+                    shadowOpacity: isDark ? 0 : 0.15,
+                    shadowRadius: 15,
+                },
+                android: { elevation: isDark ? 0 : 12 },
+            }),
+        },
+        drawerHeader: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingHorizontal: 25,
+            paddingTop: 20,
+            paddingBottom: 10,
+        },
+        logoWrapper: {
+            width: 150,
+            height: 40,
+            justifyContent: 'center',
+        },
+        closeButtonRelative: {
+            padding: 5,
+        },
+        closeIconBg: {
+            width: 36,
+            height: 36,
+            borderRadius: 18,
+            backgroundColor: isDark ? tc.buttonMutedBg : '#F9FAFB',
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderWidth: 1,
+            borderColor: tc.borderColor,
+        },
+        menuContainer: {
+            flex: 1,
+        },
+        dropdownSection: {
+            paddingHorizontal: 20,
+            marginBottom: 4,
+        },
+        dropdownHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingVertical: 12,
+            paddingHorizontal: 12,
+            borderRadius: 12,
+        },
+        dropdownHeaderLeft: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        dropdownTitle: {
+            fontSize: 17,
+            fontWeight: '600',
+            color: tc.textPrimary,
+            marginLeft: 14,
+        },
+        dropdownContent: {
+            paddingLeft: 46,
+            paddingTop: 2,
+            paddingBottom: 8,
+        },
+        subMenuItem: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingVertical: 10,
+        },
+        subMenuItemText: {
+            fontSize: 15,
+            color: tc.textSecondary,
+            fontWeight: '400',
+            marginLeft: 12,
+        },
+        spotlightBtnContainer: {
+            width: '88%',
+            alignSelf: 'center',
+            marginTop: 15,
+        },
+        spotlightGradient: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: 50,
+            borderRadius: 15,
+        },
+        spotlightShadowWrapper: {
+            borderRadius: 15,
+            shadowColor: '#4A90B9',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: isDark ? 0.15 : 0.2,
+            shadowRadius: 6,
+            elevation: 4,
+            backgroundColor: tc.cardBackground,
+        },
+        spotlightBtnText: {
+            color: '#fff',
+            fontSize: 16,
+            fontWeight: '700',
+            marginLeft: 10,
+        },
+        languageContainer: {
+            flexDirection: 'row',
+            alignSelf: 'center',
+            backgroundColor: isDark ? tc.buttonMutedBg : '#F1F5F9',
+            borderRadius: 25,
+            padding: 4,
+            width: '88%',
+            marginBottom: 10,
+        },
+        footerSeparator: {
+            height: 1,
+            backgroundColor: tc.borderColor,
+            width: '88%',
+            alignSelf: 'center',
+            marginBottom: 5,
+        },
+        footerOptionsContainer: {
+            paddingHorizontal: 10,
+            backgroundColor: tc.drawerBg,
+        },
+        langPill: {
+            flex: 1,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingVertical: 8,
+            borderRadius: 22,
+        },
+        langPillActive: {
+            backgroundColor: tc.cardBackground,
+            shadowColor: tc.shadow,
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: isDark ? 0 : 0.1,
+            shadowRadius: 2,
+            elevation: isDark ? 0 : 1,
+            borderWidth: isDark ? 1 : 0,
+            borderColor: tc.borderColor,
+        },
+        langEmoji: {
+            fontSize: 16,
+            marginRight: 8,
+        },
+        langText: {
+            fontSize: 14,
+            color: tc.textMuted,
+            fontWeight: '600',
+        },
+        langTextActive: {
+            color: tc.textPrimary,
+        },
+        stickyFooter: {
+            marginTop: 'auto',
+            backgroundColor: tc.drawerBg,
+            paddingTop: 15,
+            borderTopWidth: 1,
+            borderTopColor: tc.borderColor,
+            paddingBottom: hp(1.5),
+        },
+        profileSection: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: 25,
+            paddingVertical: 18,
+        },
+        avatarContainer: {
+            position: 'relative',
+        },
+        avatarCircle: {
+            width: 52,
+            height: 52,
+            borderRadius: 26,
+            backgroundColor: isDark ? tc.accentLight : '#F0F9FF',
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderWidth: 1,
+            borderColor: isDark ? tc.borderColor : '#E0F2FE',
+            overflow: 'hidden',
+        },
+        avatarImage: {
+            width: 52,
+            height: 52,
+            borderRadius: 26,
+        },
+        statusDot: {
+            position: 'absolute',
+            bottom: 2,
+            right: 2,
+            width: 14,
+            height: 14,
+            borderRadius: 7,
+            backgroundColor: '#10B981',
+            borderWidth: 2,
+            borderColor: tc.cardBackground,
+        },
+        profileInfo: {
+            flex: 1,
+            marginLeft: 15,
+        },
+        nameHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            width: '100%',
+        },
+        profileName: {
+            fontSize: 18,
+            fontWeight: '700',
+            color: tc.textPrimary,
+        },
+        profileEmail: {
+            fontSize: 14,
+            color: tc.textSecondary,
+            marginTop: 1,
+        },
+        roleTag: {
+            backgroundColor: isDark ? tc.accentLight : '#E0F2FE',
+            paddingHorizontal: 12,
+            paddingVertical: 4,
+            borderRadius: 15,
+            alignSelf: 'flex-start',
+            marginTop: 8,
+        },
+        roleTagText: {
+            fontSize: 13,
+            fontWeight: '600',
+            color: isDark ? '#60A5FA' : '#0369A1',
+        },
+        footerOptions: {
+            paddingHorizontal: 10,
+            paddingBottom: 5,
+        },
+        footerOptionItem: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingVertical: 14,
+            paddingHorizontal: 15,
+            borderRadius: 12,
+        },
+        optionIconLabel: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        footerOptionText: {
+            fontSize: 16,
+            fontWeight: '500',
+            color: tc.textPrimary,
+            marginLeft: 15,
+        },
+        toggleBase: {
+            width: 44,
+            height: 24,
+            borderRadius: 12,
+            backgroundColor: isDark ? '#3F3F46' : '#E2E8F0',
+            padding: 2,
+            justifyContent: 'center',
+        },
+        toggleBaseActive: {
+            backgroundColor: '#4A90B9',
+        },
+        toggleCircle: {
+            width: 20,
+            height: 20,
+            borderRadius: 10,
+            backgroundColor: '#fff',
+        },
+        toggleCircleActive: {
+            transform: [{ translateX: 20 }],
+        },
+    });
 
 export default SlidingDrawerModal;

@@ -104,7 +104,7 @@ const SignIn = () => {
         
         setAuth(user);
 
-        let successMessage = 'Login successful!';
+        let successMessage = t('login.login_success');
         if (typeof user === 'object') {
           successMessage = (user as any).data || successMessage;
         } else if (typeof user === 'string') {
@@ -127,7 +127,7 @@ const SignIn = () => {
         setAlertConfig({
           visible: true,
           type: 'error',
-          message: error.message || 'Something went wrong. Please try again.',
+          message: error.message || t('auth.error_default'),
         });
       }
     }, 0);
@@ -198,7 +198,7 @@ const SignIn = () => {
             console.log('Sign in is in progress already');
             return;
           } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-            setAlertConfig({ visible: true, type: 'error', message: 'Play services not available or outdated' });
+            setAlertConfig({ visible: true, type: 'error', message: t('login.play_services_error') });
             setSpinner(false);
             setIsGoogleLoading(false);
             return;
@@ -214,7 +214,7 @@ const SignIn = () => {
       // Validate we got a token
       if (!idToken) {
         setIsGoogleLoading(false);
-        setAlertConfig({ visible: true, type: 'error', message: 'Error Signing In with Google' });
+        setAlertConfig({ visible: true, type: 'error', message: t('login.google_signin_error') });
         return;
       }
 
@@ -241,7 +241,7 @@ const SignIn = () => {
       setAlertConfig({
         visible: true,
         type: 'success',
-        message: `Google Sign-In success`,
+        message: t('login.google_signin_success'),
       });
 
     } catch (error: any) {
@@ -249,7 +249,7 @@ const SignIn = () => {
       const message =
         error?.response?.data?.message ||
         error?.message ||
-        'Failed to initiate Google login';
+        t('login.google_login_failed');
       setAlertConfig({
         visible: true,
         type: 'error',
@@ -368,7 +368,7 @@ const SignIn = () => {
                 style={styles.googleIcon}
               />
               <Text style={{color: 'black', fontWeight: '500'}}>
-                {isGoogleLoading ? 'Signing in...' : t('login.continue_with_google')}
+                {isGoogleLoading ? t('login.signing_in') : t('login.continue_with_google')}
               </Text>
             </TouchableOpacity>
 

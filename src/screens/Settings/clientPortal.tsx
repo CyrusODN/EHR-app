@@ -16,6 +16,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { useNavigation } from '@react-navigation/native';
 import PrimaryButton from '../../component/button';
+import { useTranslation } from 'react-i18next';
 
 interface ToggleItemProps {
     icon: React.ReactNode;
@@ -110,6 +111,7 @@ const InfoBox = ({ type, title, description }: InfoBoxProps) => {
 };
 
 const ClientPortal = () => {
+    const { t } = useTranslation();
     const navigation = useNavigation();
 
     // State for toggles
@@ -170,42 +172,42 @@ const ClientPortal = () => {
                     }}>
                         <Feather name="users" size={24} color="#58a6b8" />
                     </View>
-                    <Text style={styles.headerTitle}>Patient Portal</Text>
+                    <Text style={styles.headerTitle}>{t('settings.client_portal.title')}</Text>
                 </View>
 
                 {/* Info Section */}
                 <InfoBox
-                    title="Patient Portal - Functions and Capabilities"
-                    description="Configure which patient portal functions should be available. You can enable or disable specific modules and their detailed functions."
+                    title={t('settings.client_portal.info_box.title')}
+                    description={t('settings.client_portal.info_box.description')}
                 />
 
                 {/* Appointment Scheduling Module */}
                 <ModuleCard>
                     <ToggleItem
                         icon={<Feather name="calendar" size={24} color="#5BA6B6" />}
-                        title="Appointment Scheduling"
-                        description="Patients can independently schedule and manage appointments"
+                        title={t('settings.client_portal.modules.appointment_scheduling.title')}
+                        description={t('settings.client_portal.modules.appointment_scheduling.description')}
                         value={toggleStates.appointmentScheduling}
                         onToggle={() => handleToggle('appointmentScheduling')}
                     />
 
                     <SubToggleItem
-                        title="Appointment Reservation"
-                        description="Ability to reserve new appointments"
+                        title={t('settings.client_portal.modules.appointment_scheduling.reservation')}
+                        description={t('settings.client_portal.modules.appointment_scheduling.reservation_desc')}
                         value={toggleStates.appointmentReservation}
                         onToggle={() => handleToggle('appointmentReservation')}
                     />
 
                     <SubToggleItem
-                        title="Appointment Rescheduling"
-                        description="Ability to reschedule appointments"
+                        title={t('settings.client_portal.modules.appointment_scheduling.rescheduling')}
+                        description={t('settings.client_portal.modules.appointment_scheduling.rescheduling_desc')}
                         value={toggleStates.appointmentRescheduling}
                         onToggle={() => handleToggle('appointmentRescheduling')}
                     />
 
                     <SubToggleItem
-                        title="Appointment Cancellation"
-                        description="Ability to cancel appointments"
+                        title={t('settings.client_portal.modules.appointment_scheduling.cancellation')}
+                        description={t('settings.client_portal.modules.appointment_scheduling.cancellation_desc')}
                         value={toggleStates.appointmentCancellation}
                         onToggle={() => handleToggle('appointmentCancellation')}
                     />
@@ -215,29 +217,29 @@ const ClientPortal = () => {
                 <ModuleCard>
                     <ToggleItem
                         icon={<Feather name="file-text" size={24} color="#5BA6B6" />}
-                        title="Medical Documentation"
-                        description="Access to medical documentation and test results"
+                        title={t('settings.client_portal.modules.medical_documentation.title')}
+                        description={t('settings.client_portal.modules.medical_documentation.description')}
                         value={toggleStates.medicalDocumentation}
                         onToggle={() => handleToggle('medicalDocumentation')}
                     />
 
                     <SubToggleItem
-                        title="Visit History"
-                        description="Overview of visit history and recommendations"
+                        title={t('settings.client_portal.modules.medical_documentation.visit_history')}
+                        description={t('settings.client_portal.modules.medical_documentation.visit_history_desc')}
                         value={toggleStates.visitHistory}
                         onToggle={() => handleToggle('visitHistory')}
                     />
 
                     <SubToggleItem
-                        title="Test Results"
-                        description="Access to test results"
+                        title={t('settings.client_portal.modules.medical_documentation.test_results')}
+                        description={t('settings.client_portal.modules.medical_documentation.test_results_desc')}
                         value={toggleStates.testResults}
                         onToggle={() => handleToggle('testResults')}
                     />
 
                     <SubToggleItem
-                        title="Prescriptions"
-                        description="History and status of prescriptions"
+                        title={t('settings.client_portal.modules.medical_documentation.prescriptions')}
+                        description={t('settings.client_portal.modules.medical_documentation.prescriptions_desc')}
                         value={toggleStates.prescriptions}
                         onToggle={() => handleToggle('prescriptions')}
                     />
@@ -247,22 +249,22 @@ const ClientPortal = () => {
                 <ModuleCard>
                     <ToggleItem
                         icon={<Feather name="message-square" size={24} color="#5BA6B6" />}
-                        title="Communication"
-                        description="Secure communication with medical staff"
+                        title={t('settings.client_portal.modules.communication.title')}
+                        description={t('settings.client_portal.modules.communication.description')}
                         value={toggleStates.communication}
                         onToggle={() => handleToggle('communication')}
                     />
 
                     <SubToggleItem
-                        title="Chat with Doctor"
-                        description="Secure text communication"
+                        title={t('settings.client_portal.modules.communication.chat')}
+                        description={t('settings.client_portal.modules.communication.chat_desc')}
                         value={toggleStates.doctorChat}
                         onToggle={() => handleToggle('doctorChat')}
                     />
 
                     <SubToggleItem
-                        title="Notifications"
-                        description="Notifications about appointments and recommendations"
+                        title={t('settings.client_portal.modules.communication.notifications')}
+                        description={t('settings.client_portal.modules.communication.notifications_desc')}
                         value={toggleStates.notifications}
                         onToggle={() => handleToggle('notifications')}
                     />
@@ -272,22 +274,22 @@ const ClientPortal = () => {
                 <ModuleCard>
                     <ToggleItem
                         icon={<Feather name="file" size={24} color="#5BA6B6" />}
-                        title="Scales and Questionnaires"
-                        description="Regular completion of scales and questionnaires"
+                        title={t('settings.client_portal.modules.scales_questionnaires.title')}
+                        description={t('settings.client_portal.modules.scales_questionnaires.description')}
                         value={toggleStates.scalesAndQuestionnaires}
                         onToggle={() => handleToggle('scalesAndQuestionnaires')}
                     />
 
                     <SubToggleItem
-                        title="Mood Scales"
-                        description="PHQ-9, GAD-7, etc."
+                        title={t('settings.client_portal.modules.scales_questionnaires.mood_scales')}
+                        description={t('settings.client_portal.modules.scales_questionnaires.mood_scales_desc')}
                         value={toggleStates.moodScales}
                         onToggle={() => handleToggle('moodScales')}
                     />
 
                     <SubToggleItem
-                        title="Quality of Life"
-                        description="Quality of life questionnaires"
+                        title={t('settings.client_portal.modules.scales_questionnaires.quality_of_life')}
+                        description={t('settings.client_portal.modules.scales_questionnaires.quality_of_life_desc')}
                         value={toggleStates.qualityOfLife}
                         onToggle={() => handleToggle('qualityOfLife')}
                     />
@@ -297,22 +299,22 @@ const ClientPortal = () => {
                 <ModuleCard>
                     <ToggleItem
                         icon={<Feather name="clipboard" size={24} color="#5BA6B6" />}
-                        title="Test Results"
-                        description="Access to test results with interpretation"
+                        title={t('settings.client_portal.modules.test_results.title')}
+                        description={t('settings.client_portal.modules.test_results.description')}
                         value={toggleStates.testResultsAccess}
                         onToggle={() => handleToggle('testResultsAccess')}
                     />
 
                     <SubToggleItem
-                        title="Results View"
-                        description="Access to test results"
+                        title={t('settings.client_portal.modules.test_results.view')}
+                        description={t('settings.client_portal.modules.test_results.view_desc')}
                         value={toggleStates.resultsView}
                         onToggle={() => handleToggle('resultsView')}
                     />
 
                     <SubToggleItem
-                        title="Results History"
-                        description="History of all tests"
+                        title={t('settings.client_portal.modules.test_results.history')}
+                        description={t('settings.client_portal.modules.test_results.history_desc')}
                         value={toggleStates.resultsHistory}
                         onToggle={() => handleToggle('resultsHistory')}
                     />
@@ -322,27 +324,27 @@ const ClientPortal = () => {
                 <ModuleCard>
                     <ToggleItem
                         icon={<Image source={require('../../assets/images/brain-primary.png')} style={{ height: 20, width: 20 }} />}
-                        title="AI Assistant"
-                        description="Intelligent assistant supporting the patient"
+                        title={t('settings.client_portal.modules.ai_assistant.title')}
+                        description={t('settings.client_portal.modules.ai_assistant.description')}
                         value={toggleStates.aiAssistant}
                         onToggle={() => handleToggle('aiAssistant')}
                     />
                     <View style={styles.aiPoweredTag}>
                         <Ionicons name="flash-outline" size={14} color="white" />
-                        <Text style={styles.aiPoweredText}>AI Powered</Text>
+                        <Text style={styles.aiPoweredText}>{t('settings.client_portal.modules.ai_assistant.powered_tag')}</Text>
                     </View>
-                    <Text style={styles.aiRequiresText}>Requires AI Powered plan</Text>
+                    <Text style={styles.aiRequiresText}>{t('settings.client_portal.modules.ai_assistant.requires_plan')}</Text>
                 </ModuleCard>
                 <View style={{ backgroundColor: "white", marginTop: hp(1) }}>
                     {/* Data Security Section */}
                     <InfoBox
                         type="warning"
-                        title={"Bezpieczenstwo danych"}
-                        description="All data in the patient portal is encrypted and protected in accordance with GDPR requirements. Access to the portal requires strong authentication, and all activity is monitored and logged."
+                        title={t('settings.client_portal.security.title')}
+                        description={t('settings.client_portal.security.description')}
                     />
 
                     {/* Save Button */}
-                    <PrimaryButton label={"Save Settings"}
+                    <PrimaryButton label={t('settings.client_portal.buttons.save')}
                         filled={true} onPress={() => { }}
                         style={{ alignSelf: "center" }}
                         icon={undefined}

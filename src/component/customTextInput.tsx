@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, TextInput, StyleSheet, TouchableOpacity, Text, KeyboardTypeOptions } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { validateInput } from '../utils/inputValidations';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 interface CustomTextInputProps {
     placeholder: string;
@@ -47,6 +48,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
     style
 }) => {
     const { t } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
     const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
     const inputValidation = (text: string) => {
@@ -67,7 +69,6 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
         } else if (setState && name) {
             setState((prev: any) => ({ ...prev, [name]: text }));
             
-            // Clear validation errors when user starts typing
             if (validationErrors.length > 0) {
                 setValidationErrors([]);
                 if (setValidationsState) {
@@ -87,6 +88,10 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
         <View style={styles.wrapper}>
             <View style={[
                 styles.container,
+                { 
+                    backgroundColor: tc.inputBackground, 
+                    borderColor: tc.borderColor,
+                },
                 multiline && styles.multilineContainer,
                 validationErrors.length > 0 && styles.errorContainer,
                 style
@@ -97,9 +102,13 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
                     </View>
                 )}
                 <TextInput
-                    style={[styles.input, multiline && styles.multilineInput]}
+                    style={[
+                        styles.input, 
+                        { color: tc.textPrimary },
+                        multiline && styles.multilineInput
+                    ]}
                     placeholder={placeholder}
-                    placeholderTextColor="grey"
+                    placeholderTextColor={tc.textMuted}
                     value={value}
                     onChangeText={handleChangeText}
                     multiline={multiline}
@@ -122,7 +131,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
             {validationErrors.length > 0 && (
                 <View style={styles.errorWrapper}>
                     {validationErrors.map((error, index) => (
-                        <Text key={index} style={styles.errorText}>
+                        <Text key={index} style={[styles.errorText, { color: tc.accentRed || '#ff4444' }]}>
                             {t(error)}
                         </Text>
                     ))}
@@ -132,7 +141,6 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
     );
 };
 
-
 const styles = StyleSheet.create({
     wrapper: {
         width: '100%',
@@ -140,9 +148,7 @@ const styles = StyleSheet.create({
     },
     container: {
         borderWidth: 1,
-        borderColor: '#e0e0e0',
-        borderRadius: 5,
-        backgroundColor: 'white',
+        borderRadius: 8,
         flexDirection: "row",
         alignItems: "center",
         overflow: "hidden",
@@ -155,17 +161,17 @@ const styles = StyleSheet.create({
         borderColor: '#ff4444',
     },
     iconContainer: {
-        paddingHorizontal: 10,
+        paddingHorizontal: 12,
         justifyContent: 'center',
     },
     input: {
         flex: 1,
         padding: 12,
         fontSize: 14,
-        color: '#000',
     },
     multilineInput: {
         textAlignVertical: 'top',
+        paddingTop: 12,
     },
     rightIconContainer: {
         paddingHorizontal: 10,
@@ -176,7 +182,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 4,
     },
     errorText: {
-        color: '#ff4444',
         fontSize: 12,
         marginTop: 2,
     }

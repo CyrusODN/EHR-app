@@ -1,4 +1,3 @@
-// components/SearchPatientScreen.js
 import React, { useState } from 'react';
 import {
     View,
@@ -13,6 +12,7 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useTranslation } from 'react-i18next';
 
 import DateTimePicker from '@react-native-community/datetimepicker';
 
@@ -22,6 +22,7 @@ import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { useNavigation } from '@react-navigation/native';
 
 const SearchPatientScreen = () => {
+    const { t } = useTranslation();
     const navigation = useNavigation();
 
     // State for filters visibility
@@ -49,15 +50,15 @@ const SearchPatientScreen = () => {
     const [isLongAbsent, setIsLongAbsent] = useState(false);
 
     const genderOptions = [
-        { label: 'All', value: 'All' },
-        { label: 'Male', value: 'male' },
-        { label: 'Female', value: 'female' },
-        { label: 'Other', value: 'other' },
+        { label: t('patientSearch.filters.gender.all'), value: 'All' },
+        { label: t('patientSearch.filters.gender.male'), value: 'male' },
+        { label: t('patientSearch.filters.gender.female'), value: 'female' },
+        { label: t('patientSearch.filters.gender.other'), value: 'other' },
     ];
 
     // Function to format date for display
     const formatDate = (date: any) => {
-        if (!date) return 'dd/mm/yyyy';
+        if (!date) return t('patientSearch.filters.placeholders.dob') || 'dd/mm/yyyy';
         const day = date.getDate().toString().padStart(2, '0');
         const month = (date.getMonth() + 1).toString().padStart(2, '0');
         const year = date.getFullYear();
@@ -103,8 +104,6 @@ const SearchPatientScreen = () => {
         setIsLongAbsent(false);
     };
 
-
-
     // Render checkbox
     const renderCheckbox = (isChecked: boolean, onToggle: any, label: string) => (
         <TouchableOpacity
@@ -128,8 +127,8 @@ const SearchPatientScreen = () => {
                     flexDirection: "row", justifyContent: "space-around", paddingTop: hp(7)
                 }}>
                     <View style={styles.header}>
-                        <Text style={styles.headerTitle}>Search Patients</Text>
-                        <Text style={styles.headerSubtitle}>Search patients by name, PESEL number or card number</Text>
+                        <Text style={styles.headerTitle}>{t('patientSearch.title')}</Text>
+                        <Text style={styles.headerSubtitle}>{t('patientSearch.subtitle')}</Text>
                     </View>
 
                     {/* Back Button */}
@@ -141,7 +140,6 @@ const SearchPatientScreen = () => {
                     </TouchableOpacity>
                 </View>
 
-
                 <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContent}>
                     <View style={styles.searchContainer}>
                         {/* Search Input */}
@@ -149,7 +147,7 @@ const SearchPatientScreen = () => {
                             <Ionicons name="search" size={20} color="#999" style={styles.searchIcon} />
                             <TextInput
                                 style={styles.searchInput}
-                                placeholder="Name, PESEL or card number..."
+                                placeholder={t('patientSearch.placeholders.search')}
                                 value={searchText}
                                 onChangeText={setSearchText}
                             />
@@ -161,7 +159,7 @@ const SearchPatientScreen = () => {
                             onPress={toggleFilters}
                         >
                             <Ionicons name="options-outline" size={20} color="#4A90B9" />
-                            <Text style={styles.filtersButtonText}>Filters</Text>
+                            <Text style={styles.filtersButtonText}>{t('patientSearch.filtersLabel')}</Text>
                             <Ionicons
                                 name={showFilters ? "close" : "chevron-down"}
                                 size={16}
@@ -173,7 +171,7 @@ const SearchPatientScreen = () => {
                         {showFilters && (
                             <View style={styles.filtersContainer}>
                                 {/* Date of Birth Filter */}
-                                <Text style={styles.filterSectionTitle}>Date of Birth</Text>
+                                <Text style={styles.filterSectionTitle}>{t('patientSearch.filters.dob')}</Text>
                                 <View style={styles.dateRangeContainer}>
                                     <TouchableOpacity
                                         style={styles.dateInput}
@@ -197,9 +195,9 @@ const SearchPatientScreen = () => {
                                 </View>
 
                                 {/* Gender Filter */}
-                                <Text style={styles.filterSectionTitle}>Gender</Text>
+                                <Text style={styles.filterSectionTitle}>{t('patientSearch.filters.gender.label')}</Text>
                                 <CustomDropdown
-                                    placeholder="Select gender"
+                                    placeholder={t('patientSearch.filters.placeholders.gender')}
                                     options={genderOptions}
                                     value={gender}
                                     onChange={setGender}
@@ -207,7 +205,7 @@ const SearchPatientScreen = () => {
                                 />
 
                                 {/* Last Visit Filter */}
-                                <Text style={styles.filterSectionTitle}>Last Visit</Text>
+                                <Text style={styles.filterSectionTitle}>{t('patientSearch.filters.lastVisit')}</Text>
                                 <View style={styles.dateRangeContainer}>
                                     <TouchableOpacity
                                         style={styles.dateInput}
@@ -231,7 +229,7 @@ const SearchPatientScreen = () => {
                                 </View>
 
                                 {/* Next Visit Filter */}
-                                <Text style={styles.filterSectionTitle}>Next Visit</Text>
+                                <Text style={styles.filterSectionTitle}>{t('patientSearch.filters.nextVisit')}</Text>
                                 <View style={styles.dateRangeContainer}>
                                     <TouchableOpacity
                                         style={styles.dateInput}
@@ -257,48 +255,40 @@ const SearchPatientScreen = () => {
                                 {/* Checkboxes */}
                                 <View style={styles.checkboxesContainer}>
                                     <View style={styles.checkboxRow}>
-                                        {renderCheckbox(hasPesel, setHasPesel, "Has PESEL")}
-                                        {renderCheckbox(hasDeclaration, setHasDeclaration, "Has Declaration")}
+                                        {renderCheckbox(hasPesel, setHasPesel, t('patientSearch.filters.hasPesel'))}
+                                        {renderCheckbox(hasDeclaration, setHasDeclaration, t('patientSearch.filters.hasDeclaration'))}
                                     </View>
 
                                     <View style={styles.checkboxRow}>
-                                        {renderCheckbox(isDeceased, setIsDeceased, "Deceased")}
-                                        {renderCheckbox(hasDebt, setHasDebt, "Has Debt")}
+                                        {renderCheckbox(isDeceased, setIsDeceased, t('patientSearch.filters.isDeceased'))}
+                                        {renderCheckbox(hasDebt, setHasDebt, t('patientSearch.filters.hasDebt'))}
                                     </View>
 
                                     <View style={styles.checkboxRow}>
-                                        {renderCheckbox(isActive, setIsActive, "Active")}
-                                        {renderCheckbox(isLongAbsent, setIsLongAbsent, "Long Absent")}
+                                        {renderCheckbox(isActive, setIsActive, t('patientSearch.filters.isActive'))}
+                                        {renderCheckbox(isLongAbsent, setIsLongAbsent, t('patientSearch.filters.isLongAbsent'))}
                                     </View>
                                 </View>
 
                                 {/* Filter Buttons */}
                                 <View style={styles.filterButtonsContainer}>
-
-
                                     <PrimaryButton
-                                        label={"Clear filters"}
+                                        label={t('patientSearch.buttons.clearFilters')}
                                         onPress={clearFilters}
                                         filled={false}
                                         icon={<Ionicons name="close" size={16} color="#4A90B9" />}
                                         style={{ width: '48%', }}
                                         loading={false}
                                         disabled={false}
-                                        image={undefined}
-                                        iconStyle={undefined}
-                                        imageStyle={undefined}
                                     />
                                     <PrimaryButton
                                         onPress={() => { setShowFilters(false) }}
-                                        label={"Apply filters"}
+                                        label={t('patientSearch.buttons.applyFilters')}
                                         filled={true}
                                         icon={<Ionicons name="funnel-outline" size={16} color="white" />}
                                         style={{ width: '48%', }}
                                         loading={false}
                                         disabled={false}
-                                        image={undefined}
-                                        iconStyle={undefined}
-                                        imageStyle={undefined}
                                     />
                                 </View>
                             </View>
@@ -306,7 +296,7 @@ const SearchPatientScreen = () => {
 
                         {/* Results Message */}
                         <View style={styles.resultsMessageContainer}>
-                            <Text style={styles.resultsMessage}>Enter search criteria to see results</Text>
+                            <Text style={styles.resultsMessage}>{t('patientSearch.enterCriteria')}</Text>
                         </View>
                     </View>
                 </ScrollView>
@@ -333,10 +323,10 @@ const SearchPatientScreen = () => {
                                 <View style={styles.calendarModalContent}>
                                     <View style={styles.calendarHeader}>
                                         <TouchableOpacity onPress={() => setActivePicker(null)}>
-                                            <Text style={styles.calendarCancelText}>Cancel</Text>
+                                            <Text style={styles.calendarCancelText}>{t('common.cancel')}</Text>
                                         </TouchableOpacity>
                                         <TouchableOpacity onPress={() => setActivePicker(null)}>
-                                            <Text style={styles.calendarConfirmText}>Done</Text>
+                                            <Text style={styles.calendarConfirmText}>{t('common.done')}</Text>
                                         </TouchableOpacity>
                                     </View>
                                     <DateTimePicker
@@ -410,11 +400,6 @@ const styles = StyleSheet.create({
         height: 50,
         width: 50,
         alignItems: "center", justifyContent: 'center',
-    },
-    backButtonText: {
-        color: '#4A90B9',
-        marginLeft: 5,
-        fontSize: 16,
     },
     scrollView: {
         flex: 1,
@@ -532,33 +517,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginTop: 10,
-    },
-    clearFiltersButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderWidth: 1,
-        borderColor: '#4A90B9',
-        borderRadius: 5,
-        padding: 12,
-        width: '48%',
-    },
-    clearFiltersText: {
-        color: '#4A90B9',
-        marginLeft: 5,
-    },
-    applyFiltersButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#4A90B9',
-        borderRadius: 5,
-        padding: 12,
-        width: '48%',
-    },
-    applyFiltersText: {
-        color: 'white',
-        marginLeft: 5,
     },
     resultsMessageContainer: {
         alignItems: 'center',

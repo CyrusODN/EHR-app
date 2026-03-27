@@ -12,6 +12,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import LinearGradient from 'react-native-linear-gradient';
+import { useTranslation } from 'react-i18next';
 
 interface Referral {
     id: number;
@@ -28,6 +29,7 @@ interface VisitDocumentsProps {
 }
 
 const VisitDocuments = ({ onNext, onBack, visitData }: VisitDocumentsProps) => {
+    const { t } = useTranslation();
     const [expandedSections, setExpandedSections] = useState({
         prescriptions: true,
         sickLeave: true,
@@ -75,7 +77,7 @@ const VisitDocuments = ({ onNext, onBack, visitData }: VisitDocumentsProps) => {
                     onPress={() => toggleSection('prescriptions')}
                     activeOpacity={0.7}
                 >
-                    <Text style={styles.cardTitle}>Prescriptions</Text>
+                    <Text style={styles.cardTitle}>{t('visit.documents.prescriptions.title')}</Text>
                     <Feather 
                         name={expandedSections.prescriptions ? "chevron-up" : "chevron-down"} 
                         size={20} 
@@ -88,9 +90,9 @@ const VisitDocuments = ({ onNext, onBack, visitData }: VisitDocumentsProps) => {
                         <View style={styles.infoBox}>
                             <Feather name="info" size={18} color="#3B82F6" style={styles.infoIcon} />
                             <View>
-                                <Text style={styles.infoTitle}>e-Prescription</Text>
+                                <Text style={styles.infoTitle}>{t('visit.documents.prescriptions.ezla') || 'e-Prescription'}</Text>
                                 <Text style={styles.infoText}>
-                                    Issue electronic prescriptions compatible with the P1 system. You can save the prescription as a draft and sign it later.
+                                    {t('visit.documents.prescriptions.description')}
                                 </Text>
                             </View>
                         </View>
@@ -103,7 +105,7 @@ const VisitDocuments = ({ onNext, onBack, visitData }: VisitDocumentsProps) => {
                                 style={styles.smallAddButton}
                             >
                                 <Feather name="plus" size={18} color="#fff" />
-                                <Text style={styles.smallAddButtonText}>Add medication</Text>
+                                <Text style={styles.smallAddButtonText}>{t('visit.documents.prescriptions.add_med')}</Text>
                             </LinearGradient>
                         </TouchableOpacity>
                     </View>
@@ -117,7 +119,7 @@ const VisitDocuments = ({ onNext, onBack, visitData }: VisitDocumentsProps) => {
                     onPress={() => toggleSection('sickLeave')}
                     activeOpacity={0.7}
                 >
-                    <Text style={styles.cardTitle}>Sick Leave</Text>
+                    <Text style={styles.cardTitle}>{t('visit.documents.sickLeave.title')}</Text>
                     <Feather 
                         name={expandedSections.sickLeave ? "chevron-up" : "chevron-down"} 
                         size={20} 
@@ -129,7 +131,7 @@ const VisitDocuments = ({ onNext, onBack, visitData }: VisitDocumentsProps) => {
                     <View style={showSickLeaveForm ? styles.cardContent : styles.cardContentRow}>
                         {!showSickLeaveForm ? (
                             <>
-                                <Text style={styles.rowLabelText}>e-ZLA</Text>
+                                <Text style={styles.rowLabelText}>{t('visit.documents.sickLeave.ezla')}</Text>
                                 <TouchableOpacity onPress={() => setShowSickLeaveForm(true)}>
                                     <LinearGradient
                                         colors={['#58A7B3', '#8ED1CC']}
@@ -138,14 +140,14 @@ const VisitDocuments = ({ onNext, onBack, visitData }: VisitDocumentsProps) => {
                                         style={styles.smallAddButton}
                                     >
                                         <Feather name="plus" size={18} color="#fff" />
-                                        <Text style={styles.smallAddButtonText}>Issue sick leave</Text>
+                                        <Text style={styles.smallAddButtonText}>{t('visit.documents.sickLeave.new')}</Text>
                                     </LinearGradient>
                                 </TouchableOpacity>
                             </>
                         ) : (
                             <View style={styles.sickLeaveForm}>
                                 <View style={styles.formSectionHeader}>
-                                    <Text style={styles.formMainTitle}>e-ZLA</Text>
+                                    <Text style={styles.formMainTitle}>{t('visit.documents.sickLeave.ezla')}</Text>
                                     <TouchableOpacity onPress={() => setShowSickLeaveForm(false)}>
                                         <LinearGradient
                                             colors={['#58A7B3', '#8ED1CC']}
@@ -154,7 +156,7 @@ const VisitDocuments = ({ onNext, onBack, visitData }: VisitDocumentsProps) => {
                                             style={styles.smallAddButton}
                                         >
                                             <Feather name="plus" size={18} color="#fff" />
-                                            <Text style={styles.smallAddButtonText}>Issue sick leave</Text>
+                                            <Text style={styles.smallAddButtonText}>{t('visit.documents.sickLeave.new')}</Text>
                                         </LinearGradient>
                                     </TouchableOpacity>
                                 </View>
@@ -162,18 +164,18 @@ const VisitDocuments = ({ onNext, onBack, visitData }: VisitDocumentsProps) => {
                                 <View style={styles.patientInfoBox}>
                                     <Feather name="info" size={18} color="#2563EB" style={styles.infoIcon} />
                                     <View style={{ flex: 1 }}>
-                                        <Text style={styles.patientInfoTitle}>Patient Information</Text>
+                                        <Text style={styles.patientInfoTitle}>{t('visit.documents.sickLeave.patient_info')}</Text>
                                         <Text style={styles.patientInfoText}>
-                                            Patient data will be automatically retrieved from the ZUS system after entering the PESEL number.
+                                            {t('visit.documents.sickLeave.patient_info_desc')}
                                         </Text>
                                     </View>
                                 </View>
 
                                 <View style={styles.formGroup}>
-                                    <Text style={styles.sectionHeading}>Sick Leave Period</Text>
+                                    <Text style={styles.sectionHeading}>{t('visit.documents.sickLeave.period')}</Text>
                                     <View style={styles.dateRow}>
                                         <View style={styles.dateInputWrapper}>
-                                            <Text style={styles.inputLabel}>Date from</Text>
+                                            <Text style={styles.inputLabel}>{t('visit.documents.sickLeave.from')}</Text>
                                             <View style={styles.dateInputContainer}>
                                                 <Feather name="calendar" size={18} color="#94A3B8" />
                                                 <TextInput style={styles.dateInput} value="10/03/2026" editable={false} />
@@ -181,7 +183,7 @@ const VisitDocuments = ({ onNext, onBack, visitData }: VisitDocumentsProps) => {
                                             </View>
                                         </View>
                                         <View style={styles.dateInputWrapper}>
-                                            <Text style={styles.inputLabel}>Date to</Text>
+                                            <Text style={styles.inputLabel}>{t('visit.documents.sickLeave.to')}</Text>
                                             <View style={styles.dateInputContainer}>
                                                 <Feather name="calendar" size={18} color="#94A3B8" />
                                                 <TextInput style={styles.dateInput} value="10/03/2026" editable={false} />
@@ -199,24 +201,24 @@ const VisitDocuments = ({ onNext, onBack, visitData }: VisitDocumentsProps) => {
                                     <View style={[styles.checkbox, isHospitalStay && styles.checkboxChecked]}>
                                         {isHospitalStay && <Feather name="check" size={14} color="#fff" />}
                                     </View>
-                                    <Text style={styles.checkboxLabel}>Hospital stay</Text>
+                                    <Text style={styles.checkboxLabel}>{t('visit.documents.sickLeave.hospital')}</Text>
                                 </TouchableOpacity>
 
                                 <View style={styles.formGroup}>
-                                    <Text style={styles.sectionHeading}>Medical Data</Text>
-                                    <Text style={styles.inputLabel}>Statistical disease number (ICD-10) (ICD-10)</Text>
+                                    <Text style={styles.sectionHeading}>{t('visit.documents.sickLeave.medical_data')}</Text>
+                                    <Text style={styles.inputLabel}>{t('visit.documents.sickLeave.icd10_label')}</Text>
                                     <View style={styles.searchInputWrapper}>
                                         <Feather name="search" size={18} color="#94A3B8" style={styles.searchIcon} />
                                         <TextInput 
                                             style={styles.searchField} 
-                                            placeholder="Search ICD-10 code" 
+                                            placeholder={t('visit.documents.sickLeave.icd10_search')} 
                                             placeholderTextColor="#94A3B8"
                                         />
                                     </View>
                                 </View>
 
                                 <View style={styles.formGroup}>
-                                    <Text style={styles.inputLabel}>Literal Codes</Text>
+                                    <Text style={styles.inputLabel}>{t('visit.documents.sickLeave.literal_codes')}</Text>
                                     <View style={styles.literalCodesRow}>
                                         {[1, 2, 3, 4].map((_, i) => (
                                             <View key={i} style={styles.literalDropdown}>
@@ -228,10 +230,10 @@ const VisitDocuments = ({ onNext, onBack, visitData }: VisitDocumentsProps) => {
                                 </View>
 
                                 <View style={styles.formGroup}>
-                                    <Text style={styles.inputLabel}>Doctor's recommendations and instructions</Text>
+                                    <Text style={styles.inputLabel}>{t('visit.documents.sickLeave.recommendations')}</Text>
                                     <TextInput
                                         style={styles.formTextArea}
-                                        placeholder="E.g. bed rest, medication, rehabilitation..."
+                                        placeholder={t('visit.documents.sickLeave.recommendations_placeholder')}
                                         placeholderTextColor="#94A3B8"
                                         multiline
                                         numberOfLines={4}
@@ -240,13 +242,13 @@ const VisitDocuments = ({ onNext, onBack, visitData }: VisitDocumentsProps) => {
                                 </View>
 
                                 <View style={styles.payerHeader}>
-                                    <Text style={styles.sectionHeading}>Payers</Text>
+                                    <Text style={styles.sectionHeading}>{t('visit.documents.sickLeave.payers')}</Text>
                                     <TouchableOpacity 
                                         style={styles.addPayerButton}
                                         onPress={() => setShowPayerSearch(true)}
                                     >
                                         <Feather name="plus" size={18} color="#58A7B3" />
-                                        <Text style={styles.addPayerButtonText}>Add payer</Text>
+                                        <Text style={styles.addPayerButtonText}>{t('visit.documents.sickLeave.add_payer')}</Text>
                                     </TouchableOpacity>
                                 </View>
 
@@ -256,14 +258,14 @@ const VisitDocuments = ({ onNext, onBack, visitData }: VisitDocumentsProps) => {
                                             <Feather name="search" size={18} color="#1E293B" style={styles.searchIcon} />
                                             <TextInput 
                                                 style={styles.payerSearchInput}
-                                                placeholder="Wyszukaj płatnika po nazwie lub NIP..."
+                                                placeholder={t('visit.documents.sickLeave.payer_search')}
                                                 placeholderTextColor="#94A3B8"
                                             />
                                         </View>
                                     </View>
                                 ) : (
                                     <View style={styles.emptyPayers}>
-                                        <Text style={styles.emptyPayersText}>No payers added</Text>
+                                        <Text style={styles.emptyPayersText}>{t('visit.documents.sickLeave.no_payers')}</Text>
                                     </View>
                                 )}
 
@@ -272,7 +274,7 @@ const VisitDocuments = ({ onNext, onBack, visitData }: VisitDocumentsProps) => {
                                         style={styles.cancelButton}
                                         onPress={() => setShowSickLeaveForm(false)}
                                     >
-                                        <Text style={styles.cancelButtonText}>Cancel</Text>
+                                        <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity style={styles.issueButtonContainer}>
                                         <LinearGradient
@@ -282,7 +284,7 @@ const VisitDocuments = ({ onNext, onBack, visitData }: VisitDocumentsProps) => {
                                             style={styles.issueSubmitButton}
                                         >
                                             <MaterialCommunityIcons name="file-document-outline" size={18} color="#fff" />
-                                            <Text style={styles.issueButtonText}>Issue e-ZLA</Text>
+                                            <Text style={styles.issueButtonText}>{t('visit.documents.sickLeave.new')}</Text>
                                         </LinearGradient>
                                     </TouchableOpacity>
                                 </View>
@@ -300,7 +302,7 @@ const VisitDocuments = ({ onNext, onBack, visitData }: VisitDocumentsProps) => {
                     activeOpacity={0.7}
                 >
                     <View style={styles.cardTitleRow}>
-                        <Text style={styles.cardTitle}>Referrals</Text>
+                        <Text style={styles.cardTitle}>{t('visit.documents.referrals.title')}</Text>
                         {referrals.length > 0 && (
                             <View style={styles.countBadge}>
                                 <Text style={styles.countText}>{referrals.length}</Text>
@@ -317,7 +319,7 @@ const VisitDocuments = ({ onNext, onBack, visitData }: VisitDocumentsProps) => {
                 {expandedSections.referrals && (
                      <View style={styles.innerContentCard}>
                         <View style={styles.referralsHeader}>
-                            <Text style={styles.rowLabelText}>Referrals</Text>
+                            <Text style={styles.rowLabelText}>{t('visit.documents.referrals.title')}</Text>
                             <TouchableOpacity onPress={addReferral}>
                                 <LinearGradient
                                     colors={['#58A7B3', '#8ED1CC']}
@@ -326,7 +328,7 @@ const VisitDocuments = ({ onNext, onBack, visitData }: VisitDocumentsProps) => {
                                     style={styles.smallAddButton}
                                 >
                                     <Feather name="plus" size={18} color="#fff" />
-                                    <Text style={styles.smallAddButtonText}>New Referral</Text>
+                                    <Text style={styles.smallAddButtonText}>{t('visit.documents.referrals.new')}</Text>
                                 </LinearGradient>
                             </TouchableOpacity>
                         </View>
@@ -342,24 +344,24 @@ const VisitDocuments = ({ onNext, onBack, visitData }: VisitDocumentsProps) => {
 
                                 <View style={styles.referralFieldRow}>
                                     <View style={styles.referralFieldHalf}>
-                                        <Text style={styles.inputLabel}>Specialization</Text>
+                                        <Text style={styles.inputLabel}>{t('visit.documents.referrals.specialization')}</Text>
                                         <TextInput 
                                             style={styles.referralInput} 
-                                            placeholder="np. Kardiologia" 
+                                            placeholder={t('visit.documents.referrals.specialization_placeholder')} 
                                             placeholderTextColor="#94A3B8"
                                         />
                                     </View>
                                     <View style={styles.referralFieldHalf}>
-                                        <Text style={styles.inputLabel}>Urgency</Text>
+                                        <Text style={styles.inputLabel}>{t('visit.documents.referrals.urgency.label')}</Text>
                                         <View style={styles.referralDropdown}>
-                                            <Text style={styles.dropdownValue}>Normal</Text>
+                                            <Text style={styles.dropdownValue}>{t('visit.documents.referrals.urgency.normal')}</Text>
                                             <Feather name="chevron-down" size={18} color="#64748B" />
                                         </View>
                                     </View>
                                 </View>
 
                                 <View style={styles.referralField}>
-                                    <Text style={styles.inputLabel}>Reason for Referral</Text>
+                                    <Text style={styles.inputLabel}>{t('visit.documents.referrals.reason')}</Text>
                                     <TextInput 
                                         style={styles.referralTextArea} 
                                         multiline 
@@ -369,7 +371,7 @@ const VisitDocuments = ({ onNext, onBack, visitData }: VisitDocumentsProps) => {
                                 </View>
 
                                 <View style={styles.referralField}>
-                                    <Text style={styles.inputLabel}>Additional Notes</Text>
+                                    <Text style={styles.inputLabel}>{t('visit.documents.referrals.additionalNotes')}</Text>
                                     <TextInput 
                                         style={styles.referralTextArea} 
                                         multiline 
@@ -387,7 +389,7 @@ const VisitDocuments = ({ onNext, onBack, visitData }: VisitDocumentsProps) => {
             <View style={styles.footer}>
                 <TouchableOpacity style={styles.backButton} onPress={onBack}>
                     <Feather name="arrow-left" size={18} color="#58A7B3" />
-                    <Text style={styles.backButtonText}>Back</Text>
+                    <Text style={styles.backButtonText}>{t('visit.navigation.previous')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={onNext}>
@@ -397,7 +399,7 @@ const VisitDocuments = ({ onNext, onBack, visitData }: VisitDocumentsProps) => {
                         end={{ x: 1, y: 0 }}
                         style={styles.nextButton}
                     >
-                        <Text style={styles.nextButtonText}>Next</Text>
+                        <Text style={styles.nextButtonText}>{t('visit.navigation.next')}</Text>
                         <Feather name="arrow-right" size={18} color="#fff" />
                     </LinearGradient>
                 </TouchableOpacity>

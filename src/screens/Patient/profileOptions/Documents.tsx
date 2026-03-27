@@ -18,6 +18,7 @@ import DocumentPicker from 'react-native-document-picker';
 import { GetPatientMedicalRecord, UpdatePatientMedicalRecord } from '../../../Services/PatientRecord.Service';
 import { uploadFileOnServer } from '../../../Services/Upload.Service';
 import userStore from '../../../store/user';
+import { useTranslation } from 'react-i18next';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -69,6 +70,7 @@ const SubmitButton = ({ title, icon, color = ['#68BFB4', '#4DA1C0'], onPress, st
 );
 
 const Documents = ({ patientData, onAlert }: { patientData: any, onAlert: any }) => {
+    const { t } = useTranslation();
     const [docData, setDocData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [expanded, setExpanded] = useState(true);
@@ -127,7 +129,7 @@ const Documents = ({ patientData, onAlert }: { patientData: any, onAlert: any })
 
     const addToQueue = () => {
         if (!selectedFile || !selectedCategory) {
-            onAlert('warning', 'Please select a file and a category');
+            onAlert('warning', t('patientDocuments.selectFileCategory'));
             return;
         }
         
@@ -206,16 +208,16 @@ const Documents = ({ patientData, onAlert }: { patientData: any, onAlert: any })
             if (isSuccess) {
                 console.log("Documents.tsx: Success confirmed! Closing modal and refreshing.");
                 setShowUploadModal(false);
-                onAlert('success', 'Patient medical record updated successfully!');
+                onAlert('success', t('patientDocuments.uploadSuccess'));
                 setQueuedDocs([]);
                 fetchDocData(); // Refresh data
             } else {
                 console.warn("Documents.tsx: Server returned success:false or missing status");
-                onAlert('error', updateRes?.message || 'Failed to update medical record');
+                onAlert('error', updateRes?.message || t('patientDocuments.uploadFailed'));
             }
         } catch (error: any) {
             console.error("Documents.tsx: Critical error in handleUploadAll:", error);
-            onAlert('error', error?.message || 'An error occurred during upload');
+            onAlert('error', error?.message || t('patientDocuments.uploadError'));
         } finally {
             console.log("Documents.tsx: Process finished, setting loading to false");
             setIsUploading(false);
@@ -226,7 +228,7 @@ const Documents = ({ patientData, onAlert }: { patientData: any, onAlert: any })
         return (
             <View style={{ flex: 1, paddingVertical: 40, alignItems: 'center', justifyContent: 'center' }}>
                 <ActivityIndicator size="large" color="#4A90B9" />
-                <Text style={{ marginTop: 15, color: '#64748b' }}>Fetching documents...</Text>
+                <Text style={{ marginTop: 15, color: '#64748b' }}>{t('patientDocuments.fetchingDocuments')}</Text>
             </View>
         );
     }
@@ -241,7 +243,7 @@ const Documents = ({ patientData, onAlert }: { patientData: any, onAlert: any })
             <View style={styles.modalOverlay}>
                 <View style={styles.modalContent}>
                     <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>Upload New Document</Text>
+                        <Text style={styles.modalTitle}>{t('patientDocuments.uploadTitle')}</Text>
                         <TouchableOpacity onPress={() => setShowUploadModal(false)}>
                             <Feather name="x" size={20} color="#94a3b8" />
                         </TouchableOpacity>
@@ -251,14 +253,14 @@ const Documents = ({ patientData, onAlert }: { patientData: any, onAlert: any })
                         <View style={styles.inputGroup}>
                             <View style={styles.labelRow}>
                                 <Text style={styles.requiredStar}>* </Text>
-                                <Text style={styles.inputLabel}>Document Category</Text>
+                                <Text style={styles.inputLabel}>{t('patientDocuments.documentCategory')}</Text>
                             </View>
                             <TouchableOpacity 
                                 style={[styles.inputWrapper, showCategoryDropdown && styles.dropdownActive]} 
                                 onPress={() => setShowCategoryDropdown(!showCategoryDropdown)}
                             >
                                 <Text style={[styles.textInput, !selectedCategory && { color: '#cbd5e1' }]}>
-                                    {selectedCategory || "Select a category"}
+                                    {selectedCategory || t('patientDocuments.selectCategory')}
                                 </Text>
                                 <Feather name="chevron-down" size={16} color="#cbd5e1" />
                             </TouchableOpacity>
@@ -272,7 +274,7 @@ const Documents = ({ patientData, onAlert }: { patientData: any, onAlert: any })
                                             setShowCategoryDropdown(false);
                                         }}
                                     >
-                                        <Text style={styles.dropdownOptionText}>Laboratory Results</Text>
+                                        <Text style={styles.dropdownOptionText}>{t('patientDocuments.categoryLabResults')}</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity 
                                         style={styles.dropdownOption}
@@ -281,20 +283,20 @@ const Documents = ({ patientData, onAlert }: { patientData: any, onAlert: any })
                                             setShowCategoryDropdown(false);
                                         }}
                                     >
-                                        <Text style={styles.dropdownOptionText}>Informed Consent</Text>
+                                        <Text style={styles.dropdownOptionText}>{t('patientDocuments.categoryInformedConsent')}</Text>
                                     </TouchableOpacity>
                                 </View>
                             )}
                         </View>
                         
-                        <Text style={styles.inputLabel}>Document File</Text>
+                        <Text style={styles.inputLabel}>{t('patientDocuments.documentFile')}</Text>
                         <TouchableOpacity style={styles.uploadArea} onPress={handlePickDocument}>
                             <View style={styles.uploadIconContainer}>
                                 <Feather name="inbox" size={32} color="#58a6b8" />
                             </View>
-                            <Text style={styles.uploadMainText}>Click or drag file to this area to upload</Text>
+                            <Text style={styles.uploadMainText}>{t('patientDocuments.uploadAreaText')}</Text>
                             <Text style={styles.uploadSubText}>
-                                Support for a single file upload. PDF, DOC, DOCX, JPG, PNG formats.
+                                {t('patientDocuments.uploadAreaSubText')}
                             </Text>
                         </TouchableOpacity>
 
@@ -306,11 +308,11 @@ const Documents = ({ patientData, onAlert }: { patientData: any, onAlert: any })
                         )}
 
                         <View style={styles.inputGroup}>
-                            <Text style={styles.inputLabel}>Description</Text>
+                            <Text style={styles.inputLabel}>{t('patientDocuments.description')}</Text>
                             <View style={[styles.inputWrapper, styles.textAreaWrapper]}>
                                 <TextInput 
                                     style={[styles.textInput, styles.textArea]}
-                                    placeholder="Enter document description here..."
+                                    placeholder={t('patientDocuments.descriptionPlaceholder')}
                                     placeholderTextColor="#cbd5e1"
                                     multiline
                                     value={description}
@@ -324,14 +326,14 @@ const Documents = ({ patientData, onAlert }: { patientData: any, onAlert: any })
                             onPress={addToQueue}
                         >
                             <Feather name="plus" size={16} color="#94a3b8" />
-                            <Text style={styles.dashedAddText}>Add Document</Text>
+                            <Text style={styles.dashedAddText}>{t('patientDocuments.addDocument')}</Text>
                         </TouchableOpacity>
 
                         {queuedDocs.length > 0 && (
                             <View style={styles.queueContainer}>
                                 <View style={styles.queueHeaderRow}>
                                     <View style={styles.queueHeaderLine} />
-                                    <Text style={styles.queueHeaderText}>Documents to Upload</Text>
+                                    <Text style={styles.queueHeaderText}>{t('patientDocuments.documentsToUpload')}</Text>
                                     <View style={styles.queueHeaderLine} />
                                 </View>
                                 {queuedDocs.map((item) => (
@@ -366,10 +368,10 @@ const Documents = ({ patientData, onAlert }: { patientData: any, onAlert: any })
                                 setQueuedDocs([]);
                             }}
                         >
-                            <Text style={styles.cancelOutlineText}>Cancel</Text>
+                            <Text style={styles.cancelOutlineText}>{t('patientDocuments.cancel')}</Text>
                         </TouchableOpacity>
                         <SubmitButton 
-                            title="Upload Documents" 
+                            title={t('patientDocuments.uploadDocuments')} 
                             disabled={queuedDocs.length === 0} 
                             onPress={handleUploadAll}
                             loading={isUploading}
@@ -393,7 +395,7 @@ const Documents = ({ patientData, onAlert }: { patientData: any, onAlert: any })
                 >
                     <View style={styles.headerLeft}>
                         <Feather name="file-text" size={18} color="#58a6b8" style={styles.icon} />
-                        <Text style={styles.title}>MEDICAL DOCUMENTATION</Text>
+                        <Text style={styles.title}>{t('patientDocuments.title')}</Text>
                     </View>
                     <Feather name={expanded ? "chevron-up" : "chevron-down"} size={20} color="#94a3b8" />
                 </TouchableOpacity>
@@ -405,14 +407,14 @@ const Documents = ({ patientData, onAlert }: { patientData: any, onAlert: any })
                                 <Feather name="search" size={18} color="#94a3b8" />
                                 <TextInput 
                                     style={styles.searchInput}
-                                    placeholder="Search in documents..."
+                                    placeholder={t('patientDocuments.searchPlaceholder')}
                                     value={searchText}
                                     onChangeText={setSearchText}
                                     placeholderTextColor="#94a3b8"
                                 />
                             </View>
                             <SubmitButton 
-                                title="New document" 
+                                title={t('patientDocuments.newDocument')} 
                                 icon="plus" 
                                 onPress={() => setShowUploadModal(true)}
                                 style={styles.newDocBtn}
@@ -433,15 +435,15 @@ const Documents = ({ patientData, onAlert }: { patientData: any, onAlert: any })
                                                 <Feather name="file-text" size={18} color="#58a6b8" />
                                             </View>
                                             <View style={{ flex: 1, marginLeft: 12 }}>
-                                                <Text style={styles.docName}>{doc.title || doc.name || doc.fileName || 'Untitled Document'}</Text>
+                                                <Text style={styles.docName}>{doc.title || doc.name || doc.fileName || t('patientDocuments.untitledDocument')}</Text>
                                                 <View style={styles.docSubMeta}>
                                                     <View style={styles.metaItem}>
                                                         <Feather name="calendar" size={12} color="#94a3b8" />
                                                         <Text style={styles.docMetaText}>
-                                                            {doc.date ? new Date(doc.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'No date'}
+                                                            {doc.date ? new Date(doc.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : t('patientDocuments.noDate')}
                                                         </Text>
                                                     </View>
-                                                    <Text style={styles.docMetaText}>  Author: {doc.author || 'System'}</Text>
+                                                    <Text style={styles.docMetaText}>  {t('patientDocuments.author')} {doc.author || t('patientDocuments.system')}</Text>
                                                 </View>
                                             </View>
                                             <TouchableOpacity style={styles.viewBtn}>
@@ -451,7 +453,7 @@ const Documents = ({ patientData, onAlert }: { patientData: any, onAlert: any })
                                         
                                         <View style={styles.docItemBottom}>
                                             <Text style={styles.docDescription} numberOfLines={2}>
-                                                {doc.description || 'No description provided for this document.'}
+                                                {doc.description || t('patientDocuments.noDescription')}
                                             </Text>
                                             <View style={styles.tagContainer}>
                                                 {((doc.tags || [doc.category]) || ['General']).map((tag: string, tid: number) => (
@@ -466,7 +468,7 @@ const Documents = ({ patientData, onAlert }: { patientData: any, onAlert: any })
                             ) : (
                                 <View style={styles.emptyContainer}>
                                     <Text style={styles.emptyText}>
-                                        {searchText ? 'No documents match your search' : 'No documents found'}
+                                        {searchText ? t('patientDocuments.noSearchMatch') : t('patientDocuments.noDocuments')}
                                     </Text>
                                 </View>
                             );

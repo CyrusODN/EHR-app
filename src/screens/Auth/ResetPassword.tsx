@@ -128,7 +128,7 @@ const ResetPassword = () => {
                 setSpinner(false);
 
                 if (response) {
-                    let successMessage = 'Password reset successful!';
+                    let successMessage = t('reset_password.reset_success');
 
                     if (typeof response === 'object') {
                         successMessage = response.data || successMessage;
@@ -156,7 +156,7 @@ const ResetPassword = () => {
                 setAlertConfig({
                     visible: true,
                     type: 'error',
-                    message: error.message || 'Something went wrong. Please try again.',
+                    message: error.message || t('auth.error_default'),
                 });
             }
         }, 0);

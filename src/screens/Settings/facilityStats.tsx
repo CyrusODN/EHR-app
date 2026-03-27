@@ -10,6 +10,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { GetFacilityStatistics } from '../../Services/settingServices';
+import { useTranslation } from 'react-i18next';
 
 // Stat Card component for consistent styling
 const StatCard = ({ icon, title, value }: any) => (
@@ -34,6 +35,7 @@ interface FacilityStatsData {
 }
 
 const FacilityStatistics = () => {
+    const { t } = useTranslation();
     const navigation = useNavigation();
     const [statsData, setStatsData] = useState<FacilityStatsData | null>(null);
     const [loading, setLoading] = useState(true);
@@ -55,7 +57,7 @@ const FacilityStatistics = () => {
             }
         } catch (err: any) {
             console.log("Error fetching facility stats:", err);
-            setError(err?.message || 'Failed to fetch statistics');
+            setError(err?.message || t('settings.facility_stats.error_default'));
         } finally {
             setLoading(false);
         }
@@ -71,32 +73,32 @@ const FacilityStatistics = () => {
     // Build stats array from fetched data
     const stats = statsData ? [
         {
-            title: 'Departments',
+            title: t('settings.facility_stats.stats.departments'),
             value: String(statsData.departments ?? 0),
             icon: <FontAwesome5 name="building" size={24} color="#4A90B9" />
         },
         {
-            title: 'Doctors',
+            title: t('settings.facility_stats.stats.doctors'),
             value: String(statsData.doctors ?? 0),
             icon: <Feather name="users" size={24} color="#4A99b9" />
         },
         {
-            title: 'Offices',
+            title: t('settings.facility_stats.stats.offices'),
             value: String(statsData.offices ?? 0),
             icon: <MaterialIcons name="meeting-room" size={24} color="green" />
         },
         {
-            title: 'Nurses',
+            title: t('settings.facility_stats.stats.nurses'),
             value: String(statsData.nurses ?? 0),
             icon: <Feather name="users" size={24} color="#9370DB" />
         },
         {
-            title: 'Patients',
+            title: t('settings.facility_stats.stats.patients'),
             value: String(statsData.patients ?? 0),
             icon: <Feather name="users" size={24} color="blue" />
         },
         {
-            title: 'Receptionists',
+            title: t('settings.facility_stats.stats.receptionists'),
             value: String(statsData.receptionists ?? 0),
             icon: <MaterialCommunityIcons name="account-cog-outline" size={24} color="#FFA500" />
         },
@@ -112,14 +114,14 @@ const FacilityStatistics = () => {
                 <View style={styles.headerIconContainer}>
                     <Feather name="bar-chart-2" size={24} color="#4A90B9" />
                 </View>
-                <Text style={styles.headerTitle}>Facility Statistics</Text>
+                <Text style={styles.headerTitle}>{t('settings.facility_stats.title')}</Text>
             </View>
 
             {/* Loading State */}
             {loading && (
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color="#4A90B9" />
-                    <Text style={styles.loadingText}>Loading statistics...</Text>
+                    <Text style={styles.loadingText}>{t('settings.facility_stats.loading')}</Text>
                 </View>
             )}
 
@@ -129,7 +131,7 @@ const FacilityStatistics = () => {
                     <Ionicons name="alert-circle-outline" size={48} color="#FF6B6B" />
                     <Text style={styles.errorText}>{error}</Text>
                     <TouchableOpacity style={styles.retryButton} onPress={fetchStatistics}>
-                        <Text style={styles.retryButtonText}>Retry</Text>
+                        <Text style={styles.retryButtonText}>{t('settings.facility_stats.retry')}</Text>
                     </TouchableOpacity>
                 </View>
             )}

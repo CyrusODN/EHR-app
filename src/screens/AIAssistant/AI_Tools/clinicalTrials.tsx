@@ -7,6 +7,7 @@ import PrimaryButton from '../../../component/button';
 import CustomTextInput from '../../../component/customTextInput';
 import Gap from '../../../component/gap';
 import { searchClinicalTrials } from '../../../Services/AiAssitants.Service';
+import { useTranslation } from 'react-i18next';
 
 interface ClinicalTrialsProps {
     serviceToken: string | null;
@@ -14,6 +15,7 @@ interface ClinicalTrialsProps {
 }
 
 const ClinicalTrials = ({ serviceToken, onShowAlert }: ClinicalTrialsProps) => {
+    const { t } = useTranslation();
     const [diagnosis, setDiagnosis] = useState('');
     const [location, setLocation] = useState('');
     const [loading, setLoading] = useState(false);
@@ -22,7 +24,7 @@ const ClinicalTrials = ({ serviceToken, onShowAlert }: ClinicalTrialsProps) => {
 
     const handleSearch = async () => {
         if (!diagnosis.trim()) {
-            if (onShowAlert) onShowAlert("Please enter a diagnosis", "warning");
+            if (onShowAlert) onShowAlert(t('aiAssistant.clinicalTrials.enterDiagnosis'), "warning");
             return;
         }
 
@@ -33,7 +35,7 @@ const ClinicalTrials = ({ serviceToken, onShowAlert }: ClinicalTrialsProps) => {
             setTrials(results || []);
         } catch (error) {
             console.error("[ClinicalTrials] Search Error:", error);
-            if (onShowAlert) onShowAlert("Failed to fetch clinical trials", "error");
+            if (onShowAlert) onShowAlert(t('aiAssistant.clinicalTrials.fetchFailed'), "error");
         } finally {
             setLoading(false);
         }
@@ -44,18 +46,18 @@ const ClinicalTrials = ({ serviceToken, onShowAlert }: ClinicalTrialsProps) => {
             <View style={styles.searchSection}>
                 <View style={styles.inputRow}>
                     <View style={styles.inputCol}>
-                        <Text style={styles.inputLabel}>Diagnosis</Text>
+                        <Text style={styles.inputLabel}>{t('aiAssistant.clinicalTrials.diagnosis')}</Text>
                         <CustomTextInput
-                            placeholder={'e.g. Migraine'}
+                            placeholder={t('aiAssistant.clinicalTrials.diagnosisPlaceholder')}
                             value={diagnosis}
                             onChangeText={setDiagnosis}
                             style={styles.textInput}
                         />
                     </View>
                     <View style={styles.inputCol}>
-                        <Text style={styles.inputLabel}>Location</Text>
+                        <Text style={styles.inputLabel}>{t('aiAssistant.clinicalTrials.location')}</Text>
                         <CustomTextInput
-                            placeholder={'e.g. Warsaw'}
+                            placeholder={t('aiAssistant.clinicalTrials.locationPlaceholder')}
                             value={location}
                             onChangeText={setLocation}
                             style={styles.textInput}
@@ -66,7 +68,7 @@ const ClinicalTrials = ({ serviceToken, onShowAlert }: ClinicalTrialsProps) => {
                 <Gap height={hp(2)} />
 
                 <PrimaryButton
-                    label={loading ? "Searching..." : "Search trials"}
+                    label={loading ? t('aiAssistant.clinicalTrials.searching') : t('aiAssistant.clinicalTrials.searchTrials')}
                     filled={true}
                     onPress={handleSearch}
                     style={styles.searchBtn}
@@ -77,7 +79,7 @@ const ClinicalTrials = ({ serviceToken, onShowAlert }: ClinicalTrialsProps) => {
 
             {searched && (
                 <View style={styles.resultsHeader}>
-                    <Text style={styles.foundText}>Found trials ({trials.length})</Text>
+                    <Text style={styles.foundText}>{t('aiAssistant.clinicalTrials.foundTrials', { count: trials.length })}</Text>
                 </View>
             )}
 
@@ -86,9 +88,9 @@ const ClinicalTrials = ({ serviceToken, onShowAlert }: ClinicalTrialsProps) => {
                     <View style={styles.cardHeader}>
                         <Text style={styles.trialTitle}>{trial.title}</Text>
                         <Gap height={hp(1)} />
-                        <Text style={styles.trialMeta}>ID: {trial.id}</Text>
-                        <Text style={styles.trialMeta}>Sponsor: {trial.sponsor}</Text>
-                        <Text style={styles.trialMeta}>Phase: {trial.phase}</Text>
+                        <Text style={styles.trialMeta}>{t('aiAssistant.clinicalTrials.id')}: {trial.id}</Text>
+                        <Text style={styles.trialMeta}>{t('aiAssistant.clinicalTrials.sponsor')}: {trial.sponsor}</Text>
+                        <Text style={styles.trialMeta}>{t('aiAssistant.clinicalTrials.phase')}: {trial.phase}</Text>
                     </View>
 
                     <View style={styles.locationContainer}>
@@ -98,13 +100,13 @@ const ClinicalTrials = ({ serviceToken, onShowAlert }: ClinicalTrialsProps) => {
 
                     <View style={styles.criteriaRow}>
                         <View style={styles.criteriaCol}>
-                            <Text style={styles.criteriaTitle}>Inclusion criteria:</Text>
+                            <Text style={styles.criteriaTitle}>{t('aiAssistant.clinicalTrials.inclusionCriteria')}</Text>
                             {(trial.criteria?.inclusion || []).map((item: string, i: number) => (
                                 <Text key={i} style={styles.criteriaItem}>• {item}</Text>
                             ))}
                         </View>
                         <View style={styles.criteriaCol}>
-                            <Text style={styles.criteriaTitle}>Exclusion criteria:</Text>
+                            <Text style={styles.criteriaTitle}>{t('aiAssistant.clinicalTrials.exclusionCriteria')}</Text>
                             {(trial.criteria?.exclusion || []).map((item: string, i: number) => (
                                 <Text key={i} style={styles.criteriaItem}>• {item}</Text>
                             ))}
@@ -114,7 +116,7 @@ const ClinicalTrials = ({ serviceToken, onShowAlert }: ClinicalTrialsProps) => {
                     <View style={styles.cardFooter}>
                         <TouchableOpacity style={styles.detailsBtn}>
                             <Feather name="file-text" size={14} color="#4A90B9" style={{ marginRight: 5 }} />
-                            <Text style={styles.detailsBtnText}>Details</Text>
+                            <Text style={styles.detailsBtnText}>{t('aiAssistant.clinicalTrials.details')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -122,7 +124,7 @@ const ClinicalTrials = ({ serviceToken, onShowAlert }: ClinicalTrialsProps) => {
 
             {searched && trials.length === 0 && !loading && (
                 <View style={styles.noResults}>
-                    <Text style={styles.noResultsText}>No clinical trials found for your search.</Text>
+                    <Text style={styles.noResultsText}>{t('aiAssistant.clinicalTrials.noResults')}</Text>
                 </View>
             )}
         </ScrollView>

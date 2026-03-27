@@ -12,8 +12,10 @@ import {
     widthPercentageToDP as wp
 } from 'react-native-responsive-screen';
 
+import { useTranslation } from 'react-i18next';
 
 const ModuleLoading = () => {
+    const { t } = useTranslation();
     const { colors } = useTheme();
     const navigation = useNavigation();
     const [showLoading, setShowLoading] = useState(false);
@@ -63,7 +65,7 @@ const ModuleLoading = () => {
                     >
                         <Image source={require('../../assets/images/brain.png')} style={{ height: 20, width: 20 }} />
                     </LinearGradient>
-                    <Text style={[styles.moduleTitle, { color: '#000000', fontSize: 20 }]}>Psychiatric Module</Text>
+                    <Text style={[styles.moduleTitle, { color: '#000000', fontSize: 20 }]}>{t('moduleSelection.loading.title')}</Text>
                 </View>
                 <Gap height={hp(2)} />
                 {/* Progress Bar Track */}
@@ -87,7 +89,7 @@ const ModuleLoading = () => {
                 </View>
                 <Gap height={hp(3)} />
                 <View style={{ width: "100%", alignItems: "center", justifyContent: "center" }}>
-                    <Text style={{ color: "#666", fontSize: 14 }}>Initializing module...</Text>
+                    <Text style={{ color: "#666", fontSize: 14 }}>{t('moduleSelection.loading.initializing')}</Text>
                 </View>
             </View>
         </View>

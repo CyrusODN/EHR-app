@@ -14,6 +14,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 interface RecommendationModalProps {
     visible: boolean;
@@ -21,6 +22,7 @@ interface RecommendationModalProps {
 }
 
 const RecommendationModal = ({ visible, onClose }: RecommendationModalProps) => {
+    const { t } = useTranslation();
     const insets = useSafeAreaInsets();
     const [searchQuery, setSearchQuery] = useState('');
     const [aiEnabled, setAiEnabled] = useState(true);
@@ -41,7 +43,7 @@ const RecommendationModal = ({ visible, onClose }: RecommendationModalProps) => 
             </View>
             <TouchableOpacity style={styles.addMonitoringBtn}>
                 <Feather name="plus" size={14} color="#58A7B3" />
-                <Text style={styles.addMonitoringText}>Add to monitoring</Text>
+                <Text style={styles.addMonitoringText}>{t('visit.recommendations.add_to_monitoring')}</Text>
             </TouchableOpacity>
         </View>
     );
@@ -89,7 +91,7 @@ const RecommendationModal = ({ visible, onClose }: RecommendationModalProps) => 
                 <View style={[styles.modalContent, { marginTop: insets.top + 20, marginBottom: insets.bottom + 20 }]}>
                     {/* Header */}
                     <View style={styles.header}>
-                        <Text style={styles.headerTitle}>Recommendations for Patient Portal</Text>
+                        <Text style={styles.headerTitle}>{t('visit.recommendations.modal_title')}</Text>
                         <TouchableOpacity onPress={onClose}>
                             <Feather name="x" size={24} color="#64748B" />
                         </TouchableOpacity>
@@ -98,17 +100,17 @@ const RecommendationModal = ({ visible, onClose }: RecommendationModalProps) => 
                     <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
                         <View style={styles.innerHeader}>
                             <MaterialCommunityIcons name="brain" size={24} color="#58A7B3" />
-                            <Text style={styles.innerHeaderTitle}>Recommendations for Patient Portal</Text>
+                            <Text style={styles.innerHeaderTitle}>{t('visit.recommendations.modal_title')}</Text>
                         </View>
 
                         {/* Medication Schedule */}
                         <View style={styles.section}>
                             <View style={styles.sectionHeaderRow}>
-                                <Text style={styles.sectionLabel}>Medication Schedule</Text>
+                                <Text style={styles.sectionLabel}>{t('visit.recommendations.medication_schedule')}</Text>
                                 <View style={styles.searchContainer}>
                                     <TextInput 
                                         style={styles.searchInput}
-                                        placeholder="Search medication..."
+                                        placeholder={t('visit.recommendations.search_medication')}
                                         placeholderTextColor="#94A3B8"
                                         value={searchQuery}
                                         onChangeText={setSearchQuery}
@@ -119,43 +121,43 @@ const RecommendationModal = ({ visible, onClose }: RecommendationModalProps) => 
 
                         {/* Scale Monitoring */}
                         <View style={styles.section}>
-                            <Text style={styles.sectionLabel}>Scale Monitoring</Text>
+                            <Text style={styles.sectionLabel}>{t('visit.recommendations.scale_monitoring')}</Text>
                             
-                            <Text style={styles.subHeading}>Depression Assessment</Text>
+                            <Text style={styles.subHeading}>{t('visit.recommendations.assessments.depression')}</Text>
                             <View style={styles.assessmentGrid}>
                                 <AssessmentItem title="PHQ-9" />
                                 <AssessmentItem title="BDI-II" />
                                 <AssessmentItem title="CES-D" />
                             </View>
 
-                            <Text style={styles.subHeading}>Anxiety Assessment</Text>
+                            <Text style={styles.subHeading}>{t('visit.recommendations.assessments.anxiety')}</Text>
                             <View style={styles.assessmentGrid}>
                                 <AssessmentItem title="GAD-7" />
                                 <AssessmentItem title="BAI" />
                                 <AssessmentItem title="HADS" />
                             </View>
 
-                            <Text style={styles.subHeading}>Mental Health Assessment</Text>
+                            <Text style={styles.subHeading}>{t('visit.recommendations.assessments.mental_health')}</Text>
                             <View style={styles.assessmentGrid}>
                                 <AssessmentItem title="WHO-5" />
                                 <AssessmentItem title="SF-12" />
                                 <AssessmentItem title="CORE-OM" />
                             </View>
 
-                            <Text style={styles.subHeading}>PTSD and Trauma Assessment</Text>
+                            <Text style={styles.subHeading}>{t('visit.recommendations.assessments.ptsd_trauma')}</Text>
                             <View style={styles.assessmentGrid}>
                                 <AssessmentItem title="PCL-5" />
                                 <AssessmentItem title="IES-R" />
                             </View>
 
-                            <Text style={styles.subHeading}>Addiction Assessment</Text>
+                            <Text style={styles.subHeading}>{t('visit.recommendations.assessments.addiction')}</Text>
                             <View style={styles.assessmentGrid}>
                                 <AssessmentItem title="AUDIT" />
                                 <AssessmentItem title="DUDIT" />
                                 <AssessmentItem title="SCOFF" />
                             </View>
 
-                            <Text style={styles.subHeading}>Sleep Assessment</Text>
+                            <Text style={styles.subHeading}>{t('visit.recommendations.assessments.sleep')}</Text>
                             <View style={styles.assessmentGrid}>
                                 <AssessmentItem title="PSQI" />
                                 <AssessmentItem title="ISI" />
@@ -165,7 +167,7 @@ const RecommendationModal = ({ visible, onClose }: RecommendationModalProps) => 
                         {/* AI Assistant */}
                         <View style={styles.section}>
                             <View style={styles.aiHeader}>
-                                <Text style={styles.sectionLabelBold}>AI Assistant</Text>
+                                <Text style={styles.sectionLabelBold}>{t('visit.recommendations.ai_assistant.title')}</Text>
                                 <TouchableOpacity 
                                     style={styles.checkboxRow}
                                     onPress={() => setAiEnabled(!aiEnabled)}
@@ -173,30 +175,30 @@ const RecommendationModal = ({ visible, onClose }: RecommendationModalProps) => 
                                     <View style={[styles.mainCheckbox, aiEnabled && styles.mainCheckboxChecked]}>
                                         {aiEnabled && <Feather name="check" size={14} color="#fff" />}
                                     </View>
-                                    <Text style={styles.checkboxText}>Enable AI assistant</Text>
+                                    <Text style={styles.checkboxText}>{t('visit.recommendations.ai_assistant.enable')}</Text>
                                 </TouchableOpacity>
                             </View>
 
                             <View style={styles.aiToolList}>
                                 <AiAssistantTool 
                                     id="mood"
-                                    title="Intelligent Mood Tracking"
-                                    description="AI analyzes mood patterns and suggests interventions"
+                                    title={t('visit.recommendations.ai_assistant.tools.mood.title')}
+                                    description={t('visit.recommendations.ai_assistant.tools.mood.description')}
                                 />
                                 <AiAssistantTool 
                                     id="meds"
-                                    title="Adaptive Medication Reminders"
-                                    description="AI adjusts reminders to the patient's daily rhythm"
+                                    title={t('visit.recommendations.ai_assistant.tools.meds.title')}
+                                    description={t('visit.recommendations.ai_assistant.tools.meds.description')}
                                 />
                                 <AiAssistantTool 
                                     id="crisis"
-                                    title="Crisis Support"
-                                    description="AI detects warning signals and suggests appropriate actions"
+                                    title={t('visit.recommendations.ai_assistant.tools.crisis.title')}
+                                    description={t('visit.recommendations.ai_assistant.tools.crisis.description')}
                                 />
                                 <AiAssistantTool 
                                     id="coping"
-                                    title="Personalized Coping Strategies"
-                                    description="AI proposes techniques tailored to the patient's situation"
+                                    title={t('visit.recommendations.ai_assistant.tools.coping.title')}
+                                    description={t('visit.recommendations.ai_assistant.tools.coping.description')}
                                 />
                             </View>
                         </View>
@@ -208,7 +210,7 @@ const RecommendationModal = ({ visible, onClose }: RecommendationModalProps) => 
                             <View style={[styles.mainCheckbox, shareEmergency && styles.mainCheckboxChecked]}>
                                 {shareEmergency && <Feather name="check" size={14} color="#fff" />}
                             </View>
-                            <Text style={styles.checkboxText}>Share emergency contacts in the portal</Text>
+                            <Text style={styles.checkboxText}>{t('visit.recommendations.share_emergency')}</Text>
                         </TouchableOpacity>
 
                         <View style={styles.divider} />
@@ -216,7 +218,7 @@ const RecommendationModal = ({ visible, onClose }: RecommendationModalProps) => 
                         {/* Actions */}
                         <View style={styles.actions}>
                             <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
-                                <Text style={styles.cancelText}>Cancel</Text>
+                                <Text style={styles.cancelText}>{t('common.cancel')}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity onPress={onClose}>
                                 <LinearGradient
@@ -225,7 +227,7 @@ const RecommendationModal = ({ visible, onClose }: RecommendationModalProps) => 
                                     end={{ x: 1, y: 0 }}
                                     style={styles.saveBtn}
                                 >
-                                    <Text style={styles.saveText}>Save Recommendations</Text>
+                                    <Text style={styles.saveText}>{t('visit.recommendations.save')}</Text>
                                 </LinearGradient>
                             </TouchableOpacity>
                         </View>

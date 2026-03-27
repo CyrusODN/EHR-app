@@ -22,8 +22,13 @@ import CustomDropdown from '../../component/customDropDown';
 import CustomAlert from '../../component/customAlert';
 import Gap from '../../component/gap';
 import { GetIncomingReferrals, GetOutgoingReferrals, CreateReferral, GetReferralPatientOptions, GetReferralDoctorOptions, GetReferralNurseOptions } from '../../Services/ReferralsService';
+import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 const ReferralsScreen = () => {
+    const { t } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
     const navigation = useNavigation<any>();
     const [activeTab, setActiveTab] = useState('incoming'); // 'incoming' or 'outgoing'
     const [showNewReferralModal, setShowNewReferralModal] = useState(false);
@@ -109,7 +114,7 @@ const ReferralsScreen = () => {
 
     const handleSave = async () => {
         if (!selectedPatient || !referredTo || !specialization || !reason) {
-            showAlert('warning', 'Please fill in all required fields');
+            showAlert('warning', t('referrals.messages.requiredFields'));
             return;
         }
 
@@ -125,7 +130,7 @@ const ReferralsScreen = () => {
             };
             const res: any = await CreateReferral(payload);
             if (res) {
-                showAlert('success', 'Referral created successfully');
+                showAlert('success', t('referrals.messages.success'));
                 setShowNewReferralModal(false);
                 fetchReferrals();
                 // Reset form
@@ -137,40 +142,42 @@ const ReferralsScreen = () => {
             }
         } catch (error) {
             console.error("Error creating referral:", error);
-            showAlert('error', 'Failed to create referral');
+            showAlert('error', t('referrals.messages.error'));
         } finally {
             setLoading(false);
         }
     };
 
     const renderEmptyState = () => (
-        <View style={styles.emptyStateContainer}>
-            <MaterialCommunityIcons name="inbox-outline" size={60} color="#94A3B8" />
-            <Text style={styles.emptyStateText}>No {activeTab} referrals</Text>
+        <View style={ds.emptyStateContainer}>
+            <MaterialCommunityIcons name="inbox-outline" size={60} color={tc.textMuted} />
+            <Text style={ds.emptyStateText}>
+                {activeTab === 'incoming' ? t('referrals.emptyIncoming') : t('referrals.emptyOutgoing')}
+            </Text>
         </View>
     );
 
     return (
-        <SafeAreaView style={styles.safeArea}>
-            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-            <View style={styles.container}>
+        <SafeAreaView style={ds.safeArea}>
+            <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={tc.statusBarBg} />
+            <View style={ds.container}>
                 {/* Header */}
-                <View style={styles.header}>
-                    <View style={styles.headerTop}>
-                        <View style={styles.headerTitleContainer}>
+                <View style={ds.header}>
+                    <View style={ds.headerTop}>
+                        <View style={ds.headerTitleContainer}>
                             <TouchableOpacity
-                                style={styles.backButton}
+                                style={ds.backButton}
                                 onPress={() => navigation.goBack()}
                             >
-                                <Ionicons name="arrow-back" size={20} color="#4A90B9" />
+                                <Ionicons name="arrow-back" size={20} color={tc.accent} />
                             </TouchableOpacity>
-                            <Text style={styles.headerTitle}>Referrals</Text>
+                            <Text style={ds.headerTitle}>{t('referrals.title')}</Text>
                         </View>
                         <PrimaryButton
-                            label={'New Referral'}
+                            label={t('referrals.newReferral')}
                             filled={true}
                             onPress={() => setShowNewReferralModal(true)}
-                            style={styles.newReferralBtn}
+                            style={ds.newReferralBtn}
                             icon={<Feather name="plus" size={18} color="white" />}
                             loading={false}
                             disabled={false}
@@ -179,84 +186,84 @@ const ReferralsScreen = () => {
                 </View>
 
                 {/* Tabs */}
-                <View style={styles.tabContainer}>
+                <View style={ds.tabContainer}>
                     <TouchableOpacity
-                        style={[styles.tab, activeTab === 'incoming' && styles.activeTab]}
+                        style={[ds.tab, activeTab === 'incoming' && ds.activeTab]}
                         onPress={() => setActiveTab('incoming')}
                     >
-                        <Text style={[styles.tabText, activeTab === 'incoming' && styles.activeTabText]}>
-                            Incoming Referrals
+                        <Text style={[ds.tabText, activeTab === 'incoming' && ds.activeTabText]}>
+                            {t('referrals.incoming')}
                         </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                        style={[styles.tab, activeTab === 'outgoing' && styles.activeTab]}
+                        style={[ds.tab, activeTab === 'outgoing' && ds.activeTab]}
                         onPress={() => setActiveTab('outgoing')}
                     >
-                        <Text style={[styles.tabText, activeTab === 'outgoing' && styles.activeTabText]}>
-                            Outgoing Referrals
+                        <Text style={[ds.tabText, activeTab === 'outgoing' && ds.activeTabText]}>
+                            {t('referrals.outgoing')}
                         </Text>
                     </TouchableOpacity>
                 </View>
 
                 {/* Content */}
-                <ScrollView contentContainerStyle={styles.contentContainer}>
-                    <View style={styles.cardContainer}>
+                <ScrollView contentContainerStyle={ds.contentContainer}>
+                    <View style={ds.cardContainer}>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                            <View style={styles.horizontalTableContainer}>
+                            <View style={ds.horizontalTableContainer}>
                                 {/* Column Headers */}
-                                <View style={styles.tableHead}>
-                                    <View style={styles.columnPatient}><Text style={styles.tableHeadText}>PATIENT</Text></View>
-                                    <View style={styles.columnReferred}>
-                                        <Text style={styles.tableHeadText}>
-                                            {activeTab === 'incoming' ? 'REFERRED BY' : 'REFERRED TO'}
+                                <View style={ds.tableHead}>
+                                    <View style={ds.columnPatient}><Text style={ds.tableHeadText}>{t('referrals.table.patient')}</Text></View>
+                                    <View style={ds.columnReferred}>
+                                        <Text style={ds.tableHeadText}>
+                                            {activeTab === 'incoming' ? t('referrals.table.referredBy') : t('referrals.table.referredTo')}
                                         </Text>
                                     </View>
-                                    <View style={styles.columnReason}><Text style={styles.tableHeadText}>REASON FOR REFERRAL</Text></View>
-                                    <View style={styles.columnStatus}><Text style={styles.tableHeadText}>STATUS</Text></View>
-                                    <View style={styles.columnDate}><Text style={styles.tableHeadText}>DATE</Text></View>
-                                    <View style={styles.columnActions}><Text style={[styles.tableHeadText, { textAlign: 'right' }]}>ACTIONS</Text></View>
+                                    <View style={ds.columnReason}><Text style={ds.tableHeadText}>{t('referrals.table.reason')}</Text></View>
+                                    <View style={ds.columnStatus}><Text style={ds.tableHeadText}>{t('referrals.table.status')}</Text></View>
+                                    <View style={ds.columnDate}><Text style={ds.tableHeadText}>{t('referrals.table.date')}</Text></View>
+                                    <View style={ds.columnActions}><Text style={[ds.tableHeadText, { textAlign: 'right' }]}>{t('referrals.table.actions')}</Text></View>
                                 </View>
                                 
                                 {/* Empty state or List */}
-                                <View style={styles.tableBody}>
+                                <View style={ds.tableBody}>
                                     {referrals.length === 0 ? renderEmptyState() : referrals.map((item, index) => (
-                                        <View key={item.id || index} style={styles.tableRow}>
-                                            <View style={[styles.columnPatient, { paddingRight: 8 }]}>
-                                                <Text style={[styles.tableCellText, { fontWeight: '700' }]} numberOfLines={1} ellipsizeMode="tail">{item.patient?.name || 'Unknown'}</Text>
+                                        <View key={item.id || index} style={ds.tableRow}>
+                                            <View style={[ds.columnPatient, { paddingRight: 8 }]}>
+                                                <Text style={[ds.tableCellText, { fontWeight: '700' }]} numberOfLines={1} ellipsizeMode="tail">{item.patient?.name || t('patientDetailsModal.empty.na')}</Text>
                                             </View>
-                                            <View style={[styles.columnReferred, { paddingRight: 8 }]}>
+                                            <View style={[ds.columnReferred, { paddingRight: 8 }]}>
                                                 {activeTab === 'incoming' ? (
-                                                    <Text style={styles.tableCellText} numberOfLines={1} ellipsizeMode="tail">
-                                                        {item.referredBy?.name || 'N/A'} <Text style={{ color: '#94A3B8' }}>({item.referredBy?.role || 'provider'})</Text>
+                                                    <Text style={ds.tableCellText} numberOfLines={1} ellipsizeMode="tail">
+                                                        {item.referredBy?.name || 'N/A'} <Text style={{ color: tc.textMuted }}>({item.referredBy?.role || 'provider'})</Text>
                                                     </Text>
                                                 ) : (
-                                                    <Text style={styles.tableCellText} numberOfLines={1} ellipsizeMode="tail">
-                                                        {item.referredTo?.name || 'N/A'} <Text style={{ color: '#94A3B8' }}>({item.referredTo?.role || 'provider'})</Text>
+                                                    <Text style={ds.tableCellText} numberOfLines={1} ellipsizeMode="tail">
+                                                        {item.referredTo?.name || 'N/A'} <Text style={{ color: tc.textMuted }}>({item.referredTo?.role || 'provider'})</Text>
                                                     </Text>
                                                 )}
                                             </View>
-                                            <View style={styles.columnReason}>
-                                                <Text style={[styles.tableCellText, { fontWeight: '700' }]} numberOfLines={1}>{item.reason || 'N/A'}</Text>
+                                            <View style={ds.columnReason}>
+                                                <Text style={[ds.tableCellText, { fontWeight: '700' }]} numberOfLines={1}>{item.reason || 'N/A'}</Text>
                                             </View>
-                                            <View style={styles.columnStatus}>
-                                                <View style={[styles.statusBadge, { backgroundColor: '#FEF9C3' }]}>
-                                                    <Text style={[styles.statusText, { color: '#854D0E' }]}>
-                                                        {item.status ? (item.status.charAt(0).toUpperCase() + item.status.slice(1)) : 'Pending'}
+                                            <View style={ds.columnStatus}>
+                                                <View style={[ds.statusBadge, { backgroundColor: isDark ? 'rgba(245, 158, 11, 0.15)' : '#FEF9C3' }]}>
+                                                    <Text style={[ds.statusText, { color: isDark ? '#F59E0B' : '#854D0E' }]}>
+                                                        {item.status ? (item.status.charAt(0).toUpperCase() + item.status.slice(1)) : t('appointments.filters.status.scheduled')}
                                                     </Text>
                                                 </View>
                                             </View>
-                                            <View style={styles.columnDate}>
-                                                <Text style={styles.tableCellText}>{item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-GB') : 'N/A'}</Text>
+                                            <View style={ds.columnDate}>
+                                                <Text style={ds.tableCellText}>{item.createdAt ? new Date(item.createdAt).toLocaleDateString(t('common.dateLocale') || 'en-GB') : 'N/A'}</Text>
                                             </View>
-                                            <View style={styles.columnActions}>
+                                            <View style={ds.columnActions}>
                                                 <TouchableOpacity 
-                                                    style={styles.actionSquareBtn}
+                                                    style={ds.actionSquareBtn}
                                                     onPress={() => {
                                                         setSelectedReferral(item);
                                                         setShowDetailsModal(true);
                                                     }}
                                                 >
-                                                    <Feather name="eye" size={18} color="#06B6D4" />
+                                                    <Feather name="eye" size={18} color={tc.accent} />
                                                 </TouchableOpacity>
                                             </View>
                                         </View>
@@ -273,63 +280,65 @@ const ReferralsScreen = () => {
                     transparent={true}
                     animationType="slide"
                 >
-                    <View style={styles.modalOverlay}>
-                        <View style={styles.modalContent}>
-                            <View style={styles.modalHeader}>
-                                <Text style={styles.modalTitle}>New Referral</Text>
+                    <View style={ds.modalOverlay}>
+                        <View style={ds.modalContent}>
+                            <View style={ds.modalHeader}>
+                                <Text style={ds.modalTitle}>{t('referrals.modal.title')}</Text>
                                 <TouchableOpacity onPress={() => setShowNewReferralModal(false)}>
-                                    <Feather name="x" size={24} color="#64748B" />
+                                    <Feather name="x" size={24} color={tc.textSecondary} />
                                 </TouchableOpacity>
                             </View>
 
-                            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+                            <ScrollView style={ds.modalBody} showsVerticalScrollIndicator={false}>
                                 {/* Toggle Doctor/Nurse */}
-                                <View style={styles.toggleContainer}>
+                                <View style={ds.toggleContainer}>
                                     <TouchableOpacity
-                                        style={[styles.toggleBtn, referralType === 'Doctor' && styles.toggleBtnActive]}
+                                        style={[ds.toggleBtn, referralType === 'Doctor' && ds.toggleBtnActive]}
                                         onPress={() => setReferralType('Doctor')}
                                     >
-                                        <Text style={[styles.toggleText, referralType === 'Doctor' && styles.toggleTextActive]}>Doctor</Text>
+                                        <Text style={[ds.toggleText, referralType === 'Doctor' && ds.toggleTextActive]}>{t('referrals.modal.doctor')}</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity
-                                        style={[styles.toggleBtn, referralType === 'Nurse' && styles.toggleBtnActive]}
+                                        style={[ds.toggleBtn, referralType === 'Nurse' && ds.toggleBtnActive]}
                                         onPress={() => setReferralType('Nurse')}
                                     >
-                                        <Text style={[styles.toggleText, referralType === 'Nurse' && styles.toggleTextActive]}>Nurse</Text>
+                                        <Text style={[ds.toggleText, referralType === 'Nurse' && ds.toggleTextActive]}>{t('referrals.modal.nurse')}</Text>
                                     </TouchableOpacity>
                                 </View>
 
-                                <Text style={styles.inputLabel}>Patient</Text>
+                                <Text style={ds.inputLabel}>{t('referrals.modal.patient')}</Text>
                                 <CustomDropdown
-                                    placeholder="Select patient"
+                                    placeholder={t('referrals.modal.placeholders.patient')}
                                     options={patientOptions}
                                     value={selectedPatient}
                                     onChange={(val: any) => setSelectedPatient(val)}
                                 />
                                 <Gap height={15} />
 
-                                <Text style={styles.inputLabel}>Referred To</Text>
+                                <Text style={ds.inputLabel}>{t('referrals.modal.referredTo')}</Text>
                                 <CustomDropdown
-                                    placeholder="Select provider"
+                                    placeholder={t('referrals.modal.placeholders.provider')}
                                     options={employeesOptions}
                                     value={referredTo}
                                     onChange={(val: any) => setReferredTo(val)}
                                 />
                                 <Gap height={15} />
 
-                                <Text style={styles.inputLabel}>Specialization</Text>
+                                <Text style={ds.inputLabel}>{t('referrals.modal.specialization')}</Text>
                                 <TextInput
-                                    style={styles.textInput}
-                                    placeholder="Enter specialization"
+                                    style={ds.textInput}
+                                    placeholder={t('referrals.modal.placeholders.specialization')}
+                                    placeholderTextColor={tc.textMuted}
                                     value={specialization}
                                     onChangeText={setSpecialization}
                                 />
                                 <Gap height={15} />
 
-                                <Text style={styles.inputLabel}>Reason for Referral</Text>
+                                <Text style={ds.inputLabel}>{t('referrals.modal.reason')}</Text>
                                 <TextInput
-                                    style={[styles.textInput, styles.textArea]}
-                                    placeholder="Enter reason"
+                                    style={[ds.textInput, ds.textArea]}
+                                    placeholder={t('referrals.modal.placeholders.reason')}
+                                    placeholderTextColor={tc.textMuted}
                                     value={reason}
                                     onChangeText={setReason}
                                     multiline={true}
@@ -337,10 +346,11 @@ const ReferralsScreen = () => {
                                 />
                                 <Gap height={15} />
 
-                                <Text style={styles.inputLabel}>Notes</Text>
+                                <Text style={ds.inputLabel}>{t('referrals.modal.notes')}</Text>
                                 <TextInput
-                                    style={[styles.textInput, styles.textArea]}
-                                    placeholder="Enter additional notes"
+                                    style={[ds.textInput, ds.textArea]}
+                                    placeholder={t('referrals.modal.placeholders.notes')}
+                                    placeholderTextColor={tc.textMuted}
                                     value={notes}
                                     onChangeText={setNotes}
                                     multiline={true}
@@ -349,9 +359,9 @@ const ReferralsScreen = () => {
                                 
                                 <Gap height={30} />
                                 
-                                <View style={styles.modalFooter}>
+                                <View style={ds.modalFooter}>
                                     <PrimaryButton
-                                        label={'Cancel'}
+                                        label={t('common.cancel')}
                                         filled={false}
                                         onPress={() => setShowNewReferralModal(false)}
                                         style={{ flex: 1 }}
@@ -359,7 +369,7 @@ const ReferralsScreen = () => {
                                         disabled={loading}
                                     />
                                     <PrimaryButton
-                                        label={'Submit'}
+                                        label={t('common.save')}
                                         filled={true}
                                         onPress={handleSave}
                                         style={{ flex: 1 }}
@@ -380,105 +390,105 @@ const ReferralsScreen = () => {
                     animationType="fade"
                     onRequestClose={() => setShowDetailsModal(false)}
                 >
-                    <View style={[styles.modalOverlay, { justifyContent: 'center' }]}>
-                        <View style={styles.detailsModalContent}>
-                            <View style={styles.modalHeader}>
+                    <View style={[ds.modalOverlay, { justifyContent: 'center' }]}>
+                        <View style={ds.detailsModalContent}>
+                            <View style={ds.modalHeader}>
                                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <View style={styles.headerIconContainer}>
-                                        <MaterialCommunityIcons name="clipboard-text-outline" size={20} color="#06B6D4" />
+                                    <View style={ds.headerIconContainer}>
+                                        <MaterialCommunityIcons name="clipboard-text-outline" size={20} color={tc.accent} />
                                     </View>
-                                    <Text style={styles.modalTitle}>Referral Details</Text>
+                                    <Text style={ds.modalTitle}>{t('referrals.details.title')}</Text>
                                 </View>
                                 <TouchableOpacity onPress={() => setShowDetailsModal(false)}>
-                                    <Feather name="x" size={24} color="#64748B" />
+                                    <Feather name="x" size={24} color={tc.textSecondary} />
                                 </TouchableOpacity>
                             </View>
 
-                            <ScrollView style={styles.detailsModalBody} showsVerticalScrollIndicator={false}>
-                                <View style={styles.detailsRow}>
+                            <ScrollView style={ds.detailsModalBody} showsVerticalScrollIndicator={false}>
+                                <View style={ds.detailsRow}>
                                     <View style={{ flex: 1, paddingRight: 10 }}>
-                                        <Text style={styles.detailsLabel}>Patient</Text>
-                                        <View style={styles.infoWithIcon}>
-                                            <Feather name="user" size={16} color="#94A3B8" />
-                                            <Text style={[styles.detailsValue, { flex: 1 }]}>{selectedReferral?.patient?.name || 'N/A'}</Text>
+                                        <Text style={ds.detailsLabel}>{t('referrals.details.patient')}</Text>
+                                        <View style={ds.infoWithIcon}>
+                                            <Feather name="user" size={16} color={tc.textMuted} />
+                                            <Text style={[ds.detailsValue, { flex: 1 }]}>{selectedReferral?.patient?.name || 'N/A'}</Text>
                                         </View>
                                     </View>
                                     <View style={{ flex: 1, alignItems: 'flex-end' }}>
-                                        <Text style={[styles.detailsLabel, { textAlign: 'right', marginRight: 10 }]}>Status</Text>
-                                        <View style={[styles.statusBadgePill, { backgroundColor: '#FEF9C3' }]}>
-                                            <Feather name="clock" size={12} color="#854D0E" style={{ marginRight: 4 }} />
-                                            <Text style={[styles.statusText, { color: '#854D0E' }]}>
-                                                {selectedReferral?.status ? (selectedReferral.status.charAt(0).toUpperCase() + selectedReferral.status.slice(1)) : 'Pending'}
+                                        <Text style={[ds.detailsLabel, { textAlign: 'right', marginRight: 10 }]}>{t('referrals.details.status')}</Text>
+                                        <View style={[ds.statusBadgePill, { backgroundColor: isDark ? 'rgba(245, 158, 11, 0.15)' : '#FEF9C3' }]}>
+                                            <Feather name="clock" size={12} color={isDark ? '#F59E0B' : '#854D0E'} style={{ marginRight: 4 }} />
+                                            <Text style={[ds.statusText, { color: isDark ? '#F59E0B' : '#854D0E' }]}>
+                                                {selectedReferral?.status ? (selectedReferral.status.charAt(0).toUpperCase() + selectedReferral.status.slice(1)) : t('appointments.filters.status.scheduled')}
                                             </Text>
                                         </View>
                                     </View>
                                 </View>
 
-                                <View style={styles.detailsRow}>
+                                <View style={ds.detailsRow}>
                                     <View style={{ flex: 1, paddingRight: 10 }}>
-                                        <Text style={styles.detailsLabel}>Referred To</Text>
-                                        <View style={styles.infoWithIcon}>
-                                            <Feather name="user" size={16} color="#94A3B8" />
-                                            <Text style={[styles.detailsValue, { flex: 1 }]}>
+                                        <Text style={ds.detailsLabel}>{t('referrals.details.referredTo')}</Text>
+                                        <View style={ds.infoWithIcon}>
+                                            <Feather name="user" size={16} color={tc.textMuted} />
+                                            <Text style={[ds.detailsValue, { flex: 1 }]}>
                                                 {selectedReferral?.referredTo?.name || 'N/A'} 
-                                                <Text style={{ color: '#94A3B8', fontWeight: '400' }}> ({selectedReferral?.referredTo?.role || 'provider'})</Text>
+                                                <Text style={{ color: tc.textMuted, fontWeight: '400' }}> ({selectedReferral?.referredTo?.role || 'provider'})</Text>
                                             </Text>
                                         </View>
                                     </View>
                                     <View style={{ flex: 1 }}>
-                                        <Text style={styles.detailsLabel}>Referred By</Text>
-                                        <View style={styles.infoWithIcon}>
-                                            <Feather name="user" size={16} color="#94A3B8" />
-                                            <Text style={[styles.detailsValue, { flex: 1 }]}>
+                                        <Text style={ds.detailsLabel}>{t('referrals.details.referredBy')}</Text>
+                                        <View style={ds.infoWithIcon}>
+                                            <Feather name="user" size={16} color={tc.textMuted} />
+                                            <Text style={[ds.detailsValue, { flex: 1 }]}>
                                                 {selectedReferral?.referredBy?.name || 'N/A'} 
-                                                <Text style={{ color: '#94A3B8', fontWeight: '400' }}> ({selectedReferral?.referredBy?.role || 'provider'})</Text>
+                                                <Text style={{ color: tc.textMuted, fontWeight: '400' }}> ({selectedReferral?.referredBy?.role || 'provider'})</Text>
                                             </Text>
                                         </View>
                                     </View>
                                 </View>
 
-                                <View style={styles.detailsSection}>
-                                    <Text style={styles.detailsLabel}>Date</Text>
-                                    <View style={styles.infoWithIcon}>
-                                        <Feather name="calendar" size={16} color="#94A3B8" />
-                                        <Text style={styles.detailsValue}>
-                                            {selectedReferral?.createdAt ? new Date(selectedReferral.createdAt).toLocaleDateString('en-GB') : 'N/A'}
+                                <View style={ds.detailsSection}>
+                                    <Text style={ds.detailsLabel}>{t('referrals.details.date')}</Text>
+                                    <View style={ds.infoWithIcon}>
+                                        <Feather name="calendar" size={16} color={tc.textMuted} />
+                                        <Text style={ds.detailsValue}>
+                                            {selectedReferral?.createdAt ? new Date(selectedReferral.createdAt).toLocaleDateString(t('common.dateLocale') || 'en-GB') : 'N/A'}
                                         </Text>
                                     </View>
                                 </View>
 
-                                <View style={styles.detailsSection}>
-                                    <Text style={styles.detailsLabel}>Specialization</Text>
-                                    <View style={styles.infoWithIcon}>
-                                        <MaterialCommunityIcons name="stethoscope" size={18} color="#94A3B8" />
-                                        <Text style={styles.detailsValue}>{selectedReferral?.specialization || 'N/A'}</Text>
+                                <View style={ds.detailsSection}>
+                                    <Text style={ds.detailsLabel}>{t('referrals.details.specialization')}</Text>
+                                    <View style={ds.infoWithIcon}>
+                                        <MaterialCommunityIcons name="stethoscope" size={18} color={tc.textMuted} />
+                                        <Text style={ds.detailsValue}>{selectedReferral?.specialization || 'N/A'}</Text>
                                     </View>
                                 </View>
 
-                                <View style={styles.detailsSection}>
-                                    <Text style={styles.detailsLabel}>Reason for Referral</Text>
-                                    <View style={styles.infoWithIcon}>
-                                        <MaterialCommunityIcons name="file-document-outline" size={18} color="#94A3B8" />
-                                        <Text style={styles.detailsValue}>{selectedReferral?.reason || 'N/A'}</Text>
+                                <View style={ds.detailsSection}>
+                                    <Text style={ds.detailsLabel}>{t('referrals.details.reason')}</Text>
+                                    <View style={ds.infoWithIcon}>
+                                        <MaterialCommunityIcons name="file-document-outline" size={18} color={tc.textMuted} />
+                                        <Text style={ds.detailsValue}>{selectedReferral?.reason || 'N/A'}</Text>
                                     </View>
                                 </View>
 
-                                <View style={styles.detailsSection}>
-                                    <Text style={styles.detailsLabel}>Notes</Text>
-                                    <View style={styles.infoWithIcon}>
-                                        <MaterialCommunityIcons name="alert-circle-outline" size={18} color="#94A3B8" />
-                                        <Text style={[styles.detailsValue, { flex: 1 }]}>{selectedReferral?.notes || 'keep in touch with me'}</Text>
+                                <View style={ds.detailsSection}>
+                                    <Text style={ds.detailsLabel}>{t('referrals.details.notes')}</Text>
+                                    <View style={ds.infoWithIcon}>
+                                        <MaterialCommunityIcons name="alert-circle-outline" size={18} color={tc.textMuted} />
+                                        <Text style={[ds.detailsValue, { flex: 1 }]}>{selectedReferral?.notes || 'keep in touch with me'}</Text>
                                     </View>
                                 </View>
 
-                                <View style={styles.footerDivider} />
+                                <View style={ds.footerDivider} />
                                 
-                                <View style={styles.timestampContainer}>
-                                    <Text style={styles.timestampText}>
-                                        Created: {selectedReferral?.createdAt ? new Date(selectedReferral.createdAt).toLocaleString('en-GB').replace(',', '') : 'N/A'}
+                                <View style={ds.timestampContainer}>
+                                    <Text style={ds.timestampText}>
+                                        {t('referrals.details.created')}: {selectedReferral?.createdAt ? new Date(selectedReferral.createdAt).toLocaleString(t('common.dateTimeLocale') || 'en-GB').replace(',', '') : 'N/A'}
                                     </Text>
-                                    <Text style={styles.timestampText}>
-                                        Last Updated: {selectedReferral?.updatedAt ? new Date(selectedReferral.updatedAt).toLocaleString('en-GB').replace(',', '') : 'N/A'}
+                                    <Text style={ds.timestampText}>
+                                        {t('referrals.details.lastUpdated')}: {selectedReferral?.updatedAt ? new Date(selectedReferral.updatedAt).toLocaleString(t('common.dateTimeLocale') || 'en-GB').replace(',', '') : 'N/A'}
                                     </Text>
                                 </View>
                             </ScrollView>
@@ -497,18 +507,18 @@ const ReferralsScreen = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.statusBarBg,
     },
     container: {
         flex: 1,
-        backgroundColor: '#F8FAFC',
+        backgroundColor: tc.screenBackground,
     },
     header: {
         padding: 15,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.headerBg,
     },
     headerTop: {
         flexDirection: 'row',
@@ -521,18 +531,19 @@ const styles = StyleSheet.create({
     },
     backButton: {
         borderWidth: 1,
-        borderColor: '#4A90B9',
+        borderColor: tc.accent,
         borderRadius: 25,
         height: 40,
         width: 40,
         alignItems: "center",
         justifyContent: 'center',
         marginRight: 10,
+        backgroundColor: tc.accentLight,
     },
     headerTitle: {
         fontSize: 22,
         fontWeight: 'bold',
-        color: '#1E293B',
+        color: tc.textPrimary,
     },
     newReferralBtn: {
         width: wp(38),
@@ -540,10 +551,10 @@ const styles = StyleSheet.create({
     },
     tabContainer: {
         flexDirection: 'row',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.headerBg,
         paddingHorizontal: 15,
         borderBottomWidth: 1,
-        borderBottomColor: '#E2E8F0',
+        borderBottomColor: tc.borderColor,
     },
     tab: {
         paddingVertical: 12,
@@ -552,44 +563,46 @@ const styles = StyleSheet.create({
         borderBottomColor: 'transparent',
     },
     activeTab: {
-        borderBottomColor: '#4A90B9',
+        borderBottomColor: tc.accent,
     },
     tabText: {
         fontSize: 14,
         fontWeight: '500',
-        color: '#64748B',
+        color: tc.textSecondary,
     },
     activeTabText: {
-        color: '#4A90B9',
+        color: tc.accent,
     },
     contentContainer: {
         padding: 15,
     },
     cardContainer: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
         borderRadius: 12,
         minHeight: hp(60),
-        shadowColor: '#000',
+        shadowColor: tc.shadow,
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
+        shadowOpacity: isDark ? 0.3 : 0.1,
         shadowRadius: 4,
         elevation: 3,
-        overflow: 'visible', // Changed from 'hidden' to help with shadow calculations if needed
+        overflow: 'visible',
+        borderWidth: isDark ? 1 : 0,
+        borderColor: tc.borderSubtle,
     },
     tableHead: {
         flexDirection: 'row',
-        backgroundColor: '#F8FAFC',
+        backgroundColor: tc.cardBackgroundAlt,
         padding: 12,
         borderBottomWidth: 1,
-        borderBottomColor: '#E2E8F0',
+        borderBottomColor: tc.borderColor,
     },
     tableHeadText: {
         fontSize: 13,
         fontWeight: '700',
-        color: '#64748B',
+        color: tc.textSecondary,
     },
     horizontalTableContainer: {
-        minWidth: wp(200), // Ensures horizontal scroll is effective
+        minWidth: wp(200),
     },
     tableBody: {
         flex: 1,
@@ -604,12 +617,12 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         padding: 12,
         borderBottomWidth: 1,
-        borderBottomColor: '#F1F5F9',
+        borderBottomColor: tc.borderLight,
         alignItems: 'center',
     },
     tableCellText: {
         fontSize: 13,
-        color: '#1E293B',
+        color: tc.textPrimary,
     },
     statusBadge: {
         paddingHorizontal: 10,
@@ -634,7 +647,7 @@ const styles = StyleSheet.create({
         width: 34,
         height: 34,
         borderWidth: 1.5,
-        borderColor: '#06B6D4',
+        borderColor: tc.accent,
         borderRadius: 8,
         alignItems: 'center',
         justifyContent: 'center',
@@ -644,21 +657,21 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         paddingVertical: 100,
-        width: wp(100), // Center icon relative to screen width
+        width: wp(100),
     },
     emptyStateText: {
         marginTop: 10,
         fontSize: 16,
-        color: '#64748B',
+        color: tc.textSecondary,
     },
     // Modal Styles
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        backgroundColor: 'rgba(0,0,0,0.6)',
         justifyContent: 'flex-end',
     },
     modalContent: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.modalBg,
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
         height: hp(85),
@@ -671,19 +684,19 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         paddingBottom: 15,
         borderBottomWidth: 1,
-        borderBottomColor: '#F1F5F9',
+        borderBottomColor: tc.borderColor,
     },
     modalTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#1E293B',
+        color: tc.textPrimary,
     },
     modalBody: {
         flex: 1,
     },
     toggleContainer: {
         flexDirection: 'row',
-        backgroundColor: '#F1F5F9',
+        backgroundColor: tc.buttonMutedBg,
         borderRadius: 12,
         padding: 4,
         marginBottom: 20,
@@ -695,12 +708,12 @@ const styles = StyleSheet.create({
         borderRadius: 8,
     },
     toggleBtnActive: {
-        backgroundColor: '#4A90B9',
+        backgroundColor: tc.accent,
     },
     toggleText: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#64748B',
+        color: tc.textSecondary,
     },
     toggleTextActive: {
         color: '#FFFFFF',
@@ -708,18 +721,18 @@ const styles = StyleSheet.create({
     inputLabel: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#334155',
+        color: tc.textSecondary,
         marginBottom: 8,
     },
     textInput: {
         borderWidth: 1,
-        borderColor: '#E2E8F0',
+        borderColor: tc.borderColor,
         borderRadius: 8,
         paddingHorizontal: 15,
         paddingVertical: 10,
         fontSize: 14,
-        color: '#1E293B',
-        backgroundColor: '#FFFFFF',
+        color: tc.textPrimary,
+        backgroundColor: tc.inputBackground,
     },
     textArea: {
         height: 100,
@@ -731,17 +744,19 @@ const styles = StyleSheet.create({
     },
     // Details Modal Styles
     detailsModalContent: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.modalBg,
         borderRadius: 16,
         width: '90%',
         alignSelf: 'center',
         maxHeight: hp(85),
         padding: 20,
         elevation: 5,
-        shadowColor: '#000',
+        shadowColor: tc.shadow,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: tc.borderSubtle,
     },
     detailsModalBody: {
         paddingTop: 10,
@@ -749,7 +764,7 @@ const styles = StyleSheet.create({
     headerIconContainer: {
         width: 32,
         height: 32,
-        backgroundColor: '#ECFEFF',
+        backgroundColor: tc.accentLight,
         borderRadius: 8,
         alignItems: 'center',
         justifyContent: 'center',
@@ -765,7 +780,7 @@ const styles = StyleSheet.create({
     },
     detailsLabel: {
         fontSize: 14,
-        color: '#64748B',
+        color: tc.textSecondary,
         marginBottom: 8,
         fontWeight: '500',
     },
@@ -776,12 +791,12 @@ const styles = StyleSheet.create({
     },
     detailsValue: {
         fontSize: 15,
-        color: '#1E293B',
+        color: tc.textPrimary,
         fontWeight: '600',
     },
     footerDivider: {
         height: 1,
-        backgroundColor: '#F1F5F9',
+        backgroundColor: tc.divider,
         marginVertical: 15,
     },
     timestampContainer: {
@@ -789,7 +804,7 @@ const styles = StyleSheet.create({
     },
     timestampText: {
         fontSize: 12,
-        color: '#94A3B8',
+        color: tc.textMuted,
     },
 });
 

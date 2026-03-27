@@ -22,6 +22,7 @@ import Profile from './profile';
 import Employees from './employees';
 import EWUS from './ewUs';
 import CustomAlert from '../../component/customAlert';
+import { useTranslation } from 'react-i18next';
 
 interface NavItemProps {
     icon: React.ReactNode;
@@ -48,6 +49,7 @@ const NavItem = ({ icon, title, index, selected, setSelected }: NavItemProps) =>
 );
 const Settings = () => {
 
+    const { t } = useTranslation();
     const navigation = useNavigation<any>();
     const [selected, setSelected] = useState(1);
     const [alertConfig, setAlertConfig] = useState<any>({
@@ -67,8 +69,8 @@ const Settings = () => {
                 paddingTop: hp(7)
             }}>
                 <View style={styles.header}>
-                    <Text style={styles.headerTitle}>Settings</Text>
-                    <Text style={styles.headerSubtitle}>Manage facility settings and system configuration</Text>
+                    <Text style={styles.headerTitle}>{t('settings.index.title')}</Text>
+                    <Text style={styles.headerSubtitle}>{t('settings.index.subtitle')}</Text>
                 </View>
 
                 {/* Back Button */}
@@ -86,7 +88,7 @@ const Settings = () => {
                 >
                     <NavItem
                         icon={<Feather name="bar-chart-2" size={20} color="#4A90B9" />}
-                        title="Facility Statistics"
+                        title={t('settings.index.tabs.statistics')}
                         index={1}
                         selected={selected}
                         setSelected={setSelected}
@@ -94,7 +96,7 @@ const Settings = () => {
                     />
                     <NavItem
                         icon={<Feather name="file-text" size={20} color="#4A90B9" />}
-                        title="Facility Data"
+                        title={t('settings.index.tabs.facility_data')}
                         index={2}
                         selected={selected}
                         setSelected={setSelected}
@@ -102,49 +104,49 @@ const Settings = () => {
                     />
                     <NavItem
                         icon={<Feather name="map-pin" size={20} color="#4A90B9" />}
-                        title="Offices"
+                        title={t('settings.index.tabs.offices')}
                         index={3}
                         selected={selected}
                         setSelected={setSelected}
                     />
                     <NavItem
                         icon={<Feather name="shield" size={20} color="#4A90B9" />}
-                        title="Security"
+                        title={t('settings.index.tabs.security')}
                         index={4}
                         selected={selected}
                         setSelected={setSelected}
                     />
                     <NavItem
                         icon={<Feather name="credit-card" size={20} color="#4A90B9" />}
-                        title="Subscription"
+                        title={t('settings.index.tabs.subscription')}
                         index={5}
                         selected={selected}
                         setSelected={setSelected}
                     />
                     <NavItem
                         icon={<Feather name="globe" size={20} color="#4A90B9" />}
-                        title="Patient Portal"
+                        title={t('settings.index.tabs.patient_portal')}
                         index={6}
                         selected={selected}
                         setSelected={setSelected}
                     />
                     <NavItem
                         icon={<Feather name="user" size={20} color="#4A90B9" />}
-                        title="Profile"
+                        title={t('settings.index.tabs.profile')}
                         index={7}
                         selected={selected}
                         setSelected={setSelected}
                     />
                     <NavItem
                         icon={<Feather name="users" size={20} color="#4A90B9" />}
-                        title="Employees"
+                        title={t('settings.index.tabs.employees')}
                         index={8}
                         selected={selected}
                         setSelected={setSelected}
                     />
                     <NavItem
                         icon={<Feather name="file" size={20} color="#4A90B9" />}
-                        title="eWUŚ"
+                        title={t('settings.index.tabs.ewus')}
                         index={9}
                         selected={selected}
                         setSelected={setSelected}

@@ -17,6 +17,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import PrimaryButton from '../../../component/button';
 import Gap from '../../../component/gap';
+import { useTranslation } from 'react-i18next';
 import { getChatbotServiceToken } from '../../../Services/AiAssitants.Service';
 import { getPharmacopediaSessions, createPharmacopediaSession, getPharmacopediaSessionDetails, deletePharmacopediaSession, sendPharmacopediaMessage } from '../../../Services/PharmacopediaTool.Service';
 
@@ -33,6 +34,7 @@ interface PharmacopediaChatProps {
 }
 
 const PharmacopediaChat = ({ serviceToken: propToken, onShowAlert }: PharmacopediaChatProps) => {
+    const { t } = useTranslation();
     const [serviceToken, setServiceToken] = useState<string | null>(propToken || null);
     const [chatStarted, setChatStarted] = useState(false);
     const [messageText, setMessageText] = useState('');
@@ -162,7 +164,7 @@ const PharmacopediaChat = ({ serviceToken: propToken, onShowAlert }: Pharmacoped
                 
                 const welcomeMsg: Message = {
                     id: Date.now().toString(),
-                    text: "Welcome to Pharmacopedia! I can help you with drug information, dosing guidelines, interactions, and side effects. What would you like to know?",
+                    text: t('aiAssistant.pharmacopedia.welcomeMessage'),
                     sender: 'ai',
                     time: timeStr
                 };
@@ -178,7 +180,7 @@ const PharmacopediaChat = ({ serviceToken: propToken, onShowAlert }: Pharmacoped
                 if (isHistoryOpen) toggleHistory();
             } else {
                 console.error("[PharmacopediaChat] Failed to create session:", response?.message);
-                if (onShowAlert) onShowAlert("Failed to create new query. Please try again.", "error");
+                if (onShowAlert) onShowAlert(t('aiAssistant.pharmacopedia.failedCreateQuery'), "error");
             }
         } catch (error) {
             console.error("[PharmacopediaChat] Error creating pharmacopedia session:", error);
@@ -236,10 +238,10 @@ const PharmacopediaChat = ({ serviceToken: propToken, onShowAlert }: Pharmacoped
                     setActiveQueryId(null);
                 }
                 
-                if (onShowAlert) onShowAlert("Query deleted successfully", "success");
+                if (onShowAlert) onShowAlert(t('aiAssistant.pharmacopedia.queryDeletedSuccess'), "success");
             } else {
                 console.warn("[PharmacopediaChat] Deletion failed:", response?.message);
-                if (onShowAlert) onShowAlert("Failed to delete query. Please try again.", "error");
+                if (onShowAlert) onShowAlert(t('aiAssistant.pharmacopedia.failedDeleteQuery'), "error");
             }
         } catch (error) {
             console.error("[PharmacopediaChat] Error during deletion:", error);
@@ -277,7 +279,7 @@ const PharmacopediaChat = ({ serviceToken: propToken, onShowAlert }: Pharmacoped
                 setMessages(prev => [...prev, aiMessage]);
             } else {
                 console.error("[PharmacopediaChat] Failed to send message:", response?.message);
-                if (onShowAlert) onShowAlert("Failed to get AI response. Please try again.", "error");
+                if (onShowAlert) onShowAlert(t('aiAssistant.pharmacopedia.failedAiResponse'), "error");
             }
         } catch (error) {
             console.error("[PharmacopediaChat] Error sending pharmacopedia message:", error);
@@ -292,7 +294,7 @@ const PharmacopediaChat = ({ serviceToken: propToken, onShowAlert }: Pharmacoped
             {/* Side Drawer */}
             <Animated.View style={[styles.drawer, { left: drawerAnim }]}>
                 <View style={styles.drawerHeader}>
-                    <Text style={styles.drawerTitle}>Drug Queries</Text>
+                    <Text style={styles.drawerTitle}>{t('aiAssistant.pharmacopedia.drugQueries')}</Text>
                     <View style={styles.drawerActions}>
                         <TouchableOpacity onPress={handleNewSession} style={styles.drawerActionBtn}>
                             <Feather name="plus" size={20} color="#4A90B9" />
@@ -317,7 +319,7 @@ const PharmacopediaChat = ({ serviceToken: propToken, onShowAlert }: Pharmacoped
                                     <Feather name="link" size={16} color="#4A90B9" />
                                 </View>
                                 <View style={styles.sessionInfo}>
-                                    <Text style={styles.sessionTitle}>Query #{session.sessionId?.substring(0, 8)}</Text>
+                                    <Text style={styles.sessionTitle}>{t('aiAssistant.pharmacopedia.query')} #{session.sessionId?.substring(0, 8)}</Text>
                                     <Text style={styles.sessionDate}>
                                         {session.createdAt ? new Date(session.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '11 Mar'}
                                     </Text>
@@ -341,7 +343,7 @@ const PharmacopediaChat = ({ serviceToken: propToken, onShowAlert }: Pharmacoped
                         <TouchableOpacity onPress={toggleHistory} style={styles.menuBtn}>
                             <Feather name="menu" size={22} color="#111827" />
                         </TouchableOpacity>
-                        <Text style={styles.headerTitle}>Pharmacopedia</Text>
+                        <Text style={styles.headerTitle}>{t('aiAssistant.pharmacopedia.title')}</Text>
                     </View>
 
                     <ScrollView contentContainerStyle={styles.landingContent}>
@@ -350,11 +352,11 @@ const PharmacopediaChat = ({ serviceToken: propToken, onShowAlert }: Pharmacoped
                         </View>
                         <Gap height={hp(2)} />
                         <Text style={styles.landingDesc}>
-                            Get evidence-based drug information from Stahl's Essential Psychopharmacology Prescriber's Guide with AI-powered search.
+                            {t('aiAssistant.pharmacopedia.landingDesc')}
                         </Text>
                         <Gap height={hp(4)} />
                         <PrimaryButton
-                            label={isCreatingSession ? "Creating..." : "+ Start New Query"}
+                            label={isCreatingSession ? t('aiAssistant.pharmacopedia.creating') : t('aiAssistant.pharmacopedia.startNewQuery')}
                             filled={true}
                             onPress={handleNewSession}
                             style={styles.startBtn}
@@ -372,7 +374,7 @@ const PharmacopediaChat = ({ serviceToken: propToken, onShowAlert }: Pharmacoped
                         <TouchableOpacity onPress={toggleHistory} style={styles.menuBtn}>
                             <Feather name="menu" size={22} color="#111827" />
                         </TouchableOpacity>
-                        <Text style={styles.headerTitle}>Pharmacopedia</Text>
+                        <Text style={styles.headerTitle}>{t('aiAssistant.pharmacopedia.title')}</Text>
                     </View>
 
                     <ScrollView
@@ -423,7 +425,7 @@ const PharmacopediaChat = ({ serviceToken: propToken, onShowAlert }: Pharmacoped
                                             <Animated.View style={[styles.thinkingDot, { opacity: dot2 }]} />
                                             <Animated.View style={[styles.thinkingDot, { opacity: dot3 }]} />
                                         </View>
-                                        <Text style={styles.thinkingText}>AI is thinking...</Text>
+                                        <Text style={styles.thinkingText}>{t('aiAssistant.pharmacopedia.aiThinking')}</Text>
                                     </View>
                                 </View>
                             </View>
@@ -434,7 +436,7 @@ const PharmacopediaChat = ({ serviceToken: propToken, onShowAlert }: Pharmacoped
                         <View style={styles.inputBar}>
                             <TextInput
                                 style={styles.chatInput}
-                                placeholder="Ask about medications..."
+                                placeholder={t('aiAssistant.pharmacopedia.askPlaceholder')}
                                 value={messageText}
                                 onChangeText={setMessageText}
                                 onSubmitEditing={handleSendMessage}
@@ -450,7 +452,7 @@ const PharmacopediaChat = ({ serviceToken: propToken, onShowAlert }: Pharmacoped
                         <View style={styles.inputFooter}>
                             <View style={styles.ragBadge}>
                                 <MaterialCommunityIcons name="book-open-outline" size={14} color="#6B7280" />
-                                <Text style={styles.ragBadgeText}>RAG-Enhanced AI</Text>
+                                <Text style={styles.ragBadgeText}>{t('aiAssistant.pharmacopedia.ragEnhanced')}</Text>
                             </View>
                         </View>
                     </View>

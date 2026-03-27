@@ -15,6 +15,7 @@ import ScaleQuestionnaireModal from './modals/ScaleQuestionnaireModal';
 import VisitHistoryModal from './modals/VisitHistoryModal';
 import { GetPreviousVisits, GetPatientVisits } from '../../Services/Visit.Service';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface VisitInterviewProps {
     onNext: () => void;
@@ -26,6 +27,7 @@ interface VisitInterviewProps {
 }
 
 const VisitInterview = ({ onNext, onBack, visitId, patientId, visitData, onUpdate }: VisitInterviewProps) => {
+    const { t } = useTranslation();
     const [mainSymptoms, setMainSymptoms] = useState(visitData?.interview?.mainSymptoms || '');
     const [additionalNotes, setAdditionalNotes] = useState(visitData?.notes || '');
     const [showScalesModal, setShowScalesModal] = useState(false);
@@ -82,7 +84,7 @@ const VisitInterview = ({ onNext, onBack, visitId, patientId, visitData, onUpdat
             <View style={styles.card}>
                 {/* Header */}
                 <View style={styles.headerRow}>
-                    <Text style={styles.title}>Medical Interview</Text>
+                    <Text style={styles.title}>{t('visit.interview.title')}</Text>
                     <TouchableOpacity onPress={() => setShowScalesModal(true)}>
                         <LinearGradient
                             colors={['#58A7B3', '#8ED1CC']}
@@ -91,26 +93,26 @@ const VisitInterview = ({ onNext, onBack, visitId, patientId, visitData, onUpdat
                             style={styles.psychiatricButton}
                         >
                             <MaterialCommunityIcons name="brain" size={18} color="#fff" />
-                            <Text style={styles.psychiatricButtonText}>Psychiatric Scales</Text>
+                            <Text style={styles.psychiatricButtonText}>{t('visit.interview.scales.title')}</Text>
                         </LinearGradient>
                     </TouchableOpacity>
                 </View>
 
                 {/* Main Symptoms */}
                 <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>Main Symptoms</Text>
+                    <Text style={styles.label}>{t('visit.interview.mainSymptoms')}</Text>
                     <TextInput
                         style={styles.textArea}
-                        placeholder="Main Symptoms"
+                        placeholder={t('visit.interview.mainSymptoms')}
                         placeholderTextColor="#94A3B8"
                         multiline
                         numberOfLines={5}
                         textAlignVertical="top"
                         value={mainSymptoms}
-                        onChangeText={setMainSymptoms}
-                        onBlur={() => {
-                            if (onUpdate && (visitData?.interview?.mainSymptoms !== mainSymptoms)) {
-                                onUpdate({ interview: { mainSymptoms } });
+                        onChangeText={(text) => {
+                            setMainSymptoms(text);
+                            if (onUpdate) {
+                                onUpdate({ interview: { mainSymptoms: text } });
                             }
                         }}
                     />
@@ -119,7 +121,7 @@ const VisitInterview = ({ onNext, onBack, visitId, patientId, visitData, onUpdat
                 {/* Complete Scales */}
                 {Object.keys(completedScales).length > 0 && (
                     <View style={styles.fieldContainer}>
-                        <Text style={styles.sectionLabel}>Complete Scales</Text>
+                        <Text style={styles.sectionLabel}>{t('visit.history_labels.scales')}</Text>
                         <View style={styles.scalesCard}>
                             {Object.entries(completedScales).map(([scaleName, score]) => (
                                 <View key={scaleName} style={styles.scaleRow}>
@@ -133,31 +135,31 @@ const VisitInterview = ({ onNext, onBack, visitId, patientId, visitData, onUpdat
 
                 {/* Previous Visits */}
                 <View style={styles.previousVisitsRow}>
-                    <Text style={styles.sectionLabel}>Previous Visits</Text>
+                    <Text style={styles.sectionLabel}>{t('visit.interview.previousVisits')}</Text>
                     <TouchableOpacity 
                         style={styles.showVisitsButton}
                         onPress={() => setShowHistoryModal(true)}
                     >
                         <MaterialCommunityIcons name="history" size={18} color="#58A7B3" />
-                        <Text style={styles.showVisitsText}>Show Previous Visits ({totalVisits})</Text>
+                        <Text style={styles.showVisitsText}>{t('visit.interview.showPreviousVisits')} ({totalVisits})</Text>
                     </TouchableOpacity>
                 </View>
 
                 {/* Additional Notes */}
                 <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>Additional Notes</Text>
+                    <Text style={styles.label}>{t('visit.interview.additionalNotes')}</Text>
                     <TextInput
                         style={styles.textArea}
-                        placeholder="Additional Notes"
+                        placeholder={t('visit.interview.additionalNotes')}
                         placeholderTextColor="#94A3B8"
                         multiline
                         numberOfLines={5}
                         textAlignVertical="top"
                         value={additionalNotes}
-                        onChangeText={setAdditionalNotes}
-                        onBlur={() => {
-                            if (onUpdate && (visitData?.notes !== additionalNotes)) {
-                                onUpdate({ notes: additionalNotes });
+                        onChangeText={(text) => {
+                            setAdditionalNotes(text);
+                            if (onUpdate) {
+                                onUpdate({ notes: text });
                             }
                         }}
                     />
@@ -167,7 +169,7 @@ const VisitInterview = ({ onNext, onBack, visitId, patientId, visitData, onUpdat
                 <View style={styles.footer}>
                     <TouchableOpacity style={styles.backButton} onPress={onBack}>
                         <Feather name="arrow-left" size={18} color="#58A7B3" />
-                        <Text style={styles.backButtonText}>Back</Text>
+                        <Text style={styles.backButtonText}>{t('visit.navigation.previous')}</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity onPress={onNext}>
@@ -177,7 +179,7 @@ const VisitInterview = ({ onNext, onBack, visitId, patientId, visitData, onUpdat
                             end={{ x: 1, y: 0 }}
                             style={styles.nextButton}
                         >
-                            <Text style={styles.nextButtonText}>Next</Text>
+                            <Text style={styles.nextButtonText}>{t('visit.navigation.next')}</Text>
                             <Feather name="arrow-right" size={18} color="#fff" />
                         </LinearGradient>
                     </TouchableOpacity>

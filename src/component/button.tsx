@@ -2,6 +2,7 @@ import { StyleSheet, Text, View, Image, TouchableOpacity, ActivityIndicator, Vie
 import React from 'react'
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen'
 import LinearGradient from 'react-native-linear-gradient'
+import { useThemeColors } from '../hooks/useThemeColors'
 
 interface PrimaryButtonProps {
     label: string;
@@ -28,6 +29,8 @@ const PrimaryButton: React.FC<PrimaryButtonProps> = ({
     iconStyle,
     imageStyle
 }) => {
+    const { colors: tc, isDark } = useThemeColors();
+
     const renderLeftElement = () => {
         if (icon) {
             return (
@@ -38,6 +41,7 @@ const PrimaryButton: React.FC<PrimaryButtonProps> = ({
         } else if (image) {
             return (
                 <View style={imageStyle}>
+                    {/* ... (existing image logic) */}
                     {typeof image === 'string' ? (
                         <Image
                             source={{ uri: image }}
@@ -56,7 +60,10 @@ const PrimaryButton: React.FC<PrimaryButtonProps> = ({
     const buttonContent = (
         <View style={styles.contentContainer}>
             {renderLeftElement()}
-            <Text style={[filled ? styles.filledButtonText : styles.outlineButtonText, { marginLeft: 10 }]}>
+            <Text style={[
+                filled ? styles.filledButtonText : { ...styles.outlineButtonText, color: tc.accent }, 
+                { marginLeft: 10 }
+            ]}>
                 {label}
             </Text>
         </View>
@@ -66,18 +73,19 @@ const PrimaryButton: React.FC<PrimaryButtonProps> = ({
         <TouchableOpacity
             style={[
                 styles.buttonContainer,
-                !filled && styles.outlineButton,
+                !filled && [styles.outlineButton, { borderColor: tc.accent, backgroundColor: 'transparent' }],
                 style,
                 disabled && styles.disabledButton
             ]}
             onPress={!disabled ? onPress : undefined}
             disabled={disabled || loading}
+            activeOpacity={0.85}
         >
             {loading ? (
-                <ActivityIndicator color={filled ? '#fff' : '#007AFF'} />
+                <ActivityIndicator color={filled ? '#fff' : tc.accent} />
             ) : filled ? (
                 <LinearGradient
-                    colors={disabled ? ['#CCCCCC', '#CCCCCC'] : ['#4A90B9', '#5BA6B6', '#68BFB3']}
+                    colors={disabled ? ['#CCCCCC', '#CCCCCC'] : [tc.accentGradientStart || '#4A90B9', tc.accentGradientEnd || '#68BFB3']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={styles.gradientBackground}
@@ -91,15 +99,14 @@ const PrimaryButton: React.FC<PrimaryButtonProps> = ({
     )
 }
 
-export default PrimaryButton
-
 const styles = StyleSheet.create({
     disabledButton: {
         borderColor: '#CCCCCC',
         backgroundColor: '#CCCCCC',
+        opacity: 0.6,
     },
     buttonContainer: {
-        borderRadius: 5,
+        borderRadius: 8,
         width: '95%',
         height: 50,
         overflow: 'hidden',
@@ -115,19 +122,14 @@ const styles = StyleSheet.create({
     },
     outlineButton: {
         borderWidth: 2,
-        borderColor: '#4A90B9',
-        backgroundColor: 'transparent',
-        justifyContent: 'center',
-        alignItems: 'center',
     },
     filledButtonText: {
         color: 'white',
-        fontWeight: '600',
+        fontWeight: '700',
         fontSize: 14,
     },
     outlineButtonText: {
-        color: '#4A90B9',
-        fontWeight: '600',
+        fontWeight: '700',
         fontSize: 14,
     },
     contentContainer: {
@@ -135,11 +137,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    iconContainer: {
-        marginRight: 8,
-    },
     image: {
         width: 20,
         height: 20,
     }
 })
+
+export default PrimaryButton

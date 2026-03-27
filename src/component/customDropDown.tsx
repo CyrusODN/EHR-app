@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 interface CustomDropdownProps {
     placeholder: string;
@@ -11,6 +12,7 @@ interface CustomDropdownProps {
     icon?: React.ReactNode;
     search?: boolean;
     searchPlaceholder?: string;
+    style?: any;
 }
 
 const CustomDropdown: React.FC<CustomDropdownProps> = ({
@@ -20,13 +22,14 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
     onChange,
     icon,
     search = false,
-    searchPlaceholder
+    searchPlaceholder,
+    style,
 }) => {
     const { t } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
 
     const renderLeftIcon = () => {
         if (!icon) return null;
-
         return (
             <View style={styles.iconContainer}>
                 {icon}
@@ -37,11 +40,32 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
     return (
         <View style={styles.container}>
             <Dropdown
-                style={styles.dropdown}
-                placeholderStyle={styles.placeholderStyle}
-                selectedTextStyle={styles.selectedTextStyle}
-                inputSearchStyle={styles.inputSearchStyle}
-                iconStyle={styles.iconStyle}
+                style={[
+                    styles.dropdown, 
+                    { 
+                        backgroundColor: tc.inputBackground, 
+                        borderColor: tc.borderColor 
+                    },
+                    style
+                ]}
+                placeholderStyle={[styles.placeholderStyle, { color: tc.textMuted }]}
+                selectedTextStyle={[styles.selectedTextStyle, { color: tc.textPrimary }]}
+                inputSearchStyle={[
+                    styles.inputSearchStyle, 
+                    { 
+                        backgroundColor: isDark ? '#252536' : '#fff', 
+                        color: tc.textPrimary,
+                        borderColor: tc.borderColor
+                    }
+                ]}
+                containerStyle={{ 
+                    backgroundColor: isDark ? '#1E1E2D' : '#fff', 
+                    borderColor: tc.borderColor,
+                    borderRadius: 12,
+                    overflow: 'hidden'
+                }}
+                itemTextStyle={{ color: tc.textPrimary, fontSize: 14 }}
+                activeColor={isDark ? 'rgba(70, 183, 198, 0.1)' : '#F0F9FF'}
                 data={options}
                 maxHeight={300}
                 labelField="label"
@@ -50,10 +74,13 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
                 search={search}
                 searchPlaceholder={searchPlaceholder || t('common.search')}
                 value={value}
-                onChange={item => {
-                    onChange(item.value);
-                }}
+                onChange={item => onChange(item.value)}
                 renderLeftIcon={renderLeftIcon}
+                renderItem={(item) => (
+                    <View style={[styles.item, { backgroundColor: isDark ? '#1E1E2D' : '#fff' }]}>
+                        <Text style={[styles.itemText, { color: tc.textPrimary }]}>{item.label}</Text>
+                    </View>
+                )}
             />
         </View>
     );
@@ -66,31 +93,32 @@ const styles = StyleSheet.create({
     dropdown: {
         height: 50,
         borderWidth: 1,
-        borderColor: '#e0e0e0',
-        borderRadius: 5,
+        borderRadius: 8,
         paddingHorizontal: 12,
-        backgroundColor: 'white',
     },
     iconContainer: {
         marginRight: 10,
     },
     placeholderStyle: {
-        fontSize: 16,
-        color: '#999',
+        fontSize: 14,
     },
     selectedTextStyle: {
-        fontSize: 16,
-        color: '#333',
-    },
-    iconStyle: {
-        width: 20,
-        height: 20,
+        fontSize: 14,
     },
     inputSearchStyle: {
-        height: 40,
-        fontSize: 16,
-        borderColor: '#e0e0e0',
+        height: 45,
+        fontSize: 14,
+        borderRadius: 8,
     },
+    item: {
+        padding: 15,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    itemText: {
+        fontSize: 14,
+    }
 });
 
 export default CustomDropdown;

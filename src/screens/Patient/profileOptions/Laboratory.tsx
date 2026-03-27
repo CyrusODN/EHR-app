@@ -16,6 +16,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
 import { GetPatientMedicalRecord, UpdatePatientMedicalRecord } from '../../../Services/PatientRecord.Service';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useTranslation } from 'react-i18next';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -81,6 +82,7 @@ const ActionOutlineButton = ({ title, icon, onPress }: any) => (
 );
 
 const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (type: string, msg: string) => void }) => {
+    const { t } = useTranslation();
     const [labData, setLabData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -144,7 +146,7 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
         if (!patientId) return;
 
         if (!newTest.testName || !newTest.labReferenceNumber) {
-            if (onAlert) onAlert('error', 'Please enter test name and reference number');
+            if (onAlert) onAlert('error', t('patientLaboratory.enterTestNameRef'));
             return;
         }
 
@@ -180,7 +182,7 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
                 setShowResultsModal(false);
                 
                 // Show Alert in parent
-                if (onAlert) onAlert('success', 'Laboratory result added successfully');
+                if (onAlert) onAlert('success', t('patientLaboratory.addSuccess'));
                 
                 // Reset form
                 setNewTest({
@@ -196,7 +198,7 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
             }
         } catch (error) {
             console.error("Save lab result error:", error);
-            if (onAlert) onAlert('error', 'Failed to update laboratory records');
+            if (onAlert) onAlert('error', t('patientLaboratory.addFailed'));
         } finally {
             setIsSaving(false);
         }
@@ -227,7 +229,7 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
         return (
             <View style={{ flex: 1, paddingVertical: 40, alignItems: 'center', justifyContent: 'center' }}>
                 <ActivityIndicator size="large" color="#4A90B9" />
-                <Text style={{ marginTop: 15, color: '#64748b' }}>Fetching lab records...</Text>
+                <Text style={{ marginTop: 15, color: '#64748b' }}>{t('patientLaboratory.fetchingRecords')}</Text>
             </View>
         );
     }
@@ -247,29 +249,29 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
             <View style={styles.modalOverlay}>
                 <View style={[styles.modalContent, { width: '96%' }]}>
                     <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>Add Lab Results</Text>
+                        <Text style={styles.modalTitle}>{t('patientLaboratory.addLabResults')}</Text>
                         <TouchableOpacity onPress={() => setShowResultsModal(false)}>
                             <Feather name="x" size={20} color="#94a3b8" />
                         </TouchableOpacity>
                     </View>
                     
                     <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
-                        <Text style={styles.modalSubheading}>Basic Information</Text>
+                        <Text style={styles.modalSubheading}>{t('patientLaboratory.basicInformation')}</Text>
                         <View style={styles.row}>
                             <View style={{ flex: 1, marginRight: 8 }}>
                                 <FormInput 
-                                    label="Test Name" 
+                                    label={t('patientLaboratory.testName')} 
                                     required 
-                                    placeholder="e.g. Blood Morphology, Lipid Profile" 
+                                    placeholder={t('patientLaboratory.testNamePlaceholder')} 
                                     value={newTest.testName}
                                     onChangeText={(val: string) => handleNewTestChange('testName', val)}
                                 />
                             </View>
                             <View style={{ flex: 1 }}>
                                 <FormInput 
-                                    label="Order Date" 
+                                    label={t('patientLaboratory.orderDate')} 
                                     required 
-                                    placeholder="Select date" 
+                                    placeholder={t('patientLaboratory.selectDate')} 
                                     hasCalendar 
                                     isDropdown 
                                     value={formatDateDisplay(newTest.orderDate)}
@@ -282,7 +284,7 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
                             <View style={styles.datePickerContainer}>
                                 <View style={styles.datePickerHeader}>
                                     <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                                        <Text style={styles.datePickerDone}>Done</Text>
+                                        <Text style={styles.datePickerDone}>{t('patientLaboratory.done')}</Text>
                                     </TouchableOpacity>
                                 </View>
                                 <DateTimePicker
@@ -298,17 +300,17 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
                         )}
 
                         <FormInput 
-                            label="Lab Reference Number" 
+                            label={t('patientLaboratory.labReferenceNumber')} 
                             required 
-                            placeholder="e.g. LAB/2024/001" 
+                            placeholder={t('patientLaboratory.labRefPlaceholder')} 
                             value={newTest.labReferenceNumber}
                             onChangeText={(val: string) => handleNewTestChange('labReferenceNumber', val)}
                         />
 
                         <View style={styles.parametersHeader}>
-                            <Text style={styles.modalSubheading}>Test Parameters</Text>
+                            <Text style={styles.modalSubheading}>{t('patientLaboratory.testParameters')}</Text>
                             <ActionOutlineButton 
-                                title="Add Parameter" 
+                                title={t('patientLaboratory.addParameter')} 
                                 icon="plus" 
                                 onPress={() => {
                                     setTempParameter({ name: '', range: '', unit: '', value: '' });
@@ -331,7 +333,7 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
                             ))
                         ) : (
                             <View style={styles.emptyBox}>
-                                <Text style={styles.emptyBoxText}>No parameters added. Click 'Add Parameter' to start.</Text>
+                                <Text style={styles.emptyBoxText}>{t('patientLaboratory.noParametersAdded')}</Text>
                             </View>
                         )}
                     </ScrollView>
@@ -342,10 +344,10 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
                             onPress={() => setShowResultsModal(false)}
                             disabled={isSaving}
                         >
-                            <Text style={styles.cancelOutlineText}>Cancel</Text>
+                            <Text style={styles.cancelOutlineText}>{t('patientLaboratory.cancel')}</Text>
                         </TouchableOpacity>
                         <SubmitButton 
-                            title="Add Result" 
+                            title={t('patientLaboratory.addResult')} 
                             icon="plus" 
                             style={{ width: 150 }} 
                             onPress={handleSaveResult}
@@ -369,7 +371,7 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
             <View style={styles.modalOverlay}>
                 <View style={[styles.modalContent, { width: '96%' }]}>
                     <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>Add Parameter</Text>
+                        <Text style={styles.modalTitle}>{t('patientLaboratory.addParameter')}</Text>
                         <TouchableOpacity onPress={() => setShowParameterModal(false)}>
                             <Feather name="x" size={20} color="#94a3b8" />
                         </TouchableOpacity>
@@ -378,14 +380,14 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
                     <View style={styles.row}>
                         <View style={{ flex: 1, marginRight: 8 }}>
                             <FormInput 
-                                label="Parameter Name" required placeholder="" 
+                                label={t('patientLaboratory.parameterName')} required placeholder="" 
                                 value={tempParameter.name}
                                 onChangeText={(val: string) => handleTempParamChange('name', val)}
                             />
                         </View>
                         <View style={{ flex: 1 }}>
                             <FormInput 
-                                label="Normal Range" required placeholder="e.g. 4.0-10.0, <200, >40" 
+                                label={t('patientLaboratory.normalRange')} required placeholder={t('patientLaboratory.normalRangePlaceholder')} 
                                 value={tempParameter.range}
                                 onChangeText={(val: string) => handleTempParamChange('range', val)}
                             />
@@ -395,14 +397,14 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
                     <View style={styles.row}>
                         <View style={{ flex: 1, marginRight: 8 }}>
                             <FormInput 
-                                label="Unit" required placeholder="e.g. g/dL, 10^3/μL" 
+                                label={t('patientLaboratory.unit')} required placeholder={t('patientLaboratory.unitPlaceholder')} 
                                 value={tempParameter.unit}
                                 onChangeText={(val: string) => handleTempParamChange('unit', val)}
                             />
                         </View>
                         <View style={{ flex: 1 }}>
                             <FormInput 
-                                label="Value" required placeholder="" 
+                                label={t('patientLaboratory.value')} required placeholder="" 
                                 value={tempParameter.value}
                                 onChangeText={(val: string) => handleTempParamChange('value', val)}
                             />
@@ -414,9 +416,9 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
                             style={styles.cancelOutlineButton} 
                             onPress={() => setShowParameterModal(false)}
                         >
-                            <Text style={styles.cancelOutlineText}>Cancel</Text>
+                            <Text style={styles.cancelOutlineText}>{t('patientLaboratory.cancel')}</Text>
                         </TouchableOpacity>
-                        <SubmitButton title="Add Parameter" icon="plus" onPress={addParameterRecord} style={{ width: 160 }} />
+                        <SubmitButton title={t('patientLaboratory.addParameter')} icon="plus" onPress={addParameterRecord} style={{ width: 160 }} />
                     </View>
 
                 </View>
@@ -436,7 +438,7 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
                 >
                     <View style={styles.headerLeft}>
                         <Feather name="test-tube" size={18} color="#58a6b8" style={styles.icon} />
-                        <Text style={styles.title}>TEST RESULTS</Text>
+                        <Text style={styles.title}>{t('patientLaboratory.title')}</Text>
                     </View>
                     <Feather name={expanded ? "chevron-up" : "chevron-down"} size={20} color="#94a3b8" />
                 </TouchableOpacity>
@@ -448,14 +450,14 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
                                 <Feather name="search" size={18} color="#94a3b8" />
                                 <TextInput 
                                     style={styles.searchInput}
-                                    placeholder="Search lab results..."
+                                    placeholder={t('patientLaboratory.searchPlaceholder')}
                                     value={searchText}
                                     onChangeText={setSearchText}
                                     placeholderTextColor="#94a3b8"
                                 />
                             </View>
                             <SubmitButton 
-                                title="Add Results" 
+                                title={t('patientLaboratory.addResults')} 
                                 icon="plus" 
                                 onPress={() => setShowResultsModal(true)}
                                 style={styles.addResultsBtn}
@@ -472,13 +474,13 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
                                 filteredResults.map((result: any, index: number) => (
                                     <View key={index} style={styles.resultItem}>
                                         <View style={styles.resultHeader}>
-                                            <Text style={styles.resultName}>{result.testName || 'Laboratory Test'}</Text>
+                                            <Text style={styles.resultName}>{result.testName || t('patientLaboratory.laboratoryTest')}</Text>
                                             <View style={styles.resultInfoRow}>
                                                 <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 15 }}>
                                                     <Feather name="calendar" size={14} color="#94a3b8" style={{ marginRight: 5 }} />
                                                     <Text style={styles.resultInfoText}>{formatDateDisplay(result.orderDate)}</Text>
                                                 </View>
-                                                <Text style={styles.resultInfoText}>Order number: {result.labReferenceNumber || 'N/A'}</Text>
+                                                <Text style={styles.resultInfoText}>{t('patientLaboratory.orderNumber')} {result.labReferenceNumber || t('patientInsurance.na')}</Text>
                                             </View>
                                         </View>
                                         
@@ -488,13 +490,13 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
                                                     <View key={pIdx} style={[styles.parameterRow, pIdx === result.parameters.length - 1 && { marginBottom: 0 }]}>
                                                         <View style={{ flex: 1 }}>
                                                             <Text style={styles.parameterName}>{p.name}</Text>
-                                                            <Text style={styles.parameterRange}>Normal range: {p.range || p.normalRange || 'N/A'}</Text>
+                                                            <Text style={styles.parameterRange}>{t('patientLaboratory.normalRangeLabel')} {p.range || p.normalRange || t('patientInsurance.na')}</Text>
                                                         </View>
                                                         <Text style={styles.parameterValue}>{p.value} {p.unit}</Text>
                                                     </View>
                                                 ))
                                             ) : (
-                                                <Text style={styles.emptyParamsText}>No parameters recorded for this test.</Text>
+                                                <Text style={styles.emptyParamsText}>{t('patientLaboratory.noParametersRecorded')}</Text>
                                             )}
                                         </View>
                                     </View>
@@ -502,7 +504,7 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
                             ) : (
                                 <View style={styles.emptyContainer}>
                                     <Text style={styles.emptyText}>
-                                        {searchText ? 'No lab results match your search' : 'No lab results found'}
+                                        {searchText ? t('patientLaboratory.noSearchMatch') : t('patientLaboratory.noLabResults')}
                                     </Text>
                                 </View>
                             );

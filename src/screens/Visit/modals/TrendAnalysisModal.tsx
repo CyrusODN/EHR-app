@@ -14,6 +14,8 @@ import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 
+import { useTranslation } from 'react-i18next';
+
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface TrendAnalysisModalProps {
@@ -31,6 +33,7 @@ const TrendAnalysisModal = ({
     scalesCompleted = 0,
     loading = false
 }: TrendAnalysisModalProps) => {
+    const { t } = useTranslation();
     const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
     const fadeAnim = useRef(new Animated.Value(0)).current;
     
@@ -90,8 +93,8 @@ const TrendAnalysisModal = ({
                                 <MaterialCommunityIcons name="brain" size={26} color="#58A7B3" />
                             </View>
                             <View>
-                                <Text style={styles.title}>Clinical Trends Analysis</Text>
-                                <Text style={styles.subtitle}>Analysis of psychiatric scale changes over time</Text>
+                                <Text style={styles.title}>{t('trends.title')}</Text>
+                                <Text style={styles.subtitle}>{t('trends.subtitle')}</Text>
                             </View>
                         </View>
                         <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
@@ -108,14 +111,14 @@ const TrendAnalysisModal = ({
                                 <View style={styles.largeIconBackground}>
                                     <MaterialCommunityIcons name="brain" size={50} color="#CBD5E1" />
                                 </View>
-                                <Text style={styles.emptyChartTitle}>No psychiatric scale data available</Text>
-                                <Text style={styles.emptyChartSubtitle}>Complete assessments during visits to see trends</Text>
+                                <Text style={styles.emptyChartTitle}>{t('trends.emptyTitle')}</Text>
+                                <Text style={styles.emptyChartSubtitle}>{t('trends.emptySubtitle')}</Text>
                             </View>
                         </View>
 
                         {/* Bottom: Insights & Stats */}
                         <View style={styles.insightsArea}>
-                            <Text style={styles.sectionLabel}>AI Insights</Text>
+                            <Text style={styles.sectionLabel}>{t('trends.aiInsights')}</Text>
                             <View style={styles.insightBox}>
                                 <View style={styles.insightIconCircle}>
                                     <MaterialCommunityIcons name="brain" size={18} color="#3B82F6" />
@@ -125,25 +128,25 @@ const TrendAnalysisModal = ({
                                 ) : (
                                     <Text style={styles.insightText}>
                                         {scalesCompleted > 0 
-                                            ? `Psychiatric assessments found across ${totalVisits} visits. Analyzing trends...`
-                                            : "Insufficient scale data for trend analysis. Consider completing psychiatric assessments in future visits."}
+                                            ? t('trends.analyzing', { count: totalVisits })
+                                            : t('trends.insufficientData')}
                                     </Text>
                                 )}
                             </View>
 
                             <View style={styles.statsRow}>
                                 <View style={styles.statItem}>
-                                    <Text style={styles.statLabel}>Total Visits</Text>
+                                    <Text style={styles.statLabel}>{t('trends.totalVisits')}</Text>
                                     <Text style={styles.statValue}>{loading ? '...' : totalVisits}</Text>
                                     <TouchableOpacity>
-                                        <Text style={styles.statSubText}>Patient visit history</Text>
+                                        <Text style={styles.statSubText}>{t('trends.visitHistory')}</Text>
                                     </TouchableOpacity>
                                 </View>
                                 <View style={styles.statItem}>
-                                    <Text style={styles.statLabel}>Scales Completed</Text>
+                                    <Text style={styles.statLabel}>{t('trends.scalesCompleted')}</Text>
                                     <Text style={styles.statValue}>{loading ? '...' : scalesCompleted}</Text>
                                     <TouchableOpacity>
-                                        <Text style={styles.statSubTextGreen}>HAM-D and MADRS combined</Text>
+                                        <Text style={styles.statSubTextGreen}>{t('trends.combinedScales')}</Text>
                                     </TouchableOpacity>
                                 </View>
                             </View>
