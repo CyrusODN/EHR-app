@@ -28,9 +28,12 @@ import { GetVisitDetails, GetPreviousVisits, UpdateVisit } from '../../Services/
 import { GetPatientMedicalData } from '../../Services/MedicalData.Service';
 import { useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 const VisitScreen = () => {
     const { t } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
     const route = useRoute();
     const navigation = useNavigation();
     const { visitId } = route.params || {};
@@ -182,16 +185,16 @@ const VisitScreen = () => {
         const isCompleted = currentStep > step.id;
         
         return (
-            <View key={step.id} style={styles.stepItem}>
-                <View style={styles.stepHeader}>
+            <View key={step.id} style={ds.stepItem}>
+                <View style={ds.stepHeader}>
                     {index > 0 && (
-                        <View style={[styles.stepConnector, styles.connectorLeft, currentStep >= step.id && styles.stepConnectorActive]} />
+                        <View style={[ds.stepConnector, ds.connectorLeft, currentStep >= step.id && ds.stepConnectorActive]} />
                     )}
                     <TouchableOpacity 
                         style={[
-                            styles.stepCircle, 
-                            isActive && styles.stepCircleActive,
-                            isCompleted && styles.stepCircleCompleted
+                            ds.stepCircle, 
+                            isActive && ds.stepCircleActive,
+                            isCompleted && ds.stepCircleCompleted
                         ]}
                         onPress={() => setCurrentStep(step.id)}
                         activeOpacity={0.7}
@@ -199,14 +202,14 @@ const VisitScreen = () => {
                         {isCompleted ? (
                             <Feather name="check" size={14} color="#fff" />
                         ) : (
-                            <Text style={[styles.stepNumber, isActive && styles.stepNumberActive]}>{step.id}</Text>
+                            <Text style={[ds.stepNumber, isActive && ds.stepNumberActive]}>{step.id}</Text>
                         )}
                     </TouchableOpacity>
                     {index < steps.length - 1 && (
-                        <View style={[styles.stepConnector, styles.connectorRight, currentStep > step.id && styles.stepConnectorActive]} />
+                        <View style={[ds.stepConnector, ds.connectorRight, currentStep > step.id && ds.stepConnectorActive]} />
                     )}
                 </View>
-                <Text style={[styles.stepLabel, isActive && styles.stepLabelActive]} numberOfLines={1}>
+                <Text style={[ds.stepLabel, isActive && ds.stepLabelActive]} numberOfLines={1}>
                     {step.label}
                 </Text>
             </View>
@@ -218,22 +221,22 @@ const VisitScreen = () => {
         return (
             <TouchableOpacity
                 key={tool.id}
-                style={[styles.aiTab, isActive && styles.aiTabActive]}
+                style={[ds.aiTab, isActive && ds.aiTabActive]}
                 onPress={() => setActiveAiTool(tool.id)}
                 activeOpacity={0.8}
             >
                 <LinearGradient
-                    colors={isActive ? ['#E2F2F4', '#E2F2F4'] : ['#CBE8ED', '#FFFFFF']}
+                    colors={isActive ? [isDark ? '#2D3748' : '#E2F2F4', isDark ? '#2D3748' : '#E2F2F4'] : [isDark ? '#1A202C' : '#CBE8ED', tc.cardBackground]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
-                    style={styles.aiTabGradient}
+                    style={ds.aiTabGradient}
                 >
                     {tool.type === 'material-community' ? (
-                        <MaterialCommunityIcons name={tool.icon} size={20} color={isActive ? '#58A7B3' : '#64748B'} />
+                        <MaterialCommunityIcons name={tool.icon} size={20} color={isActive ? tc.accent : tc.textMuted} />
                     ) : (
-                        <Feather name={tool.icon} size={20} color={isActive ? '#58A7B3' : '#64748B'} />
+                        <Feather name={tool.icon} size={20} color={isActive ? tc.accent : tc.textMuted} />
                     )}
-                    <Text style={[styles.aiTabText, isActive && styles.aiTabTextActive]}>{tool.label}</Text>
+                    <Text style={[ds.aiTabText, isActive && ds.aiTabTextActive]}>{tool.label}</Text>
                 </LinearGradient>
             </TouchableOpacity>
         );
@@ -302,8 +305,8 @@ const VisitScreen = () => {
                 );
             default:
                 return (
-                    <View style={styles.placeholderContainer}>
-                        <Text style={styles.placeholderText}>{t('common.noData')} {currentStep}</Text>
+                    <View style={ds.placeholderContainer}>
+                        <Text style={ds.placeholderText}>{t('common.noData')} {currentStep}</Text>
                     </View>
                 );
         }
@@ -313,148 +316,148 @@ const VisitScreen = () => {
         switch (activeAiTool) {
             case 'Decision Support':
                 return (
-                    <View style={styles.contentContainer}>
+                    <View style={ds.contentContainer}>
                         <TouchableOpacity 
-                            style={styles.expandableHeader}
+                            style={ds.expandableHeader}
                             onPress={() => setAiContentExpanded(!aiContentExpanded)}
                             activeOpacity={0.7}
                         >
-                            <View style={styles.headerLeft}>
-                                <View style={styles.iconBackground}>
-                                    <MaterialCommunityIcons name="brain" size={24} color="#58A7B3" />
+                            <View style={ds.headerLeft}>
+                                <View style={ds.iconBackground}>
+                                    <MaterialCommunityIcons name="brain" size={24} color={tc.accent} />
                                 </View>
                                 <View>
-                                    <Text style={styles.headerTitle}>{t('visit.ai.tabs.cds')}</Text>
-                                    <Text style={styles.headerSubtitle}>{t('visit.ai.interview.subtitle')}</Text>
+                                    <Text style={ds.headerTitle}>{t('visit.ai.tabs.cds')}</Text>
+                                    <Text style={ds.headerSubtitle}>{t('visit.ai.interview.subtitle')}</Text>
                                 </View>
                             </View>
-                            <Feather name={aiContentExpanded ? "chevron-up" : "chevron-down"} size={24} color="#333" />
+                            <Feather name={aiContentExpanded ? "chevron-up" : "chevron-down"} size={24} color={tc.textPrimary} />
                         </TouchableOpacity>
                         
                         {aiContentExpanded && (
-                            <TouchableOpacity style={styles.analysisButton} onPress={() => setShowDataModal(true)}>
+                            <TouchableOpacity style={ds.analysisButton} onPress={() => setShowDataModal(true)}>
                                 <Feather name="file-text" size={18} color="#fff" />
-                                <Text style={styles.analysisButtonText}>{t('visit.ai.medInfo.search')}</Text>
+                                <Text style={ds.analysisButtonText}>{t('visit.ai.medInfo.search')}</Text>
                             </TouchableOpacity>
                         )}
                     </View>
                 );
             case 'Interview Coach':
                 return (
-                    <View style={styles.contentContainer}>
+                    <View style={ds.contentContainer}>
                         <TouchableOpacity 
-                            style={styles.expandableHeader}
+                            style={ds.expandableHeader}
                             onPress={() => setAiContentExpanded(!aiContentExpanded)}
                             activeOpacity={0.7}
                         >
-                            <View style={styles.headerLeft}>
-                                <View style={styles.iconBackground}>
-                                    <MaterialCommunityIcons name="brain" size={24} color="#58A7B3" />
+                            <View style={ds.headerLeft}>
+                                <View style={ds.iconBackground}>
+                                    <MaterialCommunityIcons name="brain" size={24} color={tc.accent} />
                                 </View>
                                 <View>
-                                    <Text style={styles.headerTitle}>{t('visit.ai.interview.title')}</Text>
-                                    <Text style={styles.headerSubtitle}>{t('visit.ai.interview.subtitle')}</Text>
+                                    <Text style={ds.headerTitle}>{t('visit.ai.interview.title')}</Text>
+                                    <Text style={ds.headerSubtitle}>{t('visit.ai.interview.subtitle')}</Text>
                                 </View>
                             </View>
-                            <Feather name={aiContentExpanded ? "chevron-up" : "chevron-down"} size={24} color="#333" />
+                            <Feather name={aiContentExpanded ? "chevron-up" : "chevron-down"} size={24} color={tc.textPrimary} />
                         </TouchableOpacity>
 
                         {aiContentExpanded && (
                             <>
-                                <View style={styles.alertBox}>
-                                    <Ionicons name="alert-circle-outline" size={20} color="#856404" />
-                                    <View style={styles.alertTextContainer}>
-                                        <Text style={styles.alertTitle}>{t('visit.ai.interview.noData')}</Text>
-                                        <Text style={styles.alertSubtitle}>{t('visit.ai.interview.noDataDesc')}</Text>
+                                <View style={ds.alertBox}>
+                                    <Ionicons name="alert-circle-outline" size={20} color={isDark ? '#FBBF24' : '#856404'} />
+                                    <View style={ds.alertTextContainer}>
+                                        <Text style={ds.alertTitle}>{t('visit.ai.interview.noData')}</Text>
+                                        <Text style={ds.alertSubtitle}>{t('visit.ai.interview.noDataDesc')}</Text>
                                     </View>
                                 </View>
 
-                                <View style={styles.subTabsContainer}>
+                                <View style={ds.subTabsContainer}>
                                     <TouchableOpacity 
-                                        style={[styles.subTab, activeInterviewSubTab === 'Question suggestions' && styles.subTabActive]}
+                                        style={[ds.subTab, activeInterviewSubTab === 'Question suggestions' && ds.subTabActive]}
                                         onPress={() => setActiveInterviewSubTab('Question suggestions')}
                                     >
-                                        <Feather name="message-square" size={14} color={activeInterviewSubTab === 'Question suggestions' ? "#58A7B3" : "#64748B"} />
-                                        <Text style={[styles.subTabTextSmall, activeInterviewSubTab === 'Question suggestions' && styles.subTabTextActiveSmall]}>{t('visit.ai.interview.tabs.suggestions')}</Text>
+                                        <Feather name="message-square" size={14} color={activeInterviewSubTab === 'Question suggestions' ? tc.accent : tc.textMuted} />
+                                        <Text style={[ds.subTabTextSmall, activeInterviewSubTab === 'Question suggestions' && ds.subTabTextActiveSmall]}>{t('visit.ai.interview.tabs.suggestions')}</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity 
-                                        style={[styles.subTab, activeInterviewSubTab === 'Communication analysis' && styles.subTabActive]}
+                                        style={[ds.subTab, activeInterviewSubTab === 'Communication analysis' && ds.subTabActive]}
                                         onPress={() => setActiveInterviewSubTab('Communication analysis')}
                                     >
-                                        <Feather name="bar-chart-2" size={14} color={activeInterviewSubTab === 'Communication analysis' ? "#58A7B3" : "#64748B"} />
-                                        <Text style={[styles.subTabTextSmall, activeInterviewSubTab === 'Communication analysis' && styles.subTabTextActiveSmall]}>{t('visit.ai.interview.tabs.analysis')}</Text>
+                                        <Feather name="bar-chart-2" size={14} color={activeInterviewSubTab === 'Communication analysis' ? tc.accent : tc.textMuted} />
+                                        <Text style={[ds.subTabTextSmall, activeInterviewSubTab === 'Communication analysis' && ds.subTabTextActiveSmall]}>{t('visit.ai.interview.tabs.analysis')}</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity 
-                                        style={[styles.subTab, activeInterviewSubTab === 'Literature' && styles.subTabActive]}
+                                        style={[ds.subTab, activeInterviewSubTab === 'Literature' && ds.subTabActive]}
                                         onPress={() => setActiveInterviewSubTab('Literature')}
                                     >
-                                        <Feather name="book-open" size={14} color={activeInterviewSubTab === 'Literature' ? "#58A7B3" : "#64748B"} />
-                                        <Text style={[styles.subTabTextSmall, activeInterviewSubTab === 'Literature' && styles.subTabTextActiveSmall]}>{t('visit.ai.interview.tabs.literature')}</Text>
+                                        <Feather name="book-open" size={14} color={activeInterviewSubTab === 'Literature' ? tc.accent : tc.textMuted} />
+                                        <Text style={[ds.subTabTextSmall, activeInterviewSubTab === 'Literature' && ds.subTabTextActiveSmall]}>{t('visit.ai.interview.tabs.literature')}</Text>
                                     </TouchableOpacity>
                                 </View>
 
-                                <View style={styles.subTabContent}>
+                                <View style={ds.subTabContent}>
                                     {activeInterviewSubTab === 'Question suggestions' && (
-                                        <Text style={styles.suggestedQuestionsText}>{t('visit.ai.interview.suggestedCount', { count: 0 })}</Text>
+                                        <Text style={ds.suggestedQuestionsText}>{t('visit.ai.interview.suggestedCount', { count: 0 })}</Text>
                                     )}
 
                                     {activeInterviewSubTab === 'Communication analysis' && (
-                                        <View style={styles.analysisContainer}>
+                                        <View style={ds.analysisContainer}>
                                             <ScrollView 
                                                 horizontal 
                                                 showsHorizontalScrollIndicator={false}
-                                                contentContainerStyle={styles.analysisCardsRow}
+                                                contentContainerStyle={ds.analysisCardsRow}
                                             >
-                                                <View style={styles.analysisCard}>
-                                                    <View style={styles.analysisCardText}>
-                                                        <Text style={styles.cardInfoLabel}>{t('visit.ai.interview.analysis.clusters')}</Text>
-                                                        <Text style={styles.cardInfoValue}>0</Text>
-                                                        <Text style={styles.cardInfoSub}>{t('visit.ai.interview.analysis.identified')}</Text>
+                                                <View style={ds.analysisCard}>
+                                                    <View style={ds.analysisCardText}>
+                                                        <Text style={ds.cardInfoLabel}>{t('visit.ai.interview.analysis.clusters')}</Text>
+                                                        <Text style={ds.cardInfoValue}>0</Text>
+                                                        <Text style={ds.cardInfoSub}>{t('visit.ai.interview.analysis.identified')}</Text>
                                                     </View>
-                                                    <MaterialCommunityIcons name="brain" size={32} color="#58A7B3" />
+                                                    <MaterialCommunityIcons name="brain" size={32} color={tc.accent} />
                                                 </View>
-                                                <View style={styles.analysisCard}>
-                                                    <View style={styles.analysisCardText}>
-                                                        <Text style={styles.cardInfoLabel}>{t('visit.ai.interview.analysis.potential')}</Text>
-                                                        <Text style={styles.cardInfoValue}>0</Text>
-                                                        <Text style={styles.cardInfoSub}>{t('visit.ai.interview.analysis.toConsider')}</Text>
+                                                <View style={ds.analysisCard}>
+                                                    <View style={ds.analysisCardText}>
+                                                        <Text style={ds.cardInfoLabel}>{t('visit.ai.interview.analysis.potential')}</Text>
+                                                        <Text style={ds.cardInfoValue}>0</Text>
+                                                        <Text style={ds.cardInfoSub}>{t('visit.ai.interview.analysis.toConsider')}</Text>
                                                     </View>
-                                                    <MaterialCommunityIcons name="target" size={32} color="#4CAF50" />
+                                                    <MaterialCommunityIcons name="target" size={32} color="#10B981" />
                                                 </View>
-                                                <View style={styles.analysisCard}>
-                                                    <View style={styles.analysisCardText}>
-                                                        <Text style={styles.cardInfoLabel}>{t('visit.ai.interview.analysis.gaps')}</Text>
-                                                        <Text style={styles.cardInfoValue}>0</Text>
-                                                        <Text style={styles.cardInfoSub}>{t('visit.ai.interview.analysis.attention')}</Text>
+                                                <View style={ds.analysisCard}>
+                                                    <View style={ds.analysisCardText}>
+                                                        <Text style={ds.cardInfoLabel}>{t('visit.ai.interview.analysis.gaps')}</Text>
+                                                        <Text style={ds.cardInfoValue}>0</Text>
+                                                        <Text style={ds.cardInfoSub}>{t('visit.ai.interview.analysis.attention')}</Text>
                                                     </View>
-                                                    <Feather name="alert-triangle" size={32} color="#EAB308" />
+                                                    <Feather name="alert-triangle" size={32} color="#F59E0B" />
                                                 </View>
                                             </ScrollView>
-                                            <View style={styles.recommendationHeader}>
-                                                <Text style={styles.recommendationTitle}>{t('visit.ai.interview.analysis.recommendations')}</Text>
+                                            <View style={ds.recommendationHeader}>
+                                                <Text style={ds.recommendationTitle}>{t('visit.ai.interview.analysis.recommendations')}</Text>
                                             </View>
                                         </View>
                                     )}
 
                                     {activeInterviewSubTab === 'Literature' && (
-                                        <View style={styles.literatureContainer}>
+                                        <View style={ds.literatureContainer}>
                                             {[
                                                 { title: 'Structured Interview Guidelines for Depression', source: 'Journal of Clinical Psychiatry, 2023', accuracy: '95%' },
                                                 { title: 'Best Practices in Patient Communication', source: 'Medical Communication Quarterly, 2023', accuracy: '88%' }
                                             ].map((item, index) => (
-                                                <View key={index} style={styles.literatureItem}>
-                                                    <View style={styles.literatureItemLeft}>
-                                                        <View style={styles.literatureHeaderRow}>
-                                                            <Feather name="book-open" size={14} color="#58A7B3" />
-                                                            <Text style={styles.literatureItemTitle}>{item.title}</Text>
+                                                <View key={index} style={ds.literatureItem}>
+                                                    <View style={ds.literatureItemLeft}>
+                                                        <View style={ds.literatureHeaderRow}>
+                                                            <Feather name="book-open" size={14} color={tc.accent} />
+                                                            <Text style={ds.literatureItemTitle}>{item.title}</Text>
                                                         </View>
-                                                        <Text style={styles.literatureItemSource}>{item.source}</Text>
-                                                        <View style={styles.accuracyRow}>
+                                                        <Text style={ds.literatureItemSource}>{item.source}</Text>
+                                                        <View style={ds.accuracyRow}>
                                                             <Feather name="star" size={12} color="#EAB308" />
-                                                            <Text style={styles.accuracyText}>Accuracy: {item.accuracy}</Text>
+                                                            <Text style={ds.accuracyText}>Accuracy: {item.accuracy}</Text>
                                                         </View>
                                                     </View>
-                                                    <Feather name="external-link" size={16} color="#58A7B3" />
+                                                    <Feather name="external-link" size={16} color={tc.accent} />
                                                 </View>
                                             ))}
                                         </View>
@@ -466,73 +469,73 @@ const VisitScreen = () => {
                 );
             case 'Documentation Assistant':
                 return (
-                    <View style={styles.contentContainer}>
+                    <View style={ds.contentContainer}>
                         {[
                             { id: 'smart', title: t('visit.ai.transcription.smart'), desc: t('visit.ai.transcription.smartDesc') },
                             { id: 'consult', title: t('visit.ai.transcription.consult'), desc: t('visit.ai.transcription.consultDesc') },
                             { id: 'pharmacopedia', title: t('visit.ai.transcription.pharmacopedia'), desc: t('visit.ai.transcription.pharmacopediaDesc') }
                         ].map((tool, index) => (
-                            <View key={index} style={[styles.expandableHeader, { marginBottom: hp(1.5) }]}>
-                                <View style={styles.headerLeft}>
-                                    <View style={styles.iconBackground}>
+                            <View key={index} style={[ds.expandableHeader, { marginBottom: hp(1.5) }]}>
+                                <View style={ds.headerLeft}>
+                                    <View style={ds.iconBackground}>
                                         <MaterialCommunityIcons 
                                             name={tool.id === 'smart' ? 'brain' : tool.id === 'consult' ? 'stethoscope' : 'pill'} 
                                             size={20} 
-                                            color="#58A7B3" 
+                                            color={tc.accent} 
                                         />
                                     </View>
                                     <View>
-                                        <Text style={styles.headerTitle}>{tool.title}</Text>
-                                        <Text style={styles.headerSubtitle}>{tool.desc}</Text>
+                                        <Text style={ds.headerTitle}>{tool.title}</Text>
+                                        <Text style={ds.headerSubtitle}>{tool.desc}</Text>
                                     </View>
                                 </View>
-                                <Feather name="chevron-down" size={24} color="#333" />
+                                <Feather name="chevron-down" size={24} color={tc.textPrimary} />
                             </View>
                         ))}
                     </View>
                 );
             case 'Drug Knowledge':
                 return (
-                    <View style={styles.contentContainer}>
-                        <View style={styles.expandableHeader}>
-                            <View style={styles.headerLeft}>
-                                <View style={styles.iconBackground}>
-                                    <Ionicons name="shield-checkmark-outline" size={24} color="#58A7B3" />
+                    <View style={ds.contentContainer}>
+                        <View style={ds.expandableHeader}>
+                            <View style={ds.headerLeft}>
+                                <View style={ds.iconBackground}>
+                                    <Ionicons name="shield-checkmark-outline" size={24} color={tc.accent} />
                                 </View>
                                 <View>
-                                    <Text style={styles.headerTitle}>{t('visit.ai.medInfo.title')}</Text>
+                                    <Text style={ds.headerTitle}>{t('visit.ai.medInfo.title')}</Text>
                                 </View>
                             </View>
-                            <Feather name="chevron-up" size={24} color="#333" />
+                            <Feather name="chevron-up" size={24} color={tc.textPrimary} />
                         </View>
                         
-                        <View style={styles.searchSection}>
-                            <Text style={styles.inputLabel}>{t('visit.ai.medInfo.search')}</Text>
-                            <View style={styles.searchContainer}>
-                                <Feather name="search" size={20} color="#94A3B8" />
+                        <View style={ds.searchSection}>
+                            <Text style={ds.inputLabel}>{t('visit.ai.medInfo.search')}</Text>
+                            <View style={ds.searchContainer}>
+                                <Feather name="search" size={20} color={tc.textMuted} />
                                 <TextInput 
                                     placeholder={t('visit.ai.medInfo.placeholder')} 
-                                    style={styles.searchInput}
-                                    placeholderTextColor="#94A3B8"
+                                    style={ds.searchInput}
+                                    placeholderTextColor={tc.textMuted}
                                 />
                             </View>
                         </View>
 
-                        <View style={styles.emptyState}>
-                            <MaterialCommunityIcons name="pill" size={60} color="#CBD5E1" />
-                            <Text style={styles.emptyStateText}>{t('visit.ai.medInfo.empty')}</Text>
+                        <View style={ds.emptyState}>
+                            <MaterialCommunityIcons name="pill" size={60} color={isDark ? 'rgba(255,255,255,0.1)' : '#CBD5E1'} />
+                            <Text style={ds.emptyStateText}>{t('visit.ai.medInfo.empty')}</Text>
                         </View>
                     </View>
                 );
             case 'ICD-10 Assistant':
                 return (
-                    <View style={styles.contentContainer}>
-                        <View style={styles.searchContainer}>
-                            <Feather name="search" size={20} color="#94A3B8" />
+                    <View style={ds.contentContainer}>
+                        <View style={ds.searchContainer}>
+                            <Feather name="search" size={20} color={tc.textMuted} />
                             <TextInput 
                                 placeholder={t('visit.diagnosis.searchPlaceholder')} 
-                                style={styles.searchInput}
-                                placeholderTextColor="#94A3B8"
+                                style={ds.searchInput}
+                                placeholderTextColor={tc.textMuted}
                             />
                         </View>
                     </View>
@@ -544,60 +547,60 @@ const VisitScreen = () => {
 
     if (loading) {
         return (
-            <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-                <ActivityIndicator size="large" color="#58A7B3" />
+            <SafeAreaView style={[ds.container, { justifyContent: 'center', alignItems: 'center' }]}>
+                <ActivityIndicator size="large" color={tc.accent} />
             </SafeAreaView>
         );
     }
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={ds.container}>
             {/* Custom Header */}
-            <View style={styles.headerContainer}>
+            <View style={ds.headerContainer}>
                 <TouchableOpacity 
-                    style={styles.headerBackButton} 
+                    style={ds.headerBackButton} 
                     onPress={() => navigation.goBack()}
                 >
-                    <Ionicons name="arrow-back" size={24} color="#1E293B" />
+                    <Ionicons name="arrow-back" size={24} color={tc.textPrimary} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitleMain}>{t('visit.activeVisit')}</Text>
+                <Text style={ds.headerTitleMain}>{t('visit.activeVisit')}</Text>
                 <View style={{ width: 40 }} /> 
             </View>
 
             {/* Top Stepper Area */}
-            <View style={styles.stepperWrapper}>
+            <View style={ds.stepperWrapper}>
                 <ScrollView 
                     horizontal 
                     showsHorizontalScrollIndicator={false} 
-                    contentContainerStyle={styles.stepperContainer}
+                    contentContainerStyle={ds.stepperContainer}
                 >
                     {steps.map((step, index) => renderStep(step, index))}
                 </ScrollView>
             </View>
 
-            <ScrollView style={styles.stepContentScroll}>
+            <ScrollView style={ds.stepContentScroll}>
                 {/* AI Tab Bar Area */}
-                <View style={styles.aiToolsWrapper}>
-                    <View style={styles.aiBadgeContainer}>
+                <View style={ds.aiToolsWrapper}>
+                    <View style={ds.aiBadgeContainer}>
                         <LinearGradient
                             colors={['#58A7B3', '#8ED1CC']}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 0 }}
-                            style={styles.aiBadge}
+                            style={ds.aiBadge}
                         >
                             <MaterialCommunityIcons name="auto-fix" size={14} color="#fff" />
-                            <Text style={styles.aiBadgeText}>{t('visit.ai.badge')}</Text>
+                            <Text style={ds.aiBadgeText}>{t('visit.ai.badge')}</Text>
                         </LinearGradient>
                     </View>
 
-                    <View style={styles.aiTabsWrapper}>
+                    <View style={ds.aiTabsWrapper}>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                             {aiTools.map(renderAiToolTab)}
                         </ScrollView>
                     </View>
 
                     {/* AI Content Area */}
-                    <View style={styles.aiContentContainer}>
+                    <View style={ds.aiContentContainer}>
                         {renderAiContent()}
                     </View>
                 </View>
@@ -615,10 +618,10 @@ const VisitScreen = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const createDynamicStyles = (tc, isDark) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F8FAFC',
+        backgroundColor: tc.screenBackground,
     },
     headerContainer: {
         flexDirection: 'row',
@@ -626,28 +629,28 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingHorizontal: wp(4),
         paddingVertical: hp(1.5),
-        backgroundColor: '#fff',
+        backgroundColor: tc.headerBg,
         borderBottomWidth: 1,
-        borderBottomColor: '#F1F5F9',
+        borderBottomColor: tc.borderColor,
     },
     headerBackButton: {
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: '#F8FAFC',
+        backgroundColor: tc.buttonMutedBg,
         justifyContent: 'center',
         alignItems: 'center',
     },
     headerTitleMain: {
         fontSize: 18,
         fontWeight: '800',
-        color: '#1E293B',
+        color: tc.textPrimary,
         letterSpacing: -0.5,
     },
     stepperWrapper: {
-        backgroundColor: '#fff',
+        backgroundColor: tc.headerBg,
         borderBottomWidth: 1,
-        borderBottomColor: '#E2E8F0',
+        borderBottomColor: tc.borderColor,
     },
     stepperContainer: {
         flexDirection: 'row',
@@ -667,9 +670,9 @@ const styles = StyleSheet.create({
     },
     stepConnector: {
         height: 2.5,
-        backgroundColor: '#F1F5F9',
+        backgroundColor: tc.borderColor,
         flex: 1,
-        marginTop: 1, // Vertical alignment fix
+        marginTop: 1,
     },
     connectorLeft: {
         marginRight: -1,
@@ -684,12 +687,12 @@ const styles = StyleSheet.create({
         width: 38,
         height: 38,
         borderRadius: 19,
-        backgroundColor: '#fff',
+        backgroundColor: tc.cardBackground,
         borderWidth: 2,
-        borderColor: '#F1F5F9',
+        borderColor: tc.borderColor,
         justifyContent: 'center',
         alignItems: 'center',
-        zIndex: 2, // Ensure it stays above connectors
+        zIndex: 2,
     },
     stepCircleActive: {
         backgroundColor: '#58A7B3',
@@ -701,7 +704,7 @@ const styles = StyleSheet.create({
     },
     stepNumber: {
         fontSize: 16,
-        color: '#94A3B8',
+        color: tc.textMuted,
         fontWeight: '700',
     },
     stepNumberActive: {
@@ -709,10 +712,10 @@ const styles = StyleSheet.create({
     },
     stepLabel: {
         fontSize: 12,
-        color: '#94A3B8',
+        color: tc.textMuted,
     },
     stepLabelActive: {
-        color: '#58A7B3',
+        color: tc.accent,
         fontWeight: '600',
     },
     stepContentScroll: {
@@ -723,23 +726,23 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         padding: 40,
-        backgroundColor: '#fff',
+        backgroundColor: tc.cardBackground,
         margin: 16,
         borderRadius: 12,
         minHeight: hp(40),
     },
     placeholderText: {
         fontSize: 16,
-        color: '#64748B',
+        color: tc.textSecondary,
         textAlign: 'center',
     },
     aiToolsWrapper: {
         marginTop: hp(1),
         marginHorizontal: wp(3),
-        backgroundColor: '#fff',
+        backgroundColor: tc.cardBackground,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: '#E2E8F0',
+        borderColor: tc.borderColor,
         overflow: 'hidden',
         marginBottom: hp(1),
     },
@@ -753,7 +756,6 @@ const styles = StyleSheet.create({
         height: hp(3),
         width: wp(29),
         justifyContent: 'center',
-        alignItems: 'center',
         borderRadius: wp(8),
     },
     aiBadgeText: {
@@ -766,7 +768,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         paddingVertical: hp(1),
         paddingHorizontal: wp(1),
-        backgroundColor: '#F1F5F9',
+        backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#F1F5F9',
     },
     aiTab: {
         width: wp(34),
@@ -782,27 +784,27 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     aiTabActive: {
-        backgroundColor: '#E2F2F4',
+        backgroundColor: isDark ? 'rgba(88,167,179,0.15)' : '#E2F2F4',
         borderWidth: 1.5,
-        borderColor: '#58A7B3',
+        borderColor: tc.accent,
         borderRadius: 8,
         zIndex: 10,
-        shadowColor: '#58A7B3',
+        shadowColor: tc.accent,
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
+        shadowOpacity: isDark ? 0.3 : 0.2,
         shadowRadius: 4,
         elevation: 4,
     },
     aiTabText: {
         fontSize: 12,
-        color: '#64748B',
+        color: tc.textMuted,
         marginTop: hp(0.8),
         textAlign: 'center',
         fontWeight: '500',
         paddingHorizontal: wp(1),
     },
     aiTabTextActive: {
-        color: '#58A7B3',
+        color: tc.accent,
         fontWeight: '700',
     },
     aiContentContainer: {
@@ -819,16 +821,14 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: 12,
-        backgroundColor: '#fff',
+        backgroundColor: tc.cardBackground,
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: '#F1F5F9',
-        // Shadow for iOS
+        borderColor: tc.borderColor,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
+        shadowOpacity: isDark ? 0.2 : 0.05,
         shadowRadius: 2,
-        // Elevation for Android
         elevation: 1,
     },
     headerLeft: {
@@ -840,7 +840,7 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 8,
-        backgroundColor: '#E2F2F4',
+        backgroundColor: tc.accentLight,
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,
@@ -848,25 +848,24 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 16,
         fontWeight: '700',
-        color: '#1E293B',
+        color: tc.textPrimary,
     },
     headerSubtitle: {
         fontSize: 12,
-        color: '#64748B',
+        color: tc.textMuted,
         marginTop: 2,
     },
     analysisButton: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#58A7B3',
+        backgroundColor: tc.accent,
         marginTop: 20,
         paddingVertical: 14,
         borderRadius: 8,
-        // Gradient effect simulation
-        shadowColor: '#58A7B3',
+        shadowColor: tc.accent,
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
+        shadowOpacity: isDark ? 0.4 : 0.2,
         shadowRadius: 6,
         elevation: 4,
     },
@@ -878,11 +877,11 @@ const styles = StyleSheet.create({
     },
     alertBox: {
         flexDirection: 'row',
-        backgroundColor: '#FFFBEB',
+        backgroundColor: isDark ? 'rgba(245,158,11,0.1)' : '#FFFBEB',
         padding: 12,
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: '#FEF3C7',
+        borderColor: isDark ? 'rgba(245,158,11,0.2)' : '#FEF3C7',
         marginTop: 20,
     },
     alertTextContainer: {
@@ -892,17 +891,17 @@ const styles = StyleSheet.create({
     alertTitle: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#856404',
+        color: isDark ? '#FBBF24' : '#856404',
     },
     alertSubtitle: {
         fontSize: 13,
-        color: '#856404',
+        color: isDark ? '#FBBF24' : '#856404',
         marginTop: 2,
     },
     subTabsContainer: {
         flexDirection: 'row',
         marginTop: 20,
-        backgroundColor: '#F1F5F9',
+        backgroundColor: tc.searchBarBg,
         padding: 4,
         borderRadius: 8,
     },
@@ -915,22 +914,21 @@ const styles = StyleSheet.create({
         borderRadius: 6,
     },
     subTabActive: {
-        backgroundColor: '#fff',
-        // Shadow
+        backgroundColor: tc.cardBackground,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
+        shadowOpacity: isDark ? 0.3 : 0.05,
         shadowRadius: 1,
         elevation: 1,
     },
     subTabTextSmall: {
         fontSize: 10,
-        color: '#64748B',
+        color: tc.textMuted,
         marginTop: 4,
         textAlign: 'center',
     },
     subTabTextActiveSmall: {
-        color: '#58A7B3',
+        color: tc.accent,
         fontWeight: '700',
     },
     subTabContent: {
@@ -939,7 +937,7 @@ const styles = StyleSheet.create({
     suggestedQuestionsText: {
         marginTop: 6,
         fontSize: 14,
-        color: '#64748B',
+        color: tc.textSecondary,
         paddingHorizontal: 4,
     },
     analysisContainer: {
@@ -952,20 +950,19 @@ const styles = StyleSheet.create({
     },
     analysisCard: {
         width: wp(42),
-        backgroundColor: '#fff',
+        backgroundColor: tc.cardBackground,
         borderRadius: 16,
         padding: 16,
         borderWidth: 1,
-        borderColor: '#F1F5F9',
+        borderColor: tc.borderColor,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         marginRight: 12,
         marginBottom: 4,
-        // Shadow
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
+        shadowOpacity: isDark ? 0.2 : 0.05,
         shadowRadius: 2,
         elevation: 1,
     },
@@ -974,32 +971,32 @@ const styles = StyleSheet.create({
     },
     cardInfoLabel: {
         fontSize: 11,
-        color: '#64748B',
+        color: tc.textMuted,
         fontWeight: '600',
         marginBottom: 4,
     },
     cardInfoValue: {
         fontSize: 22,
         fontWeight: '800',
-        color: '#1E293B',
+        color: tc.textPrimary,
     },
     cardInfoSub: {
         fontSize: 10,
-        color: '#94A3B8',
+        color: tc.textMuted,
         marginTop: 2,
     },
     recommendationHeader: {
-        backgroundColor: '#fff',
+        backgroundColor: tc.cardBackground,
         padding: 16,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: '#F1F5F9',
+        borderColor: tc.borderColor,
         marginTop: 4,
     },
     recommendationTitle: {
         fontSize: 15,
         fontWeight: '700',
-        color: '#1E293B',
+        color: tc.textPrimary,
     },
     literatureContainer: {
         marginTop: 12,
@@ -1007,16 +1004,15 @@ const styles = StyleSheet.create({
     literatureItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#fff',
+        backgroundColor: tc.cardBackground,
         borderRadius: 12,
         padding: 16,
         borderWidth: 1,
-        borderColor: '#F1F5F9',
+        borderColor: tc.borderColor,
         marginBottom: 12,
-        // Shadow
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
+        shadowOpacity: isDark ? 0.2 : 0.05,
         shadowRadius: 2,
         elevation: 1,
     },
@@ -1031,13 +1027,13 @@ const styles = StyleSheet.create({
     literatureItemTitle: {
         fontSize: 14,
         fontWeight: '700',
-        color: '#1E293B',
+        color: tc.textPrimary,
         marginLeft: 8,
         flex: 1,
     },
     literatureItemSource: {
         fontSize: 12,
-        color: '#64748B',
+        color: tc.textMuted,
         marginLeft: 22,
         marginBottom: 4,
     },
@@ -1048,7 +1044,7 @@ const styles = StyleSheet.create({
     },
     accuracyText: {
         fontSize: 12,
-        color: '#64748B',
+        color: tc.textMuted,
         fontWeight: '600',
         marginLeft: 4,
     },
@@ -1058,25 +1054,25 @@ const styles = StyleSheet.create({
     inputLabel: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#475569',
+        color: tc.textSecondary,
         marginBottom: 8,
     },
     searchContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#fff',
+        backgroundColor: tc.cardBackgroundAlt,
         borderWidth: 1,
-        borderColor: '#E2E8F0',
+        borderColor: tc.borderColor,
         borderRadius: 8,
         paddingHorizontal: 12,
         height: 48,
-        marginTop: 20, // Specific for ICD-10 screenshot look
+        marginTop: 0,
     },
     searchInput: {
         flex: 1,
         marginLeft: 10,
         fontSize: 14,
-        color: '#1E293B',
+        color: tc.textPrimary,
     },
     emptyState: {
         alignItems: 'center',
@@ -1087,7 +1083,7 @@ const styles = StyleSheet.create({
     emptyStateText: {
         marginTop: 12,
         fontSize: 14,
-        color: '#64748B',
+        color: tc.textMuted,
     },
 });
 

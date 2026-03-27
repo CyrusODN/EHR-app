@@ -19,11 +19,14 @@ import PrimaryButton from '../../component/button';
 import userStore from '../../store/user';
 import { Enable2FA } from '../../Services/User.Service';
 import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 const Security = () => {
     const { t } = useTranslation();
     const navigation = useNavigation<any>();
     const { loggedInUser } = userStore() as any;
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
 
     // State variables
     const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
@@ -57,85 +60,85 @@ const Security = () => {
     };
 
     return (
-        <SafeAreaView style={styles.safeArea} edges={['bottom']}>
-            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-            <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 30 }}>
+        <SafeAreaView style={ds.safeArea} edges={['bottom']}>
+            <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={tc.cardBackground} />
+            <ScrollView style={ds.container} contentContainerStyle={{ paddingBottom: 30 }}>
                 {/* Header */}
-                <View style={styles.header}>
+                <View style={ds.header}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={{ paddingRight: 10 }}>
-                        <Ionicons name="chevron-back" size={24} color="#333" />
+                        <Ionicons name="chevron-back" size={24} color={tc.textPrimary} />
                     </TouchableOpacity>
-                    <View style={styles.headerIconContainer}>
-                        <Feather name="shield" size={24} color="#4A90B9" />
+                    <View style={ds.headerIconContainer}>
+                        <Feather name="shield" size={24} color={tc.accent} />
                     </View>
-                    <Text style={styles.headerTitle}>{t('settings.security.title')}</Text>
+                    <Text style={ds.headerTitle}>{t('settings.security.title')}</Text>
                 </View>
 
                 {/* Security Options Card */}
-                <View style={styles.section}>
+                <View style={ds.section}>
 
                     {/* Two-Factor Authentication */}
-                    <View style={styles.optionContainer}>
-                        <View style={styles.optionTitleRow}>
-                            <Feather name="shield" size={18} color="#4A90B9" />
-                            <Text style={styles.optionTitle}>{t('settings.security.two_factor.title')}</Text>
+                    <View style={ds.optionContainer}>
+                        <View style={ds.optionTitleRow}>
+                            <Feather name="shield" size={18} color={tc.accent} />
+                            <Text style={ds.optionTitle}>{t('settings.security.two_factor.title')}</Text>
                             {twoFactorEnabled && (
-                                <View style={styles.badge}>
-                                    <Text style={styles.badgeText}>{t('settings.security.two_factor.enabled')}</Text>
+                                <View style={ds.badge}>
+                                    <Text style={ds.badgeText}>{t('settings.security.two_factor.enabled')}</Text>
                                 </View>
                             )}
                         </View>
 
-                        <View style={styles.blueInfoBox}>
-                            <View style={styles.infoIconWrapper}>
-                                <Feather name="info" size={16} color="#2563EB" />
+                        <View style={ds.blueInfoBox}>
+                            <View style={ds.infoIconWrapper}>
+                                <Feather name="info" size={16} color={isDark ? tc.accent : "#2563EB"} />
                             </View>
-                            <View style={styles.infoContent}>
-                                <Text style={styles.infoTitleText}>{t('settings.security.two_factor.info_title')}</Text>
-                                <Text style={styles.infoDescText}>
+                            <View style={ds.infoContent}>
+                                <Text style={ds.infoTitleText}>{t('settings.security.two_factor.info_title')}</Text>
+                                <Text style={ds.infoDescText}>
                                     {t('settings.security.two_factor.info_desc')}
                                 </Text>
                             </View>
                         </View>
 
-                        <View style={styles.buttonRow}>
+                        <View style={ds.buttonRow}>
                             <PrimaryButton
                                 label={twoFactorEnabled ? t('settings.security.buttons.disable') : t('settings.security.buttons.enable')}
                                 filled={false}
                                 onPress={() => setTwoFactorEnabled(!twoFactorEnabled)}
-                                style={styles.actionButton}
+                                style={ds.actionButton}
                             />
                         </View>
                     </View>
 
-                    <View style={styles.divider} />
+                    <View style={ds.divider} />
 
                     {/* Trusted Devices */}
-                    <View style={styles.optionContainer}>
-                        <Text style={styles.optionTitle}>{t('settings.security.trusted_devices.title')}</Text>
-                        <Text style={styles.optionDesc}>
+                    <View style={ds.optionContainer}>
+                        <Text style={ds.optionTitle}>{t('settings.security.trusted_devices.title')}</Text>
+                        <Text style={ds.optionDesc}>
                             {t('settings.security.trusted_devices.description')}
                         </Text>
 
-                        <View style={styles.buttonRow}>
+                        <View style={ds.buttonRow}>
                             <PrimaryButton
                                 label={trustDevicesEnabled ? t('settings.security.buttons.disable') : t('settings.security.buttons.enable')}
                                 filled={false}
                                 onPress={() => setTrustDevicesEnabled(!trustDevicesEnabled)}
-                                style={styles.actionButton}
+                                style={ds.actionButton}
                             />
                         </View>
                     </View>
 
-                    <View style={styles.divider} />
+                    <View style={ds.divider} />
 
                     {/* Save Button */}
-                    <View style={styles.footerAction}>
+                    <View style={ds.footerAction}>
                         <PrimaryButton
                             label={t('settings.security.buttons.save_changes')}
                             filled={true}
                             onPress={handleSave}
-                            style={styles.saveBtn}
+                            style={ds.saveBtn}
                             icon={<FontAwesome name="save" size={16} color="white" />}
                         />
                     </View>
@@ -145,26 +148,28 @@ const Security = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
     },
     container: {
         flex: 1,
-        backgroundColor: '#F5F5F5',
+        backgroundColor: tc.screenBackground,
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         padding: 16,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
+        borderBottomWidth: 1,
+        borderBottomColor: tc.borderSubtle,
     },
     headerIconContainer: {
         width: 40,
         height: 40,
         borderRadius: 8,
-        backgroundColor: '#E8F4F8',
+        backgroundColor: isDark ? 'rgba(74, 144, 185, 0.1)' : '#E8F4F8',
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,
@@ -172,16 +177,21 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#333333',
+        color: tc.textPrimary,
     },
     section: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
         marginHorizontal: 16,
         marginTop: 16,
-        borderRadius: 12,
-        padding: 20,
-        borderWidth: 1,
-        borderColor: '#F0F0F0',
+        borderRadius: 16,
+        padding: 24,
+        shadowColor: tc.shadow,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: isDark ? 0.3 : 0.05,
+        shadowRadius: 10,
+        elevation: 4,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: tc.borderSubtle,
     },
     optionContainer: {
         marginBottom: 20,
@@ -190,47 +200,49 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         flexWrap: 'wrap',
-        gap: 8,
-        marginBottom: 12,
+        gap: 10,
+        marginBottom: 16,
     },
     optionTitle: {
-        fontSize: 16,
+        fontSize: 17,
         fontWeight: '700',
-        color: '#111827',
+        color: tc.textPrimary,
     },
     optionDesc: {
         fontSize: 14,
-        color: '#6B7280',
-        marginTop: 6,
-        lineHeight: 20,
+        color: tc.textSecondary,
+        marginTop: 8,
+        lineHeight: 22,
     },
     badge: {
-        backgroundColor: '#DEF7EC',
+        backgroundColor: isDark ? 'rgba(16, 185, 129, 0.2)' : '#DEF7EC',
         paddingHorizontal: 10,
         paddingVertical: 3,
         borderRadius: 12,
     },
     badgeText: {
-        color: '#03543F',
+        color: isDark ? '#34D399' : '#03543F',
         fontSize: 12,
         fontWeight: '600',
     },
     buttonRow: {
         alignItems: 'flex-end',
-        marginTop: 14,
+        marginTop: 16,
     },
     actionButton: {
-        width: 100,
-        height: hp(4.5),
+        width: 110,
+        height: hp(4.8),
         marginBottom: 0,
-        borderRadius: 8,
+        borderRadius: 10,
     },
     blueInfoBox: {
-        backgroundColor: '#EFF6FF',
-        borderRadius: 10,
+        backgroundColor: isDark ? 'rgba(59, 130, 246, 0.1)' : '#EFF6FF',
+        borderRadius: 12,
         padding: 16,
         flexDirection: 'row',
         gap: 12,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: 'rgba(59, 130, 246, 0.2)',
     },
     infoIconWrapper: {
         marginTop: 2,
@@ -241,18 +253,18 @@ const styles = StyleSheet.create({
     infoTitleText: {
         fontSize: 14,
         fontWeight: '700',
-        color: '#1E40AF',
+        color: isDark ? '#60A5FA' : '#1E40AF',
         marginBottom: 4,
     },
     infoDescText: {
         fontSize: 13,
-        color: '#3B82F6',
-        lineHeight: 19,
+        color: isDark ? 'rgba(96, 165, 250, 0.8)' : '#3B82F6',
+        lineHeight: 20,
     },
     divider: {
         height: 1,
-        backgroundColor: '#F3F4F6',
-        marginBottom: 20,
+        backgroundColor: tc.borderSubtle,
+        marginVertical: 24,
     },
     footerAction: {
         alignItems: 'flex-end',
@@ -261,7 +273,7 @@ const styles = StyleSheet.create({
         width: 170,
         height: hp(5.5),
         marginBottom: 0,
-        borderRadius: 8,
+        borderRadius: 10,
     },
 });
 

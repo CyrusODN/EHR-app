@@ -6,9 +6,12 @@ import PrimaryButton from '../../../component/button';
 import CustomTextInput from '../../../component/customTextInput';
 import Gap from '../../../component/gap';
 import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 const Diagnosis = () => {
     const { t } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
     const [symptoms, setSymptoms] = useState('');
     const [symptomsList, setSymptomsList] = useState<string[]>([]);
 
@@ -20,23 +23,18 @@ const Diagnosis = () => {
     };
 
     return (
-        <View style={styles.contentContainer}>
-            <Text style={styles.sectionTitle}>{t('aiAssistant.diagnosis.title')}</Text>
-            <Text style={{ color: "black" }} >
+        <View style={ds.contentContainer}>
+            <Text style={ds.sectionTitle}>{t('aiAssistant.diagnosis.title')}</Text>
+            <Text style={ds.label} >
                 {t('aiAssistant.diagnosis.symptoms')}
             </Text>
             <Gap height={hp(1)} />
-            <View style={styles.symptomsContainer}>
-
-                <View style={{ flex: 1, marginEnd: 10 }}>
+            <View style={ds.symptomsContainer}>
+                <View style={ds.inputWrapper}>
                     <CustomTextInput
                         placeholder={t('aiAssistant.diagnosis.enterSymptom')}
                         value={symptoms}
                         onChangeText={setSymptoms}
-                        icon={undefined}
-                        right={undefined}
-                        onRightPress={undefined}
-                        keyboardType={undefined}
                     />
                 </View>
 
@@ -44,52 +42,65 @@ const Diagnosis = () => {
                     label={t('aiAssistant.diagnosis.add')}
                     filled={false}
                     onPress={handleAddSymptom}
-                    style={{ width: '25%', marginBottom: 0 }}
-                    icon={undefined}
-                    image={undefined}
-                    iconStyle={undefined}
-                    imageStyle={undefined}
+                    style={ds.addButton}
                 />
             </View>
             <PrimaryButton
                 label={t('aiAssistant.diagnosis.analyze')}
                 filled={true}
                 onPress={() => { }}
-                style={{ width: '100%', marginBottom: 0 }}
-                icon={<Feather name="search" color={"white"} size={18} />}
-                image={undefined}
-                iconStyle={undefined}
-                imageStyle={undefined}
+                style={ds.analyzeButton}
+                icon={<Feather name="search" color={"#FFF"} size={18} />}
             />
         </View>
     );
 };
 
-const styles = StyleSheet.create({
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     contentContainer: {
-        padding: 15,
-        backgroundColor: '#FFFFFF',
+        padding: 20,
+        backgroundColor: tc.cardBackground,
         margin: 15,
-        borderRadius: 10,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-        elevation: 3,
+        borderRadius: 12,
+        shadowColor: tc.shadow,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: isDark ? 0.3 : 0.1,
+        shadowRadius: 6,
+        elevation: 4,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: tc.borderSubtle,
     },
     sectionTitle: {
-        fontSize: 18,
+        fontSize: 20,
         fontWeight: 'bold',
-        marginBottom: 15,
-        color: '#333333',
-        width: "50%"
+        marginBottom: 8,
+        color: tc.textPrimary,
+    },
+    label: {
+        fontSize: 14,
+        color: tc.textSecondary,
+        marginBottom: 8,
     },
     symptomsContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 15,
-        justifyContent: "space-between",
-        height: 50
+        marginBottom: 20,
+        gap: 12,
+    },
+    inputWrapper: {
+        flex: 1,
+    },
+    addButton: {
+        width: '30%',
+        height: 48,
+        marginBottom: 0,
+        borderRadius: 10,
+    },
+    analyzeButton: {
+        width: '100%',
+        height: 52,
+        marginBottom: 0,
+        borderRadius: 10,
     },
 });
 

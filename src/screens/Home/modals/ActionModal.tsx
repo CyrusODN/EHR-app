@@ -16,6 +16,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 const ActionModal = ({ visible, onClose, onView, onStart, onAddNote }: {
     visible: boolean;
@@ -25,6 +26,8 @@ const ActionModal = ({ visible, onClose, onView, onStart, onAddNote }: {
     onAddNote: (note?: string) => void;
 }) => {
     const { t } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
     const insets = useSafeAreaInsets();
     const [showNoteInput, setShowNoteInput] = useState(false);
     const [note, setNote] = useState('');
@@ -89,15 +92,15 @@ const ActionModal = ({ visible, onClose, onView, onStart, onAddNote }: {
         {
             icon: 'eye',
             label: t('dashboard.actionModal.viewDetails'),
-            color: '#4A90B9',
-            bg: '#EBF5FA',
+            color: tc.accent,
+            bg: tc.accentLight,
             onPress: onView,
         },
         {
             icon: 'file-text',
             label: t('dashboard.actionModal.addNote'),
-            color: '#8B5CF6',
-            bg: '#EDE9FE',
+            color: isDark ? '#A78BFA' : '#8B5CF6',
+            bg: isDark ? 'rgba(139, 92, 246, 0.15)' : '#EDE9FE',
             onPress: handleAddNote,
         },
     ];
@@ -106,7 +109,7 @@ const ActionModal = ({ visible, onClose, onView, onStart, onAddNote }: {
 
     return (
         <View style={[StyleSheet.absoluteFill, { zIndex: 999, elevation: 999 }]}>
-            <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
+            <Animated.View style={[ds.backdrop, { opacity: backdropOpacity }]}>
                 <TouchableWithoutFeedback onPress={handleClose}>
                     <View style={{ flex: 1 }} />
                 </TouchableWithoutFeedback>
@@ -114,7 +117,7 @@ const ActionModal = ({ visible, onClose, onView, onStart, onAddNote }: {
 
             <Animated.View
                 style={[
-                    styles.modalContainer,
+                    ds.modalContainer,
                     {
                         paddingBottom: insets.bottom + 10,
                         transform: [{ translateY: slideAnim }],
@@ -122,33 +125,33 @@ const ActionModal = ({ visible, onClose, onView, onStart, onAddNote }: {
                 ]}
             >
                 {/* Drag Handle */}
-                <View style={styles.dragHandleContainer}>
-                    <View style={styles.dragHandle} />
+                <View style={ds.dragHandleContainer}>
+                    <View style={ds.dragHandle} />
                 </View>
 
                 {/* Header */}
-                <View style={styles.header}>
-                    <Text style={styles.headerText}>{t('dashboard.actionModal.visitActions')}</Text>
-                    <TouchableOpacity onPress={handleClose} style={styles.closeBtn}>
-                        <Feather name="x" size={18} color="#9CA3AF" />
+                <View style={ds.header}>
+                    <Text style={ds.headerText}>{t('dashboard.actionModal.visitActions')}</Text>
+                    <TouchableOpacity onPress={handleClose} style={ds.closeBtn}>
+                        <Feather name="x" size={18} color={tc.textMuted} />
                     </TouchableOpacity>
                 </View>
 
-                <View style={styles.content}>
+                <View style={ds.content}>
                     {/* Start Visit - Gradient CTA */}
                     <TouchableOpacity
-                        style={styles.startVisitBtn}
+                        style={ds.startVisitBtn}
                         onPress={onStart}
                         activeOpacity={0.85}
                     >
                         <LinearGradient
-                            colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
+                            colors={[tc.accentGradientStart, tc.accentGradientEnd]}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 0 }}
-                            style={styles.startVisitGradient}
+                            style={ds.startVisitGradient}
                         >
                             <Feather name="play" size={18} color="white" />
-                            <Text style={styles.startVisitText}>{t('visit.start')}</Text>
+                            <Text style={ds.startVisitText}>{t('visit.start')}</Text>
                         </LinearGradient>
                     </TouchableOpacity>
 
@@ -156,43 +159,43 @@ const ActionModal = ({ visible, onClose, onView, onStart, onAddNote }: {
                     {actions.map((action, index) => (
                         <TouchableOpacity
                             key={index}
-                            style={styles.actionButton}
+                            style={ds.actionButton}
                             onPress={action.onPress}
                             activeOpacity={0.7}
                         >
-                            <View style={[styles.actionIconBg, { backgroundColor: action.bg }]}>
+                            <View style={[ds.actionIconBg, { backgroundColor: action.bg }]}>
                                 <Feather name={action.icon} size={16} color={action.color} />
                             </View>
-                            <Text style={styles.actionText}>{action.label}</Text>
-                            <Feather name="chevron-right" size={16} color="#D1D5DB" />
+                            <Text style={ds.actionText}>{action.label}</Text>
+                            <Feather name="chevron-right" size={16} color={tc.borderStrong} />
                         </TouchableOpacity>
                     ))}
 
                     {/* Note Input */}
                     {showNoteInput && (
-                        <View style={styles.noteInputContainer}>
+                        <View style={ds.noteInputContainer}>
                             <TextInput
-                                style={styles.noteInput}
+                                style={ds.noteInput}
                                 placeholder={t('dashboard.actionModal.notePlaceholder')}
-                                placeholderTextColor="#9CA3AF"
+                                placeholderTextColor={tc.textMuted}
                                 multiline
                                 value={note}
                                 onChangeText={setNote}
                                 autoFocus
                             />
-                            <TouchableOpacity style={styles.submitNoteBtn} onPress={handleAddNote}>
-                                <Text style={styles.submitNoteText}>{t('dashboard.actionModal.saveNote')}</Text>
+                            <TouchableOpacity style={ds.submitNoteBtn} onPress={handleAddNote}>
+                                <Text style={ds.submitNoteText}>{t('dashboard.actionModal.saveNote')}</Text>
                             </TouchableOpacity>
                         </View>
                     )}
 
                     {/* Cancel */}
                     <TouchableOpacity
-                        style={styles.cancelButton}
+                        style={ds.cancelButton}
                         onPress={handleClose}
                         activeOpacity={0.7}
                     >
-                        <Text style={styles.cancelText}>{t('common.cancel')}</Text>
+                        <Text style={ds.cancelText}>{t('common.cancel')}</Text>
                     </TouchableOpacity>
                 </View>
             </Animated.View>
@@ -200,50 +203,57 @@ const ActionModal = ({ visible, onClose, onView, onStart, onAddNote }: {
     );
 };
 
-const styles = StyleSheet.create({
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     backdrop: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
     },
     modalContainer: {
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
-        backgroundColor: 'white',
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
+        backgroundColor: tc.modalBg,
+        borderTopLeftRadius: 32,
+        borderTopRightRadius: 32,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: tc.borderSubtle,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: isDark ? 0.4 : 0.08,
+        shadowRadius: 16,
+        elevation: 20,
     },
     dragHandleContainer: {
         alignItems: 'center',
-        paddingTop: 10,
-        paddingBottom: 4,
+        paddingTop: 12,
+        paddingBottom: 6,
     },
     dragHandle: {
-        width: 36,
-        height: 4,
-        borderRadius: 2,
-        backgroundColor: '#D1D5DB',
+        width: 40,
+        height: 5,
+        borderRadius: 2.5,
+        backgroundColor: tc.borderStrong,
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingVertical: 12,
+        paddingHorizontal: 24,
+        paddingVertical: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#F3F4F6',
+        borderBottomColor: tc.borderSubtle,
     },
     headerText: {
-        fontSize: 17,
-        fontWeight: '700',
-        color: '#1F2937',
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: tc.textPrimary,
     },
     closeBtn: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
-        backgroundColor: '#F3F4F6',
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#F3F4F6',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -251,93 +261,92 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     startVisitBtn: {
-        borderRadius: 14,
+        borderRadius: 16,
         overflow: 'hidden',
-        marginBottom: 14,
+        marginBottom: 16,
         ...Platform.select({
             ios: {
-                shadowColor: '#4A90B9',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.25,
-                shadowRadius: 8,
+                shadowColor: tc.accent,
+                shadowOffset: { width: 0, height: 6 },
+                shadowOpacity: isDark ? 0.3 : 0.15,
+                shadowRadius: 12,
             },
-            android: { elevation: 4 },
+            android: { elevation: 6 },
         }),
     },
     startVisitGradient: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        height: 54, // Use static height instead of padding
+        height: 56,
         width: '100%',
-        gap: 10,
+        gap: 12,
     },
     startVisitText: {
         color: 'white',
-        fontWeight: '700',
-        fontSize: 16,
+        fontWeight: 'bold',
+        fontSize: 17,
     },
     actionButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 13,
-        paddingHorizontal: 14,
-        borderRadius: 12,
-        backgroundColor: '#FAFBFC',
-        borderWidth: 1,
-        borderColor: '#F0F2F5',
-        marginBottom: 8,
+        paddingVertical: 14,
+        paddingHorizontal: 16,
+        borderRadius: 14,
+        backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#FAFBFC',
+        borderWidth: 1.5,
+        borderColor: tc.borderSubtle,
+        marginBottom: 10,
     },
     actionIconBg: {
-        width: 36,
-        height: 36,
-        borderRadius: 10,
+        width: 40,
+        height: 40,
+        borderRadius: 12,
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 12,
+        marginRight: 14,
     },
     actionText: {
         flex: 1,
-        fontSize: 15,
-        fontWeight: '500',
-        color: '#374151',
+        fontSize: 16,
+        fontWeight: '600',
+        color: tc.textPrimary,
     },
     noteInputContainer: {
-        marginTop: 4,
-        marginBottom: 8,
-    },
-    noteInput: {
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-        borderRadius: 12,
-        padding: 14,
-        fontSize: 14,
-        minHeight: 100,
-        textAlignVertical: 'top',
-        backgroundColor: '#FAFBFC',
-        color: '#1F2937',
+        marginTop: 6,
         marginBottom: 10,
     },
+    noteInput: {
+        borderWidth: 1.5,
+        borderColor: tc.borderSubtle,
+        borderRadius: 16,
+        padding: 16,
+        fontSize: 15,
+        minHeight: 110,
+        textAlignVertical: 'top',
+        backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : '#FAFBFC',
+        color: tc.textPrimary,
+        marginBottom: 12,
+    },
     submitNoteBtn: {
-        backgroundColor: '#4A90B9',
-        paddingVertical: 12,
-        borderRadius: 10,
+        backgroundColor: tc.accent,
+        paddingVertical: 14,
+        borderRadius: 12,
         alignItems: 'center',
     },
     submitNoteText: {
         color: 'white',
-        fontWeight: '600',
-        fontSize: 14,
+        fontWeight: 'bold',
+        fontSize: 15,
     },
     cancelButton: {
         alignItems: 'center',
-        paddingVertical: 14,
-        marginTop: 4,
+        marginTop: 6,
     },
     cancelText: {
-        color: '#9CA3AF',
-        fontSize: 14,
-        fontWeight: '500',
+        color: tc.textMuted,
+        fontSize: 15,
+        fontWeight: '600',
     },
 });
 

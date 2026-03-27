@@ -21,6 +21,7 @@ import { UpdateEmployee } from '../../../Services/settingServices';
 import userStore from '../../../store/user';
 import CustomAlert from '../../../component/customAlert';
 import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 interface Employee {
     id: string;
@@ -43,6 +44,8 @@ interface EditEmployeeModalProps {
 
 const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ visible, onClose, onSave, employee }) => {
     const { t } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
     const { loggedInUser } = userStore();
     const [loading, setLoading] = useState(false);
     const [alertConfig, setAlertConfig] = useState<any>({
@@ -135,9 +138,9 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ visible, onClose,
     };
 
     const renderLabel = (label: string, required: boolean = true) => (
-        <View style={styles.labelContainer}>
-            {required && <Text style={styles.asterisk}>* </Text>}
-            <Text style={styles.labelText}>{label}</Text>
+        <View style={ds.labelContainer}>
+            {required && <Text style={ds.asterisk}>* </Text>}
+            <Text style={ds.labelText}>{label}</Text>
         </View>
     );
 
@@ -148,28 +151,28 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ visible, onClose,
             animationType="slide"
             onRequestClose={onClose}
         >
-            <View style={styles.modalOverlay}>
+            <View style={ds.modalOverlay}>
                 <KeyboardAvoidingView
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                    style={styles.keyboardView}
+                    style={ds.keyboardView}
                 >
-                    <View style={styles.modalContent}>
+                    <View style={ds.modalContent}>
                         {/* Header */}
-                        <View style={styles.header}>
-                            <Text style={styles.headerTitle}>{t('employee_modals.edit_employee.title')}</Text>
-                            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                                <Feather name="x" size={24} color="#64748B" />
+                        <View style={ds.header}>
+                            <Text style={ds.headerTitle}>{t('employee_modals.edit_employee.title')}</Text>
+                            <TouchableOpacity onPress={onClose} style={ds.closeButton}>
+                                <Feather name="x" size={24} color={tc.textMuted} />
                             </TouchableOpacity>
                         </View>
 
                         <ScrollView
-                            style={styles.formContainer}
+                            style={ds.formContainer}
                             showsVerticalScrollIndicator={false}
-                            contentContainerStyle={styles.scrollContent}
+                            contentContainerStyle={ds.scrollContent}
                         >
                             {/* First Name & Last Name Row */}
-                            <View style={styles.row}>
-                                <View style={styles.halfField}>
+                            <View style={ds.row}>
+                                <View style={ds.halfField}>
                                     {renderLabel(t('employee_modals.edit_employee.labels.firstName'))}
                                     <CustomTextInput
                                         placeholder=""
@@ -177,7 +180,7 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ visible, onClose,
                                         onChangeText={(val: string) => setFormData({ ...formData, firstName: val })}
                                     />
                                 </View>
-                                <View style={styles.halfField}>
+                                <View style={ds.halfField}>
                                     {renderLabel(t('employee_modals.edit_employee.labels.lastName'))}
                                     <CustomTextInput
                                         placeholder=""
@@ -201,13 +204,13 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ visible, onClose,
 
                             {/* PESEL */}
                             {renderLabel(t('employee_modals.edit_employee.labels.pesel'), false)}
-                            <View style={styles.disabledInput}>
+                            <View style={ds.disabledInput}>
                                 <TextInput
-                                    style={styles.disabledInputText}
+                                    style={ds.disabledInputText}
                                     value={formData.peselNumber}
                                     editable={false}
                                     placeholder=""
-                                    placeholderTextColor="#9CA3AF"
+                                    placeholderTextColor={tc.textMuted}
                                 />
                             </View>
                             <Gap height={hp(1.5)} />
@@ -223,13 +226,13 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ visible, onClose,
                             <Gap height={hp(1.5)} />
 
                             {/* Assigned Offices */}
-                            <Text style={styles.sectionTitle}>{t('employee_modals.edit_employee.labels.assignedOffices')}</Text>
-                            <View style={styles.officeChipsContainer}>
+                            <Text style={ds.sectionTitle}>{t('employee_modals.edit_employee.labels.assignedOffices')}</Text>
+                            <View style={ds.officeChipsContainer}>
                                 {selectedOffices.map((office: any) => (
-                                    <View key={office.officeId} style={styles.officeChip}>
-                                        <Text style={styles.officeChipText}>{office.name}</Text>
+                                    <View key={office.officeId} style={ds.officeChip}>
+                                        <Text style={ds.officeChipText}>{office.name}</Text>
                                         <TouchableOpacity onPress={() => handleRemoveOffice(office.officeId)}>
-                                            <Feather name="x" size={14} color="#64748B" />
+                                            <Feather name="x" size={14} color={tc.textMuted} />
                                         </TouchableOpacity>
                                     </View>
                                 ))}
@@ -251,18 +254,18 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ visible, onClose,
                             <Gap height={hp(3)} />
 
                             {/* Action Buttons */}
-                            <View style={styles.footerButtons}>
+                            <View style={ds.footerButtons}>
                                 <PrimaryButton
                                     label={t('employee_modals.edit_employee.buttons.cancel')}
                                     filled={false}
                                     onPress={onClose}
-                                    style={styles.cancelButton}
+                                    style={ds.cancelButton}
                                 />
                                 <PrimaryButton
                                     label={t('employee_modals.edit_employee.buttons.save')}
                                     filled={true}
                                     onPress={handleSave}
-                                    style={styles.saveButton}
+                                    style={ds.saveButton}
                                     loading={loading}
                                     disabled={loading}
                                 />
@@ -282,10 +285,10 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ visible, onClose,
     );
 };
 
-const styles = StyleSheet.create({
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -294,34 +297,37 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     modalContent: {
-        width: wp(90),
-        backgroundColor: '#fff',
-        borderRadius: 20,
+        width: wp(92),
+        backgroundColor: tc.modalBg,
+        borderRadius: 24,
         paddingTop: 20,
         maxHeight: hp(85),
+        borderWidth: isDark ? 1 : 0,
+        borderColor: tc.borderSubtle,
+        overflow: 'hidden',
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingBottom: 15,
+        paddingHorizontal: 24,
+        paddingBottom: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#F1F5F9',
+        borderBottomColor: tc.borderSubtle,
     },
     headerTitle: {
         fontSize: 20,
-        fontWeight: '700',
-        color: '#1E293B',
+        fontWeight: 'bold',
+        color: tc.textPrimary,
     },
     closeButton: {
         padding: 4,
     },
     formContainer: {
-        paddingHorizontal: 20,
+        paddingHorizontal: 24,
     },
     scrollContent: {
-        paddingTop: 15,
+        paddingVertical: 20,
     },
     row: {
         flexDirection: 'row',
@@ -338,38 +344,52 @@ const styles = StyleSheet.create({
     labelText: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#334155',
+        color: tc.textSecondary,
     },
     asterisk: {
-        color: '#EF4444',
+        color: tc.error,
         fontSize: 14,
         fontWeight: 'bold',
     },
-    sectionTitle: {
+    disabledInput: {
+        borderWidth: 1.5,
+        borderColor: tc.borderSubtle,
+        borderRadius: 12,
+        backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : '#F8FAFC',
+        minHeight: 52,
+        justifyContent: 'center',
+    },
+    disabledInputText: {
+        paddingHorizontal: 14,
         fontSize: 15,
-        fontWeight: '700',
-        color: '#1E293B',
-        marginBottom: 10,
+        color: tc.textMuted,
+    },
+    sectionTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: tc.textPrimary,
+        marginTop: 10,
+        marginBottom: 12,
     },
     officeChipsContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 8,
+        gap: 10,
     },
     officeChip: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#F1F5F9',
+        backgroundColor: isDark ? 'rgba(74, 144, 185, 0.15)' : '#F1F5F9',
         paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 16,
-        gap: 6,
+        paddingVertical: 8,
+        borderRadius: 20,
+        gap: 8,
         borderWidth: 1,
-        borderColor: '#E2E8F0',
+        borderColor: isDark ? 'rgba(74, 144, 185, 0.3)' : '#E2E8F0',
     },
     officeChipText: {
         fontSize: 13,
-        color: '#334155',
+        color: tc.textPrimary,
         fontWeight: '500',
     },
     footerButtons: {
@@ -377,31 +397,19 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
         alignItems: 'center',
         gap: 12,
+        marginTop: 10,
     },
     cancelButton: {
         width: wp(30),
-        height: 45,
+        height: 48,
         marginBottom: 0,
-        borderRadius: 10,
+        borderRadius: 12,
     },
     saveButton: {
-        width: wp(25),
-        height: 45,
+        width: wp(28),
+        height: 48,
         marginBottom: 0,
-        borderRadius: 10,
-    },
-    disabledInput: {
-        borderWidth: 1,
-        borderColor: '#e0e0e0',
-        borderRadius: 5,
-        backgroundColor: '#F3F4F6',
-        minHeight: 50,
-        justifyContent: 'center',
-    },
-    disabledInputText: {
-        padding: 12,
-        fontSize: 14,
-        color: '#9CA3AF',
+        borderRadius: 12,
     },
 });
 

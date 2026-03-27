@@ -17,6 +17,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import PrimaryButton from '../../../component/button';
 import Gap from '../../../component/gap';
 import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 // import { getPathfinderSessions } from '../../../Services/PathfinderTool.Service';
 
 interface ResearchProject {
@@ -43,6 +44,8 @@ const citationStyles = [
 
 const Pathfinder = () => {
     const { t } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
     // Form state
     const [researchTopic, setResearchTopic] = useState('');
     const [selectedContentType, setSelectedContentType] = useState('Full Article (Draft)');
@@ -125,51 +128,51 @@ const Pathfinder = () => {
     };
 
     return (
-        <View style={styles.outerWrapper}>
+        <View style={ds.outerWrapper}>
             {/* Header */}
-            <View style={styles.header}>
-                <TouchableOpacity onPress={togglePanel} style={styles.menuBtn}>
-                    <Feather name="menu" size={20} color="#4A90B9" />
+            <View style={ds.header}>
+                <TouchableOpacity onPress={togglePanel} style={ds.menuBtn}>
+                    <Feather name="menu" size={20} color={tc.accent} />
                 </TouchableOpacity>
                 <View>
-                    <Text style={styles.headerTitle}>{t('aiAssistant.pathfinder.title')}</Text>
-                    <Text style={styles.headerSubtitle}>{t('aiAssistant.pathfinder.subtitle')}</Text>
+                    <Text style={ds.headerTitle}>{t('aiAssistant.pathfinder.title')}</Text>
+                    <Text style={ds.headerSubtitle}>{t('aiAssistant.pathfinder.subtitle')}</Text>
                 </View>
             </View>
 
             {/* Scrollable Content */}
             <ScrollView
-                style={styles.scrollArea}
-                contentContainerStyle={styles.scrollContent}
+                style={ds.scrollArea}
+                contentContainerStyle={ds.scrollContent}
                 showsVerticalScrollIndicator={false}
             >
                 {/* Hero Section */}
-                <View style={styles.heroSection}>
+                <View style={ds.heroSection}>
                     <LinearGradient
                         colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
-                        style={styles.heroIconCircle}
+                        style={ds.heroIconCircle}
                     >
                         <Feather name="search" size={28} color="#FFFFFF" />
                     </LinearGradient>
                     <Gap height={hp(2)} />
-                    <Text style={styles.heroTitle}>{t('aiAssistant.pathfinder.heroTitle')}</Text>
+                    <Text style={ds.heroTitle}>{t('aiAssistant.pathfinder.heroTitle')}</Text>
                     <Gap height={hp(1)} />
-                    <Text style={styles.heroDesc}>
+                    <Text style={ds.heroDesc}>
                         {t('aiAssistant.pathfinder.heroDesc')}
                     </Text>
                 </View>
 
                 {/* Form Card */}
-                <View style={styles.formCard}>
+                <View style={ds.formCard}>
                     {/* Research Topic */}
-                    <Text style={styles.fieldLabel}>{t('aiAssistant.pathfinder.researchTopic')} <Text style={styles.required}>*</Text></Text>
+                    <Text style={ds.fieldLabel}>{t('aiAssistant.pathfinder.researchTopic')} <Text style={ds.required}>*</Text></Text>
                     <Gap height={hp(0.8)} />
                     <TextInput
-                        style={styles.textInput}
+                        style={ds.textInput}
                         placeholder={t('aiAssistant.pathfinder.researchTopicPlaceholder')}
-                        placeholderTextColor="#9CA3AF"
+                        placeholderTextColor={tc.textMuted}
                         value={researchTopic}
                         onChangeText={setResearchTopic}
                     />
@@ -177,36 +180,36 @@ const Pathfinder = () => {
                     <Gap height={hp(2)} />
 
                     {/* Upload Documents */}
-                    <Text style={styles.fieldLabel}>{t('aiAssistant.pathfinder.uploadDocuments')} <Text style={styles.required}>*</Text></Text>
+                    <Text style={ds.fieldLabel}>{t('aiAssistant.pathfinder.uploadDocuments')} <Text style={ds.required}>*</Text></Text>
                     <Gap height={hp(0.8)} />
-                    <View style={styles.uploadArea}>
+                    <View style={ds.uploadArea}>
                         <LinearGradient
                             colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 0 }}
-                            style={styles.uploadIconCircle}
+                            style={ds.uploadIconCircle}
                         >
                             <Feather name="upload" size={24} color="#FFFFFF" />
                         </LinearGradient>
                         <Gap height={hp(1.5)} />
-                        <Text style={styles.uploadText}>{t('aiAssistant.pathfinder.uploadText')}</Text>
-                        <Text style={styles.uploadSubText}>{t('aiAssistant.pathfinder.uploadSubText')}</Text>
+                        <Text style={ds.uploadText}>{t('aiAssistant.pathfinder.uploadText')}</Text>
+                        <Text style={ds.uploadSubText}>{t('aiAssistant.pathfinder.uploadSubText')}</Text>
                         <Gap height={hp(1.5)} />
-                        <TouchableOpacity onPress={handleChooseFiles} style={styles.chooseFilesBtn}>
-                            <Text style={styles.chooseFilesBtnText}>{t('aiAssistant.pathfinder.chooseFiles')}</Text>
+                        <TouchableOpacity onPress={handleChooseFiles} style={ds.chooseFilesBtn}>
+                            <Text style={ds.chooseFilesBtnText}>{t('aiAssistant.pathfinder.chooseFiles')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
 
                 {/* Research Configuration */}
-                <View style={styles.configSection}>
-                    <View style={styles.configHeader}>
-                        <Text style={styles.configTitle}>{t('aiAssistant.pathfinder.researchConfig')}</Text>
+                <View style={ds.configSection}>
+                    <View style={ds.configHeader}>
+                        <Text style={ds.configTitle}>{t('aiAssistant.pathfinder.researchConfig')}</Text>
                         <TouchableOpacity
                             onPress={() => setShowAdvanced(!showAdvanced)}
-                            style={styles.advancedToggleBtn}
+                            style={ds.advancedToggleBtn}
                         >
-                            <Text style={styles.advancedToggle}>
+                            <Text style={ds.advancedToggle}>
                                 {showAdvanced ? t('aiAssistant.pathfinder.hideAdvanced') : t('aiAssistant.pathfinder.showAdvanced')}
                             </Text>
                         </TouchableOpacity>
@@ -215,9 +218,9 @@ const Pathfinder = () => {
                     <Gap height={hp(2)} />
 
                     {/* Content Type */}
-                    <Text style={styles.chipGroupLabel}>{t('aiAssistant.pathfinder.contentType')}</Text>
+                    <Text style={ds.chipGroupLabel}>{t('aiAssistant.pathfinder.contentType')}</Text>
                     <Gap height={hp(1)} />
-                    <View style={styles.chipGrid}>
+                    <View style={ds.chipGrid}>
                         {contentTypes.map((type) => (
                             <TouchableOpacity
                                 key={type}
@@ -225,16 +228,16 @@ const Pathfinder = () => {
                             >
                                 {selectedContentType === type ? (
                                     <LinearGradient
-                                        colors={[tc.accentGradientStart || '#4A90B9', tc.accentGradientEnd || '#68BFB3']}
+                                        colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
                                         start={{ x: 0, y: 0 }}
                                         end={{ x: 1, y: 0 }}
-                                        style={styles.chipGradientWrapper}
+                                        style={ds.chipGradientWrapper}
                                     >
-                                        <Text style={[styles.chipText, styles.chipTextActive]}>{type}</Text>
+                                        <Text style={[ds.chipText, ds.chipTextActive]}>{type}</Text>
                                     </LinearGradient>
                                 ) : (
-                                    <View style={styles.chip}>
-                                        <Text style={styles.chipText}>{type}</Text>
+                                    <View style={ds.chip}>
+                                        <Text style={ds.chipText}>{type}</Text>
                                     </View>
                                 )}
                             </TouchableOpacity>
@@ -244,9 +247,9 @@ const Pathfinder = () => {
                     <Gap height={hp(2)} />
 
                     {/* Citation Style */}
-                    <Text style={styles.chipGroupLabel}>{t('aiAssistant.pathfinder.citationStyle')}</Text>
+                    <Text style={ds.chipGroupLabel}>{t('aiAssistant.pathfinder.citationStyle')}</Text>
                     <Gap height={hp(1)} />
-                    <View style={styles.chipGrid}>
+                    <View style={ds.chipGrid}>
                         {citationStyles.map((cs) => (
                             <TouchableOpacity
                                 key={cs}
@@ -257,13 +260,13 @@ const Pathfinder = () => {
                                         colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
                                         start={{ x: 0, y: 0 }}
                                         end={{ x: 1, y: 0 }}
-                                        style={styles.chipGradientWrapper}
+                                        style={ds.chipGradientWrapper}
                                     >
-                                        <Text style={[styles.chipText, styles.chipTextActive]}>{cs}</Text>
+                                        <Text style={[ds.chipText, ds.chipTextActive]}>{cs}</Text>
                                     </LinearGradient>
                                 ) : (
-                                    <View style={styles.chip}>
-                                        <Text style={styles.chipText}>{cs}</Text>
+                                    <View style={ds.chip}>
+                                        <Text style={ds.chipText}>{cs}</Text>
                                     </View>
                                 )}
                             </TouchableOpacity>
@@ -272,26 +275,26 @@ const Pathfinder = () => {
 
                     {/* Advanced Options */}
                     {showAdvanced && (
-                        <View style={styles.advancedSection}>
+                        <View style={ds.advancedSection}>
                             <Gap height={hp(2)} />
-                            <Text style={styles.fieldLabel}>{t('aiAssistant.pathfinder.keywordsFocus')}</Text>
+                            <Text style={ds.fieldLabel}>{t('aiAssistant.pathfinder.keywordsFocus')}</Text>
                             <Gap height={hp(0.8)} />
                             <TextInput
-                                style={styles.textInput}
+                                style={ds.textInput}
                                 placeholder="concise, focused"
-                                placeholderTextColor="#9CA3AF"
+                                placeholderTextColor={tc.textMuted}
                                 value={keywords}
                                 onChangeText={setKeywords}
                             />
 
                             <Gap height={hp(2)} />
 
-                            <Text style={styles.fieldLabel}>{t('aiAssistant.pathfinder.researchPrompt')}</Text>
+                            <Text style={ds.fieldLabel}>{t('aiAssistant.pathfinder.researchPrompt')}</Text>
                             <Gap height={hp(0.8)} />
                             <TextInput
-                                style={styles.multilineInput}
+                                style={ds.multilineInput}
                                 placeholder="Please make..."
-                                placeholderTextColor="#9CA3AF"
+                                placeholderTextColor={tc.textMuted}
                                 value={researchPrompt}
                                 onChangeText={setResearchPrompt}
                                 multiline
@@ -301,15 +304,15 @@ const Pathfinder = () => {
                 </View>
 
                 {/* Create Button */}
-                <View style={styles.createBtnWrapper}>
+                <View style={ds.createBtnWrapper}>
                     <PrimaryButton
                         label={t('aiAssistant.pathfinder.createProject')}
                         filled={true}
                         onPress={handleCreateProject}
-                        style={styles.createBtn}
+                        style={ds.createBtn}
                     />
                     <Gap height={hp(1)} />
-                    <Text style={styles.createFooterText}>
+                    <Text style={ds.createFooterText}>
                         {t('aiAssistant.pathfinder.createFooter')}
                     </Text>
                 </View>
@@ -320,60 +323,65 @@ const Pathfinder = () => {
             {/* Side Panel Overlay */}
             {showPanel && (
                 <TouchableOpacity
-                    style={styles.overlay}
+                    style={ds.overlay}
                     activeOpacity={1}
                     onPress={togglePanel}
                 >
                     <Animated.View
-                        style={[styles.sidePanel, { transform: [{ translateX: slideAnim }] }]}
+                        style={[ds.sidePanel, { transform: [{ translateX: slideAnim }] }]}
                     >
                         <TouchableOpacity activeOpacity={1}>
                             {/* Panel Header */}
-                            <View style={styles.panelHeader}>
-                                <View style={styles.panelHeaderLeft}>
-                                    <View style={styles.panelIconCircle}>
+                            <LinearGradient
+                                colors={[tc.accentGradientStart || '#4A90B9', tc.accentGradientEnd || '#68BFB3']}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 0 }}
+                                style={ds.panelHeader}
+                            >
+                                <View style={ds.panelHeaderLeft}>
+                                    <View style={ds.panelIconCircle}>
                                         <MaterialCommunityIcons name="file-document-outline" size={20} color="#FFFFFF" />
                                     </View>
-                                    <Text style={styles.panelHeaderTitle}>{t('aiAssistant.pathfinder.researchProjects')}</Text>
+                                    <Text style={ds.panelHeaderTitle}>{t('aiAssistant.pathfinder.researchProjects')}</Text>
                                 </View>
-                                <View style={styles.panelHeaderRight}>
+                                <View style={ds.panelHeaderRight}>
                                     <TouchableOpacity
-                                        style={styles.newProjectBtn}
+                                        style={ds.newProjectBtn}
                                         onPress={() => { togglePanel(); }}
                                     >
                                         <Feather name="plus" size={14} color="#FFFFFF" />
-                                        <Text style={styles.newProjectBtnText}>{t('aiAssistant.pathfinder.newProject')}</Text>
+                                        <Text style={ds.newProjectBtnText}>{t('aiAssistant.pathfinder.newProject')}</Text>
                                     </TouchableOpacity>
-                                    <TouchableOpacity onPress={togglePanel} style={styles.panelCloseBtn}>
+                                    <TouchableOpacity onPress={togglePanel} style={ds.panelCloseBtn}>
                                         <Feather name="chevron-left" size={20} color="#FFFFFF" />
                                     </TouchableOpacity>
                                 </View>
-                            </View>
+                            </LinearGradient>
 
                             {/* Panel Content */}
-                            <ScrollView style={styles.panelContent}>
+                            <ScrollView style={ds.panelContent}>
                                 {projects.length > 0 ? (
                                     projects.map((project) => (
-                                        <TouchableOpacity key={project.id} style={styles.projectItem}>
-                                            <View style={styles.projectItemRow}>
-                                                <Feather name="file-text" size={14} color="#4A90B9" />
-                                                <Text style={styles.projectItemTitle} numberOfLines={1}>
+                                        <TouchableOpacity key={project.id} style={ds.projectItem}>
+                                            <View style={ds.projectItemRow}>
+                                                <Feather name="file-text" size={14} color={tc.accent} />
+                                                <Text style={ds.projectItemTitle} numberOfLines={1}>
                                                     {project.topic}
                                                 </Text>
                                             </View>
-                                            <View style={styles.projectItemRow}>
-                                                <Feather name="clock" size={12} color="#9CA3AF" />
-                                                <Text style={styles.projectItemDate}>{project.date}</Text>
-                                                <Text style={styles.projectItemBadge}>{project.contentType}</Text>
+                                            <View style={ds.projectItemRow}>
+                                                <Feather name="clock" size={12} color={tc.textMuted} />
+                                                <Text style={ds.projectItemDate}>{project.date}</Text>
+                                                <Text style={ds.projectItemBadge}>{project.contentType}</Text>
                                             </View>
                                         </TouchableOpacity>
                                     ))
                                 ) : (
-                                    <View style={styles.emptyState}>
-                                        <MaterialCommunityIcons name="file-document-outline" size={48} color="#D1D5DB" />
+                                    <View style={ds.emptyState}>
+                                        <MaterialCommunityIcons name="file-document-outline" size={48} color={isDark ? tc.borderNormal : "#D1D5DB"} />
                                         <Gap height={hp(1.5)} />
-                                        <Text style={styles.emptyStateTitle}>{t('aiAssistant.pathfinder.noProjectsYet')}</Text>
-                                        <Text style={styles.emptyStateDesc}>{t('aiAssistant.pathfinder.createFirstProject')}</Text>
+                                        <Text style={ds.emptyStateTitle}>{t('aiAssistant.pathfinder.noProjectsYet')}</Text>
+                                        <Text style={ds.emptyStateDesc}>{t('aiAssistant.pathfinder.createFirstProject')}</Text>
                                     </View>
                                 )}
                             </ScrollView>
@@ -385,18 +393,20 @@ const Pathfinder = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     outerWrapper: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
         margin: 15,
         borderRadius: 12,
         overflow: 'hidden',
-        shadowColor: '#000',
+        shadowColor: tc.shadow,
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
+        shadowOpacity: isDark ? 0.3 : 0.08,
         shadowRadius: 4,
         elevation: 3,
         height: hp(68),
+        borderWidth: isDark ? 1 : 0,
+        borderColor: tc.borderSubtle,
     },
     header: {
         flexDirection: 'row',
@@ -404,26 +414,26 @@ const styles = StyleSheet.create({
         paddingVertical: 14,
         paddingHorizontal: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#F3F4F6',
-        backgroundColor: '#FAFBFC',
+        borderBottomColor: tc.borderSubtle,
+        backgroundColor: tc.cardBackground,
         gap: 12,
     },
     menuBtn: {
         width: 38,
         height: 38,
         borderRadius: 10,
-        backgroundColor: '#EBF5FF',
+        backgroundColor: isDark ? 'rgba(74, 144, 185, 0.15)' : '#EBF5FF',
         justifyContent: 'center',
         alignItems: 'center',
     },
     headerTitle: {
         fontSize: 16,
         fontWeight: '700',
-        color: '#4A90B9',
+        color: tc.accent,
     },
     headerSubtitle: {
         fontSize: 12,
-        color: '#6B7280',
+        color: tc.textSecondary,
         marginTop: 1,
     },
     scrollArea: {
@@ -438,25 +448,24 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: hp(3),
         paddingHorizontal: 24,
-        backgroundColor: '#F9FAFB',
+        backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : '#F9FAFB',
     },
     heroIconCircle: {
         width: 56,
         height: 56,
         borderRadius: 16,
-        backgroundColor: '#4A90B9',
         justifyContent: 'center',
         alignItems: 'center',
     },
     heroTitle: {
         fontSize: 18,
         fontWeight: '800',
-        color: '#111827',
+        color: tc.textPrimary,
         textAlign: 'center',
     },
     heroDesc: {
         fontSize: 14,
-        color: '#6B7280',
+        color: tc.textSecondary,
         textAlign: 'center',
         lineHeight: 20,
     },
@@ -466,38 +475,38 @@ const styles = StyleSheet.create({
         marginHorizontal: 16,
         marginTop: 16,
         padding: 16,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: '#F0F0F0',
+        borderColor: tc.borderSubtle,
     },
     fieldLabel: {
         fontSize: 14,
         fontWeight: '700',
-        color: '#111827',
+        color: tc.textPrimary,
     },
     required: {
-        color: '#EF4444',
+        color: tc.error || '#EF4444',
     },
     textInput: {
         borderWidth: 1,
-        borderColor: '#E5E7EB',
+        borderColor: tc.borderSubtle,
         borderRadius: 10,
         paddingHorizontal: 14,
         paddingVertical: 12,
         fontSize: 14,
-        color: '#111827',
-        backgroundColor: '#FAFBFC',
+        color: tc.textPrimary,
+        backgroundColor: tc.inputBackground,
     },
     multilineInput: {
         borderWidth: 1,
-        borderColor: '#E5E7EB',
+        borderColor: tc.borderSubtle,
         borderRadius: 10,
         paddingHorizontal: 14,
         paddingVertical: 12,
         fontSize: 14,
-        color: '#111827',
-        backgroundColor: '#FAFBFC',
+        color: tc.textPrimary,
+        backgroundColor: tc.inputBackground,
         minHeight: 100,
         textAlignVertical: 'top',
     },
@@ -505,31 +514,30 @@ const styles = StyleSheet.create({
     /* Upload Area */
     uploadArea: {
         borderWidth: 2,
-        borderColor: '#D1D5DB',
+        borderColor: tc.borderNormal,
         borderStyle: 'dashed',
         borderRadius: 12,
         paddingVertical: hp(3),
         paddingHorizontal: 20,
         alignItems: 'center',
-        backgroundColor: '#FAFBFC',
+        backgroundColor: tc.inputBackground,
     },
     uploadIconCircle: {
         width: 48,
         height: 48,
         borderRadius: 12,
-        backgroundColor: '#4A90B9',
         justifyContent: 'center',
         alignItems: 'center',
     },
     uploadText: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#374151',
+        color: tc.textPrimary,
         textAlign: 'center',
     },
     uploadSubText: {
         fontSize: 12,
-        color: '#9CA3AF',
+        color: tc.textMuted,
         textAlign: 'center',
         marginTop: 4,
     },
@@ -537,13 +545,13 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingVertical: 10,
         borderWidth: 1,
-        borderColor: '#4A90B9',
+        borderColor: tc.accent,
         borderRadius: 8,
     },
     chooseFilesBtnText: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#4A90B9',
+        color: tc.accent,
     },
 
     /* Research Configuration */
@@ -559,11 +567,11 @@ const styles = StyleSheet.create({
     configTitle: {
         fontSize: 15,
         fontWeight: '700',
-        color: '#000',
+        color: tc.textPrimary,
     },
     advancedToggleBtn: {
         borderWidth: 1,
-        borderColor: '#4A90B9',
+        borderColor: tc.accent,
         borderRadius: 8,
         paddingHorizontal: 12,
         paddingVertical: 6,
@@ -571,12 +579,12 @@ const styles = StyleSheet.create({
     advancedToggle: {
         fontSize: 13,
         fontWeight: '600',
-        color: '#4A90B9',
+        color: tc.accent,
     },
     chipGroupLabel: {
         fontSize: 14,
         fontWeight: '700',
-        color: '#111827',
+        color: tc.textPrimary,
     },
     chipGrid: {
         flexDirection: 'row',
@@ -590,20 +598,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: wp(6),
         borderRadius: 20,
         borderWidth: 1,
-        borderColor: '#E5E7EB',
-        backgroundColor: '#FFFFFF',
-    },
-    chipActive: {
-        backgroundColor: '#4A90B9',
-        borderColor: '#4A90B9',
-        height: hp(4),
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: wp(2),
+        borderColor: tc.borderSubtle,
+        backgroundColor: tc.cardBackground,
     },
     chipGradientWrapper: {
-        paddingHorizontal: wp(2),
-        // paddingVertical: 10,
+        paddingHorizontal: wp(6),
         borderRadius: 20,
         height: hp(4),
         justifyContent: 'center',
@@ -612,14 +611,14 @@ const styles = StyleSheet.create({
     chipText: {
         fontSize: 13,
         fontWeight: '500',
-        color: '#374151',
+        color: tc.textSecondary,
     },
     chipTextActive: {
         color: '#FFFFFF',
     },
     advancedSection: {
         borderTopWidth: 1,
-        borderTopColor: '#F3F4F6',
+        borderTopColor: tc.borderSubtle,
         marginTop: 16,
         paddingTop: 8,
     },
@@ -638,7 +637,7 @@ const styles = StyleSheet.create({
     },
     createFooterText: {
         fontSize: 12,
-        color: '#9CA3AF',
+        color: tc.textMuted,
         textAlign: 'center',
     },
 
@@ -649,7 +648,7 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.3)',
+        backgroundColor: 'rgba(0,0,0,0.5)',
         zIndex: 100,
         borderRadius: 12,
     },
@@ -659,9 +658,9 @@ const styles = StyleSheet.create({
         left: 0,
         bottom: 0,
         width: wp(72),
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
         borderRightWidth: 1,
-        borderRightColor: '#E5E7EB',
+        borderRightColor: tc.borderSubtle,
         borderTopLeftRadius: 12,
         borderBottomLeftRadius: 12,
         zIndex: 101,
@@ -671,7 +670,6 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: 14,
-        backgroundColor: '#4A90B9',
         borderTopLeftRadius: 12,
     },
     panelHeaderLeft: {
@@ -724,7 +722,7 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         paddingHorizontal: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#F3F4F6',
+        borderBottomColor: tc.borderSubtle,
     },
     projectItemRow: {
         flexDirection: 'row',
@@ -735,17 +733,17 @@ const styles = StyleSheet.create({
     projectItemTitle: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#111827',
+        color: tc.textPrimary,
         flex: 1,
     },
     projectItemDate: {
         fontSize: 12,
-        color: '#9CA3AF',
+        color: tc.textMuted,
     },
     projectItemBadge: {
         fontSize: 10,
-        color: '#4A90B9',
-        backgroundColor: '#EBF5FF',
+        color: tc.accent,
+        backgroundColor: isDark ? 'rgba(74, 144, 185, 0.15)' : '#EBF5FF',
         paddingHorizontal: 8,
         paddingVertical: 2,
         borderRadius: 8,
@@ -760,11 +758,11 @@ const styles = StyleSheet.create({
     emptyStateTitle: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#6B7280',
+        color: tc.textSecondary,
     },
     emptyStateDesc: {
         fontSize: 13,
-        color: '#9CA3AF',
+        color: tc.textMuted,
         marginTop: 4,
     },
 });

@@ -85,7 +85,7 @@ const PrimaryButton: React.FC<PrimaryButtonProps> = ({
                 <ActivityIndicator color={filled ? '#fff' : tc.accent} />
             ) : filled ? (
                 <LinearGradient
-                    colors={disabled ? ['#CCCCCC', '#CCCCCC'] : [tc.accentGradientStart || '#4A90B9', tc.accentGradientEnd || '#68BFB3']}
+                    colors={disabled ? ['#CCCCCC', '#CCCCCC'] : ['#4A90B9', '#5BA6B6', '#68BFB3']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={styles.gradientBackground}

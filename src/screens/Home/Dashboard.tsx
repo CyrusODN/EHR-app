@@ -644,7 +644,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) =>
             borderRadius: 16,
             justifyContent: 'center',
             alignItems: 'center',
-            backgroundColor: tc.cardBackground,
+            backgroundColor: tc.modalBg,
             borderWidth: 1.5,
             borderColor: tc.borderColor,
             ...Platform.select({
@@ -695,7 +695,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) =>
             maxWidth: 400,
         },
         calendarCardModal: {
-            backgroundColor: tc.cardBackground,
+            backgroundColor: tc.modalBg,
             borderRadius: 24,
             padding: 20,
             borderWidth: isDark ? 1 : 0,
@@ -816,7 +816,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) =>
         },
         // Calendar
         calendarCard: {
-            backgroundColor: tc.cardBackground,
+            backgroundColor: tc.modalBg,
             borderRadius: 16,
             padding: 16,
             marginTop: 6,

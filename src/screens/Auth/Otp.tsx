@@ -15,6 +15,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import {useTranslation} from 'react-i18next';
+import { useThemeColors } from '../../hooks/useThemeColors';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import PrimaryButton from '../../component/button';
@@ -23,6 +24,7 @@ import { VerifyOtp, ResendOtp, Verify2FA } from '../../Services/Auth.Service';
 import userStore from '../../store/user';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CustomAlert from '../../component/customAlert';
+import LogoSvg from '../../component/logo';
 
 // Define stack param list if not already defined globally
 type RootStackParamList = {
@@ -38,6 +40,8 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const Otp = () => {
     const { t } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
     const route = useRoute<any>();
     const navigation = useNavigation<any>();
     const {email, type} = route?.params || {};
@@ -236,43 +240,41 @@ console.log("type", type)
     };
 
     return (
-        <View style={{flex: 1, backgroundColor: '#fff'}}>
+        <View style={ds.mainContainer}>
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={{ flex: 1 }}>
             <ScrollView
-                contentContainerStyle={styles.scrollContent}
+                contentContainerStyle={ds.scrollContent}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}>
-                <View style={styles.container}>
+                <View style={ds.container}>
                     {/* Logo */}
-                    <Image
-                        source={require('../../assets/images/logo.png')}
-                        style={styles.logo}
-                        resizeMode="contain"
-                    />
+                    <View style={ds.logoContainer}>
+                        <LogoSvg />
+                    </View>
 
                     {/* Header */}
                     <View style={{ width: '100%', alignItems: 'center' }}>
                         {type === "registration" && (
-                            <Text style={styles.header}>{t('otp.verify_email_title')}</Text>
+                            <Text style={ds.header}>{t('otp.verify_email_title')}</Text>
                         )}
                         {type === "reset-password" && (
-                            <Text style={styles.header}>{t('otp.reset_password_title')}</Text>
+                            <Text style={ds.header}>{t('otp.reset_password_title')}</Text>
                         )}
                     </View>
 
                     {/* Description */}
-                    <Text style={styles.description}>
+                    <Text style={ds.description}>
                         {t('otp.verification_sent')}
                     </Text>
 
                     {/* OTP Input */}
-                    <View style={styles.otpContainer}>
+                    <View style={ds.otpContainer}>
                         {otp.map((digit, index) => (
                             <TextInput
                                 key={index}
-                                style={styles.otpInput}
+                                style={ds.otpInput}
                                 value={digit}
                                 onChangeText={(text) => handleOtpChange(text, index)}
                                 keyboardType="number-pad"
@@ -280,6 +282,7 @@ console.log("type", type)
                                 ref={(el) => assignRef(el, index)}
                                 selectTextOnFocus
                                 textContentType="oneTimeCode"
+                                placeholderTextColor={tc.textMuted}
                             />
                         ))}
                     </View>
@@ -291,7 +294,7 @@ console.log("type", type)
                         label={t('otp.verify_button')}
                         filled={true}
                         onPress={handleVerify}
-                        style={styles.primaryButton}
+                        style={ds.primaryButton}
                         loading={spinner}
                         disabled={!isOtpComplete()}
                         icon={undefined}
@@ -303,10 +306,10 @@ console.log("type", type)
                     <Gap height={hp(2)} />
 
                     {/* Resend OTP */}
-                    <View style={styles.resendContainer}>
-                        <Text style={styles.resendText}>{t('otp.didnt_receive_code')} </Text>
+                    <View style={ds.resendContainer}>
+                        <Text style={ds.resendText}>{t('otp.didnt_receive_code')} </Text>
                         <TouchableOpacity onPress={handleResendOtp}>
-                            <Text style={styles.resendLink}>{t('otp.resend_otp')}</Text>
+                            <Text style={ds.resendLink}>{t('otp.resend_otp')}</Text>
                         </TouchableOpacity>
                     </View>
 
@@ -321,7 +324,7 @@ console.log("type", type)
                             });
                         }}
                     >
-                        <Text style={styles.backToLoginText}>{t('otp.back_to_login')}</Text>
+                        <Text style={ds.backToLoginText}>{t('otp.back_to_login')}</Text>
                     </TouchableOpacity>
                 </View>
             </ScrollView>
@@ -337,77 +340,84 @@ console.log("type", type)
     );
 };
 
-const styles = StyleSheet.create({
-    scrollContent: {
-        flexGrow: 1,
-        paddingVertical: hp(2),
-    },
-    container: {
-        flex: 1,
-        alignItems: 'center',
-        paddingHorizontal: wp(6),
-        backgroundColor: '#fff',
-    },
-    logo: {
-        width: wp(50),
-        height: hp(12),
-        marginTop: hp(12),
-        marginBottom: hp(1),
-    },
-    header: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#1A1A1A',
-        marginBottom: hp(1),
-    },
-    description: {
-        fontSize: 14,
-        color: '#666',
-        textAlign: 'center',
-        marginBottom: hp(4),
-        paddingHorizontal: wp(4),
-    },
-    otpContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        width: '100%',
-        marginBottom: hp(1),
-    },
-    otpInput: {
-        width: wp(12),
-        height: wp(13),
-        borderWidth: 1.5,
-        borderColor: '#E8EDF2',
-        borderRadius: 12,
-        textAlign: 'center',
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#1A1A1A',
-        backgroundColor: '#F7F9FB',
-    },
-    primaryButton: {
-        width: '100%',
-        height: 52,
-        borderRadius: 12,
-    },
-    resendContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    resendText: {
-        fontSize: 14,
-        color: '#666',
-    },
-    resendLink: {
-        fontSize: 14,
-        color: '#007AFF',
-        fontWeight: 'bold',
-    },
-    backToLoginText: {
-        color: '#007AFF',
-        fontSize: 15,
-        fontWeight: '600',
-    },
-});
+const createDynamicStyles = (tc: any, isDark: boolean) =>
+    StyleSheet.create({
+        mainContainer: {
+            flex: 1,
+            backgroundColor: tc.background,
+        },
+        scrollContent: {
+            flexGrow: 1,
+            paddingVertical: hp(2),
+        },
+        container: {
+            flex: 1,
+            alignItems: 'center',
+            paddingHorizontal: wp(6),
+            backgroundColor: tc.background,
+        },
+        logoContainer: {
+            marginTop: hp(12),
+            marginBottom: hp(1),
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: wp(50),
+            height: hp(12),
+        },
+        header: {
+            fontSize: 24,
+            fontWeight: 'bold',
+            color: tc.textPrimary,
+            marginBottom: hp(1),
+        },
+        description: {
+            fontSize: 14,
+            color: tc.textSecondary,
+            textAlign: 'center',
+            marginBottom: hp(4),
+            paddingHorizontal: wp(4),
+        },
+        otpContainer: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            width: '100%',
+            marginBottom: hp(1),
+        },
+        otpInput: {
+            width: wp(12),
+            height: wp(13),
+            borderWidth: 1.5,
+            borderColor: tc.borderColor,
+            borderRadius: 12,
+            textAlign: 'center',
+            fontSize: 18,
+            fontWeight: 'bold',
+            color: tc.textPrimary,
+            backgroundColor: tc.cardBackgroundAlt,
+        },
+        primaryButton: {
+            width: '100%',
+            height: 52,
+            borderRadius: 12,
+        },
+        resendContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        resendText: {
+            fontSize: 14,
+            color: tc.textSecondary,
+        },
+        resendLink: {
+            fontSize: 14,
+            color: '#007AFF', // Standard brand link color
+            fontWeight: 'bold',
+        },
+        backToLoginText: {
+            color: '#007AFF', // Standard brand link color
+            fontSize: 15,
+            fontWeight: '600',
+        },
+    });
 
 export default Otp; 

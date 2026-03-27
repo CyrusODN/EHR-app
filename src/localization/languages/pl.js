@@ -36,6 +36,7 @@ export const pl = {
         "add": "Dodaj",
         "or": "lub",
         dateLocale: 'pl-PL',
+        dateTimeLocale: 'pl-PL',
         datePlaceholder: 'dd/mm/rrrr',
         na: 'Brak danych'
     },

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import CustomCheckbox from '../../../component/customCheckBox';
 import CustomDropdown from '../../../component/customDropDown';
 import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 const MedicalFilterForm = () => {
     const { t } = useTranslation();
@@ -45,10 +46,13 @@ const MedicalFilterForm = () => {
         }));
     };
 
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
+
     return (
-        <View style={styles.container}>
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>{t('aiAnalysis.filterForm.timeRange')}</Text>
+        <View style={ds.container}>
+            <View style={ds.section}>
+                <Text style={ds.sectionTitle}>{t('aiAnalysis.filterForm.timeRange')}</Text>
                 <CustomDropdown
                     placeholder={t('aiAnalysis.filterForm.lastMonth')}
                     options={timeRangeOptions}
@@ -56,8 +60,8 @@ const MedicalFilterForm = () => {
                     onChange={setTimeRange} icon={undefined} />
             </View>
 
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>{t('aiAnalysis.filterForm.branch')}</Text>
+            <View style={ds.section}>
+                <Text style={ds.sectionTitle}>{t('aiAnalysis.filterForm.branch')}</Text>
                 <CustomDropdown
                     placeholder={t('aiAnalysis.filterForm.allBranches')}
                     options={departmentOptions}
@@ -65,31 +69,25 @@ const MedicalFilterForm = () => {
                     onChange={setDepartment} icon={undefined} />
             </View>
 
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>{t('aiAnalysis.filterForm.doctors')}</Text>
-                <View style={{
-                    borderWidth: 1,
-                    borderColor: '#e0e0e0',
-                    borderRadius: 5,
-                    paddingHorizontal: 5,
-                    paddingVertical: 5,
-                    backgroundColor: 'white',
-                }}>
+            <View style={ds.section}>
+                <Text style={ds.sectionTitle}>{t('aiAnalysis.filterForm.doctors')}</Text>
+                <View style={ds.doctorListContainer}>
                     {doctorOptions.map((item, index) => {
+                        const isSelected = doctor === item.value;
                         return (
                             <TouchableOpacity
                                 key={index}
                                 onPress={() => {
                                     setDoctor(prev => prev == item.value ? null : item.value)
                                 }}
-                                style={{
-                                    backgroundColor: doctor == item.value ? '#4A90B9' : 'white',
-                                    borderRadius: 5, padding: 5
-                                }}>
-                                <Text style={{
-                                    color: doctor == item.value ? 'white' : 'black',
-                                    fontSize: 16
-                                }}>
+                                style={[
+                                    ds.doctorItem,
+                                    isSelected && ds.doctorItemActive
+                                ]}>
+                                <Text style={[
+                                    ds.doctorItemText,
+                                    isSelected && ds.doctorItemTextActive
+                                ]}>
                                     {item.label}
                                 </Text>
                             </TouchableOpacity>
@@ -98,8 +96,8 @@ const MedicalFilterForm = () => {
                 </View>
             </View>
 
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>{t('aiAnalysis.filterForm.metrics')}</Text>
+            <View style={ds.section}>
+                <Text style={ds.sectionTitle}>{t('aiAnalysis.filterForm.metrics')}</Text>
                 <CustomCheckbox
                     label={t('aiAnalysis.filterForm.visits')}
                     checked={metrics.visits}
@@ -115,22 +113,20 @@ const MedicalFilterForm = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     container: {
-        backgroundColor: 'white',
+        backgroundColor: tc.cardBackground,
         padding: 10,
         borderRadius: 10,
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.23,
-        shadowRadius: 2.62,
-        // Android shadow
+        shadowColor: tc.shadow,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: isDark ? 0.3 : 0.15,
+        shadowRadius: 5,
         elevation: 4,
         width: '100%',
         maxWidth: 500,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: tc.borderSubtle,
     },
     section: {
         marginBottom: 20,
@@ -139,7 +135,31 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         marginBottom: 10,
-        color: '#333',
+        color: tc.textPrimary,
+    },
+    doctorListContainer: {
+        borderWidth: 1,
+        borderColor: tc.borderSubtle,
+        borderRadius: 8,
+        padding: 5,
+        backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'white',
+    },
+    doctorItem: {
+        backgroundColor: 'transparent',
+        borderRadius: 6,
+        padding: 8,
+        marginVertical: 2,
+    },
+    doctorItemActive: {
+        backgroundColor: tc.accent,
+    },
+    doctorItemText: {
+        color: tc.textPrimary,
+        fontSize: 16,
+    },
+    doctorItemTextActive: {
+        color: '#FFFFFF',
+        fontWeight: '600',
     }
 });
 

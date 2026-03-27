@@ -15,6 +15,8 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import {useTranslation} from 'react-i18next';
+import { useThemeColors } from '../../hooks/useThemeColors';
+import LogoSvg from '../../component/logo';
 
 import CustomTextInput from '../../component/customTextInput';
 import PrimaryButton from '../../component/button';
@@ -44,6 +46,8 @@ const defaultValidationErrors = {
 
 const SignIn = () => {
   const {t} = useTranslation();
+  const { colors: tc, isDark } = useThemeColors();
+  const ds = createDynamicStyles(tc, isDark);
   const navigation = useNavigation<any>();
 
   const {setAuth, purgeAuth} = userStore();
@@ -266,26 +270,24 @@ const SignIn = () => {
   }, []);
 
   return (
-    <View style={{flex: 1, backgroundColor: '#fff'}}>
+    <View style={ds.mainContainer}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{flex: 1}}>
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={ds.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
-          <View style={styles.container}>
+          <View style={ds.container}>
             {/* Logo */}
-            <Image
-              source={require('../../assets/images/logo.png')}
-              style={styles.logo}
-              resizeMode="contain"
-            />
+            <View style={ds.logoContainer}>
+              <LogoSvg />
+            </View>
 
             <LanguageSelector />
 
             {/* Header */}
-            <Text style={styles.header}>{t('login.welcome_back')}</Text>
+            <Text style={ds.header}>{t('login.welcome_back')}</Text>
 
             {/* Email Input */}
             <CustomTextInput
@@ -296,7 +298,7 @@ const SignIn = () => {
               setValidationsState={setValidationErrors}
               validationState={validationErrors}
               isFormSubmitted={isFormSubmitted}
-              icon={<Ionicons name="mail-outline" color="#777" size={20} />}
+              icon={<Ionicons name="mail-outline" color={tc.textSecondary} size={20} />}
               right={undefined}
               onRightPress={undefined}
               keyboardType="email-address"
@@ -315,12 +317,12 @@ const SignIn = () => {
               setValidationsState={setValidationErrors}
               validationState={validationErrors}
               isFormSubmitted={isFormSubmitted}
-              icon={<Ionicons name="lock-closed-outline" color="#777" size={20} />}
+              icon={<Ionicons name="lock-closed-outline" color={tc.textSecondary} size={20} />}
               right={
                 isPasswordVisible ? (
-                  <Ionicons name="eye-off-outline" size={20} color="#777" />
+                  <Ionicons name="eye-off-outline" size={20} color={tc.textSecondary} />
                 ) : (
-                  <Ionicons name="eye-outline" size={20} color="#777" />
+                  <Ionicons name="eye-outline" size={20} color={tc.textSecondary} />
                 )
               }
               onRightPress={() => setIsPasswordVisible(!isPasswordVisible)}
@@ -332,7 +334,7 @@ const SignIn = () => {
             <View style={{width: '100%', alignItems: 'flex-end', marginTop: hp(1)}}>
               <TouchableOpacity
                 onPress={() => navigation.navigate('Forget-Password')}>
-                <Text style={styles.forgotPasswordText}>
+                <Text style={ds.forgotPasswordText}>
                   {t('login.forgot_password')}
                 </Text>
               </TouchableOpacity>
@@ -345,7 +347,7 @@ const SignIn = () => {
               label={t('login.login_button')}
               filled
               onPress={handleSignIn}
-              style={styles.primaryButton}
+              style={ds.primaryButton}
               loading={spinner}
               disabled={spinner}
               icon={undefined}
@@ -358,16 +360,16 @@ const SignIn = () => {
 
             {/* Google Sign In Button */}
             <TouchableOpacity
-              style={[styles.googleButton, isGoogleLoading && {opacity: 0.6}]}
+              style={[ds.googleButton, isGoogleLoading && {opacity: 0.6}]}
               onPress={handleGoogleSignIn}
               disabled={isGoogleLoading}
               activeOpacity={0.7}
             >
               <Image
                 source={require('../../assets/images/google-icon.png')}
-                style={styles.googleIcon}
+                style={ds.googleIcon}
               />
-              <Text style={{color: 'black', fontWeight: '500'}}>
+              <Text style={ds.googleButtonText}>
                 {isGoogleLoading ? t('login.signing_in') : t('login.continue_with_google')}
               </Text>
             </TouchableOpacity>
@@ -376,9 +378,9 @@ const SignIn = () => {
 
             {/* Sign Up Link */}
             <TouchableOpacity onPress={() => navigation.navigate('Sign-Up')}>
-              <Text style={styles.signUpText}>
+              <Text style={ds.signUpText}>
                 {t('login.no_account')}{' '}
-                <Text style={{color: '#007AFF', fontWeight: 'bold'}}>{t('login.sign_up')}</Text>
+                <Text style={ds.signUpLink}>{t('login.sign_up')}</Text>
               </Text>
             </TouchableOpacity>
           </View>
@@ -395,60 +397,75 @@ const SignIn = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    paddingVertical: hp(2),
-  },
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    paddingHorizontal: wp(6),
-    backgroundColor: '#fff',
-  },
-  logo: {
-    width: wp(50),
-    height: hp(12),
-    marginTop: hp(10),
-    marginBottom: hp(1),
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1A1A1A',
-    marginBottom: hp(3),
-  },
-  primaryButton: {
-    width: '100%',
-    height: 52,
-    borderRadius: 12,
-  },
-  googleButton: {
-    width: '100%',
-    borderWidth: 1,
-    borderColor: '#E8EDF2',
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-    height: 52,
-    backgroundColor: '#fff',
-  },
-  googleIcon: {
-    width: 24,
-    height: 24,
-    marginRight: 12,
-  },
-  forgotPasswordText: {
-    color: '#007AFF',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  signUpText: {
-    color: '#666',
-    fontSize: 15,
-  },
-});
+const createDynamicStyles = (tc: any, isDark: boolean) =>
+  StyleSheet.create({
+    mainContainer: {
+      flex: 1,
+      backgroundColor: tc.background,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      justifyContent: 'center',
+      paddingVertical: hp(2),
+    },
+    container: {
+      flex: 1,
+      alignItems: 'center',
+      paddingHorizontal: wp(6),
+      backgroundColor: tc.background,
+    },
+    logoContainer: {
+      marginTop: hp(10),
+      marginBottom: hp(1),
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: wp(50),
+      height: hp(12),
+    },
+    header: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: tc.textPrimary,
+      marginBottom: hp(3),
+    },
+    primaryButton: {
+      width: '100%',
+      height: 52,
+      borderRadius: 12,
+    },
+    googleButton: {
+      width: '100%',
+      borderWidth: 1,
+      borderColor: tc.borderColor,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexDirection: 'row',
+      height: 52,
+      backgroundColor: isDark ? tc.cardBackgroundAlt : '#fff',
+    },
+    googleIcon: {
+      width: 24,
+      height: 24,
+      marginRight: 12,
+    },
+    googleButtonText: {
+      color: tc.textPrimary,
+      fontWeight: '500',
+    },
+    forgotPasswordText: {
+      color: '#007AFF',
+      fontSize: 14,
+      fontWeight: '500',
+    },
+    signUpText: {
+      color: tc.textSecondary,
+      fontSize: 15,
+    },
+    signUpLink: {
+      color: '#007AFF',
+      fontWeight: 'bold',
+    },
+  });
 
 export default SignIn;

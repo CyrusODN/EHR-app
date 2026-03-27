@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import Svg, { Circle, Path, G, Rect, ClipPath, Defs } from 'react-native-svg';
 import useLanguageStore from '../store/language';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 const PolishFlag = () => (
     <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -30,6 +31,8 @@ const UKFlag = () => (
 
 const LanguageSelector = () => {
     const { i18n } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
     const { setLanguage } = useLanguageStore();
     const currentLanguage = i18n.language;
 
@@ -39,64 +42,65 @@ const LanguageSelector = () => {
     };
 
     return (
-        <View style={styles.container}>
+        <View style={ds.container}>
             <TouchableOpacity
-                style={[styles.button, currentLanguage === 'pl' && styles.activeButton]}
+                style={[ds.button, currentLanguage === 'pl' && ds.activeButton]}
                 onPress={() => changeLanguage('pl')}
                 activeOpacity={0.8}
             >
                 <PolishFlag />
-                <Text style={[styles.text, currentLanguage === 'pl' && styles.activeText]}>Polski</Text>
+                <Text style={[ds.text, currentLanguage === 'pl' && ds.activeText]}>Polski</Text>
             </TouchableOpacity>
             <TouchableOpacity
-                style={[styles.button, currentLanguage === 'en' && styles.activeButton]}
+                style={[ds.button, currentLanguage === 'en' && ds.activeButton]}
                 onPress={() => changeLanguage('en')}
                 activeOpacity={0.8}
             >
                 <UKFlag />
-                <Text style={[styles.text, currentLanguage === 'en' && styles.activeText]}>English</Text>
+                <Text style={[ds.text, currentLanguage === 'en' && ds.activeText]}>English</Text>
             </TouchableOpacity>
         </View>
     );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        flexDirection: 'row',
-        backgroundColor: '#F5F7F9',
-        borderRadius: 30,
-        padding: 4,
-        alignSelf: 'center',
-        marginVertical: 20,
-        borderWidth: 1,
-        borderColor: '#E8EDF2',
-    },
-    button: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 25,
-    },
-    activeButton: {
-        backgroundColor: '#FFFFFF',
-        // Shadow for iOS
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        // Elevation for Android
-        elevation: 3,
-    },
-    text: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#64748B',
-        marginLeft: 8,
-    },
-    activeText: {
-        color: '#0F172A',
-    }
-});
+const createDynamicStyles = (tc: any, isDark: boolean) =>
+    StyleSheet.create({
+        container: {
+            flexDirection: 'row',
+            backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#F5F7F9',
+            borderRadius: 30,
+            padding: 4,
+            alignSelf: 'center',
+            marginVertical: 20,
+            borderWidth: 1,
+            borderColor: tc.borderColor,
+        },
+        button: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            borderRadius: 25,
+        },
+        activeButton: {
+            backgroundColor: tc.cardBackground,
+            // Shadow for iOS
+            shadowColor: tc.shadow,
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: isDark ? 0.3 : 0.1,
+            shadowRadius: 4,
+            // Elevation for Android
+            elevation: 3,
+        },
+        text: {
+            fontSize: 15,
+            fontWeight: '600',
+            color: tc.textSecondary,
+            marginLeft: 8,
+        },
+        activeText: {
+            color: tc.textPrimary,
+        }
+    });
 
 export default LanguageSelector;

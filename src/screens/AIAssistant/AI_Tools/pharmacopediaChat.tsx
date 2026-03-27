@@ -18,6 +18,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import PrimaryButton from '../../../component/button';
 import Gap from '../../../component/gap';
 import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 import { getChatbotServiceToken } from '../../../Services/AiAssitants.Service';
 import { getPharmacopediaSessions, createPharmacopediaSession, getPharmacopediaSessionDetails, deletePharmacopediaSession, sendPharmacopediaMessage } from '../../../Services/PharmacopediaTool.Service';
 
@@ -35,6 +36,8 @@ interface PharmacopediaChatProps {
 
 const PharmacopediaChat = ({ serviceToken: propToken, onShowAlert }: PharmacopediaChatProps) => {
     const { t } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
     const [serviceToken, setServiceToken] = useState<string | null>(propToken || null);
     const [chatStarted, setChatStarted] = useState(false);
     const [messageText, setMessageText] = useState('');
@@ -290,46 +293,46 @@ const PharmacopediaChat = ({ serviceToken: propToken, onShowAlert }: Pharmacoped
 
     // ─── Main Render ───
     return (
-        <View style={styles.container}>
+        <View style={ds.container}>
             {/* Side Drawer */}
-            <Animated.View style={[styles.drawer, { left: drawerAnim }]}>
-                <View style={styles.drawerHeader}>
-                    <Text style={styles.drawerTitle}>{t('aiAssistant.pharmacopedia.drugQueries')}</Text>
-                    <View style={styles.drawerActions}>
-                        <TouchableOpacity onPress={handleNewSession} style={styles.drawerActionBtn}>
-                            <Feather name="plus" size={20} color="#4A90B9" />
+            <Animated.View style={[ds.drawer, { left: drawerAnim }]}>
+                <View style={ds.drawerHeader}>
+                    <Text style={ds.drawerTitle}>{t('aiAssistant.pharmacopedia.drugQueries')}</Text>
+                    <View style={ds.drawerActions}>
+                        <TouchableOpacity onPress={handleNewSession} style={ds.drawerActionBtn}>
+                            <Feather name="plus" size={20} color={tc.accent} />
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={toggleHistory} style={styles.drawerActionBtn}>
-                            <Feather name="chevron-left" size={20} color="#666" />
+                        <TouchableOpacity onPress={toggleHistory} style={ds.drawerActionBtn}>
+                            <Feather name="chevron-left" size={20} color={tc.textSecondary} />
                         </TouchableOpacity>
                     </View>
                 </View>
-                <ScrollView style={styles.sessionList}>
+                <ScrollView style={ds.sessionList}>
                     {sessions.map((session, index) => (
                         <TouchableOpacity
                             key={session._id || session.sessionId || index}
                             style={[
-                                styles.sessionItem,
-                                activeQueryId === session.sessionId && styles.activeSessionItem,
+                                ds.sessionItem,
+                                activeQueryId === session.sessionId && ds.activeSessionItem,
                             ]}
                             onPress={() => handleSelectSession(session.sessionId)}
                         >
-                            <View style={styles.sessionLeft}>
-                                <View style={styles.sessionIconCircle}>
-                                    <Feather name="link" size={16} color="#4A90B9" />
+                            <View style={ds.sessionLeft}>
+                                <View style={ds.sessionIconCircle}>
+                                    <Feather name="link" size={16} color={tc.accent} />
                                 </View>
-                                <View style={styles.sessionInfo}>
-                                    <Text style={styles.sessionTitle}>{t('aiAssistant.pharmacopedia.query')} #{session.sessionId?.substring(0, 8)}</Text>
-                                    <Text style={styles.sessionDate}>
+                                <View style={ds.sessionInfo}>
+                                    <Text style={ds.sessionTitle}>{t('aiAssistant.pharmacopedia.query')} #{session.sessionId?.substring(0, 8)}</Text>
+                                    <Text style={ds.sessionDate}>
                                         {session.createdAt ? new Date(session.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '11 Mar'}
                                     </Text>
                                 </View>
                             </View>
                             <TouchableOpacity 
-                                style={styles.deleteBtn}
+                                style={ds.deleteBtn}
                                 onPress={() => handleDeleteSession(session.sessionId)}
                             >
-                                <Feather name="trash-2" size={16} color="#EF4444" />
+                                <Feather name="trash-2" size={16} color={tc.error || "#EF4444"} />
                             </TouchableOpacity>
                         </TouchableOpacity>
                     ))}
@@ -338,20 +341,20 @@ const PharmacopediaChat = ({ serviceToken: propToken, onShowAlert }: Pharmacoped
 
             {/* Main Content Area */}
             {!chatStarted ? (
-                <View style={styles.mainWrapper}>
-                    <View style={styles.header}>
-                        <TouchableOpacity onPress={toggleHistory} style={styles.menuBtn}>
-                            <Feather name="menu" size={22} color="#111827" />
+                <View style={ds.mainWrapper}>
+                    <View style={ds.header}>
+                        <TouchableOpacity onPress={toggleHistory} style={ds.menuBtn}>
+                            <Feather name="menu" size={22} color={tc.textPrimary} />
                         </TouchableOpacity>
-                        <Text style={styles.headerTitle}>{t('aiAssistant.pharmacopedia.title')}</Text>
+                        <Text style={ds.headerTitle}>{t('aiAssistant.pharmacopedia.title')}</Text>
                     </View>
 
-                    <ScrollView contentContainerStyle={styles.landingContent}>
-                        <View style={styles.landingIconCircle}>
-                            <Feather name="link" size={28} color="#4A90B9" />
+                    <ScrollView contentContainerStyle={ds.landingContent}>
+                        <View style={ds.landingIconCircle}>
+                            <Feather name="link" size={28} color={tc.accent} />
                         </View>
                         <Gap height={hp(2)} />
-                        <Text style={styles.landingDesc}>
+                        <Text style={ds.landingDesc}>
                             {t('aiAssistant.pharmacopedia.landingDesc')}
                         </Text>
                         <Gap height={hp(4)} />
@@ -359,56 +362,56 @@ const PharmacopediaChat = ({ serviceToken: propToken, onShowAlert }: Pharmacoped
                             label={isCreatingSession ? t('aiAssistant.pharmacopedia.creating') : t('aiAssistant.pharmacopedia.startNewQuery')}
                             filled={true}
                             onPress={handleNewSession}
-                            style={styles.startBtn}
+                            style={ds.startBtn}
                             disabled={isCreatingSession}
                         />
                     </ScrollView>
                 </View>
             ) : (
                 <KeyboardAvoidingView
-                    style={styles.mainWrapper}
+                    style={ds.mainWrapper}
                     behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                     keyboardVerticalOffset={Platform.OS === 'ios' ? hp(17.5) : 0}
                 >
-                    <View style={styles.header}>
-                        <TouchableOpacity onPress={toggleHistory} style={styles.menuBtn}>
-                            <Feather name="menu" size={22} color="#111827" />
+                    <View style={ds.header}>
+                        <TouchableOpacity onPress={toggleHistory} style={ds.menuBtn}>
+                            <Feather name="menu" size={22} color={tc.textPrimary} />
                         </TouchableOpacity>
-                        <Text style={styles.headerTitle}>{t('aiAssistant.pharmacopedia.title')}</Text>
+                        <Text style={ds.headerTitle}>{t('aiAssistant.pharmacopedia.title')}</Text>
                     </View>
 
                     <ScrollView
                         ref={scrollViewRef}
-                        style={styles.messagesContainer}
-                        contentContainerStyle={styles.messagesContent}
+                        style={ds.messagesContainer}
+                        contentContainerStyle={ds.messagesContent}
                         onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
                     >
                         {messages.map((msg) => (
                             <View
                                 key={msg.id}
                                 style={[
-                                    styles.messageBubbleRow,
-                                    msg.sender === 'user' ? styles.userRow : styles.aiRow,
+                                    ds.messageBubbleRow,
+                                    msg.sender === 'user' ? ds.userRow : ds.aiRow,
                                 ]}
                             >
                                 <View
                                     style={[
-                                        styles.messageBubble,
-                                        msg.sender === 'user' ? styles.userBubble : styles.aiBubble,
+                                        ds.messageBubble,
+                                        msg.sender === 'user' ? ds.userBubble : ds.aiBubble,
                                     ]}
                                 >
                                     <Text
                                         style={[
-                                            styles.messageText,
-                                            msg.sender === 'user' ? styles.userMessageText : styles.aiMessageText,
+                                            ds.messageText,
+                                            msg.sender === 'user' ? ds.userMessageText : ds.aiMessageText,
                                         ]}
                                     >
                                         {msg.text}
                                     </Text>
                                     <Text
                                         style={[
-                                            styles.messageTime,
-                                            msg.sender === 'user' ? styles.userTimeText : styles.aiTimeText,
+                                            ds.messageTime,
+                                            msg.sender === 'user' ? ds.userTimeText : ds.aiTimeText,
                                         ]}
                                     >
                                         {msg.time}
@@ -417,42 +420,43 @@ const PharmacopediaChat = ({ serviceToken: propToken, onShowAlert }: Pharmacoped
                             </View>
                         ))}
                         {isAiThinking && (
-                            <View style={[styles.messageBubbleRow, styles.aiRow]}>
-                                <View style={[styles.messageBubble, styles.aiBubble, styles.thinkingBubble]}>
-                                    <View style={styles.thinkingContent}>
-                                        <View style={styles.thinkingDots}>
-                                            <Animated.View style={[styles.thinkingDot, { opacity: dot1 }]} />
-                                            <Animated.View style={[styles.thinkingDot, { opacity: dot2 }]} />
-                                            <Animated.View style={[styles.thinkingDot, { opacity: dot3 }]} />
+                            <View style={[ds.messageBubbleRow, ds.aiRow]}>
+                                <View style={[ds.messageBubble, ds.aiBubble, ds.thinkingBubble]}>
+                                    <View style={ds.thinkingContent}>
+                                        <View style={ds.thinkingDots}>
+                                            <Animated.View style={[ds.thinkingDot, { opacity: dot1 }]} />
+                                            <Animated.View style={[ds.thinkingDot, { opacity: dot2 }]} />
+                                            <Animated.View style={[ds.thinkingDot, { opacity: dot3 }]} />
                                         </View>
-                                        <Text style={styles.thinkingText}>{t('aiAssistant.pharmacopedia.aiThinking')}</Text>
+                                        <Text style={ds.thinkingText}>{t('aiAssistant.pharmacopedia.aiThinking')}</Text>
                                     </View>
                                 </View>
                             </View>
                         )}
                     </ScrollView>
 
-                    <View style={styles.inputArea}>
-                        <View style={styles.inputBar}>
+                    <View style={ds.inputArea}>
+                        <View style={ds.inputBar}>
                             <TextInput
-                                style={styles.chatInput}
+                                style={ds.chatInput}
                                 placeholder={t('aiAssistant.pharmacopedia.askPlaceholder')}
+                                placeholderTextColor={tc.textMuted}
                                 value={messageText}
                                 onChangeText={setMessageText}
                                 onSubmitEditing={handleSendMessage}
                             />
                             <TouchableOpacity 
-                                style={[styles.sendBtn, (!messageText.trim() || isAiThinking) && styles.sendBtnDisabled]}
+                                style={[ds.sendBtn, (!messageText.trim() || isAiThinking) && ds.sendBtnDisabled]}
                                 onPress={handleSendMessage}
                                 disabled={!messageText.trim() || isAiThinking}
                             >
                                 <Ionicons name="send" size={18} color="#FFF" />
                             </TouchableOpacity>
                         </View>
-                        <View style={styles.inputFooter}>
-                            <View style={styles.ragBadge}>
-                                <MaterialCommunityIcons name="book-open-outline" size={14} color="#6B7280" />
-                                <Text style={styles.ragBadgeText}>{t('aiAssistant.pharmacopedia.ragEnhanced')}</Text>
+                        <View style={ds.inputFooter}>
+                            <View style={ds.ragBadge}>
+                                <MaterialCommunityIcons name="book-open-outline" size={14} color={tc.textMuted} />
+                                <Text style={ds.ragBadgeText}>{t('aiAssistant.pharmacopedia.ragEnhanced')}</Text>
                             </View>
                         </View>
                     </View>
@@ -462,10 +466,10 @@ const PharmacopediaChat = ({ serviceToken: propToken, onShowAlert }: Pharmacoped
     );
 };
 
-const styles = StyleSheet.create({
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.screenBackground,
     },
     /* ─── Drawer Styles ─── */
     drawer: {
@@ -473,14 +477,14 @@ const styles = StyleSheet.create({
         top: 0,
         bottom: 0,
         width: wp(75),
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
         zIndex: 1000,
         borderRightWidth: 1,
-        borderRightColor: '#E5E7EB',
+        borderRightColor: tc.borderSubtle,
         elevation: 10,
-        shadowColor: '#000',
+        shadowColor: tc.shadow,
         shadowOffset: { width: 4, height: 0 },
-        shadowOpacity: 0.1,
+        shadowOpacity: isDark ? 0.3 : 0.1,
         shadowRadius: 10,
     },
     drawerHeader: {
@@ -490,12 +494,12 @@ const styles = StyleSheet.create({
         paddingVertical: 18,
         paddingHorizontal: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#F3F4F6',
+        borderBottomColor: tc.borderSubtle,
     },
     drawerTitle: {
         fontSize: 17,
         fontWeight: '700',
-        color: '#111827',
+        color: tc.textPrimary,
     },
     drawerActions: {
         flexDirection: 'row',
@@ -515,10 +519,10 @@ const styles = StyleSheet.create({
         paddingVertical: 14,
         paddingHorizontal: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#F3F4F6',
+        borderBottomColor: tc.borderSubtle,
     },
     activeSessionItem: {
-        backgroundColor: '#F3F9FC',
+        backgroundColor: isDark ? 'rgba(74, 144, 185, 0.1)' : '#F3F9FC',
     },
     sessionLeft: {
         flexDirection: 'row',
@@ -530,7 +534,7 @@ const styles = StyleSheet.create({
         width: 32,
         height: 32,
         borderRadius: 8,
-        backgroundColor: '#EBF5FF',
+        backgroundColor: isDark ? 'rgba(74, 144, 185, 0.15)' : '#EBF5FF',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -540,11 +544,11 @@ const styles = StyleSheet.create({
     sessionTitle: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#111827',
+        color: tc.textPrimary,
     },
     sessionDate: {
         fontSize: 12,
-        color: '#9CA3AF',
+        color: tc.textMuted,
         marginTop: 2,
     },
     deleteBtn: {
@@ -561,7 +565,8 @@ const styles = StyleSheet.create({
         paddingVertical: 14,
         paddingHorizontal: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#F3F4F6',
+        borderBottomColor: tc.borderSubtle,
+        backgroundColor: tc.cardBackground,
     },
     menuBtn: {
         marginRight: 16,
@@ -570,7 +575,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 18,
         fontWeight: '700',
-        color: '#111827',
+        color: tc.textPrimary,
     },
     landingContent: {
         alignItems: 'center',
@@ -581,13 +586,13 @@ const styles = StyleSheet.create({
         width: 60,
         height: 60,
         borderRadius: 15,
-        backgroundColor: '#EBF5FF',
+        backgroundColor: isDark ? 'rgba(74, 144, 185, 0.15)' : '#EBF5FF',
         justifyContent: 'center',
         alignItems: 'center',
     },
     landingDesc: {
         fontSize: 15,
-        color: '#6B7280',
+        color: tc.textSecondary,
         textAlign: 'center',
         lineHeight: 22,
     },
@@ -600,7 +605,7 @@ const styles = StyleSheet.create({
     /* ─── Chat Styles ─── */
     messagesContainer: {
         flex: 1,
-        backgroundColor: '#F9FAFB',
+        backgroundColor: tc.screenBackground,
     },
     messagesContent: {
         padding: 16,
@@ -621,14 +626,14 @@ const styles = StyleSheet.create({
         borderRadius: 14,
     },
     userBubble: {
-        backgroundColor: '#4A90B9',
+        backgroundColor: tc.accent,
         borderBottomRightRadius: 4,
     },
     aiBubble: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
         borderBottomLeftRadius: 4,
         borderWidth: 1,
-        borderColor: '#E5E7EB',
+        borderColor: tc.borderSubtle,
     },
     messageText: {
         fontSize: 14,
@@ -638,24 +643,24 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
     },
     aiMessageText: {
-        color: '#374151',
+        color: tc.textPrimary,
     },
     messageTime: {
         fontSize: 10,
         marginTop: 4,
-        color: '#9CA3AF',
+        color: tc.textMuted,
     },
     userTimeText: {
         color: 'rgba(255,255,255,0.7)',
         textAlign: 'right',
     },
     aiTimeText: {
-        color: '#9CA3AF',
+        color: tc.textMuted,
     },
     inputArea: {
         borderTopWidth: 1,
-        borderTopColor: '#F3F4F6',
-        backgroundColor: '#FFFFFF',
+        borderTopColor: tc.borderSubtle,
+        backgroundColor: tc.cardBackground,
     },
     inputBar: {
         flexDirection: 'row',
@@ -666,23 +671,24 @@ const styles = StyleSheet.create({
     chatInput: {
         flex: 1,
         height: 44,
-        backgroundColor: '#F9FAFB',
+        backgroundColor: tc.inputBackground,
         borderWidth: 1,
-        borderColor: '#E5E7EB',
+        borderColor: tc.borderSubtle,
         borderRadius: 22,
         paddingHorizontal: 16,
         fontSize: 13,
+        color: tc.textPrimary,
     },
     sendBtn: {
         width: 44,
         height: 44,
         borderRadius: 22,
-        backgroundColor: '#4A90B9',
+        backgroundColor: tc.accent,
         justifyContent: 'center',
         alignItems: 'center',
     },
     sendBtnDisabled: {
-        backgroundColor: '#B0D3E8',
+        backgroundColor: isDark ? 'rgba(74, 144, 185, 0.4)' : '#B0D3E8',
     },
     inputFooter: {
         paddingHorizontal: 16,
@@ -693,18 +699,18 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 4,
-        backgroundColor: '#F3F4F6',
+        backgroundColor: isDark ? tc.layer2 : '#F3F4F6',
         paddingHorizontal: 8,
         paddingVertical: 4,
         borderRadius: 6,
     },
     ragBadgeText: {
         fontSize: 11,
-        color: '#6B7280',
+        color: tc.textMuted,
         fontWeight: '500',
     },
     thinkingBubble: {
-        backgroundColor: '#F3F4F6',
+        backgroundColor: tc.layer2 || '#F3F4F6',
     },
     thinkingContent: {
         flexDirection: 'row',
@@ -719,11 +725,11 @@ const styles = StyleSheet.create({
         width: 8,
         height: 8,
         borderRadius: 4,
-        backgroundColor: '#9CA3AF',
+        backgroundColor: tc.textMuted,
     },
     thinkingText: {
         fontSize: 13,
-        color: '#9CA3AF',
+        color: tc.textMuted,
         fontStyle: 'italic',
     },
 });

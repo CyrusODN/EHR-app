@@ -29,6 +29,7 @@ import { GetDirectorSetting, UpdateDirectorSetting } from '../../Services/settin
 import { uploadFileOnServer } from '../../Services/Upload.Service';
 import DocumentPicker from 'react-native-document-picker';
 import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 
 
@@ -45,6 +46,8 @@ interface OfficeCardProps {
     office: Office;
     onEdit: (id: string) => void;
     onDelete: (id: string) => void;
+    tc: any;
+    ds: any;
 }
 
 interface CertificateUploadSectionProps {
@@ -54,58 +57,60 @@ interface CertificateUploadSectionProps {
     onRemove: () => void;
     fileUrl?: string;
     loading?: boolean;
+    tc: any;
+    ds: any;
 }
 
 // Office Card Component
-const OfficeCard = ({ office, onEdit, onDelete, t }: OfficeCardProps & { t: any }) => (
-    <View style={styles.officeCard}>
-        <View style={styles.officeInfo}>
-            <Text style={styles.officeTitle}>{office.title}</Text>
-            <Text style={styles.officeDetail}>{t('settings.office_certs.offices.details.floor')}: {office.floor}, {t('settings.office_certs.offices.details.number')}: {office.number}</Text>
-            <Text style={styles.officeDetail}>{t('settings.office_certs.offices.details.type')}: {office.type}</Text>
-            <Text style={styles.officeDetail}>{t('settings.office_certs.offices.details.equipment')}: {office.equipment}</Text>
+const OfficeCard = ({ office, onEdit, onDelete, t, tc, ds }: OfficeCardProps & { t: any }) => (
+    <View style={ds.officeCard}>
+        <View style={ds.officeInfo}>
+            <Text style={ds.officeTitle}>{office.title}</Text>
+            <Text style={ds.officeDetail}>{t('settings.office_certs.offices.details.floor')}: {office.floor}, {t('settings.office_certs.offices.details.number')}: {office.number}</Text>
+            <Text style={ds.officeDetail}>{t('settings.office_certs.offices.details.type')}: {office.type}</Text>
+            <Text style={ds.officeDetail}>{t('settings.office_certs.offices.details.equipment')}: {office.equipment}</Text>
         </View>
-        <View style={styles.officeActions}>
-            <TouchableOpacity onPress={() => onEdit(office.id)} style={styles.iconButton}>
-                <Feather name="edit-2" size={20} color="#4A90B9" />
+        <View style={ds.officeActions}>
+            <TouchableOpacity onPress={() => onEdit(office.id)} style={ds.iconButton}>
+                <Feather name="edit-2" size={20} color={tc.accent} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => onDelete(office.id)} style={styles.iconButton}>
-                <Feather name="trash-2" size={20} color="#FF6B6B" />
+            <TouchableOpacity onPress={() => onDelete(office.id)} style={ds.iconButton}>
+                <Feather name="trash-2" size={20} color={tc.accentRed || '#FF6B6B'} />
             </TouchableOpacity>
         </View>
     </View>
 );
 
 // Certificate Upload Section Component
-const CertificateUploadSection = ({ title, placeholder, onUpload, onRemove, fileUrl, loading, t }: CertificateUploadSectionProps & { t: any }) => (
-    <View style={styles.certificateSection}>
-        <Text style={styles.certificateLabel}>{title}</Text>
+const CertificateUploadSection = ({ title, placeholder, onUpload, onRemove, fileUrl, loading, t, tc, ds }: CertificateUploadSectionProps & { t: any }) => (
+    <View style={ds.certificateSection}>
+        <Text style={ds.certificateLabel}>{title}</Text>
         {loading ? (
-            <View style={[styles.uploadButton, { borderStyle: 'solid' }]}>
-                <ActivityIndicator size="small" color="#4A90B9" />
-                <Text style={[styles.uploadText, { marginLeft: 10 }]}>{t('settings.office_certs.certificates.uploading')}</Text>
+            <View style={[ds.uploadButton, { borderStyle: 'solid' }]}>
+                <ActivityIndicator size="small" color={tc.accent} />
+                <Text style={[ds.uploadText, { marginLeft: 10 }]}>{t('settings.office_certs.certificates.uploading')}</Text>
             </View>
         ) : fileUrl ? (
-            <View style={styles.filePreviewContainer}>
+            <View style={ds.filePreviewContainer}>
                 <TouchableOpacity 
-                    style={styles.fileInfo} 
+                    style={ds.fileInfo} 
                     onPress={() => Linking.openURL(fileUrl)}
                 >
-                    <MaterialCommunityIcons name="paperclip" size={20} color="#64748B" />
-                    <Text style={styles.fileUrlText} numberOfLines={1}>
+                    <MaterialCommunityIcons name="paperclip" size={20} color={tc.textMuted} />
+                    <Text style={ds.fileUrlText} numberOfLines={1}>
                         {fileUrl.split('/').pop()}
                     </Text>
                 </TouchableOpacity>
-                <View style={styles.actionIconsSide}>
-                    <TouchableOpacity onPress={onRemove} style={styles.deleteFileIconSide}>
-                        <Feather name="trash-2" size={16} color="#FF6B6B" />
+                <View style={ds.actionIconsSide}>
+                    <TouchableOpacity onPress={onRemove} style={ds.deleteFileIconSide}>
+                        <Feather name="trash-2" size={16} color={tc.accentRed || '#FF6B6B'} />
                     </TouchableOpacity>
                 </View>
             </View>
         ) : (
-            <TouchableOpacity style={styles.uploadButton} onPress={onUpload}>
-                <Feather name="upload" size={20} color="#4A90B9" />
-                <Text style={styles.uploadText}>{placeholder}</Text>
+            <TouchableOpacity style={ds.uploadButton} onPress={onUpload}>
+                <Feather name="upload" size={20} color={tc.accent} />
+                <Text style={ds.uploadText}>{placeholder}</Text>
             </TouchableOpacity>
         )}
     </View>
@@ -114,6 +119,8 @@ const CertificateUploadSection = ({ title, placeholder, onUpload, onRemove, file
 const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) => {
     const { t } = useTranslation();
     const navigation = useNavigation<any>();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
 
     const [id, setId] = useState('');
     const [directorId, setDirectorId] = useState('');
@@ -288,28 +295,28 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
     };
 
     return (
-        <View style={styles.container}>
-            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+        <View style={ds.container}>
+            <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={tc.cardBackground} />
 
-            <View style={styles.header}>
+            <View style={ds.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={{ paddingRight: 10 }}>
-                    <Ionicons name="chevron-back" size={24} color="#333" />
+                    <Ionicons name="chevron-back" size={24} color={tc.textPrimary} />
                 </TouchableOpacity>
-                <View style={styles.headerIconContainer}>
-                    <MaterialCommunityIcons name="office-building" size={24} color="#4A90B9" />
+                <View style={ds.headerIconContainer}>
+                    <MaterialCommunityIcons name="office-building" size={24} color={tc.accent} />
                 </View>
-                <Text style={styles.headerTitle}>{t('settings.office_certs.title')}</Text>
+                <Text style={ds.headerTitle}>{t('settings.office_certs.title')}</Text>
             </View>
 
-            <ScrollView style={styles.container}>
+            <ScrollView style={ds.container}>
                 {/* Offices Section */}
-                <View style={styles.section}>
-                    <View style={styles.sectionHeader}>
-                        <View style={styles.sectionTitleContainer}>
-                            <View style={styles.iconContainer}>
-                                <MaterialIcons name="meeting-room" size={24} color="#4A90B9" />
+                <View style={ds.section}>
+                    <View style={ds.sectionHeader}>
+                        <View style={ds.sectionTitleContainer}>
+                            <View style={ds.iconContainer}>
+                                <MaterialIcons name="meeting-room" size={24} color={tc.accent} />
                             </View>
-                            <Text style={styles.sectionTitle}>{t('settings.office_certs.offices.title')}</Text>
+                            <Text style={ds.sectionTitle}>{t('settings.office_certs.offices.title')}</Text>
                         </View>
 
                         <PrimaryButton
@@ -327,11 +334,11 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
                     </View>
 
                     {showAddForm && (
-                        <View style={styles.addOfficeForm}>
-                            <View style={styles.rowContainer}>
-                                <View style={styles.halfField}>
-                                    <Text style={styles.label}>
-                                        <Text style={styles.required}>* </Text>{t('settings.office_certs.offices.form.name')}
+                        <View style={ds.addOfficeForm}>
+                            <View style={ds.rowContainer}>
+                                <View style={ds.halfField}>
+                                    <Text style={ds.label}>
+                                        <Text style={ds.required}>* </Text>{t('settings.office_certs.offices.form.name')}
                                     </Text>
                                     <CustomTextInput
                                         placeholder={t('settings.office_certs.offices.form.name')}
@@ -339,9 +346,9 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
                                         onChangeText={setOfficeName}
                                     />
                                 </View>
-                                <View style={styles.halfField}>
-                                    <Text style={styles.label}>
-                                        <Text style={styles.required}>* </Text>{t('settings.office_certs.offices.form.floor')}
+                                <View style={ds.halfField}>
+                                    <Text style={ds.label}>
+                                        <Text style={ds.required}>* </Text>{t('settings.office_certs.offices.form.floor')}
                                     </Text>
                                     <CustomTextInput
                                         placeholder={t('settings.office_certs.offices.form.floor')}
@@ -352,10 +359,10 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
                                 </View>
                             </View>
 
-                            <View style={styles.rowContainer}>
-                                <View style={styles.halfField}>
-                                    <Text style={styles.label}>
-                                        <Text style={styles.required}>* </Text>{t('settings.office_certs.offices.form.number')}
+                            <View style={ds.rowContainer}>
+                                <View style={ds.halfField}>
+                                    <Text style={ds.label}>
+                                        <Text style={ds.required}>* </Text>{t('settings.office_certs.offices.form.number')}
                                     </Text>
                                     <CustomTextInput
                                         placeholder={t('settings.office_certs.offices.form.number_placeholder')}
@@ -364,9 +371,9 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
                                         keyboardType="numeric"
                                     />
                                 </View>
-                                <View style={styles.halfField}>
-                                    <Text style={styles.label}>
-                                        <Text style={styles.required}>* </Text>{t('settings.office_certs.offices.form.type')}
+                                <View style={ds.halfField}>
+                                    <Text style={ds.label}>
+                                        <Text style={ds.required}>* </Text>{t('settings.office_certs.offices.form.type')}
                                     </Text>
                                     <CustomDropdown
                                         placeholder={t('settings.office_certs.offices.form.type_placeholder')}
@@ -377,8 +384,8 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
                                 </View>
                             </View>
 
-                            <View style={styles.formField}>
-                                <Text style={styles.label}>{t('settings.office_certs.offices.form.equipment')}</Text>
+                            <View style={ds.formField}>
+                                <Text style={ds.label}>{t('settings.office_certs.offices.form.equipment')}</Text>
                                 <CustomTextInput
                                     placeholder={t('settings.office_certs.offices.form.equipment_placeholder')}
                                     value={equipment}
@@ -387,8 +394,8 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
                                     numberOfLines={4}
                                 />
                             </View>
-
-                            <View style={styles.formFooter}>
+                            
+                            <View style={ds.formFooter}>
                                 <PrimaryButton
                                     label={t('settings.office_certs.offices.buttons.cancel')}
                                     filled={false}
@@ -407,7 +414,7 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
                     )}
 
                     {/* Office List */}
-                    <View style={styles.officeList}>
+                    <View style={ds.officeList}>
                         {offices.map(office => (
                             <OfficeCard
                                 key={office.id}
@@ -415,30 +422,32 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
                                 onEdit={handleEditOffice}
                                 onDelete={handleDeleteOffice}
                                 t={t}
+                                tc={tc}
+                                ds={ds}
                             />
                         ))}
                     </View>
                 </View>
 
                 {/* Certificates Section */}
-                <View style={styles.section}>
-                    <View style={styles.sectionHeader}>
-                        <View style={styles.sectionTitleContainer}>
-                            <View style={styles.iconContainer}>
-                                <MaterialCommunityIcons name="certificate" size={24} color="#4A90B9" />
+                <View style={ds.section}>
+                    <View style={ds.sectionHeader}>
+                        <View style={ds.sectionTitleContainer}>
+                            <View style={ds.iconContainer}>
+                                <MaterialCommunityIcons name="certificate" size={24} color={tc.accent} />
                             </View>
-                            <Text style={styles.sectionTitle}>{t('settings.office_certs.certificates.title')}</Text>
+                            <Text style={ds.sectionTitle}>{t('settings.office_certs.certificates.title')}</Text>
                         </View>
                     </View>
 
                     {/* Certificate Upload Sections */}
-                        <View style={styles.certificatesContainer}>
-                        <View style={styles.certificateSection}>
-                            <Text style={styles.certificateLabel}>{t('settings.office_certs.certificates.p1_id')}</Text>
+                        <View style={ds.certificatesContainer}>
+                        <View style={ds.certificateSection}>
+                            <Text style={ds.certificateLabel}>{t('settings.office_certs.certificates.p1_id')}</Text>
                             <TextInput
-                                style={styles.certificateInput}
+                                style={[ds.certificateInput, { color: tc.textPrimary, backgroundColor: tc.inputBackground, borderColor: tc.borderColor }]}
                                 placeholder={t('settings.office_certs.certificates.p1_placeholder')}
-                                placeholderTextColor="#999"
+                                placeholderTextColor={tc.textMuted}
                                 value={p1Id}
                                 onChangeText={setP1Id}
                             />
@@ -452,6 +461,8 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
                             fileUrl={tlsCert}
                             loading={isUploadingTls}
                             t={t}
+                            tc={tc}
+                            ds={ds}
                         />
 
                         <CertificateUploadSection
@@ -462,10 +473,12 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
                             fileUrl={wlsCert}
                             loading={isUploadingWls}
                             t={t}
+                            tc={tc}
+                            ds={ds}
                         />
                     </View>
 
-                    <View style={styles.buttonContainer}>
+                    <View style={ds.buttonContainer}>
                         <PrimaryButton
                             label={t('settings.office_certs.buttons.save_changes')}
                             filled={true}
@@ -481,25 +494,25 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
     );
 };
 
-const styles = StyleSheet.create({
-    buttonContainer: {
-        marginHorizontal: 15,
-        marginTop: 10,
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: tc.screenBackground,
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 20,
         paddingVertical: 15,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
         borderBottomWidth: 1,
-        borderBottomColor: '#F1F5F9',
+        borderBottomColor: tc.borderSubtle,
     },
     headerIconContainer: {
         width: 40,
         height: 40,
         borderRadius: 8,
-        backgroundColor: '#E8F4F8',
+        backgroundColor: isDark ? 'rgba(74, 144, 185, 0.1)' : '#E8F4F8',
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,
@@ -507,20 +520,14 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#333333',
-    },
-    safeArea: {
-        flex: 1,
-        backgroundColor: '#FFFFFF',
-    },
-    container: {
-        flex: 1,
-        backgroundColor: '#FFFFFF',
+        color: tc.textPrimary,
     },
     section: {
         marginBottom: 20,
-        backgroundColor: 'white',
+        backgroundColor: tc.cardBackground,
         overflow: 'hidden',
+        borderBottomWidth: 1,
+        borderBottomColor: tc.borderSubtle,
     },
     sectionHeader: {
         flexDirection: 'row',
@@ -528,7 +535,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#F0F0F0',
+        borderBottomColor: tc.borderSubtle,
     },
     sectionTitleContainer: {
         flexDirection: 'row',
@@ -538,7 +545,7 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 8,
-        backgroundColor: '#E8F4F8',
+        backgroundColor: isDark ? 'rgba(74, 144, 185, 0.1)' : '#E8F4F8',
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,
@@ -546,20 +553,7 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#333333',
-    },
-    addButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#4A90B9',
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 6,
-    },
-    addButtonText: {
-        color: 'white',
-        marginLeft: 8,
-        fontWeight: '500',
+        color: tc.textPrimary,
     },
     officeList: {
         padding: 16,
@@ -568,10 +562,11 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         borderWidth: 1,
-        borderColor: '#EEEEEE',
-        borderRadius: 8,
+        borderColor: tc.borderColor,
+        borderRadius: 12,
         padding: 16,
         marginBottom: 12,
+        backgroundColor: isDark ? 'rgba(255, 255, 255, 0.02)' : tc.cardBackground,
     },
     officeInfo: {
         flex: 1,
@@ -579,17 +574,21 @@ const styles = StyleSheet.create({
     officeTitle: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#333333',
+        color: tc.textPrimary,
         marginBottom: 4,
     },
     officeDetail: {
         fontSize: 14,
-        color: '#666666',
+        color: tc.textSecondary,
         marginBottom: 2,
     },
     officeActions: {
         flexDirection: 'row',
         alignItems: 'center',
+    },
+    iconButton: {
+        padding: 8,
+        marginLeft: 8,
     },
     certificatesContainer: {
         padding: 16,
@@ -599,43 +598,42 @@ const styles = StyleSheet.create({
     },
     certificateLabel: {
         fontSize: 16,
-        fontWeight: '500',
+        fontWeight: '600',
         marginBottom: 8,
-        color: '#333333',
+        color: tc.textPrimary,
     },
     certificateInput: {
         borderWidth: 1,
-        borderColor: '#E0E0E0',
+        borderColor: tc.borderColor,
         borderRadius: 8,
         padding: 12,
-        fontSize: 16,
+        fontSize: 15,
+        color: tc.textPrimary,
     },
     uploadButton: {
-        borderWidth: 1,
-        borderColor: '#E0E0E0',
-        borderRadius: 8,
+        borderWidth: 1.5,
+        borderColor: tc.borderColor,
+        borderRadius: 10,
         padding: 16,
         borderStyle: 'dashed',
         alignItems: 'center',
         justifyContent: 'center',
         flexDirection: 'row',
+        backgroundColor: isDark ? 'rgba(255, 255, 255, 0.02)' : 'transparent',
     },
     uploadText: {
-        color: '#4A90B9',
+        color: tc.accent,
         marginLeft: 10,
-        fontSize: 16,
-    },
-    iconButton: {
-        padding: 8,
-        marginLeft: 8,
+        fontSize: 15,
+        fontWeight: '500',
     },
     addOfficeForm: {
         padding: 20,
         margin: 16,
         borderWidth: 1,
-        borderColor: '#E0E0E0',
+        borderColor: tc.borderColor,
         borderRadius: 12,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: isDark ? 'rgba(255, 255, 255, 0.03)' : '#F8FAFC',
     },
     rowContainer: {
         flexDirection: 'row',
@@ -651,11 +649,11 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#333',
+        color: tc.textSecondary,
         marginBottom: 8,
     },
     required: {
-        color: '#FF6B6B',
+        color: tc.accentRed || '#FF6B6B',
     },
     formFooter: {
         flexDirection: 'row',
@@ -664,22 +662,13 @@ const styles = StyleSheet.create({
         marginTop: 10,
         gap: 15,
     },
-    cancelBtn: {
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        borderRadius: 8,
-        borderWidth: 1.5,
-        borderColor: '#4A90B9',
-    },
-    cancelBtnText: {
-        color: '#4A90B9',
-        fontWeight: '700',
-        fontSize: 14,
-    },
     filePreviewContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 8,
+        paddingVertical: 12,
+        paddingHorizontal: 12,
+        backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : '#F1F5F9',
+        borderRadius: 8,
     },
     fileInfo: {
         flexDirection: 'row',
@@ -687,16 +676,22 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     fileUrlText: {
-        marginLeft: 8,
+        marginLeft: 10,
         fontSize: 14,
-        color: '#1E293B',
+        color: tc.textPrimary,
+        fontWeight: '500',
     },
     actionIconsSide: {
         flexDirection: 'row',
         alignItems: 'center',
     },
     deleteFileIconSide: {
-        padding: 5,
+        padding: 8,
+    },
+    buttonContainer: {
+        marginHorizontal: 0,
+        marginTop: 10,
+        paddingBottom: 20,
     },
 });
 

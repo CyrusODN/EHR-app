@@ -16,6 +16,7 @@ import VisitHistoryModal from './modals/VisitHistoryModal';
 import { GetPreviousVisits, GetPatientVisits } from '../../Services/Visit.Service';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 interface VisitInterviewProps {
     onNext: () => void;
@@ -28,6 +29,8 @@ interface VisitInterviewProps {
 
 const VisitInterview = ({ onNext, onBack, visitId, patientId, visitData, onUpdate }: VisitInterviewProps) => {
     const { t } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
     const [mainSymptoms, setMainSymptoms] = useState(visitData?.interview?.mainSymptoms || '');
     const [additionalNotes, setAdditionalNotes] = useState(visitData?.notes || '');
     const [showScalesModal, setShowScalesModal] = useState(false);
@@ -80,31 +83,31 @@ const VisitInterview = ({ onNext, onBack, visitId, patientId, visitData, onUpdat
     };
 
     return (
-        <View style={styles.container}>
-            <View style={styles.card}>
+        <View style={ds.container}>
+            <View style={ds.card}>
                 {/* Header */}
-                <View style={styles.headerRow}>
-                    <Text style={styles.title}>{t('visit.interview.title')}</Text>
+                <View style={ds.headerRow}>
+                    <Text style={ds.title}>{t('visit.interview.title')}</Text>
                     <TouchableOpacity onPress={() => setShowScalesModal(true)}>
                         <LinearGradient
                             colors={['#58A7B3', '#8ED1CC']}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 0 }}
-                            style={styles.psychiatricButton}
+                            style={ds.psychiatricButton}
                         >
                             <MaterialCommunityIcons name="brain" size={18} color="#fff" />
-                            <Text style={styles.psychiatricButtonText}>{t('visit.interview.scales.title')}</Text>
+                            <Text style={ds.psychiatricButtonText}>{t('visit.interview.scales.title')}</Text>
                         </LinearGradient>
                     </TouchableOpacity>
                 </View>
 
                 {/* Main Symptoms */}
-                <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>{t('visit.interview.mainSymptoms')}</Text>
+                <View style={ds.fieldContainer}>
+                    <Text style={ds.label}>{t('visit.interview.mainSymptoms')}</Text>
                     <TextInput
-                        style={styles.textArea}
+                        style={ds.textArea}
                         placeholder={t('visit.interview.mainSymptoms')}
-                        placeholderTextColor="#94A3B8"
+                        placeholderTextColor={tc.textMuted}
                         multiline
                         numberOfLines={5}
                         textAlignVertical="top"
@@ -120,13 +123,13 @@ const VisitInterview = ({ onNext, onBack, visitId, patientId, visitData, onUpdat
 
                 {/* Complete Scales */}
                 {Object.keys(completedScales).length > 0 && (
-                    <View style={styles.fieldContainer}>
-                        <Text style={styles.sectionLabel}>{t('visit.history_labels.scales')}</Text>
-                        <View style={styles.scalesCard}>
+                    <View style={ds.fieldContainer}>
+                        <Text style={ds.sectionLabel}>{t('visit.history_labels.scales')}</Text>
+                        <View style={ds.scalesCard}>
                             {Object.entries(completedScales).map(([scaleName, score]) => (
-                                <View key={scaleName} style={styles.scaleRow}>
-                                    <Text style={styles.scaleName}>{scaleName.toUpperCase()}:</Text>
-                                    <Text style={styles.scaleScore}>{score}</Text>
+                                <View key={scaleName} style={ds.scaleRow}>
+                                    <Text style={ds.scaleName}>{scaleName.toUpperCase()}:</Text>
+                                    <Text style={ds.scaleScore}>{score}</Text>
                                 </View>
                             ))}
                         </View>
@@ -134,24 +137,24 @@ const VisitInterview = ({ onNext, onBack, visitId, patientId, visitData, onUpdat
                 )}
 
                 {/* Previous Visits */}
-                <View style={styles.previousVisitsRow}>
-                    <Text style={styles.sectionLabel}>{t('visit.interview.previousVisits')}</Text>
+                <View style={ds.previousVisitsRow}>
+                    <Text style={ds.sectionLabel}>{t('visit.interview.previousVisits')}</Text>
                     <TouchableOpacity 
-                        style={styles.showVisitsButton}
+                        style={ds.showVisitsButton}
                         onPress={() => setShowHistoryModal(true)}
                     >
                         <MaterialCommunityIcons name="history" size={18} color="#58A7B3" />
-                        <Text style={styles.showVisitsText}>{t('visit.interview.showPreviousVisits')} ({totalVisits})</Text>
+                        <Text style={ds.showVisitsText}>{t('visit.interview.showPreviousVisits')} ({totalVisits})</Text>
                     </TouchableOpacity>
                 </View>
 
                 {/* Additional Notes */}
-                <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>{t('visit.interview.additionalNotes')}</Text>
+                <View style={ds.fieldContainer}>
+                    <Text style={ds.label}>{t('visit.interview.additionalNotes')}</Text>
                     <TextInput
-                        style={styles.textArea}
+                        style={ds.textArea}
                         placeholder={t('visit.interview.additionalNotes')}
-                        placeholderTextColor="#94A3B8"
+                        placeholderTextColor={tc.textMuted}
                         multiline
                         numberOfLines={5}
                         textAlignVertical="top"
@@ -166,10 +169,10 @@ const VisitInterview = ({ onNext, onBack, visitId, patientId, visitData, onUpdat
                 </View>
 
                 {/* Footer */}
-                <View style={styles.footer}>
-                    <TouchableOpacity style={styles.backButton} onPress={onBack}>
+                <View style={ds.footer}>
+                    <TouchableOpacity style={ds.backButton} onPress={onBack}>
                         <Feather name="arrow-left" size={18} color="#58A7B3" />
-                        <Text style={styles.backButtonText}>{t('visit.navigation.previous')}</Text>
+                        <Text style={ds.backButtonText}>{t('visit.navigation.previous')}</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity onPress={onNext}>
@@ -177,9 +180,9 @@ const VisitInterview = ({ onNext, onBack, visitId, patientId, visitData, onUpdat
                             colors={['#58A7B3', '#8ED1CC']}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 0 }}
-                            style={styles.nextButton}
+                            style={ds.nextButton}
                         >
-                            <Text style={styles.nextButtonText}>{t('visit.navigation.next')}</Text>
+                            <Text style={ds.nextButtonText}>{t('visit.navigation.next')}</Text>
                             <Feather name="arrow-right" size={18} color="#fff" />
                         </LinearGradient>
                     </TouchableOpacity>
@@ -213,155 +216,154 @@ const VisitInterview = ({ onNext, onBack, visitId, patientId, visitData, onUpdat
     );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 12,
-    },
-    card: {
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        padding: 16,
-        borderWidth: 1,
-        borderColor: '#E2E8F0',
-    },
-    headerRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 24,
-    },
-    title: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: '#1E293B',
-    },
-    psychiatricButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: hp(5),
-        width: wp(45),
-        // paddingHorizontal: wp(4),
-        borderRadius: 8,
-    },
-    psychiatricButtonText: {
-        color: '#fff',
-        fontSize: 14,
-        fontWeight: '700',
-        marginLeft: 8,
-    },
-    fieldContainer: {
-        marginBottom: 20,
-    },
-    label: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#1E293B',
-        marginBottom: 8,
-    },
-    textArea: {
-        borderWidth: 1,
-        borderColor: '#E2E8F0',
-        borderRadius: 8,
-        padding: 12,
-        minHeight: hp(14),
-        fontSize: 14,
-        color: '#1E293B',
-        backgroundColor: '#fff',
-    },
-    previousVisitsRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 20,
-        paddingTop: 4,
-    },
-    sectionLabel: {
-        fontSize: 14,
-        fontWeight: '700',
-        color: '#1E293B',
-        marginBottom: 12,
-    },
-    scalesCard: {
-        backgroundColor: '#F8FAFC',
-        borderRadius: 8,
-        padding: 16,
-        marginTop: 4,
-    },
-    scaleRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#FFFFFF',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        borderRadius: 6,
-        justifyContent: 'space-between',
-        // Minimal shadow or border to match image
-        borderWidth: 1,
-        borderColor: '#F1F5F9',
-    },
-    scaleName: {
-        fontSize: 14,
-        fontWeight: '700',
-        color: '#1E293B',
-    },
-    scaleScore: {
-        fontSize: 14,
-        fontWeight: '700',
-        color: '#58A7B3',
-    },
-    showVisitsButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderWidth: 1.5,
-        borderColor: '#58A7B3',
-        paddingVertical: 8,
-        paddingHorizontal: 14,
-        borderRadius: 8,
-    },
-    showVisitsText: {
-        fontSize: 14,
-        fontWeight: '700',
-        color: '#58A7B3',
-        marginLeft: 6,
-    },
-    footer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 16,
-        paddingTop: 10,
-    },
-    backButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderWidth: 1.5,
-        borderColor: '#58A7B3',
-        borderRadius: 8,
-        width: wp(43),
-        height: 50,
-        justifyContent: 'center',
-    },
-    backButtonText: {
-        fontSize: 16,
-        color: '#58A7B3',
-        fontWeight: '700',
-        marginLeft: 8,
-    },
-    nextButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderRadius: 8,
-        width: wp(43),
-        height: 50,
-        justifyContent: 'center',
-    },
-    nextButtonText: {
-        fontSize: 16,
-        color: '#fff',
-        fontWeight: '700',
-        marginRight: 8,
-    },
-});
+const createDynamicStyles = (tc: any, isDark: boolean) =>
+    StyleSheet.create({
+        container: {
+            flex: 1,
+            padding: 12,
+        },
+        card: {
+            backgroundColor: tc.cardBackground,
+            borderRadius: 12,
+            padding: 16,
+            borderWidth: 1,
+            borderColor: tc.borderColor,
+        },
+        headerRow: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 24,
+        },
+        title: {
+            fontSize: 18,
+            fontWeight: '700',
+            color: tc.textPrimary,
+        },
+        psychiatricButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: hp(5),
+            width: wp(45),
+            borderRadius: 8,
+        },
+        psychiatricButtonText: {
+            color: '#fff',
+            fontSize: 14,
+            fontWeight: '700',
+            marginLeft: 8,
+        },
+        fieldContainer: {
+            marginBottom: 20,
+        },
+        label: {
+            fontSize: 14,
+            fontWeight: '600',
+            color: tc.textPrimary,
+            marginBottom: 8,
+        },
+        textArea: {
+            borderWidth: 1,
+            borderColor: tc.borderColor,
+            borderRadius: 8,
+            padding: 12,
+            minHeight: hp(14),
+            fontSize: 14,
+            color: tc.textPrimary,
+            backgroundColor: tc.cardBackgroundAlt,
+        },
+        previousVisitsRow: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 20,
+            paddingTop: 4,
+        },
+        sectionLabel: {
+            fontSize: 14,
+            fontWeight: '700',
+            color: tc.textPrimary,
+            marginBottom: 12,
+        },
+        scalesCard: {
+            backgroundColor: tc.searchBarBg,
+            borderRadius: 8,
+            padding: 16,
+            marginTop: 4,
+        },
+        scaleRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: tc.cardBackground,
+            paddingHorizontal: 16,
+            paddingVertical: 12,
+            borderRadius: 6,
+            justifyContent: 'space-between',
+            borderWidth: 1,
+            borderColor: tc.borderColor,
+        },
+        scaleName: {
+            fontSize: 14,
+            fontWeight: '700',
+            color: tc.textPrimary,
+        },
+        scaleScore: {
+            fontSize: 14,
+            fontWeight: '700',
+            color: '#58A7B3',
+        },
+        showVisitsButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderWidth: 1.5,
+            borderColor: '#58A7B3',
+            paddingVertical: 8,
+            paddingHorizontal: 14,
+            borderRadius: 8,
+        },
+        showVisitsText: {
+            fontSize: 14,
+            fontWeight: '700',
+            color: '#58A7B3',
+            marginLeft: 6,
+        },
+        footer: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginTop: 16,
+            paddingTop: 10,
+        },
+        backButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderWidth: 1.5,
+            borderColor: '#58A7B3',
+            borderRadius: 8,
+            width: wp(43),
+            height: 50,
+            justifyContent: 'center',
+        },
+        backButtonText: {
+            fontSize: 16,
+            color: '#58A7B3',
+            fontWeight: '700',
+            marginLeft: 8,
+        },
+        nextButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderRadius: 8,
+            width: wp(43),
+            height: 50,
+            justifyContent: 'center',
+        },
+        nextButtonText: {
+            fontSize: 16,
+            color: '#fff',
+            fontWeight: '700',
+            marginRight: 8,
+        },
+    });
 
 export default VisitInterview;

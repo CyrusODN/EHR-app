@@ -19,16 +19,19 @@ import CustomTextInput from '../../component/customTextInput';
 import CustomDropdown from '../../component/customDropDown';
 import PrimaryButton from '../../component/button';
 import { useNavigation } from '@react-navigation/native';
-import { useTranslation } from 'react-i18next';
 import { GetFacilitySettings, UpdateFacilitySettings } from '../../Services/Facility.Service';
 import { uploadFileOnServer } from '../../Services/Upload.Service';
 import CustomAlert from '../../component/customAlert';
+import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../hooks/useThemeColors';
 import DocumentPicker from 'react-native-document-picker';
 import { Image } from 'react-native';
 
 const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
     const { t } = useTranslation();
     const navigation = useNavigation<any>();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
 
     // State variables for form fields
     const [name, setName] = useState('');
@@ -270,30 +273,30 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
     };
 
     return (
-        <View style={styles.container}>
-            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+        <View style={ds.container}>
+            <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={tc.cardBackground} />
             
             {/* Header with Logo */}
-            <View style={styles.topHeader}>
-                <View style={styles.logoContainer}>
-                    <MaterialCommunityIcons name="office-building-cog-outline" size={24} color="#4A90B9" />
+            <View style={ds.topHeader}>
+                <View style={ds.logoContainer}>
+                    <MaterialCommunityIcons name="office-building-cog-outline" size={24} color={tc.accent} />
                 </View>
-                <Text style={styles.topHeaderTitle}>{t('settings.facility_data.title')}</Text>
+                <Text style={ds.topHeaderTitle}>{t('settings.facility_data.title')}</Text>
             </View>
 
             {/* Content */}
-            <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContent}>
-                <View style={[styles.formCard, { padding: 20 }]}>
+            <ScrollView style={ds.scrollView} contentContainerStyle={ds.scrollViewContent}>
+                <View style={ds.formCard}>
                     {/* Basic Information Section */}
-                    <View style={styles.formSection}>
-                        <View style={styles.sectionHeader}>
-                            <Ionicons name="information-circle-outline" size={20} color="#4A90B9" />
-                            <Text style={styles.sectionTitle}>{t('settings.facility_data.sections.general')}</Text>
+                    <View style={ds.formSection}>
+                        <View style={ds.sectionHeader}>
+                            <Ionicons name="information-circle-outline" size={20} color={tc.accent} />
+                            <Text style={ds.sectionTitle}>{t('settings.facility_data.sections.general')}</Text>
                         </View>
 
-                        <View style={styles.rowContainer}>
+                        <View style={ds.rowContainer}>
                             <View style={{ flex: 2, marginRight: 12 }}>
-                                <Text style={styles.label}>{t('settings.facility_data.labels.name')} <Text style={styles.required}>*</Text></Text>
+                                <Text style={ds.label}>{t('settings.facility_data.labels.name')} <Text style={ds.required}>*</Text></Text>
                                 <CustomTextInput
                                     placeholder={t('settings.facility_data.placeholders.enter_name')}
                                     value={name}
@@ -301,7 +304,7 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                                 />
                             </View>
                             <View style={{ flex: 1 }}>
-                                <Text style={styles.label}>{t('settings.facility_data.labels.regon')} <Text style={styles.required}>*</Text></Text>
+                                <Text style={ds.label}>{t('settings.facility_data.labels.regon')} <Text style={ds.required}>*</Text></Text>
                                 <CustomTextInput
                                     placeholder={t('settings.facility_data.labels.regon')}
                                     value={regon}
@@ -311,9 +314,9 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                             </View>
                         </View>
 
-                        <View style={[styles.rowContainer, { marginTop: 10 }]}>
+                        <View style={[ds.rowContainer, { marginTop: 10 }]}>
                             <View style={{ flex: 1, marginRight: 10 }}>
-                                <Text style={styles.label}>{t('settings.facility_data.labels.nip')} <Text style={styles.required}>*</Text></Text>
+                                <Text style={ds.label}>{t('settings.facility_data.labels.nip')} <Text style={ds.required}>*</Text></Text>
                                 <CustomTextInput
                                     placeholder={t('settings.facility_data.labels.nip')}
                                     value={nip}
@@ -322,7 +325,7 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                                 />
                             </View>
                             <View style={{ flex: 1, marginRight: 10 }}>
-                                <Text style={styles.label}>{t('settings.facility_data.labels.bdo')}</Text>
+                                <Text style={ds.label}>{t('settings.facility_data.labels.bdo')}</Text>
                                 <CustomTextInput
                                     placeholder={t('settings.facility_data.labels.bdo')}
                                     value={bdo}
@@ -331,7 +334,7 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                                 />
                             </View>
                             <View style={{ flex: 1 }}>
-                                <Text style={styles.label}>{t('settings.facility_data.labels.registry_number')}</Text>
+                                <Text style={ds.label}>{t('settings.facility_data.labels.registry_number')}</Text>
                                 <CustomTextInput
                                     placeholder={t('settings.facility_data.placeholders.registry')}
                                     value={registryNumber}
@@ -340,9 +343,9 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                             </View>
                         </View>
 
-                        <View style={[styles.rowContainer, { marginTop: 10 }]}>
+                        <View style={[ds.rowContainer, { marginTop: 10 }]}>
                             <View style={{ flex: 1, marginRight: 10 }}>
-                                <Text style={styles.label}>{t('settings.facility_data.labels.facility_type')} <Text style={styles.required}>*</Text></Text>
+                                <Text style={ds.label}>{t('settings.facility_data.labels.facility_type')} <Text style={ds.required}>*</Text></Text>
                                 <CustomDropdown
                                     placeholder={t('settings.facility_data.placeholders.select_type')}
                                     options={facilityTypeOptions}
@@ -351,7 +354,7 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                                 />
                             </View>
                             <View style={{ flex: 1 }}>
-                                <Text style={styles.label}>{t('settings.facility_data.labels.phone')} <Text style={styles.required}>*</Text></Text>
+                                <Text style={ds.label}>{t('settings.facility_data.labels.phone')} <Text style={ds.required}>*</Text></Text>
                                 <CustomTextInput
                                     placeholder={t('settings.facility_data.labels.phone')}
                                     value={phone}
@@ -361,9 +364,9 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                             </View>
                         </View>
 
-                        <View style={[styles.rowContainer, { marginTop: 10 }]}>
+                        <View style={[ds.rowContainer, { marginTop: 10 }]}>
                             <View style={{ flex: 1 }}>
-                                <Text style={styles.label}>{t('settings.facility_data.labels.email')} <Text style={styles.required}>*</Text></Text>
+                                <Text style={ds.label}>{t('settings.facility_data.labels.email')} <Text style={ds.required}>*</Text></Text>
                                 <CustomTextInput
                                     placeholder={t('settings.facility_data.labels.email')}
                                     value={email}
@@ -374,18 +377,18 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                         </View>
                     </View>
 
-                        <View style={styles.divider} />
+                        <View style={ds.divider} />
 
                     {/* Contact & Address Section */}
-                    <View style={styles.formSection}>
-                        <View style={styles.sectionHeader}>
-                            <Ionicons name="location-outline" size={20} color="#4A90B9" />
-                            <Text style={styles.sectionTitle}>{t('settings.facility_data.sections.address')}</Text>
+                    <View style={ds.formSection}>
+                        <View style={ds.sectionHeader}>
+                            <Ionicons name="location-outline" size={20} color={tc.accent} />
+                            <Text style={ds.sectionTitle}>{t('settings.facility_data.sections.address')}</Text>
                         </View>
 
-                        <View style={styles.rowContainer}>
+                        <View style={ds.rowContainer}>
                             <View style={{ flex: 1, marginRight: 15 }}>
-                                <Text style={styles.label}>{t('settings.facility_data.labels.website')}</Text>
+                                <Text style={ds.label}>{t('settings.facility_data.labels.website')}</Text>
                                 <CustomTextInput
                                     placeholder={t('settings.facility_data.placeholders.enter_website')}
                                     value={website}
@@ -394,7 +397,7 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                                 />
                             </View>
                             <View style={{ flex: 1 }}>
-                                <Text style={styles.label}>{t('settings.facility_data.labels.account_number')}</Text>
+                                <Text style={ds.label}>{t('settings.facility_data.labels.account_number')}</Text>
                                 <CustomTextInput
                                     placeholder={t('settings.facility_data.labels.account_number')}
                                     value={accountNumber}
@@ -403,9 +406,9 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                             </View>
                         </View>
 
-                        <View style={[styles.rowContainer, { marginTop: 15 }]}>
+                        <View style={[ds.rowContainer, { marginTop: 15 }]}>
                             <View style={{ flex: 2, marginRight: 15 }}>
-                                <Text style={styles.label}>{t('settings.facility_data.labels.street')} <Text style={styles.required}>*</Text></Text>
+                                <Text style={ds.label}>{t('settings.facility_data.labels.street')} <Text style={ds.required}>*</Text></Text>
                                 <CustomTextInput
                                     placeholder={t('settings.facility_data.placeholders.street')}
                                     value={street}
@@ -413,7 +416,7 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                                 />
                             </View>
                             <View style={{ flex: 1, marginRight: 15 }}>
-                                <Text style={styles.label}>{t('settings.facility_data.labels.house_no')} <Text style={styles.required}>*</Text></Text>
+                                <Text style={ds.label}>{t('settings.facility_data.labels.house_no')} <Text style={ds.required}>*</Text></Text>
                                 <CustomTextInput
                                     placeholder={t('settings.facility_data.placeholders.no')}
                                     value={houseNo}
@@ -421,7 +424,7 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                                 />
                             </View>
                             <View style={{ flex: 1 }}>
-                                <Text style={styles.label}>{t('settings.facility_data.labels.apartment_no')}</Text>
+                                <Text style={ds.label}>{t('settings.facility_data.labels.apartment_no')}</Text>
                                 <CustomTextInput
                                     placeholder={t('settings.facility_data.placeholders.apt')}
                                     value={apartmentNo}
@@ -430,9 +433,9 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                             </View>
                         </View>
 
-                        <View style={[styles.rowContainer, { marginTop: 15 }]}>
+                        <View style={[ds.rowContainer, { marginTop: 15 }]}>
                             <View style={{ flex: 1, marginRight: 15 }}>
-                                <Text style={styles.label}>{t('settings.facility_data.labels.postal_code')} <Text style={styles.required}>*</Text></Text>
+                                <Text style={ds.label}>{t('settings.facility_data.labels.postal_code')} <Text style={ds.required}>*</Text></Text>
                                 <CustomTextInput
                                     placeholder="XX-XXX"
                                     value={postalCode}
@@ -440,7 +443,7 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                                 />
                             </View>
                             <View style={{ flex: 2 }}>
-                                <Text style={styles.label}>{t('settings.facility_data.labels.city')} <Text style={styles.required}>*</Text></Text>
+                                <Text style={ds.label}>{t('settings.facility_data.labels.city')} <Text style={ds.required}>*</Text></Text>
                                 <CustomTextInput
                                     placeholder={t('settings.facility_data.placeholders.city')}
                                     value={city}
@@ -449,18 +452,18 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                             </View>
                         </View>
 
-                        <View style={[styles.rowContainer, { marginTop: 15 }]}>
+                        <View style={[ds.rowContainer, { marginTop: 15 }]}>
                             <View style={{ flex: 1, marginRight: 15 }}>
-                                <Text style={styles.label}>{t('settings.facility_data.labels.teryt_code')} <Text style={styles.required}>*</Text></Text>
+                                <Text style={ds.label}>{t('settings.facility_data.labels.teryt_code')} <Text style={ds.required}>*</Text></Text>
                                 <CustomTextInput
                                     placeholder={t('settings.facility_data.placeholders.search_teryt')}
                                     value={terytCode}
                                     onChangeText={setTerytCode}
-                                    icon={<FontAwesome name="search" size={14} color="#64748B" />}
+                                    icon={<FontAwesome name="search" size={14} color={tc.textMuted} />}
                                 />
                             </View>
                             <View style={{ flex: 2 }}>
-                                <Text style={styles.label}>{t('settings.facility_data.labels.nfz_branch')} <Text style={styles.required}>*</Text></Text>
+                                <Text style={ds.label}>{t('settings.facility_data.labels.nfz_branch')} <Text style={ds.required}>*</Text></Text>
                                 <CustomDropdown
                                     placeholder={t('settings.facility_data.placeholders.select_nfz_branch')}
                                     options={nfzOptions}
@@ -471,18 +474,18 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                         </View>
                     </View>
 
-                        <View style={styles.divider} />
+                        <View style={ds.divider} />
 
                         {/* Workflow Section */}
-                        <View style={styles.formSection}>
-                            <View style={styles.sectionHeader}>
-                                <Ionicons name="time-outline" size={20} color="#4A90B9" />
-                                <Text style={styles.sectionTitle}>{t('settings.facility_data.sections.other')}</Text>
+                        <View style={ds.formSection}>
+                            <View style={ds.sectionHeader}>
+                                <Ionicons name="time-outline" size={20} color={tc.accent} />
+                                <Text style={ds.sectionTitle}>{t('settings.facility_data.sections.other')}</Text>
                             </View>
 
-                            <View style={styles.rowContainer}>
-                                <View style={styles.halfField}>
-                                    <Text style={styles.label}>{t('settings.facility_data.labels.work_hours')} <Text style={styles.required}>*</Text></Text>
+                            <View style={ds.rowContainer}>
+                                <View style={ds.halfField}>
+                                    <Text style={ds.label}>{t('settings.facility_data.labels.work_hours')} <Text style={ds.required}>*</Text></Text>
                                     <TouchableOpacity 
                                         activeOpacity={0.7}
                                         onPress={() => setActivePicker('from')}
@@ -498,8 +501,8 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                                     </TouchableOpacity>
                                 </View>
 
-                                <View style={styles.halfField}>
-                                    <Text style={styles.label}>{t('settings.facility_data.labels.work_hours')} <Text style={styles.required}>*</Text></Text>
+                                <View style={ds.halfField}>
+                                    <Text style={ds.label}>{t('settings.facility_data.labels.work_hours')} <Text style={ds.required}>*</Text></Text>
                                     <TouchableOpacity 
                                         activeOpacity={0.7}
                                         onPress={() => setActivePicker('to')}
@@ -539,16 +542,16 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                             )}
                             {Platform.OS === 'ios' && activePicker && (
                                 <TouchableOpacity 
-                                    style={styles.closePickerBtn}
+                                    style={ds.closePickerBtn}
                                     onPress={() => setActivePicker(null)}
                                 >
-                                    <Text style={styles.closePickerText}>{t('settings.facility_data.buttons.done')}</Text>
+                                    <Text style={ds.closePickerText}>{t('settings.facility_data.buttons.done')}</Text>
                                 </TouchableOpacity>
                             )}
 
-                            <View style={[styles.rowContainer, { marginTop: 10 }]}>
-                                <View style={styles.halfField}>
-                                    <Text style={styles.label}>{t('settings.facility_data.labels.visit_duration')} <Text style={styles.required}>*</Text></Text>
+                            <View style={[ds.rowContainer, { marginTop: 10 }]}>
+                                <View style={ds.halfField}>
+                                    <Text style={ds.label}>{t('settings.facility_data.labels.visit_duration')} <Text style={ds.required}>*</Text></Text>
                                     <CustomTextInput
                                         placeholder="30"
                                         value={visitDuration}
@@ -557,8 +560,8 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                                     />
                                 </View>
 
-                                <View style={styles.halfField}>
-                                    <Text style={styles.label}>{t('settings.facility_data.labels.visit_type')}</Text>
+                                <View style={ds.halfField}>
+                                    <Text style={ds.label}>{t('settings.facility_data.labels.visit_type')}</Text>
                                     <CustomDropdown
                                         placeholder={t('settings.facility_data.placeholders.select_visit_type')}
                                         options={visitTypeOptions}
@@ -568,8 +571,8 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                                 </View>
                             </View>
 
-                            <View style={[styles.formField, { marginTop: 10 }]}>
-                                <Text style={styles.label}>{t('settings.facility_data.labels.reception_mode')}</Text>
+                            <View style={[ds.formField, { marginTop: 10 }]}>
+                                <Text style={ds.label}>{t('settings.facility_data.labels.reception_mode')}</Text>
                                 <CustomDropdown
                                     placeholder={t('settings.facility_data.placeholders.select_reception_mode')}
                                     options={receptionModeOptions}
@@ -579,41 +582,41 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                             </View>
                         </View>
 
-                        <View style={styles.divider} />
+                        <View style={ds.divider} />
 
-                    <View style={styles.formSection}>
-                        <Text style={styles.label}>{t('settings.facility_data.labels.logo')}</Text>
-                        <View style={styles.logoUploadContainer}>
+                    <View style={ds.formSection}>
+                        <Text style={ds.label}>{t('settings.facility_data.labels.logo')}</Text>
+                        <View style={ds.logoUploadContainer}>
                             <TouchableOpacity 
-                                style={styles.chooseFileBtn}
+                                style={ds.chooseFileBtn}
                                 onPress={pickLogo}
                             >
-                                <View style={styles.chooseFileInner}>
-                                    <Ionicons name="cloud-upload-outline" size={18} color="#4A90B9" />
-                                    <Text style={styles.chooseFileText}>
+                                <View style={ds.chooseFileInner}>
+                                    <Ionicons name="cloud-upload-outline" size={18} color={tc.accent} />
+                                    <Text style={ds.chooseFileText}>
                                         {logo ? t('settings.facility_data.buttons.choose_file') : t('settings.facility_data.buttons.choose_file')}
                                     </Text>
                                 </View>
                             </TouchableOpacity>
                             {logo && (
-                                <View style={styles.selectedFileContainer}>
-                                    <View style={styles.logoPreviewWrapper}>
+                                <View style={ds.selectedFileContainer}>
+                                    <View style={ds.logoPreviewWrapper}>
                                         {logo.type?.startsWith('image/') ? (
-                                            <Image source={{ uri: logo.uri }} style={styles.logoPreview} />
+                                            <Image source={{ uri: logo.uri }} style={ds.logoPreview} />
                                         ) : (
-                                            <Ionicons name="document-text-outline" size={24} color="#4A90B9" />
+                                            <Ionicons name="document-text-outline" size={24} color={tc.accent} />
                                         )}
                                     </View>
-                                    <Text style={styles.fileName} numberOfLines={1}>{logo.name}</Text>
+                                    <Text style={ds.fileName} numberOfLines={1}>{logo.name}</Text>
                                     <TouchableOpacity onPress={() => setLogo(null)}>
-                                        <Ionicons name="close-circle" size={20} color="#EF4444" />
+                                        <Ionicons name="close-circle" size={20} color={tc.accentRed || '#EF4444'} />
                                     </TouchableOpacity>
                                 </View>
                             )}
                         </View>
 
-                        <View style={[styles.formField, { marginTop: 20 }]}>
-                            <Text style={styles.label}>{t('settings.facility_data.labels.consent')}</Text>
+                        <View style={[ds.formField, { marginTop: 20 }]}>
+                            <Text style={ds.label}>{t('settings.facility_data.labels.consent')}</Text>
                             <CustomTextInput
                                 placeholder=""
                                 value={consentText}
@@ -628,11 +631,11 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                         </View>
 
                         <View style={{ alignItems: 'flex-end', marginTop: 10 }}>
-                            <Text style={styles.requiredNote}>* {t('settings.facility_data.labels.required_field')}</Text>
+                            <Text style={ds.requiredNote}>* {t('settings.facility_data.labels.required_field')}</Text>
                         </View>
                     </View>
 
-                    <View style={styles.buttonContainer}>
+                    <View style={ds.buttonContainer}>
                         <PrimaryButton
                             label={t('settings.facility_data.buttons.save')}
                             filled={true}
@@ -656,15 +659,10 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
     );
 };
 
-const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: '#FFFFFF',
-    },
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F5F5F5',
-
+        backgroundColor: tc.screenBackground,
     },
     scrollView: {
         flex: 1,
@@ -673,45 +671,51 @@ const styles = StyleSheet.create({
         paddingBottom: 30,
     },
     formCard: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
         paddingBottom: 20,
+        marginHorizontal: 15,
+        borderRadius: 16,
+        marginTop: 15,
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
             height: 2,
         },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-        elevation: 3,
+        shadowOpacity: isDark ? 0.3 : 0.05,
+        shadowRadius: 8,
+        elevation: 4,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: tc.borderSubtle,
+        overflow: 'hidden',
     },
     formSection: {
-        padding: 15,
+        padding: 20,
     },
     sectionTitle: {
-        fontSize: 16,
-        fontWeight: '700',
-        color: '#1E293B',
+        fontSize: 17,
+        fontWeight: 'bold',
+        color: tc.textPrimary,
     },
     sectionHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 10,
+        gap: 12,
         marginBottom: 20,
         borderBottomWidth: 1,
-        borderBottomColor: '#F1F5F9',
-        paddingBottom: 10,
+        borderBottomColor: tc.borderSubtle,
+        paddingBottom: 12,
     },
     formField: {
         marginBottom: 5,
     },
     label: {
         fontSize: 14,
-        fontWeight: '500',
-        marginBottom: 6,
-        color: '#64748B',
+        fontWeight: '600',
+        marginBottom: 8,
+        color: tc.textSecondary,
     },
     required: {
-        color: 'red',
+        color: tc.error || '#EF4444',
     },
     rowContainer: {
         flexDirection: 'row',
@@ -721,52 +725,24 @@ const styles = StyleSheet.create({
     halfField: {
         width: '48%',
     },
-    timeContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    timeSeparator: {
-        fontSize: 24,
-        marginHorizontal: 5,
-        color: '#333',
-    },
     divider: {
-        height: 8,
-        backgroundColor: '#F8FAFC',
+        height: 1,
+        backgroundColor: tc.borderSubtle,
+        marginHorizontal: 20,
     },
     buttonContainer: {
-        marginHorizontal: 15,
+        marginHorizontal: 20,
         marginTop: 10,
-    },
-    helpButtonFloat: {
-        position: 'absolute',
-        bottom: 20,
-        right: 20,
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        backgroundColor: '#4A90B9',
-        justifyContent: 'center',
-        alignItems: 'center',
-        elevation: 5,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 3,
-    },
-    helpText: {
-        color: 'white',
-        fontSize: 20,
-        fontWeight: 'bold',
     },
     chooseFileBtn: {
         borderWidth: 1.5,
-        borderColor: '#4A90B9',
-        borderRadius: 8,
-        paddingVertical: 10,
-        paddingHorizontal: 15,
+        borderColor: tc.accent,
+        borderRadius: 12,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
         alignSelf: 'flex-start',
         marginTop: 5,
+        backgroundColor: isDark ? 'rgba(74, 144, 185, 0.1)' : 'transparent',
     },
     chooseFileInner: {
         flexDirection: 'row',
@@ -774,12 +750,12 @@ const styles = StyleSheet.create({
         gap: 10,
     },
     chooseFileText: {
-        color: '#4A90B9',
-        fontWeight: '600',
+        color: tc.accent,
+        fontWeight: 'bold',
         fontSize: 14,
     },
     requiredNote: {
-        color: '#777777',
+        color: tc.textMuted,
         fontSize: 12,
         fontStyle: 'italic',
     },
@@ -787,40 +763,40 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 20,
-        paddingVertical: 15,
-        backgroundColor: '#FFFFFF',
+        paddingVertical: 18,
+        backgroundColor: tc.cardBackground,
         borderBottomWidth: 1,
-        borderBottomColor: '#F1F5F9',
+        borderBottomColor: tc.borderSubtle,
     },
     logoContainer: {
-        width: 40,
-        height: 40,
-        backgroundColor: '#E0F2FE',
-        borderRadius: 8,
+        width: 44,
+        height: 44,
+        backgroundColor: isDark ? 'rgba(74, 144, 185, 0.2)' : '#E0F2FE',
+        borderRadius: 12,
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 15,
     },
     topHeaderTitle: {
-        fontSize: 20,
+        fontSize: 22,
         fontWeight: 'bold',
-        color: '#1E293B',
+        color: tc.textPrimary,
     },
     timePickerButton: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        borderWidth: 1,
-        borderColor: '#E2E8F0',
-        borderRadius: 8,
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-        backgroundColor: '#FFFFFF',
-        height: 48,
+        borderWidth: 1.5,
+        borderColor: tc.borderSubtle,
+        borderRadius: 12,
+        paddingHorizontal: 14,
+        paddingVertical: 12,
+        backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : '#F8FAFC',
+        height: 52,
     },
     timeValueText: {
         fontSize: 15,
-        color: '#1E293B',
+        color: tc.textPrimary,
     },
     logoUploadContainer: {
         flexDirection: 'row',
@@ -831,21 +807,21 @@ const styles = StyleSheet.create({
     selectedFileContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#F8FAFC',
-        padding: 8,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#E2E8F0',
+        backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : '#F8FAFC',
+        padding: 10,
+        borderRadius: 12,
+        borderWidth: 1.5,
+        borderColor: tc.borderSubtle,
         flex: 1,
         minWidth: 200,
     },
     logoPreviewWrapper: {
-        width: 40,
-        height: 40,
-        borderRadius: 4,
+        width: 44,
+        height: 44,
+        borderRadius: 8,
         overflow: 'hidden',
-        marginRight: 10,
-        backgroundColor: '#F1F5F9',
+        marginRight: 12,
+        backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#F1F5F9',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -856,18 +832,18 @@ const styles = StyleSheet.create({
     },
     fileName: {
         fontSize: 13,
-        color: '#475569',
+        color: tc.textSecondary,
         flex: 1,
         marginRight: 10,
     },
     closePickerBtn: {
         alignSelf: 'flex-end',
-        padding: 10,
+        padding: 12,
         marginTop: -10,
         marginBottom: 10,
     },
     closePickerText: {
-        color: '#4A90B9',
+        color: tc.accent,
         fontWeight: 'bold',
         fontSize: 16,
     },

@@ -13,6 +13,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import TrendAnalysisModal from './modals/TrendAnalysisModal';
 import { GetPatientVisits } from '../../Services/Visit.Service';
 import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 interface VisitProfileProps {
     onNext: () => void;
@@ -34,6 +35,8 @@ const VisitProfile = ({
     loading 
 }: VisitProfileProps) => {
     const { t } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
     const [activeTab, setActiveTab] = useState('Basic Information');
     const [showTrendModal, setShowTrendModal] = useState(false);
     const [trendData, setTrendData] = useState<any>(null);
@@ -92,40 +95,40 @@ const VisitProfile = ({
     };
 
     const renderBasicInfo = () => (
-        <View style={styles.cardContent}>
-            <View style={styles.row}>
-                <View style={styles.column}>
-                    <Text style={styles.label}>{t('common.patient')}</Text>
-                    <Text style={styles.value}>{patientData?.name || patientData?.firstName || t('visit.history_labels.noData')}</Text>
+        <View style={ds.cardContent}>
+            <View style={ds.row}>
+                <View style={ds.column}>
+                    <Text style={ds.label}>{t('common.patient')}</Text>
+                    <Text style={ds.value}>{patientData?.name || patientData?.firstName || t('visit.history_labels.noData')}</Text>
 
-                    <Text style={[styles.label, { marginTop: 20 }]}>{t('visit.profile.pesel')}</Text>
-                    <Text style={styles.value}>{patientData?.pesel || t('visit.history_labels.noData')}</Text>
+                    <Text style={[ds.label, { marginTop: 20 }]}>{t('visit.profile.pesel')}</Text>
+                    <Text style={ds.value}>{patientData?.pesel || t('visit.history_labels.noData')}</Text>
 
-                    <Text style={[styles.label, { marginTop: 20 }]}>{t('visit.profile.dateOfBirth')}</Text>
-                    <Text style={styles.value}>{patientData?.dob ? new Date(patientData.dob).toLocaleDateString() : t('visit.history_labels.noData')}</Text>
+                    <Text style={[ds.label, { marginTop: 20 }]}>{t('visit.profile.dateOfBirth')}</Text>
+                    <Text style={ds.value}>{patientData?.dob ? new Date(patientData.dob).toLocaleDateString() : t('visit.history_labels.noData')}</Text>
                 </View>
-                <View style={styles.column}>
-                    <Text style={styles.label}>{t('visit.profile.allergies')}</Text>
-                    <View style={styles.allergyContainer}>
+                <View style={ds.column}>
+                    <Text style={ds.label}>{t('visit.profile.allergies')}</Text>
+                    <View style={ds.allergyContainer}>
                         {medicalData?.allergies && medicalData.allergies.length > 0 ? (
                             medicalData.allergies.map((allergy: any, index: number) => (
-                                <View key={index} style={styles.allergyBadge}>
-                                    <Text style={styles.allergyText}>{allergy.name || allergy}</Text>
+                                <View key={index} style={ds.allergyBadge}>
+                                    <Text style={ds.allergyText}>{allergy.name || allergy}</Text>
                                 </View>
                             ))
                         ) : (
-                            <Text style={styles.subtitle}>{t('visit.profile.noAllergies')}</Text>
+                            <Text style={ds.subtitle}>{t('visit.profile.noAllergies')}</Text>
                         )}
                     </View>
 
-                    <Text style={[styles.label, { marginTop: 20 }]}>{t('visit.profile.chronicDiseases')}</Text>
+                    <Text style={[ds.label, { marginTop: 20 }]}>{t('visit.profile.chronicDiseases')}</Text>
                     <View>
                         {medicalData?.chronicConditions && medicalData.chronicConditions.length > 0 ? (
                             medicalData.chronicConditions.map((condition: any, index: number) => (
-                                <Text key={index} style={styles.value}>{condition.name || condition}</Text>
+                                <Text key={index} style={ds.value}>{condition.name || condition}</Text>
                             ))
                         ) : (
-                            <Text style={styles.subtitle}>{t('visit.profile.noDiseases')}</Text>
+                            <Text style={ds.subtitle}>{t('visit.profile.noDiseases')}</Text>
                         )}
                     </View>
                 </View>
@@ -138,10 +141,10 @@ const VisitProfile = ({
     }, []);
 
     const renderVisitHistory = () => (
-        <View style={styles.cardContent}>
-            <View style={styles.historyHeader}>
-                <Text style={styles.historyTitle}>{t('visit.profile.history')}</Text>
-                <Text style={styles.historyCount}>{t('visit.profile.history_total', { total: totalPreviousVisits })}</Text>
+        <View style={ds.cardContent}>
+            <View style={ds.historyHeader}>
+                <Text style={ds.historyTitle}>{t('visit.profile.history')}</Text>
+                <Text style={ds.historyCount}>{t('visit.profile.history_total', { total: totalPreviousVisits })}</Text>
             </View>
             {previousVisits && previousVisits.length > 0 ? (
                 <ScrollView showsVerticalScrollIndicator={false}>
@@ -157,46 +160,46 @@ const VisitProfile = ({
 
                         return (
                             <View key={index} style={[
-                                styles.visitCard,
-                                isExpanded && styles.visitCardExpanded,
+                                ds.visitCard,
+                                isExpanded && ds.visitCardExpanded,
                             ]}>
                                 {/* Visit Header - always visible */}
                                 <TouchableOpacity
                                     style={[
-                                        styles.visitCardHeader,
-                                        isExpanded && styles.visitCardHeaderExpanded,
+                                        ds.visitCardHeader,
+                                        isExpanded && ds.visitCardHeaderExpanded,
                                     ]}
                                     onPress={() => toggleVisitExpand(index)}
                                     activeOpacity={0.7}
                                 >
-                                    <View style={styles.visitCardLeft}>
-                                        <View style={styles.calendarIconWrap}>
+                                    <View style={ds.visitCardLeft}>
+                                        <View style={ds.calendarIconWrap}>
                                             <Feather name="calendar" size={18} color="#58A7B3" />
                                         </View>
-                                        <View style={styles.visitCardInfo}>
-                                            <Text style={styles.visitCardDate}>
+                                        <View style={ds.visitCardInfo}>
+                                            <Text style={ds.visitCardDate}>
                                                 {formatVisitDate(visit.date)}
                                             </Text>
-                                            <Text style={styles.visitCardType}>
+                                            <Text style={ds.visitCardType}>
                                                 {visit.visitType || 'public'}
                                             </Text>
                                             {timeRange ? (
-                                                <Text style={styles.visitCardTime}>
+                                                <Text style={ds.visitCardTime}>
                                                     {timeRange}
                                                 </Text>
                                             ) : null}
                                         </View>
                                     </View>
-                                    <View style={styles.visitCardRight}>
-                                        <View style={styles.statusBadge}>
-                                            <Text style={styles.statusBadgeText}>
+                                    <View style={ds.visitCardRight}>
+                                        <View style={ds.statusBadge}>
+                                            <Text style={ds.statusBadgeText}>
                                                 {visit.status || 'scheduled'}
                                             </Text>
                                         </View>
                                         <Feather
                                             name={isExpanded ? 'chevron-up' : 'chevron-down'}
                                             size={20}
-                                            color="#64748B"
+                                            color={tc.textMuted}
                                             style={{ marginLeft: 8 }}
                                         />
                                     </View>
@@ -204,78 +207,78 @@ const VisitProfile = ({
 
                                 {/* Expanded Details */}
                                 {isExpanded && (
-                                    <View style={styles.visitExpandedContent}>
+                                    <View style={ds.visitExpandedContent}>
                                         {/* Doctor */}
-                                        <View style={styles.expandedSection}>
-                                            <View style={styles.expandedSectionHeader}>
-                                                <Feather name="user" size={16} color="#64748B" />
-                                                <Text style={styles.expandedSectionTitle}>{t('visit.history_labels.doctor')}</Text>
+                                        <View style={ds.expandedSection}>
+                                            <View style={ds.expandedSectionHeader}>
+                                                <Feather name="user" size={16} color={tc.textMuted} />
+                                                <Text style={ds.expandedSectionTitle}>{t('visit.history_labels.doctor')}</Text>
                                             </View>
-                                            <Text style={styles.expandedSectionValue}>
+                                            <Text style={ds.expandedSectionValue}>
                                                 {visit.doctor?.name || visit.doctorName || visit.doctor || t('visit.history_labels.noData')}
                                             </Text>
                                         </View>
 
                                         {/* Notes */}
-                                        <View style={styles.expandedSection}>
-                                            <View style={styles.expandedSectionHeader}>
-                                                <Feather name="file-text" size={16} color="#64748B" />
-                                                <Text style={styles.expandedSectionTitle}>{t('visit.history_labels.notes')}</Text>
+                                        <View style={ds.expandedSection}>
+                                            <View style={ds.expandedSectionHeader}>
+                                                <Feather name="file-text" size={16} color={tc.textMuted} />
+                                                <Text style={ds.expandedSectionTitle}>{t('visit.history_labels.notes')}</Text>
                                             </View>
-                                            <Text style={styles.expandedSectionValue}>
+                                            <Text style={ds.expandedSectionValue}>
                                                 {visit.notes || t('visit.history_labels.defaultNote')}
                                             </Text>
                                         </View>
 
                                         {/* Medical Interview */}
-                                        <View style={styles.expandedSection}>
-                                            <View style={styles.expandedSectionHeader}>
-                                                <Feather name="file-text" size={16} color="#64748B" />
-                                                <Text style={styles.expandedSectionTitle}>{t('visit.history_labels.interview')}</Text>
+                                        <View style={ds.expandedSection}>
+                                            <View style={ds.expandedSectionHeader}>
+                                                <Feather name="file-text" size={16} color={tc.textMuted} />
+                                                <Text style={ds.expandedSectionTitle}>{t('visit.history_labels.interview')}</Text>
                                             </View>
 
-                                            <Text style={styles.expandedSubLabel}>{t('visit.history_labels.mainSymptoms')}</Text>
-                                            <Text style={styles.expandedSubValue}>
+                                            <Text style={ds.expandedSubLabel}>{t('visit.history_labels.mainSymptoms')}</Text>
+                                            <Text style={ds.expandedSubValue}>
                                                 {visit.mainSymptoms || visit.recommendations?.mainSymptoms || t('visit.history_labels.noData')}
                                             </Text>
 
-                                            <View style={[styles.expandedSectionHeader, { marginTop: 12 }]}>
-                                                <MaterialCommunityIcons name="brain" size={16} color="#64748B" />
-                                                <Text style={styles.expandedSectionTitle}>{t('visit.history_labels.scales')}</Text>
+                                            <View style={[ds.expandedSectionHeader, { marginTop: 12 }]}>
+                                                <MaterialCommunityIcons name="brain" size={16} color={tc.textMuted} />
+                                                <Text style={ds.expandedSectionTitle}>{t('visit.history_labels.scales')}</Text>
                                             </View>
                                         </View>
 
                                         {/* Examination */}
-                                        <View style={styles.expandedSection}>
-                                            <View style={styles.expandedSectionHeader}>
-                                                <MaterialCommunityIcons name="stethoscope" size={16} color="#64748B" />
-                                                <Text style={styles.expandedSectionTitle}>{t('visit.history_labels.examination')}</Text>
+                                        <View style={ds.expandedSection}>
+                                            <View style={ds.expandedSectionHeader}>
+                                                <MaterialCommunityIcons name="stethoscope" size={16} color={tc.textMuted} />
+                                                <Text style={ds.expandedSectionTitle}>{t('visit.history_labels.examination')}</Text>
                                             </View>
 
-                                            <View style={styles.examGrid}>
-                                                <View style={styles.examGridItem}>
-                                                    <Text style={styles.examLabel}>{t('visit.history_labels.bloodPressure')}:</Text>
-                                                    <Text style={styles.examValue}>
+                                            <View style={ds.examGrid}>
+                                                <View style={ds.examGridItem}>
+                                                    <Text style={ds.examLabel}>{t('visit.history_labels.bloodPressure')}:</Text>
+                                                    <Text style={ds.examValue}>
                                                         {visit.examination?.bloodPressure || t('visit.history_labels.noData')}
                                                     </Text>
                                                 </View>
-                                                <View style={styles.examGridItem}>
-                                                    <Text style={styles.examLabel}>{t('visit.history_labels.generalCondition')}:</Text>
-                                                    <Text style={styles.examValue}>
+                                                <View style={ds.examGridItem}>
+                                                    <Text style={ds.examLabel}>{t('visit.history_labels.generalCondition')}:</Text>
+                                                    <Text style={ds.examValue}>
                                                         {visit.examination?.generalCondition || t('visit.history_labels.noData')}
                                                     </Text>
                                                 </View>
                                             </View>
-                                            <View style={styles.examGrid}>
-                                                <View style={styles.examGridItem}>
-                                                    <Text style={styles.examLabel}>{t('visit.history_labels.heartRate')}:</Text>
-                                                    <Text style={styles.examValue}>
+                                            <View style={ds.examGrid}>
+                                                <View style={ds.examGridItem}>
+                                                    <Text style={ds.examLabel}>{t('visit.history_labels.heartRate')}:</Text>
+                                                    <Text style={ds.examValue}>
                                                         {visit.examination?.heartRate || t('visit.history_labels.noData')}
                                                     </Text>
                                                 </View>
-                                                <View style={styles.examGridItem}>
-                                                    <Text style={styles.examLabel}>{t('visit.history_labels.temperature')}:</Text>
-                                                    <Text style={styles.examValue}>
+                                                <View style={ds.examGridItem}>
+                                                    <Text style={ds.examLabel}>{t('visit.history_labels.temperature')}:</Text>
+                                                    <Text style={ds.examValue}>
                                                         {visit.examination?.temperature || t('visit.history_labels.noData')}
                                                     </Text>
                                                 </View>
@@ -288,31 +291,31 @@ const VisitProfile = ({
                     })}
                 </ScrollView>
             ) : (
-                <View style={styles.emptyContainer}>
-                    <Text style={styles.emptyText}>{t('visit.profile.noVisits')}</Text>
+                <View style={ds.emptyContainer}>
+                    <Text style={ds.emptyText}>{t('visit.profile.noVisits')}</Text>
                 </View>
             )}
         </View>
     );
 
     return (
-        <View style={styles.container}>
-            <View style={styles.card}>
-                <View style={styles.headerRow}>
-                    <View style={styles.tabContainer}>
+        <View style={ds.container}>
+            <View style={ds.card}>
+                <View style={ds.headerRow}>
+                    <View style={ds.tabContainer}>
                         <TouchableOpacity 
-                            style={[styles.tab, activeTab === 'Basic Information' && styles.tabActive]}
+                            style={[ds.tab, activeTab === 'Basic Information' && ds.tabActive]}
                             onPress={() => setActiveTab('Basic Information')}
                         >
-                            <Text style={[styles.tabText, activeTab === 'Basic Information' && styles.tabTextActive]}>
+                            <Text style={[ds.tabText, activeTab === 'Basic Information' && ds.tabTextActive]}>
                                 {t('visit.profile.tabs.basic')}
                             </Text>
                         </TouchableOpacity>
                         <TouchableOpacity 
-                            style={[styles.tab, activeTab === 'Visit History' && styles.tabActive]}
+                            style={[ds.tab, activeTab === 'Visit History' && ds.tabActive]}
                             onPress={() => setActiveTab('Visit History')}
                         >
-                            <Text style={[styles.tabText, activeTab === 'Visit History' && styles.tabTextActive]}>
+                            <Text style={[ds.tabText, activeTab === 'Visit History' && ds.tabTextActive]}>
                                 {t('visit.profile.tabs.history')}
                             </Text>
                         </TouchableOpacity>
@@ -321,20 +324,20 @@ const VisitProfile = ({
 
                 {activeTab === 'Basic Information' ? renderBasicInfo() : renderVisitHistory()}
 
-                <View style={styles.trendSection}>
+                <View style={ds.trendSection}>
                     <TouchableOpacity 
-                        style={styles.trendButton}
+                        style={ds.trendButton}
                         onPress={handleTrendPress}
                     >
                         <MaterialCommunityIcons name="trending-up" size={18} color="#58A7B3" />
-                        <Text style={styles.trendButtonText}>{t('visit.profile.trends')}</Text>
+                        <Text style={ds.trendButtonText}>{t('visit.profile.trends')}</Text>
                     </TouchableOpacity>
                 </View>
 
-                <View style={styles.footer}>
-                    <TouchableOpacity style={styles.backButton} onPress={onBack}>
+                <View style={ds.footer}>
+                    <TouchableOpacity style={ds.backButton} onPress={onBack}>
                         <Feather name="arrow-left" size={18} color="#58A7B3" />
-                        <Text style={styles.backButtonText}>{t('visit.navigation.previous')}</Text>
+                        <Text style={ds.backButtonText}>{t('visit.navigation.previous')}</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity onPress={onNext}>
@@ -342,9 +345,9 @@ const VisitProfile = ({
                             colors={['#58A7B3', '#8ED1CC']}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 0 }}
-                            style={styles.nextButton}
+                            style={ds.nextButton}
                         >
-                            <Text style={styles.nextButtonText}>{t('visit.navigation.next')}</Text>
+                            <Text style={ds.nextButtonText}>{t('visit.navigation.next')}</Text>
                             <Feather name="arrow-right" size={18} color="#fff" />
                         </LinearGradient>
                     </TouchableOpacity>
@@ -361,309 +364,309 @@ const VisitProfile = ({
     );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 12,
-    },
-    card: {
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        padding: 16,
-        borderWidth: 1,
-        borderColor: '#E2E8F0',
-        minHeight: hp(40),
-        justifyContent: 'space-between',
-    },
-    headerRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 20,
-    },
-    tabContainer: {
-        flexDirection: 'row',
-        backgroundColor: '#F1F5F9',
-        padding: 4,
-        borderRadius: 8,
-    },
-    tab: {
-        paddingVertical: 8,
-        paddingHorizontal: 16,
-        borderRadius: 6,
-    },
-    tabActive: {
-        backgroundColor: '#fff',
-        borderWidth: 1,
-        borderColor: '#58A7B3',
-        // Shadow
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-        elevation: 1,
-    },
-    tabText: {
-        fontSize: 14,
-        color: '#64748B',
-        fontWeight: '600',
-    },
-    tabTextActive: {
-        color: '#58A7B3',
-    },
-    trendSection: {
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
-        marginTop: hp(2),
-        marginBottom: hp(1),
-    },
-    trendButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderWidth: 1.5,
-        borderColor: '#58A7B3',
-        paddingVertical: 10,
-        paddingHorizontal: 16,
-        borderRadius: 8,
-    },
-    trendButtonText: {
-        fontSize: 14,
-        fontWeight: '700',
-        color: '#58A7B3',
-        marginLeft: 6,
-    },
-    cardContent: {
-        flex: 1,
-    },
-    row: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    column: {
-        flex: 1,
-    },
-    label: {
-        fontSize: 14,
-        color: '#64748B',
-        fontWeight: '600',
-        marginBottom: 4,
-    },
-    value: {
-        fontSize: 16,
-        fontWeight: '700',
-        color: '#1E293B',
-    },
-    allergyBadge: {
-        backgroundColor: '#FEE2E2',
-        alignSelf: 'flex-start',
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        borderRadius: 4,
-        marginTop: 4,
-    },
-    allergyText: {
-        color: '#EF4444',
-        fontSize: 12,
-        fontWeight: '700',
-    },
-    subtitle: {
-        fontSize: 15,
-        color: '#64748B',
-    },
-    historyHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 30,
-    },
-    historyTitle: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: '#1E293B',
-    },
-    historyCount: {
-        fontSize: 14,
-        color: '#64748B',
-    },
-    emptyContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingVertical: 40,
-    },
-    allergyContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 4,
-    },
-    visitCard: {
-        borderWidth: 1,
-        borderColor: '#E2E8F0',
-        borderRadius: 10,
-        marginBottom: 12,
-        backgroundColor: '#fff',
-        overflow: 'hidden',
-    },
-    visitCardExpanded: {
-        borderLeftWidth: 3,
-        borderLeftColor: '#58A7B3',
-    },
-    visitCardHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingVertical: 14,
-        paddingHorizontal: 16,
-    },
-    visitCardHeaderExpanded: {
-        borderBottomWidth: 1,
-        borderBottomColor: '#F1F5F9',
-    },
-    visitCardLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        flex: 1,
-    },
-    calendarIconWrap: {
-        width: 36,
-        height: 36,
-        borderRadius: 8,
-        backgroundColor: '#E2F2F4',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 12,
-    },
-    visitCardInfo: {
-        flex: 1,
-    },
-    visitCardDate: {
-        fontSize: 15,
-        fontWeight: '700',
-        color: '#1E293B',
-    },
-    visitCardType: {
-        fontSize: 13,
-        color: '#64748B',
-        marginTop: 1,
-    },
-    visitCardTime: {
-        fontSize: 12,
-        color: '#94A3B8',
-        marginTop: 1,
-    },
-    visitCardRight: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    statusBadge: {
-        backgroundColor: '#E2F2F4',
-        paddingHorizontal: 12,
-        paddingVertical: 5,
-        borderRadius: 6,
-    },
-    statusBadgeText: {
-        fontSize: 12,
-        fontWeight: '600',
-        color: '#58A7B3',
-    },
-    visitExpandedContent: {
-        paddingHorizontal: 16,
-        paddingTop: 12,
-        paddingBottom: 16,
-    },
-    expandedSection: {
-        marginBottom: 16,
-    },
-    expandedSectionHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 6,
-    },
-    expandedSectionTitle: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#64748B',
-        marginLeft: 8,
-    },
-    expandedSectionValue: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#1E293B',
-        paddingLeft: 24,
-    },
-    expandedSubLabel: {
-        fontSize: 14,
-        fontWeight: '700',
-        color: '#1E293B',
-        marginTop: 8,
-        paddingLeft: 24,
-    },
-    expandedSubValue: {
-        fontSize: 13,
-        color: '#64748B',
-        marginTop: 2,
-        paddingLeft: 24,
-    },
-    examGrid: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 8,
-        paddingLeft: 24,
-    },
-    examGridItem: {
-        flex: 1,
-    },
-    examLabel: {
-        fontSize: 13,
-        fontWeight: '700',
-        color: '#1E293B',
-    },
-    examValue: {
-        fontSize: 13,
-        color: '#64748B',
-        marginTop: 2,
-    },
-    emptyText: {
-        fontSize: 16,
-        color: '#94A3B8',
-        fontWeight: '500',
-    },
-    footer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 30,
-        paddingTop: 10,
-    },
-    backButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderWidth: 1.5,
-        borderColor: '#58A7B3',
-        borderRadius: 8,
-        width: wp(43),
-        height: 50,
-        justifyContent: 'center',
-    },
-    backButtonText: {
-        fontSize: 16,
-        color: '#58A7B3',
-        fontWeight: '700',
-        marginLeft: 8,
-    },
-    nextButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderRadius: 8,
-        width: wp(43),
-        height: 50,
-        justifyContent: 'center',
-    },
-    nextButtonText: {
-        fontSize: 16,
-        color: '#fff',
-        fontWeight: '700',
-        marginRight: 8,
-    },
-});
+const createDynamicStyles = (tc: any, isDark: boolean) =>
+    StyleSheet.create({
+        container: {
+            flex: 1,
+            padding: 12,
+        },
+        card: {
+            backgroundColor: tc.cardBackground,
+            borderRadius: 12,
+            padding: 16,
+            borderWidth: 1,
+            borderColor: tc.borderColor,
+            minHeight: hp(40),
+            justifyContent: 'space-between',
+        },
+        headerRow: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 20,
+        },
+        tabContainer: {
+            flexDirection: 'row',
+            backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#F1F5F9',
+            padding: 4,
+            borderRadius: 8,
+        },
+        tab: {
+            paddingVertical: 8,
+            paddingHorizontal: 16,
+            borderRadius: 6,
+        },
+        tabActive: {
+            backgroundColor: tc.cardBackground,
+            borderWidth: 1,
+            borderColor: '#58A7B3',
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: isDark ? 0.3 : 0.1,
+            shadowRadius: 2,
+            elevation: 1,
+        },
+        tabText: {
+            fontSize: 14,
+            color: tc.textMuted,
+            fontWeight: '600',
+        },
+        tabTextActive: {
+            color: '#58A7B3',
+        },
+        trendSection: {
+            flexDirection: 'row',
+            justifyContent: 'flex-end',
+            marginTop: hp(2),
+            marginBottom: hp(1),
+        },
+        trendButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderWidth: 1.5,
+            borderColor: '#58A7B3',
+            paddingVertical: 10,
+            paddingHorizontal: 16,
+            borderRadius: 8,
+        },
+        trendButtonText: {
+            fontSize: 14,
+            fontWeight: '700',
+            color: '#58A7B3',
+            marginLeft: 6,
+        },
+        cardContent: {
+            flex: 1,
+        },
+        row: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+        },
+        column: {
+            flex: 1,
+        },
+        label: {
+            fontSize: 14,
+            color: tc.textMuted,
+            fontWeight: '600',
+            marginBottom: 4,
+        },
+        value: {
+            fontSize: 16,
+            fontWeight: '700',
+            color: tc.textPrimary,
+        },
+        allergyBadge: {
+            backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : '#FEE2E2',
+            alignSelf: 'flex-start',
+            paddingHorizontal: 10,
+            paddingVertical: 4,
+            borderRadius: 4,
+            marginTop: 4,
+        },
+        allergyText: {
+            color: '#EF4444',
+            fontSize: 12,
+            fontWeight: '700',
+        },
+        subtitle: {
+            fontSize: 15,
+            color: tc.textSecondary,
+        },
+        historyHeader: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 30,
+        },
+        historyTitle: {
+            fontSize: 18,
+            fontWeight: '700',
+            color: tc.textPrimary,
+        },
+        historyCount: {
+            fontSize: 14,
+            color: tc.textMuted,
+        },
+        emptyContainer: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingVertical: 40,
+        },
+        allergyContainer: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            gap: 4,
+        },
+        visitCard: {
+            borderWidth: 1,
+            borderColor: tc.borderColor,
+            borderRadius: 10,
+            marginBottom: 12,
+            backgroundColor: tc.cardBackgroundAlt,
+            overflow: 'hidden',
+        },
+        visitCardExpanded: {
+            borderLeftWidth: 3,
+            borderLeftColor: '#58A7B3',
+        },
+        visitCardHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingVertical: 14,
+            paddingHorizontal: 16,
+        },
+        visitCardHeaderExpanded: {
+            borderBottomWidth: 1,
+            borderBottomColor: tc.borderColor,
+        },
+        visitCardLeft: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            flex: 1,
+        },
+        calendarIconWrap: {
+            width: 36,
+            height: 36,
+            borderRadius: 8,
+            backgroundColor: tc.accentLight,
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginRight: 12,
+        },
+        visitCardInfo: {
+            flex: 1,
+        },
+        visitCardDate: {
+            fontSize: 15,
+            fontWeight: '700',
+            color: tc.textPrimary,
+        },
+        visitCardType: {
+            fontSize: 13,
+            color: tc.textSecondary,
+            marginTop: 1,
+        },
+        visitCardTime: {
+            fontSize: 12,
+            color: tc.textMuted,
+            marginTop: 1,
+        },
+        visitCardRight: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        statusBadge: {
+            backgroundColor: tc.accentLight,
+            paddingHorizontal: 12,
+            paddingVertical: 5,
+            borderRadius: 6,
+        },
+        statusBadgeText: {
+            fontSize: 12,
+            fontWeight: '600',
+            color: tc.accent,
+        },
+        visitExpandedContent: {
+            paddingHorizontal: 16,
+            paddingTop: 12,
+            paddingBottom: 16,
+        },
+        expandedSection: {
+            marginBottom: 16,
+        },
+        expandedSectionHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: 6,
+        },
+        expandedSectionTitle: {
+            fontSize: 14,
+            fontWeight: '600',
+            color: tc.textMuted,
+            marginLeft: 8,
+        },
+        expandedSectionValue: {
+            fontSize: 15,
+            fontWeight: '600',
+            color: tc.textSecondary,
+            paddingLeft: 24,
+        },
+        expandedSubLabel: {
+            fontSize: 14,
+            fontWeight: '700',
+            color: tc.textSecondary,
+            marginTop: 8,
+            paddingLeft: 24,
+        },
+        expandedSubValue: {
+            fontSize: 13,
+            color: tc.textMuted,
+            marginTop: 2,
+            paddingLeft: 24,
+        },
+        examGrid: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginTop: 8,
+            paddingLeft: 24,
+        },
+        examGridItem: {
+            flex: 1,
+        },
+        examLabel: {
+            fontSize: 13,
+            fontWeight: '700',
+            color: tc.textSecondary,
+        },
+        examValue: {
+            fontSize: 13,
+            color: tc.textMuted,
+            marginTop: 2,
+        },
+        emptyText: {
+            fontSize: 16,
+            color: tc.textMuted,
+            fontWeight: '500',
+        },
+        footer: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginTop: 30,
+            paddingTop: 10,
+        },
+        backButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderWidth: 1.5,
+            borderColor: '#58A7B3',
+            borderRadius: 8,
+            width: wp(43),
+            height: 50,
+            justifyContent: 'center',
+        },
+        backButtonText: {
+            fontSize: 16,
+            color: '#58A7B3',
+            fontWeight: '700',
+            marginLeft: 8,
+        },
+        nextButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderRadius: 8,
+            width: wp(43),
+            height: 50,
+            justifyContent: 'center',
+        },
+        nextButtonText: {
+            fontSize: 16,
+            color: '#fff',
+            fontWeight: '700',
+            marginRight: 8,
+        },
+    });
 
 export default VisitProfile;

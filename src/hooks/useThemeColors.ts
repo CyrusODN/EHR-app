@@ -21,6 +21,10 @@ export const useThemeColors = () => {
         ...colors,
 
         // Backgrounds
+        canvas: isDark ? '#0D0D0D' : '#F3F6F8',
+        layer1: isDark ? 'rgba(250,250,250,0.03)' : '#FAFBFC',
+        layer2: isDark ? 'rgba(250,250,250,0.05)' : '#FFFFFF',
+        layer3: isDark ? 'rgba(255,255,255,0.10)' : '#F9FAFB',
         screenBackground: isDark ? '#0D0D0D' : '#F3F6F8',
         cardBackground: isDark ? 'rgba(250, 250, 250, 0.05)' : '#FFFFFF',
         cardBackgroundAlt: isDark ? 'rgba(250,250,250,0.03)' : '#FAFBFC',
@@ -37,6 +41,9 @@ export const useThemeColors = () => {
         textOnPrimary: '#FFFFFF',
 
         // Borders
+        borderSubtle: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6',
+        borderNormal: isDark ? 'rgba(255,255,255,0.10)' : '#E8EDF2',
+        borderStrong: isDark ? 'rgba(255,255,255,0.20)' : '#D1D5DB',
         borderColor: isDark ? 'rgba(255,255,255,0.10)' : '#E8EDF2',
         borderLight: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6',
         divider: isDark ? 'rgba(255,255,255,0.08)' : '#F0F2F5',

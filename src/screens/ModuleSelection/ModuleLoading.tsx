@@ -1,11 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, Image, ViewBase } from 'react-native';
-import { Card, useTheme } from 'react-native-paper';
+import { View, Text, StyleSheet, Image, StatusBar } from 'react-native';
 import LogoSvg from '../../component/logo';
 import Gap from '../../component/gap';
 import LinearGradient from 'react-native-linear-gradient';
-import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
-import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useNavigation } from '@react-navigation/native';
 import {
     heightPercentageToDP as hp,
@@ -13,12 +10,13 @@ import {
 } from 'react-native-responsive-screen';
 
 import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 const ModuleLoading = () => {
     const { t } = useTranslation();
-    const { colors } = useTheme();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
     const navigation = useNavigation();
-    const [showLoading, setShowLoading] = useState(false);
     const [loadingWidth, setLoadingWidth] = useState(0);
 
     useEffect(() => {
@@ -38,44 +36,36 @@ const ModuleLoading = () => {
     }, [loadingWidth, navigation]);
 
     return (
-        <View style={styles.container}>
-            {/* Header */}
-            <LogoSvg size={'small'} />
-            <View style={{ width: "65%", alignItems: "flex-end" }}>
+        <View style={ds.container}>
+            <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={tc.screenBackground} />
+            
+            {/* Logo */}
+            <LogoSvg size={'large'} />
+            
+            <View style={ds.starContainer}>
                 <Image
                     source={require('../../assets/images/stars.png')}
-                    style={{ height: 20, width: 20 }}
+                    style={[ds.starIcon, { tintColor: isDark ? tc.accent : undefined }]}
                 />
             </View>
+
             <View style={{ width: "80%" }}>
-                <View style={{
-                    flexDirection: "row",
-                    alignItems: "center", marginVertical: hp(1), justifyContent: "center"
-                }}>
+                <View style={ds.moduleHeader}>
                     <LinearGradient
                         colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
-                        style={{
-                            height: 40, width: 40,
-                            marginEnd: 15, borderRadius: 10,
-                            backgroundColor: "rgba(0,0,0,0.1)",
-                            alignItems: "center", justifyContent: "center"
-                        }}
+                        style={ds.brainIconContainer}
                     >
-                        <Image source={require('../../assets/images/brain.png')} style={{ height: 20, width: 20 }} />
+                        <Image source={require('../../assets/images/brain.png')} style={ds.brainIcon} />
                     </LinearGradient>
-                    <Text style={[styles.moduleTitle, { color: '#000000', fontSize: 20 }]}>{t('moduleSelection.loading.title')}</Text>
+                    <Text style={ds.moduleTitle}>{t('moduleSelection.loading.title')}</Text>
                 </View>
-                <Gap height={hp(2)} />
+
+                <Gap height={hp(3)} />
+
                 {/* Progress Bar Track */}
-                <View style={{
-                    height: 6,
-                    width: '100%',
-                    backgroundColor: '#E5E5E5',
-                    borderRadius: 4,
-                    overflow: 'hidden'
-                }}>
+                <View style={ds.progressBarTrack}>
                     <LinearGradient
                         colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
                         start={{ x: 0, y: 0 }}
@@ -87,82 +77,80 @@ const ModuleLoading = () => {
                         }}
                     />
                 </View>
+
                 <Gap height={hp(3)} />
-                <View style={{ width: "100%", alignItems: "center", justifyContent: "center" }}>
-                    <Text style={{ color: "#666", fontSize: 14 }}>{t('moduleSelection.loading.initializing')}</Text>
+
+                <View style={ds.initializingContainer}>
+                    <Text style={ds.initializingText}>{t('moduleSelection.loading.initializing')}</Text>
                 </View>
             </View>
         </View>
     );
 };
 
-const styles = StyleSheet.create({
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
         padding: 20,
         justifyContent: 'center',
-        alignItems: "center"
+        alignItems: "center",
+        backgroundColor: tc.screenBackground,
     },
-    header: {
-        alignItems: 'center',
-        marginVertical: 0,
+    starContainer: {
+        width: "65%", 
+        alignItems: "flex-end",
+        marginTop: 10,
+        marginBottom: 5,
     },
-    headerText: {
-        fontSize: 30,
-        fontWeight: 'bold',
+    starIcon: {
+        height: 20, 
+        width: 20,
     },
-    subHeaderText: {
-        fontSize: 16,
-
+    moduleHeader: {
+        flexDirection: "row",
+        alignItems: "center", 
+        marginVertical: hp(1), 
+        justifyContent: "center",
     },
-    cardWrapper: {
-        marginBottom: 20,
+    brainIconContainer: {
+        height: 48,
+        width: 48,
+        marginEnd: 15,
+        borderRadius: 14,
+        alignItems: "center",
+        justifyContent: "center",
+        shadowColor: tc.shadow,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: isDark ? 0.3 : 0.1,
+        shadowRadius: 8,
+        elevation: 4,
     },
-    cardDisabled: {
-        opacity: 0.5,
-    },
-    gradientBackground: {
-        borderRadius: 10,
-        width: "100%",
-    },
-    card: {
-        borderRadius: 10,
-        elevation: 3,
-    },
-    cardContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    icon: {
-        marginRight: 15,
+    brainIcon: {
+        height: 24,
+        width: 24,
+        tintColor: 'white',
     },
     moduleTitle: {
         fontSize: 22,
         fontWeight: 'bold',
+        color: tc.textPrimary,
     },
-    moduleDescription: {
-
+    progressBarTrack: {
+        height: 6,
+        width: '100%',
+        backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#E5E5E5',
+        borderRadius: 4,
+        overflow: 'hidden',
     },
-    toolDescription: {
-        marginVertical: 10,
+    initializingContainer: {
+        width: "100%",
+        alignItems: "center",
+        justifyContent: "center",
     },
-    bulletPoints: {
-        marginVertical: 10,
-    },
-    bullet: {
+    initializingText: {
+        color: tc.textSecondary,
         fontSize: 14,
-    },
-    comingSoon: {
-        position: 'absolute',
-        top: 10,
-        right: 10,
-        backgroundColor: '#daaf59',
-        padding: 5,
-        borderRadius: 15,
-        flexDirection: "row",
-        alignItems: 'center',
-        color: 'white',
-
+        letterSpacing: 0.5,
     },
 });
 

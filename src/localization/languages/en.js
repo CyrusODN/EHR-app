@@ -36,6 +36,7 @@ export const en = {
         "update": "Update",
         "or": "or",
         dateLocale: 'en-GB',
+        dateTimeLocale: 'en-GB',
         datePlaceholder: 'dd/mm/yyyy',
         na: 'N/A'
     },

@@ -24,9 +24,7 @@ import { ActivityIndicator } from 'react-native';
 import { GetEmployees, SetEmployeeStatus, GetMyPermissions, GiveDirectorPrivilege, GetGroupPermissions, UpdateGroupPermissions, DeleteEmployee } from '../../Services/settingServices';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-
-
-
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 interface Employee {
     id: string;
@@ -49,6 +47,8 @@ interface EmployeesProps {
 const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
     const { t } = useTranslation();
     const navigation = useNavigation<any>();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
 
     const showAlert = (type: string, message: string) => {
         if (onAlert) {
@@ -202,43 +202,43 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
     };
 
     return (
-        <SafeAreaView style={styles.safeArea} edges={['bottom']}>
-            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-            <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 30 }}>
+        <SafeAreaView style={ds.safeArea} edges={['bottom']}>
+            <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={tc.cardBackground} />
+            <ScrollView style={ds.container} contentContainerStyle={{ paddingBottom: 30 }}>
 
                 {/* Header */}
-                <View style={styles.header}>
+                <View style={ds.header}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={{ paddingRight: 10 }}>
-                        <Ionicons name="chevron-back" size={24} color="#333" />
+                        <Ionicons name="chevron-back" size={24} color={tc.textPrimary} />
                     </TouchableOpacity>
-                    <View style={styles.headerIconBox}>
-                        <Feather name="users" size={22} color="#4A90B9" />
+                    <View style={ds.headerIconBox}>
+                        <Feather name="users" size={22} color={tc.accent} />
                     </View>
-                    <Text style={styles.headerTitle}>{t('settings.employees.title')}</Text>
+                    <Text style={ds.headerTitle}>{t('settings.employees.title')}</Text>
                 </View>
 
                 {/* Main Card */}
-                <View style={styles.card}>
+                <View style={ds.card}>
 
                     {/* Category Tabs */}
                     <ScrollView
                         horizontal
                         showsHorizontalScrollIndicator={false}
-                        style={styles.tabScrollView}
-                        contentContainerStyle={styles.tabScrollContent}
+                        style={ds.tabScrollView}
+                        contentContainerStyle={ds.tabScrollContent}
                     >
                         {employeeTabs.map((tab) => (
                             <TouchableOpacity
                                 key={tab}
                                 style={[
-                                    styles.tabChip,
-                                    activeTab === tab && styles.tabChipActive
+                                    ds.tabChip,
+                                    activeTab === tab && ds.tabChipActive
                                 ]}
                                 onPress={() => setActiveTab(tab)}
                             >
                                 <Text style={[
-                                    styles.tabChipText,
-                                    activeTab === tab && styles.tabChipTextActive
+                                    ds.tabChipText,
+                                    activeTab === tab && ds.tabChipTextActive
                                 ]}>
                                     {t(`settings.employees.tabs.${tab}`)}
                                 </Text>
@@ -247,20 +247,20 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
                     </ScrollView>
 
                     {/* Action Buttons Row */}
-                    <View style={styles.actionsRow}>
-                        <View style={styles.actionsLeft}>
+                    <View style={ds.actionsRow}>
+                        <View style={ds.actionsLeft}>
                             <PrimaryButton
                                 label={t('settings.employees.buttons.group_permissions')}
                                 filled={false}
                                 onPress={() => setShowGroupPermissionsModal(true)}
-                                style={styles.outlineBtn}
+                                style={ds.outlineBtn}
                                 image={undefined} iconStyle={undefined} imageStyle={undefined} loading={false} disabled={false}
                             />
                             <PrimaryButton
                                 label={t('settings.employees.buttons.ratings')}
                                 filled={false}
                                 onPress={() => { }}
-                                style={styles.outlineBtnSmall}
+                                style={ds.outlineBtnSmall}
                                 image={undefined} iconStyle={undefined} imageStyle={undefined} loading={false} disabled={false}
                             />
                         </View>
@@ -268,15 +268,15 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
                             label={t('settings.employees.buttons.add_employee', { role: t(`settings.employees.roles.${roleMapping[activeTab]}`) })}
                             filled={true}
                             onPress={() => setShowAddDoctorModal(true)}
-                            style={styles.addBtn}
+                            style={ds.addBtn}
                             image={undefined} iconStyle={undefined} imageStyle={undefined} loading={false} disabled={false}
                         />
                     </View>
 
                     {/* Info Banner */}
-                    <View style={styles.infoBanner}>
-                        <Feather name="users" size={18} color="#2563EB" />
-                        <Text style={styles.infoBannerText}>
+                    <View style={ds.infoBanner}>
+                        <Feather name="users" size={18} color={isDark ? '#60A5FA' : "#2563EB"} />
+                        <Text style={ds.infoBannerText}>
                             {t('settings.employees.info_banner', { 
                                 current: 3, 
                                 max: 7, 
@@ -286,34 +286,34 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
                     </View>
 
                     {/* Search Filters */}
-                    <View style={styles.searchRow}>
-                        <View style={styles.searchField}>
-                            <Ionicons name="search-outline" size={16} color="#9CA3AF" style={styles.searchFieldIcon} />
+                    <View style={ds.searchRow}>
+                        <View style={ds.searchField}>
+                            <Ionicons name="search-outline" size={16} color={tc.textMuted} style={ds.searchFieldIcon} />
                             <TextInput
-                                style={styles.searchFieldInput}
+                                style={ds.searchFieldInput}
                                 placeholder={t('settings.employees.filters.lastName')}
-                                placeholderTextColor="#9CA3AF"
+                                placeholderTextColor={tc.textMuted}
                                 value={searchLastName}
                                 onChangeText={setSearchLastName}
                             />
                         </View>
-                        <View style={styles.searchField}>
-                            <Ionicons name="search-outline" size={16} color="#9CA3AF" style={styles.searchFieldIcon} />
+                        <View style={ds.searchField}>
+                            <Ionicons name="search-outline" size={16} color={tc.textMuted} style={ds.searchFieldIcon} />
                             <TextInput
-                                style={styles.searchFieldInput}
+                                style={ds.searchFieldInput}
                                 placeholder={t('settings.employees.filters.firstName')}
-                                placeholderTextColor="#9CA3AF"
+                                placeholderTextColor={tc.textMuted}
                                 value={searchFirstName}
                                 onChangeText={setSearchFirstName}
                             />
                         </View>
                         {activeTab === 'doctors' && (
-                            <View style={styles.searchField}>
-                                <Ionicons name="search-outline" size={16} color="#9CA3AF" style={styles.searchFieldIcon} />
+                            <View style={ds.searchField}>
+                                <Ionicons name="search-outline" size={16} color={tc.textMuted} style={ds.searchFieldIcon} />
                                 <TextInput
-                                    style={styles.searchFieldInput}
+                                    style={ds.searchFieldInput}
                                     placeholder={t('settings.employees.filters.pwz')}
-                                    placeholderTextColor="#9CA3AF"
+                                    placeholderTextColor={tc.textMuted}
                                     value={searchPWZ}
                                     onChangeText={setSearchPWZ}
                                 />
@@ -321,74 +321,74 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
                         )}
                     </View>
 
-                    <View style={styles.filterExtrasRow}>
+                    <View style={ds.filterExtrasRow}>
                         <CustomCheckbox label={t('settings.employees.filters.onlyActive')} checked={onlyActive} onChange={setOnlyActive} />
-                        <TouchableOpacity style={styles.searchIconBtn}>
-                            <Ionicons name="search" size={18} color="#4A90B9" />
+                        <TouchableOpacity style={ds.searchIconBtn}>
+                            <Ionicons name="search" size={18} color={tc.accent} />
                         </TouchableOpacity>
                     </View>
 
                     {/* Horizontally Scrollable Table */}
-                    <ScrollView horizontal showsHorizontalScrollIndicator={true} style={styles.tableScrollView}>
-                        <View style={styles.tableInner}>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={true} style={ds.tableScrollView}>
+                        <View style={ds.tableInner}>
                             {/* Table Header */}
-                            <View style={styles.tableHeader}>
-                                <Text style={[styles.tableHeaderCell, { width: 180 }]}>{t('settings.employees.table.name')}</Text>
-                                <Text style={[styles.tableHeaderCell, { width: 140 }]}>{t('settings.employees.table.login')}</Text>
-                                <Text style={[styles.tableHeaderCell, { width: 120 }]}>{t('settings.employees.table.pwz_pesel')}</Text>
-                                <Text style={[styles.tableHeaderCell, { width: 140 }]}>{t('settings.employees.table.status')}</Text>
-                                <Text style={[styles.tableHeaderCell, { width: 220, textAlign: 'right' }]}>{t('settings.employees.table.actions')}</Text>
+                            <View style={ds.tableHeader}>
+                                <Text style={[ds.tableHeaderCell, { width: 180 }]}>{t('settings.employees.table.name')}</Text>
+                                <Text style={[ds.tableHeaderCell, { width: 140 }]}>{t('settings.employees.table.login')}</Text>
+                                <Text style={[ds.tableHeaderCell, { width: 120 }]}>{t('settings.employees.table.pwz_pesel')}</Text>
+                                <Text style={[ds.tableHeaderCell, { width: 140 }]}>{t('settings.employees.table.status')}</Text>
+                                <Text style={[ds.tableHeaderCell, { width: 220, textAlign: 'right' }]}>{t('settings.employees.table.actions')}</Text>
                             </View>
 
                             {/* Employee Rows */}
                             {loading ? (
-                                <View style={styles.loadingWrapper}>
-                                    <ActivityIndicator size="large" color="#4A90B9" />
-                                    <Text style={styles.loadingText}>{t('settings.employees.table.loading')}</Text>
+                                <View style={ds.loadingWrapper}>
+                                    <ActivityIndicator size="large" color={tc.accent} />
+                                    <Text style={ds.loadingText}>{t('settings.employees.table.loading')}</Text>
                                 </View>
                             ) : employees.length > 0 ? (
                                 employees.map((item) => (
-                                    <View key={item.id} style={styles.tableRow}>
-                                        <Text style={[styles.tableCell, styles.tableCellName, { width: 180 }]}>
+                                    <View key={item.id} style={ds.tableRow}>
+                                        <Text style={[ds.tableCell, ds.tableCellName, { width: 180 }]}>
                                             {`${item.lastName} ${item.name}`}
                                         </Text>
                                         <View style={{ width: 140 }}>
-                                            <Text style={styles.tableCell}>NA</Text>
-                                            <Text style={[styles.statusSubText, item.status === 'active' ? styles.statusActiveTextRow : styles.statusInactiveTextRow]}>
+                                            <Text style={ds.tableCell}>NA</Text>
+                                            <Text style={[ds.statusSubText, item.status === 'active' ? ds.statusActiveTextRow : ds.statusInactiveTextRow]}>
                                                 {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
                                             </Text>
                                         </View>
-                                        <Text style={[styles.tableCell, { width: 120 }]}>{item.pwz || item.pesel}</Text>
+                                        <Text style={[ds.tableCell, { width: 120 }]}>{item.pwz || item.pesel}</Text>
                                         <View style={{ width: 140, alignItems: 'center', justifyContent: 'center' }}>
                                             <Switch
-                                                trackColor={{ false: '#E2E8F0', true: '#4A90B9' }}
+                                                trackColor={{ false: tc.borderSubtle, true: tc.accent }}
                                                 thumbColor={'#f4f3f4'}
-                                                ios_backgroundColor="#E2E8F0"
+                                                ios_backgroundColor={tc.borderSubtle}
                                                 onValueChange={() => handleToggleStatus(item.id, item.status)}
                                                 value={item.status === 'active'}
                                                 style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
                                             />
                                         </View>
                                         <View style={{ width: 220, flexDirection: 'row', justifyContent: 'flex-end', gap: 8 }}>
-                                            <TouchableOpacity style={styles.rowActionBtnBlue} onPress={() => {
+                                            <TouchableOpacity style={ds.rowActionBtnBlue} onPress={() => {
                                                 setPermissionsEmployee(item);
                                                 setShowPermissionsModal(true);
                                             }}>
-                                                <Feather name="user-check" size={18} color="#4A90B9" />
+                                                <Feather name="user-check" size={18} color={tc.accent} />
                                             </TouchableOpacity>
-                                            <TouchableOpacity style={styles.rowActionBtnBlue} onPress={() => {
+                                            <TouchableOpacity style={ds.rowActionBtnBlue} onPress={() => {
                                                 setSelectedEmployee(item);
                                                 setShowEditModal(true);
                                             }}>
-                                                <Feather name="edit-3" size={18} color="#4A90B9" />
+                                                <Feather name="edit-3" size={18} color={tc.accent} />
                                             </TouchableOpacity>
                                             <TouchableOpacity
-                                                style={item.isElevated ? styles.rowActionBtnElevated : styles.rowActionBtnBlue}
+                                                style={item.isElevated ? ds.rowActionBtnElevated : ds.rowActionBtnBlue}
                                                 onPress={() => handleToggleDirectorPrivilege(item.id, !!item.isElevated)}
                                             >
-                                                <Feather name="shield" size={18} color={item.isElevated ? '#FFFFFF' : '#4A90B9'} />
+                                                <Feather name="shield" size={18} color={item.isElevated ? '#FFFFFF' : tc.accent} />
                                             </TouchableOpacity>
-                                            <TouchableOpacity style={styles.rowActionBtnRed} onPress={() => {
+                                            <TouchableOpacity style={ds.rowActionBtnRed} onPress={() => {
                                                 setDeleteEmployeeTarget(item);
                                                 setShowDeleteConfirm(true);
                                             }}>
@@ -398,31 +398,31 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
                                     </View>
                                 ))
                             ) : (
-                                <View style={styles.emptyState}>
-                                    <Text style={styles.emptyStateText}>{t('settings.employees.table.empty')}</Text>
+                                <View style={ds.emptyState}>
+                                    <Text style={ds.emptyStateText}>{t('settings.employees.table.empty')}</Text>
                                 </View>
                             )}
                         </View>
                     </ScrollView>
 
                     {/* Pagination */}
-                    <View style={styles.paginationRow}>
+                    <View style={ds.paginationRow}>
                         <View>
                             <TouchableOpacity
-                                style={styles.recordsDropdown}
+                                style={ds.recordsDropdown}
                                 onPress={() => setShowRecordsPicker(!showRecordsPicker)}
                             >
-                                <Text style={styles.recordsDropdownText}>{recordsPerPage}</Text>
-                                <Ionicons name={showRecordsPicker ? "chevron-up" : "chevron-down"} size={16} color="#374151" />
+                                <Text style={ds.recordsDropdownText}>{recordsPerPage}</Text>
+                                <Ionicons name={showRecordsPicker ? "chevron-up" : "chevron-down"} size={16} color={tc.textPrimary} />
                             </TouchableOpacity>
                             {showRecordsPicker && (
-                                <View style={styles.recordsPickerOverlay}>
+                                <View style={ds.recordsPickerOverlay}>
                                     {recordsOptions.map((option) => (
                                         <TouchableOpacity
                                             key={option}
                                             style={[
-                                                styles.recordsPickerItem,
-                                                recordsPerPage === option && styles.recordsPickerItemActive
+                                                ds.recordsPickerItem,
+                                                recordsPerPage === option && ds.recordsPickerItemActive
                                             ]}
                                             onPress={() => {
                                                 setRecordsPerPage(option);
@@ -430,35 +430,35 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
                                             }}
                                         >
                                             <Text style={[
-                                                styles.recordsPickerItemText,
-                                                recordsPerPage === option && styles.recordsPickerItemTextActive
+                                                ds.recordsPickerItemText,
+                                                recordsPerPage === option && ds.recordsPickerItemTextActive
                                             ]}>{option}</Text>
                                         </TouchableOpacity>
                                     ))}
                                 </View>
                             )}
                         </View>
-                        <Text style={styles.paginationInfo}>{t('settings.employees.pagination.records_per_page')}</Text>
-                        <View style={styles.paginationControls}>
+                        <Text style={ds.paginationInfo}>{t('settings.employees.pagination.records_per_page')}</Text>
+                        <View style={ds.paginationControls}>
                             <TouchableOpacity 
-                                style={[styles.paginationBtn, currentPage === 1 && { opacity: 0.5 }]}
+                                style={[ds.paginationBtn, currentPage === 1 && { opacity: 0.5 }]}
                                 disabled={currentPage === 1}
                                 onPress={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                             >
-                                <Text style={styles.paginationBtnText}>{t('settings.employees.pagination.prev')}</Text>
+                                <Text style={ds.paginationBtnText}>{t('settings.employees.pagination.prev')}</Text>
                             </TouchableOpacity>
-                            <View style={styles.pageNumber}>
-                                <Text style={styles.pageNumberText}>{currentPage}</Text>
+                            <View style={ds.pageNumber}>
+                                <Text style={ds.pageNumberText}>{currentPage}</Text>
                             </View>
                             <TouchableOpacity 
-                                style={[styles.paginationBtn, (currentPage * recordsPerPage) >= totalRecords && { opacity: 0.5 }]}
+                                style={[ds.paginationBtn, (currentPage * recordsPerPage) >= totalRecords && { opacity: 0.5 }]}
                                 disabled={(currentPage * recordsPerPage) >= totalRecords}
                                 onPress={() => setCurrentPage(prev => prev + 1)}
                             >
-                                <Text style={styles.paginationBtnText}>{t('settings.employees.pagination.next')}</Text>
+                                <Text style={ds.paginationBtnText}>{t('settings.employees.pagination.next')}</Text>
                             </TouchableOpacity>
                         </View>
-                        <Text style={styles.paginationTotal}>{t('settings.employees.pagination.total', { total: totalRecords })}</Text>
+                        <Text style={ds.paginationTotal}>{t('settings.employees.pagination.total', { total: totalRecords })}</Text>
                     </View>
                 </View>
 
@@ -530,34 +530,34 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
                     setDeleteEmployeeTarget(null);
                 }}
             >
-                <View style={styles.deleteModalOverlay}>
-                    <View style={styles.deleteModalContent}>
-                        <View style={styles.deleteIconContainer}>
+                <View style={ds.deleteModalOverlay}>
+                    <View style={ds.deleteModalContent}>
+                        <View style={ds.deleteIconContainer}>
                             <Feather name="alert-triangle" size={32} color="#FF6B6B" />
                         </View>
-                        <Text style={styles.deleteModalTitle}>{t('settings.employees.delete_modal.title')}</Text>
-                        <Text style={styles.deleteModalMessage}>
+                        <Text style={ds.deleteModalTitle}>{t('settings.employees.delete_modal.title')}</Text>
+                        <Text style={ds.deleteModalMessage}>
                             {t('settings.employees.delete_modal.message', { name: `${deleteEmployee?.name} ${deleteEmployee?.lastName}` })}
                         </Text>
-                        <View style={styles.deleteModalButtons}>
+                        <View style={ds.deleteModalButtons}>
                             <TouchableOpacity
-                                style={styles.deleteModalCancelBtn}
+                                style={ds.deleteModalCancelBtn}
                                 onPress={() => {
                                     setShowDeleteConfirm(false);
                                     setDeleteEmployeeTarget(null);
                                 }}
                             >
-                                <Text style={styles.deleteModalCancelText}>{t('settings.employees.delete_modal.cancel')}</Text>
+                                <Text style={ds.deleteModalCancelText}>{t('settings.employees.delete_modal.cancel')}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                style={[styles.deleteModalDeleteBtn, deleting && { opacity: 0.6 }]}
+                                style={[ds.deleteModalDeleteBtn, deleting && { opacity: 0.6 }]}
                                 onPress={handleDeleteEmployee}
                                 disabled={deleting}
                             >
                                 {deleting ? (
                                     <ActivityIndicator size="small" color="#FFFFFF" />
                                 ) : (
-                                    <Text style={styles.deleteModalDeleteText}>{t('settings.employees.delete_modal.delete')}</Text>
+                                    <Text style={ds.deleteModalDeleteText}>{t('settings.employees.delete_modal.delete')}</Text>
                                 )}
                             </TouchableOpacity>
                         </View>
@@ -569,26 +569,28 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
     );
 };
 
-const styles = StyleSheet.create({
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
     },
     container: {
         flex: 1,
-        backgroundColor: '#F5F7FA',
+        backgroundColor: tc.screenBackground,
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         padding: 16,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
+        borderBottomWidth: 1,
+        borderBottomColor: tc.borderSubtle,
     },
     headerIconBox: {
         width: 40,
         height: 40,
         borderRadius: 10,
-        backgroundColor: '#EBF5FF',
+        backgroundColor: isDark ? 'rgba(74, 144, 185, 0.15)' : '#EBF5FF',
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,
@@ -596,7 +598,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#111827',
+        color: tc.textPrimary,
     },
     loadingWrapper: {
         paddingVertical: 50,
@@ -607,19 +609,17 @@ const styles = StyleSheet.create({
     loadingText: {
         marginTop: 10,
         fontSize: 14,
-        color: '#6B7280',
+        color: tc.textSecondary,
     },
     card: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
         marginHorizontal: 1,
         marginTop: 12,
         borderRadius: 14,
         padding: 14,
         borderWidth: 1,
-        borderColor: '#F0F0F0',
+        borderColor: tc.borderSubtle,
     },
-
-    /* Tabs */
     tabScrollView: {
         marginBottom: 16,
     },
@@ -630,21 +630,22 @@ const styles = StyleSheet.create({
         paddingVertical: 9,
         paddingHorizontal: 16,
         borderRadius: 20,
-        backgroundColor: '#F3F4F6',
+        backgroundColor: tc.screenBackground,
+        borderWidth: 1,
+        borderColor: tc.borderSubtle,
     },
     tabChipActive: {
-        backgroundColor: '#4A90B9',
+        backgroundColor: tc.accent,
+        borderColor: tc.accent,
     },
     tabChipText: {
         fontSize: 15,
         fontWeight: '500',
-        color: '#374151',
+        color: tc.textSecondary,
     },
     tabChipTextActive: {
         color: '#FFFFFF',
     },
-
-    /* Action Buttons */
     actionsRow: {
         flexDirection: 'row',
         flexWrap: 'wrap',
@@ -677,25 +678,23 @@ const styles = StyleSheet.create({
         marginBottom: 0,
         borderRadius: 8,
     },
-
-    /* Info Banner */
     infoBanner: {
         flexDirection: 'row',
         alignItems: 'flex-start',
-        backgroundColor: '#EFF6FF',
+        backgroundColor: isDark ? 'rgba(59, 130, 246, 0.1)' : '#EFF6FF',
         padding: 14,
         borderRadius: 10,
         marginBottom: 16,
         gap: 10,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: 'rgba(59, 130, 246, 0.2)',
     },
     infoBannerText: {
         flex: 1,
         fontSize: 14,
-        color: '#2563EB',
+        color: isDark ? '#60A5FA' : '#2563EB',
         lineHeight: 21,
     },
-
-    /* Search */
     searchRow: {
         flexDirection: 'row',
         flexWrap: 'wrap',
@@ -707,9 +706,9 @@ const styles = StyleSheet.create({
         minWidth: wp(28),
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.screenBackground,
         borderWidth: 1,
-        borderColor: '#E5E7EB',
+        borderColor: tc.borderColor,
         borderRadius: 10,
         paddingHorizontal: 10,
         height: 42,
@@ -720,7 +719,7 @@ const styles = StyleSheet.create({
     searchFieldInput: {
         flex: 1,
         fontSize: 15,
-        color: '#111827',
+        color: tc.textPrimary,
         padding: 0,
     },
     filterExtrasRow: {
@@ -731,16 +730,15 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     searchIconBtn: {
-        width: 36,
-        height: 36,
-        borderRadius: 8,
+        width: 38,
+        height: 38,
+        borderRadius: 10,
         borderWidth: 1,
-        borderColor: '#E5E7EB',
+        borderColor: tc.borderColor,
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: tc.screenBackground,
     },
-
-    /* Table */
     tableScrollView: {
         marginBottom: 8,
     },
@@ -753,13 +751,13 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         paddingHorizontal: 8,
         borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB',
-        backgroundColor: '#FAFBFC',
+        borderBottomColor: tc.borderSubtle,
+        backgroundColor: tc.screenBackground,
     },
     tableHeaderCell: {
         fontSize: 12,
         fontWeight: '700',
-        color: '#6B7280',
+        color: tc.textMuted,
         letterSpacing: 0.5,
     },
     tableRow: {
@@ -768,37 +766,15 @@ const styles = StyleSheet.create({
         paddingVertical: 14,
         paddingHorizontal: 8,
         borderBottomWidth: 1,
-        borderBottomColor: '#F3F4F6',
+        borderBottomColor: tc.borderSubtle,
     },
     tableCell: {
         fontSize: 14,
-        color: '#374151',
+        color: tc.textSecondary,
     },
     tableCellName: {
         fontWeight: '600',
-        color: '#111827',
-    },
-    statusBadge: {
-        alignSelf: 'flex-start',
-        paddingHorizontal: 10,
-        paddingVertical: 3,
-        borderRadius: 12,
-    },
-    statusActive: {
-        backgroundColor: '#DEF7EC',
-    },
-    statusInactive: {
-        backgroundColor: '#FDE8E8',
-    },
-    statusBadgeText: {
-        fontSize: 13,
-        fontWeight: '600',
-    },
-    statusActiveText: {
-        color: '#03543F',
-    },
-    statusInactiveText: {
-        color: '#9B1C1C',
+        color: tc.textPrimary,
     },
     statusSubText: {
         fontSize: 12,
@@ -808,28 +784,28 @@ const styles = StyleSheet.create({
         color: '#10B981',
     },
     statusInactiveTextRow: {
-        color: '#6B7280',
+        color: tc.textMuted,
     },
     rowActionBtnBlue: {
         padding: 8,
         borderRadius: 8,
         borderWidth: 1.5,
-        borderColor: '#4A90B9',
-        backgroundColor: '#FFFFFF',
+        borderColor: tc.accent,
+        backgroundColor: tc.cardBackground,
     },
     rowActionBtnElevated: {
         padding: 8,
         borderRadius: 8,
         borderWidth: 1.5,
-        borderColor: '#4A90B9',
-        backgroundColor: '#4A90B9',
+        borderColor: tc.accent,
+        backgroundColor: tc.accent,
     },
     rowActionBtnRed: {
         padding: 8,
         borderRadius: 8,
         borderWidth: 1.5,
         borderColor: '#FF6B6B',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
     },
     emptyState: {
         paddingVertical: 40,
@@ -837,22 +813,20 @@ const styles = StyleSheet.create({
     },
     emptyStateText: {
         fontSize: 16,
-        color: '#9CA3AF',
+        color: tc.textMuted,
     },
-
-    /* Pagination */
     paginationRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingTop: 16,
         borderTopWidth: 1,
-        borderTopColor: '#F3F4F6',
+        borderTopColor: tc.borderSubtle,
         marginTop: 4,
     },
     paginationInfo: {
         fontSize: 14,
-        color: '#6B7280',
+        color: tc.textSecondary,
     },
     paginationControls: {
         flexDirection: 'row',
@@ -863,18 +837,20 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 6,
-        backgroundColor: '#F3F4F6',
+        backgroundColor: tc.screenBackground,
+        borderWidth: 1,
+        borderColor: tc.borderColor,
     },
     paginationBtnText: {
         fontSize: 14,
-        color: '#374151',
+        color: tc.textPrimary,
         fontWeight: '500',
     },
     pageNumber: {
-        width: 28,
-        height: 28,
-        borderRadius: 6,
-        backgroundColor: '#4A90B9',
+        width: 32,
+        height: 32,
+        borderRadius: 8,
+        backgroundColor: tc.accent,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -885,35 +861,35 @@ const styles = StyleSheet.create({
     },
     paginationTotal: {
         fontSize: 14,
-        color: '#6B7280',
+        color: tc.textSecondary,
     },
     recordsDropdown: {
         flexDirection: 'row',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#E5E7EB',
+        borderColor: tc.borderColor,
         borderRadius: 8,
         paddingHorizontal: 12,
         paddingVertical: 8,
         gap: 6,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.screenBackground,
     },
     recordsDropdownText: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#374151',
+        color: tc.textPrimary,
     },
     recordsPickerOverlay: {
         position: 'absolute',
         bottom: 44,
         left: 0,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
         borderWidth: 1,
-        borderColor: '#E5E7EB',
+        borderColor: tc.borderColor,
         borderRadius: 8,
         overflow: 'hidden',
         elevation: 4,
-        shadowColor: '#000',
+        shadowColor: tc.shadow,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
@@ -925,35 +901,37 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
     },
     recordsPickerItemActive: {
-        backgroundColor: '#EBF5FF',
+        backgroundColor: isDark ? 'rgba(74, 144, 185, 0.2)' : '#EBF5FF',
     },
     recordsPickerItemText: {
         fontSize: 14,
-        color: '#374151',
+        color: tc.textPrimary,
         textAlign: 'center',
     },
     recordsPickerItemTextActive: {
-        color: '#4A90B9',
+        color: tc.accent,
         fontWeight: '700',
     },
     deleteModalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
         justifyContent: 'center',
         alignItems: 'center',
     },
     deleteModalContent: {
         width: wp(85),
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
         borderRadius: 20,
         padding: 28,
         alignItems: 'center',
+        borderWidth: isDark ? 1 : 0,
+        borderColor: tc.borderSubtle,
     },
     deleteIconContainer: {
         width: 64,
         height: 64,
         borderRadius: 32,
-        backgroundColor: '#FEF2F2',
+        backgroundColor: isDark ? 'rgba(239, 68, 68, 0.15)' : '#FEF2F2',
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 16,
@@ -961,12 +939,12 @@ const styles = StyleSheet.create({
     deleteModalTitle: {
         fontSize: 20,
         fontWeight: '700',
-        color: '#1E293B',
+        color: tc.textPrimary,
         marginBottom: 8,
     },
     deleteModalMessage: {
         fontSize: 15,
-        color: '#64748B',
+        color: tc.textSecondary,
         textAlign: 'center',
         lineHeight: 22,
         marginBottom: 24,
@@ -981,14 +959,14 @@ const styles = StyleSheet.create({
         paddingVertical: 14,
         borderRadius: 12,
         borderWidth: 1.5,
-        borderColor: '#E2E8F0',
-        backgroundColor: '#FFFFFF',
+        borderColor: tc.borderColor,
+        backgroundColor: tc.screenBackground,
         alignItems: 'center',
     },
     deleteModalCancelText: {
         fontSize: 15,
         fontWeight: '600',
-        color: '#64748B',
+        color: tc.textSecondary,
     },
     deleteModalDeleteBtn: {
         flex: 1,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -11,16 +11,17 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { GetFacilityStatistics } from '../../Services/settingServices';
 import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 // Stat Card component for consistent styling
-const StatCard = ({ icon, title, value }: any) => (
-    <View style={styles.card}>
-        <View style={styles.iconContainer}>
+const StatCard = ({ icon, title, value, ds }: any) => (
+    <View style={ds.card}>
+        <View style={ds.iconContainer}>
             {icon}
         </View>
-        <View style={styles.statContent}>
-            <Text style={styles.statTitle}>{title}</Text>
-            <Text style={styles.statValue}>{value}</Text>
+        <View style={ds.statContent}>
+            <Text style={ds.statTitle}>{title}</Text>
+            <Text style={ds.statValue}>{value}</Text>
         </View>
     </View>
 );
@@ -37,6 +38,9 @@ interface FacilityStatsData {
 const FacilityStatistics = () => {
     const { t } = useTranslation();
     const navigation = useNavigation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
+
     const [statsData, setStatsData] = useState<FacilityStatsData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -75,100 +79,106 @@ const FacilityStatistics = () => {
         {
             title: t('settings.facility_stats.stats.departments'),
             value: String(statsData.departments ?? 0),
-            icon: <FontAwesome5 name="building" size={24} color="#4A90B9" />
+            icon: <FontAwesome5 name="building" size={24} color={tc.accent} />
         },
         {
             title: t('settings.facility_stats.stats.doctors'),
             value: String(statsData.doctors ?? 0),
-            icon: <Feather name="users" size={24} color="#4A99b9" />
+            icon: <Feather name="users" size={24} color={tc.accent} />
         },
         {
             title: t('settings.facility_stats.stats.offices'),
             value: String(statsData.offices ?? 0),
-            icon: <MaterialIcons name="meeting-room" size={24} color="green" />
+            icon: <MaterialIcons name="meeting-room" size={24} color={isDark ? "#34D399" : "#10B981"} />
         },
         {
             title: t('settings.facility_stats.stats.nurses'),
             value: String(statsData.nurses ?? 0),
-            icon: <Feather name="users" size={24} color="#9370DB" />
+            icon: <Feather name="users" size={24} color={isDark ? "#A78BFA" : "#8B5CF6"} />
         },
         {
             title: t('settings.facility_stats.stats.patients'),
             value: String(statsData.patients ?? 0),
-            icon: <Feather name="users" size={24} color="blue" />
+            icon: <Feather name="users" size={24} color={isDark ? "#60A5FA" : "#3B82F6"} />
         },
         {
             title: t('settings.facility_stats.stats.receptionists'),
             value: String(statsData.receptionists ?? 0),
-            icon: <MaterialCommunityIcons name="account-cog-outline" size={24} color="#FFA500" />
+            icon: <MaterialCommunityIcons name="account-cog-outline" size={24} color={isDark ? "#FBBF24" : "#F59E0B"} />
         },
     ] : [];
 
     return (
-        <View style={styles.container}>
+        <View style={ds.container}>
+            <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={tc.cardBackground} />
             {/* Header */}
-            <View style={styles.header}>
+            <View style={ds.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={{ paddingRight: 10 }}>
-                    <Ionicons name="chevron-back" size={24} color="#333" />
+                    <Ionicons name="chevron-back" size={24} color={tc.textPrimary} />
                 </TouchableOpacity>
-                <View style={styles.headerIconContainer}>
-                    <Feather name="bar-chart-2" size={24} color="#4A90B9" />
+                <View style={ds.headerIconContainer}>
+                    <Feather name="bar-chart-2" size={24} color={tc.accent} />
                 </View>
-                <Text style={styles.headerTitle}>{t('settings.facility_stats.title')}</Text>
+                <Text style={ds.headerTitle}>{t('settings.facility_stats.title')}</Text>
             </View>
 
             {/* Loading State */}
             {loading && (
-                <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color="#4A90B9" />
-                    <Text style={styles.loadingText}>{t('settings.facility_stats.loading')}</Text>
+                <View style={ds.loadingContainer}>
+                    <ActivityIndicator size="large" color={tc.accent} />
+                    <Text style={ds.loadingText}>{t('settings.facility_stats.loading')}</Text>
                 </View>
             )}
 
             {/* Error State */}
             {!loading && error && (
-                <View style={styles.errorContainer}>
-                    <Ionicons name="alert-circle-outline" size={48} color="#FF6B6B" />
-                    <Text style={styles.errorText}>{error}</Text>
-                    <TouchableOpacity style={styles.retryButton} onPress={fetchStatistics}>
-                        <Text style={styles.retryButtonText}>{t('settings.facility_stats.retry')}</Text>
+                <View style={ds.errorContainer}>
+                    <Ionicons name="alert-circle-outline" size={48} color={tc.error} />
+                    <Text style={ds.errorText}>{error}</Text>
+                    <TouchableOpacity style={ds.retryButton} onPress={fetchStatistics}>
+                        <Text style={ds.retryButtonText}>{t('settings.facility_stats.retry')}</Text>
                     </TouchableOpacity>
                 </View>
             )}
 
             {/* Stats Cards */}
             {!loading && !error && (
-                <ScrollView style={styles.scrollView}>
-                    {stats.map((stat, index) => (
-                        <StatCard
-                            key={index}
-                            icon={stat.icon}
-                            title={stat.title}
-                            value={stat.value}
-                        />
-                    ))}
-                </ScrollView>
+                <View style={{ flex: 1, backgroundColor: tc.screenBackground }} >
+                    <ScrollView style={ds.scrollView}>
+                        {stats.map((stat, index) => (
+                            <StatCard
+                                key={index}
+                                icon={stat.icon}
+                                title={stat.title}
+                                value={stat.value}
+                                ds={ds}
+                            />
+                        ))}
+                    </ScrollView>
+                </View>
             )}
         </View>
     );
 };
 
-const styles = StyleSheet.create({
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F5F5F5',
+        backgroundColor: tc.screenBackground,
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         padding: 16,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
+        borderBottomWidth: 1,
+        borderBottomColor: tc.borderSubtle,
     },
     headerIconContainer: {
         width: 40,
         height: 40,
         borderRadius: 8,
-        backgroundColor: '#E8F4F8',
+        backgroundColor: isDark ? 'rgba(74, 144, 185, 0.1)' : '#E8F4F8',
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,
@@ -176,29 +186,34 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#333333',
+        color: tc.textPrimary,
     },
     scrollView: {
         flex: 1,
         padding: 15,
-        backgroundColor: "white",
+        backgroundColor: tc.screenBackground,
         width: "100%"
     },
     card: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'white',
-        borderRadius: 10,
+        backgroundColor: tc.cardBackground,
+        borderRadius: 12,
         padding: 20,
         marginBottom: 15,
-        borderColor: "#ccc",
-        borderWidth: 1
+        borderWidth: isDark ? 1 : 0,
+        borderColor: tc.borderSubtle,
+        shadowColor: tc.shadow,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: isDark ? 0.3 : 0.05,
+        shadowRadius: 5,
+        elevation: 3,
     },
     iconContainer: {
         width: 50,
         height: 50,
-        borderRadius: 10,
-        backgroundColor: '#F5F5F5',
+        borderRadius: 12,
+        backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5',
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 15,
@@ -207,48 +222,48 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     statTitle: {
-        fontSize: 16,
-        color: '#666666',
-        marginBottom: 5,
+        fontSize: 15,
+        color: tc.textSecondary,
+        marginBottom: 4,
     },
     statValue: {
-        fontSize: 28,
+        fontSize: 26,
         fontWeight: 'bold',
-        color: '#333333',
+        color: tc.textPrimary,
     },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'white',
+        backgroundColor: tc.screenBackground,
     },
     loadingText: {
         marginTop: 12,
         fontSize: 16,
-        color: '#666666',
+        color: tc.textSecondary,
     },
     errorContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'white',
+        backgroundColor: tc.screenBackground,
         padding: 20,
     },
     errorText: {
         marginTop: 12,
         fontSize: 16,
-        color: '#666666',
+        color: tc.textSecondary,
         textAlign: 'center',
     },
     retryButton: {
         marginTop: 20,
         paddingHorizontal: 24,
         paddingVertical: 10,
-        backgroundColor: '#4A90B9',
+        backgroundColor: tc.accent,
         borderRadius: 8,
     },
     retryButtonText: {
-        color: 'white',
+        color: '#FFFFFF',
         fontSize: 16,
         fontWeight: '600',
     },

@@ -18,6 +18,7 @@ import PrimaryButton from '../../../component/button';
 import CustomDropdown from '../../../component/customDropDown';
 import Gap from '../../../component/gap';
 import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 import { getConsultSessions, createConsultSession, getConsultSessionDetails, sendConsultMessage, deleteConsultSession } from '../../../Services/ConsultTool.Service';
 interface Message {
     id: string;
@@ -33,6 +34,8 @@ interface ConsultChatProps {
 
 const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
     const { t, i18n } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
     const [selectedSpecialty, setSelectedSpecialty] = useState('Child Psychiatry');
     const [chatStarted, setChatStarted] = useState(false);
     const [messageText, setMessageText] = useState('');
@@ -329,43 +332,43 @@ const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
 
     // ─── Main Render ───
     return (
-        <View style={styles.container}>
+        <View style={ds.container}>
             {/* History Drawer */}
-            <Animated.View style={[styles.drawer, { left: drawerAnim }]}>
-                <View style={styles.drawerHeader}>
-                    <Text style={styles.drawerTitle}>{t('aiAssistant.consultChat.visitHistory')}</Text>
-                    <View style={styles.drawerHeaderActions}>
-                        <TouchableOpacity onPress={handleNewSession} style={styles.drawerActionBtn}>
-                            <Feather name="plus" size={20} color="#1E293B" />
+            <Animated.View style={[ds.drawer, { left: drawerAnim }]}>
+                <View style={ds.drawerHeader}>
+                    <Text style={ds.drawerTitle}>{t('aiAssistant.consultChat.visitHistory')}</Text>
+                    <View style={ds.drawerHeaderActions}>
+                        <TouchableOpacity onPress={handleNewSession} style={ds.drawerActionBtn}>
+                            <Feather name="plus" size={20} color={tc.textPrimary} />
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={toggleHistory} style={styles.drawerActionBtn}>
-                            <Feather name="chevron-left" size={20} color="#1E293B" />
+                        <TouchableOpacity onPress={toggleHistory} style={ds.drawerActionBtn}>
+                            <Feather name="chevron-left" size={20} color={tc.textPrimary} />
                         </TouchableOpacity>
                     </View>
                 </View>
-                <ScrollView style={styles.sessionList}>
+                <ScrollView style={ds.sessionList}>
                     {sessions.map((session, index) => (
                         <TouchableOpacity 
                             key={session._id || session.sessionId || index} 
-                            style={[styles.sessionItem, index === 0 && styles.activeSessionItem]}
+                            style={[ds.sessionItem, currentSessionId === session.sessionId && ds.activeSessionItem]}
                             onPress={() => handleSelectSession(session.sessionId)}
                         >
-                            <View style={styles.sessionIconContainer}>
-                                <Ionicons name="chatbubble-outline" size={18} color="#4A90B9" />
+                            <View style={ds.sessionIconContainer}>
+                                <Ionicons name="chatbubble-outline" size={18} color={tc.accent} />
                             </View>
-                            <View style={styles.sessionInfo}>
-                                <Text style={styles.sessionIdText}>{t('aiAssistant.consultChat.session')} #{session.sessionId?.substring(0, 8)}</Text>
-                                <View style={styles.sessionMetaRow}>
-                                    <View style={styles.sessionTag}>
-                                        <Text style={styles.sessionTagText}>
+                            <View style={ds.sessionInfo}>
+                                <Text style={ds.sessionIdText}>{t('aiAssistant.consultChat.session')} #{session.sessionId?.substring(0, 8)}</Text>
+                                <View style={ds.sessionMetaRow}>
+                                    <View style={ds.sessionTag}>
+                                        <Text style={ds.sessionTagText}>
                                             {session.metadata?.speciality === 'childPsychiatry' ? t('aiAssistant.consultChat.childPsychShort') : 
                                              session.metadata?.speciality === 'adultPsychiatry' ? t('aiAssistant.consultChat.adultPsychShort') :
                                              session.metadata?.speciality === 'internalMedicine' ? t('aiAssistant.consultChat.internalShort') : t('aiAssistant.consultChat.generalShort')}
                                         </Text>
                                     </View>
-                                    <View style={styles.sessionDateRow}>
-                                        <Feather name="clock" size={12} color="#94A3B8" />
-                                        <Text style={styles.sessionDateText}>
+                                    <View style={ds.sessionDateRow}>
+                                        <Feather name="clock" size={12} color={tc.textMuted} />
+                                        <Text style={ds.sessionDateText}>
                                             {session.createdAt ? new Date(session.createdAt).toLocaleDateString(i18n.language === 'pl' ? 'pl-PL' : 'en-GB', { day: 'numeric', month: 'short' }) : '10 Mar'}
                                         </Text>
                                     </View>
@@ -373,9 +376,9 @@ const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
                             </View>
                             <TouchableOpacity 
                                 onPress={() => handleDeleteSession(session.sessionId)}
-                                style={styles.deleteBtn}
+                                style={ds.deleteBtn}
                             >
-                                <Feather name="trash-2" size={16} color="#EF4444" />
+                                <Feather name="trash-2" size={16} color={tc.error || "#EF4444"} />
                             </TouchableOpacity>
                         </TouchableOpacity>
                     ))}
@@ -383,34 +386,34 @@ const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
             </Animated.View>
 
             {!chatStarted ? (
-                <View style={styles.chatWrapper}>
+                <View style={ds.chatWrapper}>
                     {/* Header for Selection Screen */}
-                    <View style={styles.chatHeader}>
-                        <TouchableOpacity onPress={toggleHistory} style={styles.menuBtn}>
-                            <Feather name="menu" size={22} color="#1E293B" />
+                    <View style={ds.chatHeader}>
+                        <TouchableOpacity onPress={toggleHistory} style={ds.menuBtn}>
+                            <Feather name="menu" size={22} color={tc.textPrimary} />
                         </TouchableOpacity>
-                        <View style={styles.chatHeaderTitleContainer}>
-                            <Text style={styles.chatHeaderTitle}>{t('aiAssistant.consultChat.clinicalAssistant')}</Text>
+                        <View style={ds.chatHeaderTitleContainer}>
+                            <Text style={ds.chatHeaderTitle}>{t('aiAssistant.consultChat.clinicalAssistant')}</Text>
                         </View>
                     </View>
 
-                    <ScrollView contentContainerStyle={{ flexGrow: 1 }} style={styles.messagesContainer}>
-                        <View style={styles.selectionContainer}>
+                    <ScrollView contentContainerStyle={{ flexGrow: 1 }} style={ds.messagesContainer}>
+                        <View style={ds.selectionContainer}>
                             {/* Chat Icon */}
-                            <View style={styles.chatIconCircle}>
-                                <Ionicons name="chatbubble-outline" size={28} color="#4A90B9" />
+                            <View style={ds.chatIconCircle}>
+                                <Ionicons name="chatbubble-outline" size={28} color={tc.accent} />
                             </View>
 
                             <Gap height={hp(2)} />
 
-                            <Text style={styles.selectionDesc}>
+                            <Text style={ds.selectionDesc}>
                                 {t('aiAssistant.consultChat.selectionDesc')}
                             </Text>
 
                             <Gap height={hp(3)} />
 
                             {/* Specialty Dropdown */}
-                            <Text style={styles.selectLabel}>{t('aiAssistant.consultChat.selectSpecialty')}</Text>
+                            <Text style={ds.selectLabel}>{t('aiAssistant.consultChat.selectSpecialty')}</Text>
                             <Gap height={hp(1)} />
                             <CustomDropdown
                                 placeholder={t('aiAssistant.consultChat.chooseSpecialty')}
@@ -427,7 +430,7 @@ const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
                                 label={t('aiAssistant.consultChat.startNewConsultation')}
                                 filled={true}
                                 onPress={handleStartConsultation}
-                                style={styles.startBtn}
+                                style={ds.startBtn}
                                 disabled={!selectedSpecialty}
                             />
                         </View>
@@ -435,53 +438,56 @@ const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
                 </View>
             ) : (
                 <KeyboardAvoidingView
-                    style={styles.chatWrapper}
+                    style={ds.chatWrapper}
                     behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                     keyboardVerticalOffset={Platform.OS === 'ios' ? hp(18) : 0}
                 >
                     {/* Chat Header */}
-                    <View style={styles.chatHeader}>
-                        <TouchableOpacity onPress={toggleHistory} style={styles.menuBtn}>
-                            <Feather name="menu" size={22} color="#1E293B" />
+                    <View style={ds.chatHeader}>
+                        <TouchableOpacity onPress={toggleHistory} style={ds.menuBtn}>
+                            <Feather name="menu" size={22} color={tc.textPrimary} />
                         </TouchableOpacity>
-                        <View style={styles.chatHeaderTitleContainer}>
-                            <Text style={styles.chatHeaderTitle}>{t('aiAssistant.consultChat.clinicalAssistant')}</Text>
+                        <View style={ds.chatHeaderTitleContainer}>
+                            <Text style={ds.chatHeaderTitle}>{t('aiAssistant.consultChat.clinicalAssistant')}</Text>
                         </View>
+                        <TouchableOpacity onPress={handleBackToSelection} style={ds.menuBtn}>
+                            <MaterialCommunityIcons name="refresh" size={22} color={tc.textPrimary} />
+                        </TouchableOpacity>
                     </View>
 
                     {/* Messages */}
                     <ScrollView
                         ref={scrollViewRef}
-                        style={styles.messagesContainer}
-                        contentContainerStyle={styles.messagesContent}
+                        style={ds.messagesContainer}
+                        contentContainerStyle={ds.messagesContent}
                         onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
                     >
                         {messages.map((msg) => (
                             <View
                                 key={msg.id}
                                 style={[
-                                    styles.messageBubbleRow,
-                                    msg.sender === 'user' ? styles.userRow : styles.aiRow,
+                                    ds.messageBubbleRow,
+                                    msg.sender === 'user' ? ds.userRow : ds.aiRow,
                                 ]}
                             >
                                 <View
                                     style={[
-                                        styles.messageBubble,
-                                        msg.sender === 'user' ? styles.userBubble : styles.aiBubble,
+                                        ds.messageBubble,
+                                        msg.sender === 'user' ? ds.userBubble : ds.aiBubble,
                                     ]}
                                 >
                                     <Text
                                         style={[
-                                            styles.messageText,
-                                            msg.sender === 'user' ? styles.userMessageText : styles.aiMessageText,
+                                            ds.messageText,
+                                            msg.sender === 'user' ? ds.userMessageText : ds.aiMessageText,
                                         ]}
                                     >
                                         {msg.text}
                                     </Text>
                                     <Text
                                         style={[
-                                            styles.messageTime,
-                                            msg.sender === 'user' ? styles.userTimeText : styles.aiTimeText,
+                                            ds.messageTime,
+                                            msg.sender === 'user' ? ds.userTimeText : ds.aiTimeText,
                                         ]}
                                     >
                                         {msg.time}
@@ -492,15 +498,15 @@ const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
 
                         {/* AI Thinking Indicator */}
                         {isAiThinking && (
-                            <View style={[styles.messageBubbleRow, styles.aiRow]}>
-                                <View style={[styles.messageBubble, styles.aiBubble, styles.thinkingBubble]}>
-                                    <View style={styles.thinkingContent}>
-                                        <View style={styles.thinkingDots}>
-                                            <Animated.View style={[styles.thinkingDot, { opacity: dot1 }]} />
-                                            <Animated.View style={[styles.thinkingDot, { opacity: dot2 }]} />
-                                            <Animated.View style={[styles.thinkingDot, { opacity: dot3 }]} />
+                            <View style={[ds.messageBubbleRow, ds.aiRow]}>
+                                <View style={[ds.messageBubble, ds.aiBubble, ds.thinkingBubble]}>
+                                    <View style={ds.thinkingContent}>
+                                        <View style={ds.thinkingDots}>
+                                            <Animated.View style={[ds.thinkingDot, { opacity: dot1 }]} />
+                                            <Animated.View style={[ds.thinkingDot, { opacity: dot2 }]} />
+                                            <Animated.View style={[ds.thinkingDot, { opacity: dot3 }]} />
                                         </View>
-                                        <Text style={styles.thinkingText}>{t('aiAssistant.consultChat.aiThinking')}</Text>
+                                        <Text style={ds.thinkingText}>{t('aiAssistant.consultChat.aiThinking')}</Text>
                                     </View>
                                 </View>
                             </View>
@@ -508,11 +514,11 @@ const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
                     </ScrollView>
 
                     {/* Message Input */}
-                    <View style={styles.inputBar}>
+                    <View style={ds.inputBar}>
                         <TextInput
-                            style={styles.chatInput}
+                            style={ds.chatInput}
                             placeholder={t('aiAssistant.consultChat.askPlaceholder')}
-                            placeholderTextColor="#9CA3AF"
+                            placeholderTextColor={tc.textMuted}
                             value={messageText}
                             onChangeText={setMessageText}
                             onSubmitEditing={handleSendMessage}
@@ -520,8 +526,8 @@ const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
                         />
                         <TouchableOpacity
                             style={[
-                                styles.sendBtn,
-                                (!messageText.trim() || isAiThinking) && styles.sendBtnDisabled,
+                                ds.sendBtn,
+                                (!messageText.trim() || isAiThinking) && ds.sendBtnDisabled,
                             ]}
                             onPress={handleSendMessage}
                             disabled={!messageText.trim() || isAiThinking}
@@ -535,10 +541,10 @@ const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
     );
 };
 
-const styles = StyleSheet.create({
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F5F5F5',
+        backgroundColor: tc.screenBackground,
     },
     /* ─── Drawer Styles ─── */
     drawer: {
@@ -546,14 +552,14 @@ const styles = StyleSheet.create({
         top: 0,
         bottom: 0,
         width: wp(70),
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
         zIndex: 1000,
         borderRightWidth: 1,
-        borderRightColor: '#E2E8F0',
+        borderRightColor: tc.borderSubtle,
         elevation: 10,
-        shadowColor: '#000',
+        shadowColor: tc.shadow,
         shadowOffset: { width: 2, height: 0 },
-        shadowOpacity: 0.1,
+        shadowOpacity: isDark ? 0.3 : 0.1,
         shadowRadius: 10,
     },
     drawerHeader: {
@@ -562,12 +568,12 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         padding: 20,
         borderBottomWidth: 1,
-        borderBottomColor: '#F1F5F9',
+        borderBottomColor: tc.borderSubtle,
     },
     drawerTitle: {
         fontSize: 18,
         fontWeight: '700',
-        color: '#1E293B',
+        color: tc.textPrimary,
     },
     drawerHeaderActions: {
         flexDirection: 'row',
@@ -583,17 +589,17 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         padding: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#F8FAFC',
+        borderBottomColor: tc.borderSubtle,
         alignItems: 'center',
     },
     activeSessionItem: {
-        backgroundColor: '#F1F5F9',
+        backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#F1F5F9',
     },
     sessionIconContainer: {
         width: 36,
         height: 36,
         borderRadius: 18,
-        backgroundColor: '#EBF5FF',
+        backgroundColor: isDark ? 'rgba(74, 144, 185, 0.15)' : '#EBF5FF',
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,
@@ -604,7 +610,7 @@ const styles = StyleSheet.create({
     sessionIdText: {
         fontSize: 15,
         fontWeight: '600',
-        color: '#1E293B',
+        color: tc.textPrimary,
         marginBottom: 4,
     },
     sessionMetaRow: {
@@ -613,14 +619,14 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     sessionTag: {
-        backgroundColor: '#E2E8F0',
+        backgroundColor: isDark ? tc.layer2 : '#E2E8F0',
         paddingHorizontal: 8,
         paddingVertical: 2,
         borderRadius: 4,
     },
     sessionTagText: {
         fontSize: 12,
-        color: '#64748B',
+        color: tc.textSecondary,
         fontWeight: '500',
     },
     sessionDateRow: {
@@ -630,55 +636,39 @@ const styles = StyleSheet.create({
     },
     sessionDateText: {
         fontSize: 12,
-        color: '#94A3B8',
+        color: tc.textMuted,
     },
     deleteBtn: {
         padding: 8,
         marginLeft: 4,
     },
-    floatingToggleBtn: {
-        position: 'absolute',
-        left: 0,
-        top: hp(30),
-        backgroundColor: '#FFFFFF',
-        width: 40,
-        height: 50,
-        borderTopRightRadius: 12,
-        borderBottomRightRadius: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-        elevation: 4,
-        shadowColor: '#000',
-        shadowOffset: { width: 2, height: 0 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        zIndex: 900,
-    },
     /* ─── Selection Screen ─── */
     selectionContainer: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
         margin: 15,
         borderRadius: 12,
         padding: 24,
         alignItems: 'center',
-        shadowColor: '#000',
+        shadowColor: tc.shadow,
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
+        shadowOpacity: isDark ? 0.2 : 0.08,
         shadowRadius: 4,
         elevation: 3,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: tc.borderSubtle,
     },
     chatIconCircle: {
         width: 60,
         height: 60,
         borderRadius: 16,
-        backgroundColor: '#EBF5FF',
+        backgroundColor: isDark ? 'rgba(74, 144, 185, 0.15)' : '#EBF5FF',
         justifyContent: 'center',
         alignItems: 'center',
         marginTop: hp(4),
     },
     selectionDesc: {
         fontSize: 15,
-        color: '#6B7280',
+        color: tc.textSecondary,
         textAlign: 'center',
         lineHeight: 22,
         paddingHorizontal: 20,
@@ -686,7 +676,7 @@ const styles = StyleSheet.create({
     selectLabel: {
         fontSize: 16,
         fontWeight: '700',
-        color: '#111827',
+        color: tc.textPrimary,
         alignSelf: 'flex-start',
     },
     startBtn: {
@@ -699,7 +689,7 @@ const styles = StyleSheet.create({
     /* ─── Chat Screen ─── */
     chatWrapper: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.screenBackground,
         overflow: 'hidden',
     },
     chatHeader: {
@@ -708,8 +698,8 @@ const styles = StyleSheet.create({
         paddingVertical: 18,
         paddingHorizontal: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#F3F4F6',
-        backgroundColor: '#FAFBFC',
+        borderBottomColor: tc.borderSubtle,
+        backgroundColor: tc.cardBackground,
     },
     menuBtn: {
         marginRight: 16,
@@ -720,16 +710,11 @@ const styles = StyleSheet.create({
     chatHeaderTitle: {
         fontSize: 18,
         fontWeight: '700',
-        color: '#111827',
-    },
-    chatHeaderSubtitle: {
-        fontSize: 12,
-        color: '#6B7280',
-        marginTop: 1,
+        color: tc.textPrimary,
     },
     messagesContainer: {
         flex: 1,
-        backgroundColor: '#F9FAFB',
+        backgroundColor: tc.screenBackground,
     },
     messagesContent: {
         padding: 16,
@@ -751,14 +736,14 @@ const styles = StyleSheet.create({
         borderRadius: 14,
     },
     userBubble: {
-        backgroundColor: '#4A90B9',
+        backgroundColor: tc.accent,
         borderBottomRightRadius: 4,
     },
     aiBubble: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
         borderBottomLeftRadius: 4,
         borderWidth: 1,
-        borderColor: '#E5E7EB',
+        borderColor: tc.borderSubtle,
     },
     messageText: {
         fontSize: 14,
@@ -768,7 +753,7 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
     },
     aiMessageText: {
-        color: '#374151',
+        color: tc.textPrimary,
     },
     messageTime: {
         fontSize: 11,
@@ -780,7 +765,7 @@ const styles = StyleSheet.create({
         fontSize: 10,
     },
     aiTimeText: {
-        color: '#9CA3AF',
+        color: tc.textMuted,
         fontSize: 10,
     },
     inputBar: {
@@ -788,33 +773,33 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 16,
         paddingTop: 12,
-        paddingBottom: Platform.OS === 'ios' ? 30 : 16, // Margin below text input
+        paddingBottom: Platform.OS === 'ios' ? 30 : 16, 
         borderTopWidth: 1,
-        borderTopColor: '#F3F4F6',
-        backgroundColor: '#FFFFFF',
+        borderTopColor: tc.borderSubtle,
+        backgroundColor: tc.cardBackground,
         gap: 10,
     },
     chatInput: {
         flex: 1,
         height: 44,
         borderWidth: 1,
-        borderColor: '#E5E7EB',
+        borderColor: tc.borderSubtle,
         borderRadius: 22,
         paddingHorizontal: 16,
         fontSize: 14,
-        color: '#111827',
-        backgroundColor: '#FAFBFC',
+        color: tc.textPrimary,
+        backgroundColor: tc.inputBackground,
     },
     sendBtn: {
         width: 44,
         height: 44,
         borderRadius: 22,
-        backgroundColor: '#4A90B9',
+        backgroundColor: tc.accent,
         justifyContent: 'center',
         alignItems: 'center',
     },
     sendBtnDisabled: {
-        backgroundColor: '#B0D4E8',
+        backgroundColor: isDark ? 'rgba(74, 144, 185, 0.3)' : '#B0D4E8',
     },
     thinkingBubble: {
         paddingVertical: 16,
@@ -834,11 +819,11 @@ const styles = StyleSheet.create({
         width: 10,
         height: 10,
         borderRadius: 5,
-        backgroundColor: '#4A90B9',
+        backgroundColor: tc.accent,
     },
     thinkingText: {
         fontSize: 14,
-        color: '#6B7280',
+        color: tc.textMuted,
         fontStyle: 'italic',
     },
 });

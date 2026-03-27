@@ -20,6 +20,7 @@ import { AddEmployee, GetDirectorSetting } from '../../../Services/settingServic
 import userStore from '../../../store/user';
 import { Alert, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 interface AddDoctorModalProps {
     visible: boolean;
@@ -31,6 +32,8 @@ interface AddDoctorModalProps {
 
 const AddDoctorModal: React.FC<AddDoctorModalProps> = ({ visible, onClose, onAdd, onAlert, activeTab }) => {
     const { t } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
     const { loggedInUser } = userStore();
     const [loading, setLoading] = useState(false);
     
@@ -155,10 +158,9 @@ const AddDoctorModal: React.FC<AddDoctorModalProps> = ({ visible, onClose, onAdd
     };
 
     const renderLabel = (label: string) => (
-        <View style={styles.labelContainer}>
-            <Text style={styles.asterisk}>* </Text>
-            <Text style={styles.labelText}>{label}</Text>
-            <Text style={styles.asterisk}> *</Text>
+        <View style={ds.labelContainer}>
+            <Text style={ds.asterisk}>* </Text>
+            <Text style={ds.labelText}>{label}</Text>
         </View>
     );
 
@@ -174,24 +176,24 @@ const AddDoctorModal: React.FC<AddDoctorModalProps> = ({ visible, onClose, onAdd
             animationType="slide"
             onRequestClose={onClose}
         >
-            <View style={styles.modalOverlay}>
+            <View style={ds.modalOverlay}>
                 <KeyboardAvoidingView
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                    style={styles.keyboardView}
+                    style={ds.keyboardView}
                 >
-                    <View style={styles.modalContent}>
+                    <View style={ds.modalContent}>
                         {/* Header */}
-                        <View style={styles.header}>
-                            <Text style={styles.headerTitle}>{getTitle()}</Text>
-                            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                                <Feather name="x" size={24} color="#64748B" />
+                        <View style={ds.header}>
+                            <Text style={ds.headerTitle}>{getTitle()}</Text>
+                            <TouchableOpacity onPress={onClose} style={ds.closeButton}>
+                                <Feather name="x" size={24} color={tc.textMuted} />
                             </TouchableOpacity>
                         </View>
 
                         <ScrollView 
-                            style={styles.formContainer} 
+                            style={ds.formContainer} 
                             showsVerticalScrollIndicator={false}
-                            contentContainerStyle={styles.scrollContent}
+                            contentContainerStyle={ds.scrollContent}
                         >
                             {/* First Name */}
                             {renderLabel(t('employee_modals.add_employee.labels.firstName'))}
@@ -268,9 +270,9 @@ const AddDoctorModal: React.FC<AddDoctorModalProps> = ({ visible, onClose, onAdd
                             <Gap height={hp(2.5)} />
 
                             {/* Warning Box */}
-                            <View style={styles.warningBox}>
-                                <MaterialCommunityIcons name="alert-triangle-outline" size={24} color="#EF4444" />
-                                <Text style={styles.warningText}>
+                            <View style={ds.warningBox}>
+                                <MaterialCommunityIcons name="alert-triangle-outline" size={24} color={tc.error} />
+                                <Text style={ds.warningText}>
                                     {t('employee_modals.add_employee.warning')}
                                 </Text>
                             </View>
@@ -278,18 +280,18 @@ const AddDoctorModal: React.FC<AddDoctorModalProps> = ({ visible, onClose, onAdd
                             <Gap height={hp(3)} />
 
                             {/* Action Buttons */}
-                            <View style={styles.footerButtons}>
+                            <View style={ds.footerButtons}>
                                 <PrimaryButton
                                     label={t('employee_modals.add_employee.buttons.cancel')}
                                     filled={false}
                                     onPress={onClose}
-                                    style={styles.cancelButton}
+                                    style={ds.cancelButton}
                                 />
                                 <PrimaryButton
                                     label={t(`employee_modals.add_employee.buttons.add_${getRoleTranslationKey()}`)}
                                     filled={true}
                                     onPress={handleAdd}
-                                    style={styles.addButton}
+                                    style={ds.addButton}
                                     loading={loading}
                                     disabled={loading}
                                 />
@@ -303,10 +305,10 @@ const AddDoctorModal: React.FC<AddDoctorModalProps> = ({ visible, onClose, onAdd
     );
 };
 
-const styles = StyleSheet.create({
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -315,34 +317,37 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     modalContent: {
-        width: wp(90),
-        backgroundColor: '#fff',
-        borderRadius: 20,
+        width: wp(92),
+        backgroundColor: tc.modalBg,
+        borderRadius: 24,
         paddingTop: 20,
         maxHeight: hp(85),
+        borderWidth: isDark ? 1 : 0,
+        borderColor: tc.borderSubtle,
+        overflow: 'hidden',
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingBottom: 15,
+        paddingHorizontal: 24,
+        paddingBottom: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#F1F5F9',
+        borderBottomColor: tc.borderSubtle,
     },
     headerTitle: {
         fontSize: 20,
-        fontWeight: '700',
-        color: '#1E293B',
+        fontWeight: 'bold',
+        color: tc.textPrimary,
     },
     closeButton: {
         padding: 4,
     },
     formContainer: {
-        paddingHorizontal: 20,
+        paddingHorizontal: 24,
     },
     scrollContent: {
-        paddingTop: 15,
+        paddingVertical: 20,
     },
     labelContainer: {
         flexDirection: 'row',
@@ -352,27 +357,27 @@ const styles = StyleSheet.create({
     labelText: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#334155',
+        color: tc.textSecondary,
     },
     asterisk: {
-        color: '#EF4444',
+        color: tc.error,
         fontSize: 14,
         fontWeight: 'bold',
     },
     warningBox: {
         flexDirection: 'row',
-        backgroundColor: '#FEF2F2',
-        padding: 15,
+        backgroundColor: isDark ? 'rgba(239, 68, 68, 0.05)' : '#FEF2F2',
+        padding: 16,
         borderRadius: 12,
         alignItems: 'flex-start',
         borderWidth: 1,
-        borderColor: '#FEE2E2',
+        borderColor: isDark ? 'rgba(239, 68, 68, 0.2)' : '#FEE2E2',
     },
     warningText: {
         flex: 1,
         fontSize: 13,
-        color: '#991B1B',
-        marginLeft: 10,
+        color: isDark ? '#FCA5A5' : '#991B1B',
+        marginLeft: 12,
         lineHeight: 18,
     },
     footerButtons: {
@@ -380,18 +385,19 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
         alignItems: 'center',
         gap: 12,
+        marginTop: 10,
     },
     cancelButton: {
         width: wp(30),
-        height: 45,
+        height: 48,
         marginBottom: 0,
-        borderRadius: 10,
+        borderRadius: 12,
     },
     addButton: {
-        width: wp(25),
-        height: 45,
+        width: wp(28),
+        height: 48,
         marginBottom: 0,
-        borderRadius: 10,
+        borderRadius: 12,
     },
 });
 

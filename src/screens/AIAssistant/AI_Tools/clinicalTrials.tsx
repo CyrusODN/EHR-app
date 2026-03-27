@@ -8,6 +8,7 @@ import CustomTextInput from '../../../component/customTextInput';
 import Gap from '../../../component/gap';
 import { searchClinicalTrials } from '../../../Services/AiAssitants.Service';
 import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 interface ClinicalTrialsProps {
     serviceToken: string | null;
@@ -16,6 +17,8 @@ interface ClinicalTrialsProps {
 
 const ClinicalTrials = ({ serviceToken, onShowAlert }: ClinicalTrialsProps) => {
     const { t } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
     const [diagnosis, setDiagnosis] = useState('');
     const [location, setLocation] = useState('');
     const [loading, setLoading] = useState(false);
@@ -42,25 +45,25 @@ const ClinicalTrials = ({ serviceToken, onShowAlert }: ClinicalTrialsProps) => {
     };
 
     return (
-        <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: hp(5) }} showsVerticalScrollIndicator={false}>
-            <View style={styles.searchSection}>
-                <View style={styles.inputRow}>
-                    <View style={styles.inputCol}>
-                        <Text style={styles.inputLabel}>{t('aiAssistant.clinicalTrials.diagnosis')}</Text>
+        <ScrollView style={ds.container} contentContainerStyle={{ paddingBottom: hp(5) }} showsVerticalScrollIndicator={false}>
+            <View style={ds.searchSection}>
+                <View style={ds.inputRow}>
+                    <View style={ds.inputCol}>
+                        <Text style={ds.inputLabel}>{t('aiAssistant.clinicalTrials.diagnosis')}</Text>
                         <CustomTextInput
                             placeholder={t('aiAssistant.clinicalTrials.diagnosisPlaceholder')}
                             value={diagnosis}
                             onChangeText={setDiagnosis}
-                            style={styles.textInput}
+                            style={ds.textInput}
                         />
                     </View>
-                    <View style={styles.inputCol}>
-                        <Text style={styles.inputLabel}>{t('aiAssistant.clinicalTrials.location')}</Text>
+                    <View style={ds.inputCol}>
+                        <Text style={ds.inputLabel}>{t('aiAssistant.clinicalTrials.location')}</Text>
                         <CustomTextInput
                             placeholder={t('aiAssistant.clinicalTrials.locationPlaceholder')}
                             value={location}
                             onChangeText={setLocation}
-                            style={styles.textInput}
+                            style={ds.textInput}
                         />
                     </View>
                 </View>
@@ -71,155 +74,166 @@ const ClinicalTrials = ({ serviceToken, onShowAlert }: ClinicalTrialsProps) => {
                     label={loading ? t('aiAssistant.clinicalTrials.searching') : t('aiAssistant.clinicalTrials.searchTrials')}
                     filled={true}
                     onPress={handleSearch}
-                    style={styles.searchBtn}
+                    style={ds.searchBtn}
                     icon={loading ? <ActivityIndicator color="white" size="small" /> : <Feather name="search" color={"white"} size={18} />}
                     disabled={loading}
                 />
             </View>
 
             {searched && (
-                <View style={styles.resultsHeader}>
-                    <Text style={styles.foundText}>{t('aiAssistant.clinicalTrials.foundTrials', { count: trials.length })}</Text>
+                <View style={ds.resultsHeader}>
+                    <Text style={ds.foundText}>{t('aiAssistant.clinicalTrials.foundTrials', { count: trials.length })}</Text>
                 </View>
             )}
 
             {trials.map((trial, index) => (
-                <View key={trial.id || index} style={styles.trialCard}>
-                    <View style={styles.cardHeader}>
-                        <Text style={styles.trialTitle}>{trial.title}</Text>
+                <View key={trial.id || index} style={ds.trialCard}>
+                    <View style={ds.cardHeader}>
+                        <Text style={ds.trialTitle}>{trial.title}</Text>
                         <Gap height={hp(1)} />
-                        <Text style={styles.trialMeta}>{t('aiAssistant.clinicalTrials.id')}: {trial.id}</Text>
-                        <Text style={styles.trialMeta}>{t('aiAssistant.clinicalTrials.sponsor')}: {trial.sponsor}</Text>
-                        <Text style={styles.trialMeta}>{t('aiAssistant.clinicalTrials.phase')}: {trial.phase}</Text>
+                        <Text style={ds.trialMeta}>{t('aiAssistant.clinicalTrials.id')}: {trial.id}</Text>
+                        <Text style={ds.trialMeta}>{t('aiAssistant.clinicalTrials.sponsor')}: {trial.sponsor}</Text>
+                        <Text style={ds.trialMeta}>{t('aiAssistant.clinicalTrials.phase')}: {trial.phase}</Text>
                     </View>
 
-                    <View style={styles.locationContainer}>
-                        <Feather name="map-pin" size={14} color="#9CA3AF" style={{ marginRight: 5 }} />
-                        <Text style={styles.locationText} numberOfLines={1}>{trial.location}</Text>
+                    <View style={ds.locationContainer}>
+                        <Feather name="map-pin" size={14} color={tc.textMuted} style={{ marginRight: 5 }} />
+                        <Text style={ds.locationText} numberOfLines={1}>{trial.location}</Text>
                     </View>
 
-                    <View style={styles.criteriaRow}>
-                        <View style={styles.criteriaCol}>
-                            <Text style={styles.criteriaTitle}>{t('aiAssistant.clinicalTrials.inclusionCriteria')}</Text>
+                    <View style={ds.criteriaRow}>
+                        <View style={ds.criteriaCol}>
+                            <Text style={ds.criteriaTitle}>{t('aiAssistant.clinicalTrials.inclusionCriteria')}</Text>
                             {(trial.criteria?.inclusion || []).map((item: string, i: number) => (
-                                <Text key={i} style={styles.criteriaItem}>• {item}</Text>
+                                <Text key={i} style={ds.criteriaItem}>• {item}</Text>
                             ))}
                         </View>
-                        <View style={styles.criteriaCol}>
-                            <Text style={styles.criteriaTitle}>{t('aiAssistant.clinicalTrials.exclusionCriteria')}</Text>
+                        <Gap width={12} />
+                        <View style={ds.criteriaCol}>
+                            <Text style={ds.criteriaTitle}>{t('aiAssistant.clinicalTrials.exclusionCriteria')}</Text>
                             {(trial.criteria?.exclusion || []).map((item: string, i: number) => (
-                                <Text key={i} style={styles.criteriaItem}>• {item}</Text>
+                                <Text key={i} style={ds.criteriaItem}>• {item}</Text>
                             ))}
                         </View>
                     </View>
 
-                    <View style={styles.cardFooter}>
-                        <TouchableOpacity style={styles.detailsBtn}>
-                            <Feather name="file-text" size={14} color="#4A90B9" style={{ marginRight: 5 }} />
-                            <Text style={styles.detailsBtnText}>{t('aiAssistant.clinicalTrials.details')}</Text>
+                    <View style={ds.cardFooter}>
+                        <TouchableOpacity style={ds.detailsBtn}>
+                            <Feather name="file-text" size={14} color={tc.accent} style={{ marginRight: 5 }} />
+                            <Text style={ds.detailsBtnText}>{t('aiAssistant.clinicalTrials.details')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
             ))}
 
             {searched && trials.length === 0 && !loading && (
-                <View style={styles.noResults}>
-                    <Text style={styles.noResultsText}>{t('aiAssistant.clinicalTrials.noResults')}</Text>
+                <View style={ds.noResults}>
+                    <Text style={ds.noResultsText}>{t('aiAssistant.clinicalTrials.noResults')}</Text>
                 </View>
             )}
         </ScrollView>
     );
 };
 
-const styles = StyleSheet.create({
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F9FAFB',
+        backgroundColor: tc.screenBackground,
     },
     searchSection: {
-        padding: 15,
-        backgroundColor: '#FFFFFF',
+        padding: 20,
+        backgroundColor: tc.cardBackground,
         margin: 15,
         borderRadius: 12,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        shadowColor: tc.shadow,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: isDark ? 0.3 : 0.1,
+        shadowRadius: 6,
+        elevation: 4,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: tc.borderSubtle,
     },
     inputRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
+        gap: 12,
     },
     inputCol: {
-        width: '48%',
+        flex: 1,
     },
     inputLabel: {
         fontSize: 14,
-        fontWeight: '600',
-        color: '#374151',
+        fontWeight: '700',
+        color: tc.textPrimary,
         marginBottom: 8,
     },
     textInput: {
-        backgroundColor: '#F3F4F6',
+        backgroundColor: tc.inputBackground,
         borderRadius: 8,
+        borderWidth: 1,
+        borderColor: tc.borderSubtle,
     },
     searchBtn: {
         width: '100%',
-        backgroundColor: '#67B7B1',
         borderRadius: 8,
-        height: hp(6),
+        height: 48,
+        marginBottom: 0,
     },
     resultsHeader: {
-        paddingHorizontal: 15,
-        marginBottom: 10,
+        paddingHorizontal: 20,
+        marginBottom: 12,
     },
     foundText: {
         fontSize: 16,
-        fontWeight: '700',
-        color: '#111827',
+        fontWeight: '800',
+        color: tc.textPrimary,
     },
     trialCard: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
         marginHorizontal: 15,
-        marginBottom: 15,
+        marginBottom: 16,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: '#E5E7EB',
+        borderColor: tc.borderSubtle,
         overflow: 'hidden',
+        shadowColor: tc.shadow,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: isDark ? 0.2 : 0.05,
+        shadowRadius: 4,
+        elevation: 2,
     },
     cardHeader: {
-        padding: 15,
-        backgroundColor: '#F9FAFB',
+        padding: 16,
+        backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#F9FAFB',
         borderBottomWidth: 1,
-        borderBottomColor: '#F3F4F6',
+        borderBottomColor: tc.borderSubtle,
     },
     trialTitle: {
         fontSize: 15,
-        fontWeight: 'bold',
-        color: '#111827',
-        lineHeight: 20,
+        fontWeight: '700',
+        color: tc.textPrimary,
+        lineHeight: 22,
     },
     trialMeta: {
         fontSize: 12,
-        color: '#6B7280',
+        color: tc.textSecondary,
         marginTop: 2,
     },
     locationContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 15,
-        paddingVertical: 10,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
     },
     locationText: {
         fontSize: 12,
-        color: '#6B7280',
+        color: tc.textSecondary,
         flex: 1,
     },
     criteriaRow: {
         flexDirection: 'row',
-        paddingHorizontal: 15,
-        paddingBottom: 15,
+        paddingHorizontal: 16,
+        paddingBottom: 16,
     },
     criteriaCol: {
         flex: 1,
@@ -227,42 +241,43 @@ const styles = StyleSheet.create({
     criteriaTitle: {
         fontSize: 13,
         fontWeight: '700',
-        color: '#374151',
+        color: tc.textPrimary,
         marginBottom: 8,
     },
     criteriaItem: {
         fontSize: 12,
-        color: '#4B5563',
+        color: tc.textSecondary,
         marginBottom: 4,
         lineHeight: 18,
     },
     cardFooter: {
         borderTopWidth: 1,
-        borderTopColor: '#F3F4F6',
-        padding: 10,
+        borderTopColor: tc.borderSubtle,
+        padding: 12,
         alignItems: 'flex-end',
+        backgroundColor: isDark ? 'rgba(255,255,255,0.01)' : 'transparent',
     },
     detailsBtn: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 15,
+        paddingHorizontal: 16,
         paddingVertical: 8,
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: '#4A90B9',
+        borderColor: tc.accent,
     },
     detailsBtnText: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#4A90B9',
+        fontSize: 13,
+        fontWeight: '700',
+        color: tc.accent,
     },
     noResults: {
-        padding: 20,
+        padding: 40,
         alignItems: 'center',
     },
     noResultsText: {
         fontSize: 14,
-        color: '#6B7280',
+        color: tc.textMuted,
     },
 });
 

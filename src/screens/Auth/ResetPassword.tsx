@@ -13,6 +13,8 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import { useThemeColors } from '../../hooks/useThemeColors';
+import LogoSvg from '../../component/logo';
 
 import CustomTextInput from '../../component/customTextInput';
 import PrimaryButton from '../../component/button';
@@ -38,6 +40,8 @@ const defaultValidationErrors = {
 
 const ResetPassword = () => {
     const { t } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
     const { email , resetPasswordToken} = route.params || {};
@@ -163,26 +167,24 @@ const ResetPassword = () => {
     };
 
     return (
-        <View style={{flex: 1, backgroundColor: '#fff'}}>
+        <View style={ds.mainContainer}>
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={{ flex: 1 }}>
             <ScrollView
-                contentContainerStyle={styles.scrollContent}
+                contentContainerStyle={ds.scrollContent}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}>
-                <View style={styles.container}>
+                <View style={ds.container}>
                     {/* Logo */}
-                    <Image
-                        source={require('../../assets/images/logo.png')}
-                        style={styles.logo}
-                        resizeMode="contain"
-                    />
+                    <View style={ds.logoContainer}>
+                        <LogoSvg />
+                    </View>
 
                     {/* Header */}
                     <View style={{ width: '100%', alignItems: 'center' }}>
-                        <Text style={styles.header}>{t('reset_password.title')}</Text>
-                        <Text style={styles.header}>{t('reset_password.subtitle')}</Text>
+                        <Text style={ds.header}>{t('reset_password.title')}</Text>
+                        <Text style={ds.header}>{t('reset_password.subtitle')}</Text>
                     </View>
 
                     <Gap height={hp(4)} />
@@ -196,8 +198,8 @@ const ResetPassword = () => {
                         setValidationsState={setValidationErrors}
                         validationState={validationErrors}
                         isFormSubmitted={isFormSubmitted}
-                        icon={<Ionicons name="lock-closed-outline" color="#777" size={20} />}
-                        right={showPassword ? <Ionicons name="eye-off-outline" size={20} color="#777" /> : <Ionicons name="eye-outline" size={20} color="#777" />}
+                        icon={<Ionicons name="lock-closed-outline" color={tc.textSecondary} size={20} />}
+                        right={showPassword ? <Ionicons name="eye-off-outline" size={20} color={tc.textSecondary} /> : <Ionicons name="eye-outline" size={20} color={tc.textSecondary} />}
                         onRightPress={handlePasswordToggle}
                         keyboardType={undefined}
                         secureTextEntry={!showPassword}
@@ -214,8 +216,8 @@ const ResetPassword = () => {
                         setValidationsState={setValidationErrors}
                         validationState={validationErrors}
                         isFormSubmitted={isFormSubmitted}
-                        icon={<Ionicons name="lock-closed-outline" color="#777" size={20} />}
-                        right={showConfirmPassword ? <Ionicons name="eye-off-outline" size={20} color="#777" /> : <Ionicons name="eye-outline" size={20} color="#777" />}
+                        icon={<Ionicons name="lock-closed-outline" color={tc.textSecondary} size={20} />}
+                        right={showConfirmPassword ? <Ionicons name="eye-off-outline" size={20} color={tc.textSecondary} /> : <Ionicons name="eye-outline" size={20} color={tc.textSecondary} />}
                         onRightPress={handleConfirmPasswordToggle}
                         keyboardType={undefined}
                         secureTextEntry={!showConfirmPassword}
@@ -228,7 +230,7 @@ const ResetPassword = () => {
                         label={t('reset_password.reset_button')}
                         filled
                         onPress={handleResetPassword}
-                        style={styles.primaryButton}
+                        style={ds.primaryButton}
                         loading={spinner}
                         disabled={spinner}
                         icon={undefined}
@@ -240,12 +242,12 @@ const ResetPassword = () => {
                     <Gap height={hp(2)} />
 
                     {/* Sign In Link */}
-                    <View style={styles.signInContainer}>
-                        <Text style={styles.signInText}>
+                    <View style={ds.signInContainer}>
+                        <Text style={ds.signInText}>
                             {t('signup.have_account')}
                         </Text>
                         <TouchableOpacity onPress={() => navigation.navigate('Sign-In')}>
-                            <Text style={styles.signInLink}>
+                            <Text style={ds.signInLink}>
                                 {' ' + t('signup.sign_in')}
                             </Text>
                         </TouchableOpacity>
@@ -264,48 +266,55 @@ const ResetPassword = () => {
     );
 };
 
-const styles = StyleSheet.create({
-    scrollContent: {
-        flexGrow: 1,
-        paddingVertical: hp(2),
-    },
-    container: {
-        flex: 1,
-        alignItems: 'center',
-        paddingHorizontal: wp(6),
-        backgroundColor: '#fff',
-    },
-    logo: {
-        width: wp(50),
-        height: hp(12),
-        marginTop: hp(12),
-        marginBottom: hp(1),
-    },
-    header: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#1A1A1A',
-        textAlign: 'center',
-    },
-    primaryButton: {
-        width: '100%',
-        height: 52,
-        borderRadius: 12,
-    },
-    signInContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    signInText: {
-        color: '#666',
-        fontSize: 15,
-    },
-    signInLink: {
-        color: '#007AFF',
-        fontSize: 15,
-        fontWeight: 'bold',
-    },
-});
+const createDynamicStyles = (tc: any, isDark: boolean) =>
+    StyleSheet.create({
+        mainContainer: {
+            flex: 1,
+            backgroundColor: tc.background,
+        },
+        scrollContent: {
+            flexGrow: 1,
+            paddingVertical: hp(2),
+        },
+        container: {
+            flex: 1,
+            alignItems: 'center',
+            paddingHorizontal: wp(6),
+            backgroundColor: tc.background,
+        },
+        logoContainer: {
+            marginTop: hp(12),
+            marginBottom: hp(1),
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: wp(50),
+            height: hp(12),
+        },
+        header: {
+            fontSize: 24,
+            fontWeight: 'bold',
+            color: tc.textPrimary,
+            textAlign: 'center',
+        },
+        primaryButton: {
+            width: '100%',
+            height: 52,
+            borderRadius: 12,
+        },
+        signInContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        signInText: {
+            color: tc.textSecondary,
+            fontSize: 15,
+        },
+        signInLink: {
+            color: '#007AFF',
+            fontSize: 15,
+            fontWeight: 'bold',
+        },
+    });
 
 export default ResetPassword;

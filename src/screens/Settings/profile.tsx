@@ -21,21 +21,24 @@ import DocumentPicker from 'react-native-document-picker';
 import { uploadFileOnServer } from '../../Services/Upload.Service';
 import { UpdateUserInfo } from '../../Services/User.Service';
 import CustomTextInput from '../../component/customTextInput';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 interface NotificationToggleItemProps {
     title: string;
     value: boolean;
     onToggle: () => void;
+    tc: any;
+    ds: any;
 }
 
 // Notification Toggle Item Component
-const NotificationToggleItem = ({ title, value, onToggle }: NotificationToggleItemProps) => (
-    <View style={styles.notificationItem}>
-        <Text style={styles.notificationTitle}>{title}</Text>
+const NotificationToggleItem = ({ title, value, onToggle, tc, ds }: NotificationToggleItemProps) => (
+    <View style={ds.notificationItem}>
+        <Text style={ds.notificationTitle}>{title}</Text>
         <Switch
             value={value}
             onValueChange={onToggle}
-            trackColor={{ false: '#D1D1D6', true: '#58a6b8' }}
+            trackColor={{ false: tc.borderSubtle, true: tc.accent }}
             thumbColor={'#FFFFFF'}
         />
     </View>
@@ -45,6 +48,8 @@ const Profile = ({ onAlert }: { onAlert?: (config: any) => void }) => {
     const { t } = useTranslation();
     const navigation = useNavigation<any>();
     const { updateUser } = userStore() as any;
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
 
     const [notificationStates, setNotificationStates] = useState({
         emailNotifications: true,
@@ -171,42 +176,42 @@ const Profile = ({ onAlert }: { onAlert?: (config: any) => void }) => {
     };
 
     return (
-        <View style={styles.container}>
-            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-            <View style={styles.container}>
+        <View style={ds.container}>
+            <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={tc.cardBackground} />
+            <View style={ds.container}>
                 {/* Header */}
-                <View style={styles.header}>
+                <View style={ds.header}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={{ paddingRight: 10 }}>
-                        <Ionicons name="chevron-back" size={24} color="#333" />
+                        <Ionicons name="chevron-back" size={24} color={tc.textPrimary} />
                     </TouchableOpacity>
                     <View style={{
-                        backgroundColor: "rgba(90,167,179,0.1)",
+                        backgroundColor: isDark ? 'rgba(88, 166, 184, 0.15)' : "rgba(88, 166, 184, 0.1)",
                         height: 40, width: 40, alignItems: "center", justifyContent: 'center',
                         borderRadius: 10, marginEnd: wp(2)
                     }}>
-                        <Feather name="user" size={24} color="#58a6b8" />
+                        <Feather name="user" size={24} color={tc.accent} />
                     </View>
-                    <Text style={styles.headerTitle}>{t('profile_settings.title')}</Text>
+                    <Text style={ds.headerTitle}>{t('profile_settings.title')}</Text>
                 </View>
 
                 {/* User Profile Section */}
                 {loading ? (
-                    <View style={[styles.profileSection, { justifyContent: 'center' }]}>
-                        <ActivityIndicator size="large" color="#4A90B9" />
+                    <View style={[ds.profileSection, { justifyContent: 'center' }]}>
+                        <ActivityIndicator size="large" color={tc.accent} />
                     </View>
                 ) : isEditing ? (
                     <ScrollView style={{ padding: 16 }}>
-                        <View style={styles.editProfileImageContainer}>
-                            <View style={styles.profileIconLarge}>
+                        <View style={ds.editProfileImageContainer}>
+                            <View style={ds.profileIconLarge}>
                                 {profileImage ? (
-                                    <Image source={{ uri: profileImage }} style={styles.profileImageLarge} />
+                                    <Image source={{ uri: profileImage }} style={ds.profileImageLarge} />
                                 ) : (
-                                    <Text style={styles.profileInitialsLarge}>
+                                    <Text style={ds.profileInitialsLarge}>
                                         {getInitials(firstName, lastName)}
                                     </Text>
                                 )}
                                 <TouchableOpacity 
-                                    style={styles.cameraIconContainer}
+                                    style={ds.cameraIconContainer}
                                     onPress={handleImagePickAndUpload}
                                     disabled={isUploading}
                                 >
@@ -217,18 +222,18 @@ const Profile = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                                     )}
                                 </TouchableOpacity>
                             </View>
-                            <View style={styles.profileDetails}>
-                                <Text style={styles.profileNameLarge}>{firstName} {lastName}</Text>
-                                <Text style={styles.profileEmail}>{email}</Text>
+                            <View style={ds.profileDetails}>
+                                <Text style={ds.profileNameLarge}>{firstName} {lastName}</Text>
+                                <Text style={ds.profileEmail}>{email}</Text>
                             </View>
                         </View>
 
-                        <View style={styles.editFormContainer}>
-                            <View style={styles.rowContainer}>
-                                <View style={styles.halfField}>
-                                    <View style={styles.labelContainer}>
-                                        <Text style={styles.requiredStar}>* </Text>
-                                        <Text style={styles.fieldLabel}>{t('settings.profile.labels.first_name')}</Text>
+                        <View style={ds.editFormContainer}>
+                            <View style={ds.rowContainer}>
+                                <View style={ds.halfField}>
+                                    <View style={ds.labelContainer}>
+                                        <Text style={ds.requiredStar}>* </Text>
+                                        <Text style={ds.fieldLabel}>{t('settings.profile.labels.first_name')}</Text>
                                     </View>
                                     <CustomTextInput
                                         placeholder={t('settings.profile.labels.first_name')}
@@ -236,10 +241,10 @@ const Profile = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                                         onChangeText={setFirstName}
                                     />
                                 </View>
-                                <View style={styles.halfField}>
-                                    <View style={styles.labelContainer}>
-                                        <Text style={styles.requiredStar}>* </Text>
-                                        <Text style={styles.fieldLabel}>{t('settings.profile.labels.last_name')}</Text>
+                                <View style={ds.halfField}>
+                                    <View style={ds.labelContainer}>
+                                        <Text style={ds.requiredStar}>* </Text>
+                                        <Text style={ds.fieldLabel}>{t('settings.profile.labels.last_name')}</Text>
                                     </View>
                                     <CustomTextInput
                                         placeholder={t('settings.profile.labels.last_name')}
@@ -249,23 +254,23 @@ const Profile = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                                 </View>
                             </View>
 
-                            <View style={styles.fullField}>
-                                <Text style={styles.fieldLabel}>{t('settings.profile.labels.email')}</Text>
+                            <View style={ds.fullField}>
+                                <Text style={ds.fieldLabel}>{t('settings.profile.labels.email')}</Text>
                                 <CustomTextInput
                                     placeholder={t('settings.profile.labels.email')}
                                     value={email}
                                     onChangeText={setEmail}
                                     editable={false}
-                                    style={{ backgroundColor: '#F8FAFC' }}
+                                    style={{ backgroundColor: tc.screenBackground }}
                                 />
                             </View>
 
-                            <View style={styles.actionButtonsRow}>
+                            <View style={ds.actionButtonsRow}>
                                 <TouchableOpacity 
-                                    style={styles.cancelButton} 
+                                    style={ds.cancelButton} 
                                     onPress={() => setIsEditing(false)}
                                 >
-                                    <Text style={styles.cancelButtonText}>{t('settings.profile.buttons.cancel')}</Text>
+                                    <Text style={ds.cancelButtonText}>{t('settings.profile.buttons.cancel')}</Text>
                                 </TouchableOpacity>
                                 <PrimaryButton
                                     label={t('settings.profile.buttons.save_changes')}
@@ -278,25 +283,25 @@ const Profile = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                         </View>
 
                         {/* Security Section (Within Edit mode if needed, but screenshot shows it below) */}
-                        <View style={styles.sectionDivider} />
+                        <View style={ds.sectionDivider} />
                     </ScrollView>
                 ) : (
                     <>
-                        <View style={styles.profileSection}>
-                            <View style={styles.profileIcon}>
+                        <View style={ds.profileSection}>
+                            <View style={ds.profileIcon}>
                                 {profileImage ? (
-                                    <Image source={{ uri: profileImage }} style={styles.profileImage} />
+                                    <Image source={{ uri: profileImage }} style={ds.profileImage} />
                                 ) : (
-                                    <Text style={styles.profileInitials}>
+                                    <Text style={ds.profileInitials}>
                                         {getInitials(userData?.firstName, userData?.lastName)}
                                     </Text>
                                 )}
                             </View>
-                            <View style={styles.profileDetails}>
-                                <Text style={styles.profileName}>
+                            <View style={ds.profileDetails}>
+                                <Text style={ds.profileName}>
                                     {userData?.firstName} {userData?.lastName}
                                 </Text>
-                                <Text style={styles.profileEmail}>
+                                <Text style={ds.profileEmail}>
                                     {userData?.email || userData?.username}
                                 </Text>
                             </View>
@@ -315,10 +320,10 @@ const Profile = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                 {(!isEditing || loading) && (
                     <ScrollView>
                         {/* Security Section */}
-                        <View style={[styles.sectionContainer]}>
-                            <View style={styles.sectionHeader}>
-                                <Ionicons name="lock-closed-outline" size={20} color="#4A90B9" style={styles.sectionIcon} />
-                                <Text style={styles.sectionTitle}>{t('profile_settings.security')}</Text>
+                        <View style={[ds.sectionContainer]}>
+                            <View style={ds.sectionHeader}>
+                                <Ionicons name="lock-closed-outline" size={20} color={tc.accent} style={ds.sectionIcon} />
+                                <Text style={ds.sectionTitle}>{t('profile_settings.security')}</Text>
                             </View>
 
                             <PrimaryButton label={t('profile_settings.change_password')}
@@ -328,29 +333,32 @@ const Profile = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                         </View>
 
                         {/* Notifications Section */}
-                        <View style={[styles.sectionContainer, { flexDirection: "column" }]}>
-                            <View style={styles.sectionHeader}>
-                                <Ionicons name="notifications-outline" size={20} color="#4A90B9" style={styles.sectionIcon} />
-                                <Text style={styles.sectionTitle}>{t('profile_settings.notifications')}</Text>
+                        <View style={[ds.sectionContainer, { flexDirection: "column" }]}>
+                            <View style={ds.sectionHeader}>
+                                <Ionicons name="notifications-outline" size={20} color={tc.accent} style={ds.sectionIcon} />
+                                <Text style={ds.sectionTitle}>{t('profile_settings.notifications')}</Text>
                             </View>
                             <NotificationToggleItem
                                 title={t('profile_settings.email_notifications')}
                                 value={notificationStates.emailNotifications}
                                 onToggle={() => handleNotificationToggle('emailNotifications')}
+                                tc={tc} ds={ds}
                             />
                             <NotificationToggleItem
                                 title={t('profile_settings.sms_notifications')}
                                 value={notificationStates.smsNotifications}
                                 onToggle={() => handleNotificationToggle('smsNotifications')}
+                                tc={tc} ds={ds}
                             />
                             <NotificationToggleItem
                                 title={t('profile_settings.app_notifications')}
                                 value={notificationStates.appNotifications}
                                 onToggle={() => handleNotificationToggle('appNotifications')}
+                                tc={tc} ds={ds}
                             />
                         </View>
 
-                        <View style={{ backgroundColor: "white", paddingBottom: 20 }}>
+                        <View style={{ backgroundColor: tc.cardBackground, paddingBottom: 20 }}>
                             <PrimaryButton
                                 label={t('settings.profile.buttons.save_changes')}
                                 filled={true}
@@ -370,49 +378,51 @@ const Profile = ({ onAlert }: { onAlert?: (config: any) => void }) => {
     );
 };
 
-const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: '#FFFFFF',
-    },
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.screenBackground,
     },
     header: {
         flexDirection: "row",
         alignItems: "center",
         paddingHorizontal: 20,
         paddingVertical: 15,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
         borderBottomWidth: 1,
-        borderBottomColor: '#F1F5F9',
+        borderBottomColor: tc.borderSubtle,
     },
     headerTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#333333',
+        color: tc.textPrimary,
     },
     profileSection: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#FFFFFF',
-        padding: 16,
+        backgroundColor: tc.cardBackground,
+        padding: 20,
         borderBottomWidth: 1,
-        borderBottomColor: '#E0E0E0',
+        borderBottomColor: tc.borderSubtle,
+        marginBottom: 8,
     },
     profileIcon: {
-        width: 60,
-        height: 60,
-        borderRadius: 30,
-        backgroundColor: '#4A90B9',
+        width: 64,
+        height: 64,
+        borderRadius: 32,
+        backgroundColor: tc.accent,
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 16,
+        marginRight: 20,
+        shadowColor: tc.shadow,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: isDark ? 0.3 : 0.1,
+        shadowRadius: 4,
+        elevation: 2,
     },
     profileInitials: {
         color: '#FFFFFF',
-        fontSize: 24,
+        fontSize: 26,
         fontWeight: 'bold',
     },
     profileDetails: {
@@ -421,138 +431,108 @@ const styles = StyleSheet.create({
     profileName: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#333333',
+        color: tc.textPrimary,
     },
     profileEmail: {
         fontSize: 14,
-        color: '#666666',
+        color: tc.textSecondary,
         marginTop: 4,
     },
-    editProfileButton: {
-        backgroundColor: '#E8F4F8',
-        borderRadius: 8,
-        padding: 12,
-        margin: 16,
-        alignItems: 'center',
-    },
-    editProfileButtonText: {
-        color: '#4A90B9',
-        fontSize: 16,
-        fontWeight: '600',
-    },
     sectionContainer: {
-        backgroundColor: '#FFFFFF',
-        paddingVertical: 16,
-        flexDirection: "row", width: "100%", justifyContent: "space-between"
+        backgroundColor: tc.cardBackground,
+        paddingVertical: 20,
+        paddingHorizontal: 4,
+        flexDirection: "row",
+        width: "100%",
+        justifyContent: "space-between",
+        borderBottomWidth: 1,
+        borderBottomColor: tc.borderSubtle,
     },
     sectionHeader: {
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 16,
-        marginBottom: 12,
     },
     sectionIcon: {
-        marginRight: 12,
+        marginRight: 16,
     },
     sectionTitle: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#333333',
-    },
-    securityAction: {
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        borderTopWidth: 1,
-        borderTopColor: '#F0F0F0',
-    },
-    securityActionText: {
-        fontSize: 16,
-        color: '#4A90B9',
+        color: tc.textPrimary,
     },
     notificationItem: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 16,
-        paddingVertical: 12,
-        borderTopWidth: 1,
-        borderTopColor: '#F0F0F0',
+        paddingVertical: 14,
+        marginTop: 8,
     },
     notificationTitle: {
         fontSize: 16,
-        color: '#333333',
-    },
-    addUserButton: {
-        flexDirection: 'row',
-        backgroundColor: '#4A90B9',
-        borderRadius: 8,
-        padding: 16,
-        margin: 16,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    addUserIcon: {
-        marginRight: 12,
-    },
-    addUserButtonText: {
-        color: '#FFFFFF',
-        fontSize: 16,
-        fontWeight: '600',
+        color: tc.textPrimary,
     },
     profileImage: {
-        width: 60,
-        height: 60,
-        borderRadius: 30,
+        width: 64,
+        height: 64,
+        borderRadius: 32,
     },
     editProfileImageContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 24,
+        marginBottom: 32,
+        padding: 16,
+        backgroundColor: tc.cardBackground,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: tc.borderSubtle,
     },
     profileIconLarge: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: '#4A90B9',
+        width: 88,
+        height: 88,
+        borderRadius: 44,
+        backgroundColor: tc.accent,
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 16,
+        marginRight: 20,
         position: 'relative',
     },
     profileImageLarge: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
+        width: 88,
+        height: 88,
+        borderRadius: 44,
     },
     profileInitialsLarge: {
         color: '#FFFFFF',
-        fontSize: 32,
+        fontSize: 34,
         fontWeight: 'bold',
     },
     cameraIconContainer: {
         position: 'absolute',
-        bottom: 0,
-        right: 0,
-        backgroundColor: '#58a6b8',
-        width: 28,
-        height: 28,
-        borderRadius: 14,
+        bottom: 2,
+        right: 2,
+        backgroundColor: tc.accent,
+        width: 30,
+        height: 30,
+        borderRadius: 15,
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 2,
-        borderColor: '#FFFFFF',
+        borderColor: tc.cardBackground,
     },
     profileNameLarge: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#1E293B',
+        color: tc.textPrimary,
     },
     editFormContainer: {
-        gap: 16,
+        gap: 20,
+        padding: 16,
     },
     rowContainer: {
         flexDirection: 'row',
-        gap: 12,
+        gap: 16,
     },
     halfField: {
         flex: 1,
@@ -562,7 +542,7 @@ const styles = StyleSheet.create({
     },
     labelContainer: {
         flexDirection: 'row',
-        marginBottom: 6,
+        marginBottom: 8,
     },
     requiredStar: {
         color: '#EF4444',
@@ -570,32 +550,32 @@ const styles = StyleSheet.create({
     },
     fieldLabel: {
         fontSize: 14,
-        fontWeight: '500',
-        color: '#64748B',
-        marginBottom: 6,
+        fontWeight: '600',
+        color: tc.textSecondary,
     },
     actionButtonsRow: {
         flexDirection: 'row',
         justifyContent: 'flex-end',
         alignItems: 'center',
-        gap: 12,
-        marginTop: 20,
+        gap: 16,
+        marginTop: 32,
     },
     cancelButton: {
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        borderRadius: 8,
+        paddingHorizontal: 24,
+        paddingVertical: 12,
+        borderRadius: 12,
         borderWidth: 1,
-        borderColor: '#58a6b8',
+        borderColor: tc.accent,
     },
     cancelButtonText: {
-        color: '#58a6b8',
+        color: tc.accent,
         fontWeight: '600',
+        fontSize: 15,
     },
     sectionDivider: {
-        height: 1,
-        backgroundColor: '#F1F5F9',
-        marginVertical: 20,
+        height: 8,
+        backgroundColor: tc.screenBackground,
+        marginVertical: 24,
     },
 });
 

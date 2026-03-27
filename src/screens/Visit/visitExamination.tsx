@@ -11,6 +11,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import LinearGradient from 'react-native-linear-gradient';
 import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 interface VisitExaminationProps {
     onNext: () => void;
@@ -21,6 +22,8 @@ interface VisitExaminationProps {
 
 const VisitExamination = ({ onNext, onBack, visitData, onUpdate }: VisitExaminationProps) => {
     const { t } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
     const [bloodPressure, setBloodPressure] = useState(visitData?.examination?.bloodPressure || '');
     const [heartRate, setHeartRate] = useState(visitData?.examination?.heartRate || '');
     const [temperature, setTemperature] = useState(visitData?.examination?.temperature || '');
@@ -38,19 +41,19 @@ const VisitExamination = ({ onNext, onBack, visitData, onUpdate }: VisitExaminat
     }, [visitData]);
 
     return (
-        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-            <View style={styles.card}>
-                <Text style={styles.title}>{t('visit.examination.title')}</Text>
+        <ScrollView style={ds.container} showsVerticalScrollIndicator={false}>
+            <View style={ds.card}>
+                <Text style={ds.title}>{t('visit.examination.title')}</Text>
 
-                <View style={styles.formContainer}>
+                <View style={ds.formContainer}>
                     {/* Left Column */}
-                    <View style={styles.column}>
-                        <View style={styles.fieldContainer}>
-                            <Text style={styles.label}>{t('visit.examination.bloodPressure')}</Text>
+                    <View style={ds.column}>
+                        <View style={ds.fieldContainer}>
+                            <Text style={ds.label}>{t('visit.examination.bloodPressure')}</Text>
                             <TextInput
-                                style={styles.input}
+                                style={ds.input}
                                 placeholder={t('visit.examination.placeholders.bp')}
-                                placeholderTextColor="#94A3B8"
+                                placeholderTextColor={tc.textMuted}
                                 value={bloodPressure}
                                 onChangeText={(text) => {
                                     setBloodPressure(text);
@@ -59,12 +62,12 @@ const VisitExamination = ({ onNext, onBack, visitData, onUpdate }: VisitExaminat
                             />
                         </View>
 
-                        <View style={styles.fieldContainer}>
-                            <Text style={styles.label}>{t('visit.examination.heartRate')}</Text>
+                        <View style={ds.fieldContainer}>
+                            <Text style={ds.label}>{t('visit.examination.heartRate')}</Text>
                             <TextInput
-                                style={styles.input}
+                                style={ds.input}
                                 placeholder={t('visit.examination.placeholders.hr')}
-                                placeholderTextColor="#94A3B8"
+                                placeholderTextColor={tc.textMuted}
                                 keyboardType="numeric"
                                 value={heartRate}
                                 onChangeText={(text) => {
@@ -74,12 +77,12 @@ const VisitExamination = ({ onNext, onBack, visitData, onUpdate }: VisitExaminat
                             />
                         </View>
 
-                        <View style={styles.fieldContainer}>
-                            <Text style={styles.label}>{t('visit.examination.temperature')}</Text>
+                        <View style={ds.fieldContainer}>
+                            <Text style={ds.label}>{t('visit.examination.temperature')}</Text>
                             <TextInput
-                                style={styles.input}
+                                style={ds.input}
                                 placeholder={t('visit.examination.placeholders.temp')}
-                                placeholderTextColor="#94A3B8"
+                                placeholderTextColor={tc.textMuted}
                                 keyboardType="numeric"
                                 value={temperature}
                                 onChangeText={(text) => {
@@ -91,13 +94,13 @@ const VisitExamination = ({ onNext, onBack, visitData, onUpdate }: VisitExaminat
                     </View>
 
                     {/* Right Column */}
-                    <View style={styles.column}>
-                        <View style={styles.fieldContainer}>
-                            <Text style={styles.label}>{t('visit.examination.generalCondition')}</Text>
+                    <View style={ds.column}>
+                        <View style={ds.fieldContainer}>
+                            <Text style={ds.label}>{t('visit.examination.generalCondition')}</Text>
                             <TextInput
-                                style={styles.textArea}
+                                style={ds.textArea}
                                 placeholder=""
-                                placeholderTextColor="#94A3B8"
+                                placeholderTextColor={tc.textMuted}
                                 multiline
                                 numberOfLines={5}
                                 textAlignVertical="top"
@@ -109,12 +112,12 @@ const VisitExamination = ({ onNext, onBack, visitData, onUpdate }: VisitExaminat
                             />
                         </View>
 
-                        <View style={styles.fieldContainer}>
-                            <Text style={styles.label}>{t('visit.examination.additionalFindings')}</Text>
+                        <View style={ds.fieldContainer}>
+                            <Text style={ds.label}>{t('visit.examination.additionalFindings')}</Text>
                             <TextInput
-                                style={styles.textArea}
+                                style={ds.textArea}
                                 placeholder={t('visit.examination.placeholders.findings')}
-                                placeholderTextColor="#94A3B8"
+                                placeholderTextColor={tc.textMuted}
                                 multiline
                                 numberOfLines={4}
                                 textAlignVertical="top"
@@ -130,10 +133,10 @@ const VisitExamination = ({ onNext, onBack, visitData, onUpdate }: VisitExaminat
             </View>
 
             {/* Footer */}
-            <View style={styles.footer}>
-                <TouchableOpacity style={styles.backButton} onPress={onBack}>
+            <View style={ds.footer}>
+                <TouchableOpacity style={ds.backButton} onPress={onBack}>
                     <Feather name="arrow-left" size={18} color="#58A7B3" />
-                    <Text style={styles.backButtonText}>{t('visit.navigation.previous')}</Text>
+                    <Text style={ds.backButtonText}>{t('visit.navigation.previous')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={onNext}>
@@ -141,9 +144,9 @@ const VisitExamination = ({ onNext, onBack, visitData, onUpdate }: VisitExaminat
                         colors={['#58A7B3', '#8ED1CC']}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
-                        style={styles.nextButton}
+                        style={ds.nextButton}
                     >
-                        <Text style={styles.nextButtonText}>{t('visit.navigation.next')}</Text>
+                        <Text style={ds.nextButtonText}>{t('visit.navigation.next')}</Text>
                         <Feather name="arrow-right" size={18} color="#fff" />
                     </LinearGradient>
                 </TouchableOpacity>
@@ -152,96 +155,97 @@ const VisitExamination = ({ onNext, onBack, visitData, onUpdate }: VisitExaminat
     );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 12,
-    },
-    card: {
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        padding: 20,
-        borderWidth: 1,
-        borderColor: '#E2E8F0',
-    },
-    title: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: '#1E293B',
-        marginBottom: 20,
-    },
-    formContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    column: {
-        width: '48%',
-    },
-    fieldContainer: {
-        marginBottom: 16,
-    },
-    label: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#64748B',
-        marginBottom: 8,
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: '#E2E8F0',
-        borderRadius: 8,
-        padding: 12,
-        fontSize: 14,
-        color: '#1E293B',
-        backgroundColor: '#fff',
-        height: hp(6),
-    },
-    textArea: {
-        borderWidth: 1,
-        borderColor: '#E2E8F0',
-        borderRadius: 8,
-        padding: 12,
-        fontSize: 14,
-        color: '#1E293B',
-        backgroundColor: '#fff',
-        minHeight: hp(15),
-    },
-    footer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 20,
-        paddingBottom: hp(5),
-    },
-    backButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderWidth: 1.5,
-        borderColor: '#58A7B3',
-        borderRadius: 8,
-        width: wp(43),
-        height: 50,
-        justifyContent: 'center',
-    },
-    backButtonText: {
-        fontSize: 16,
-        color: '#58A7B3',
-        fontWeight: '700',
-        marginLeft: 8,
-    },
-    nextButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderRadius: 8,
-        width: wp(43),
-        height: 50,
-        justifyContent: 'center',
-    },
-    nextButtonText: {
-        fontSize: 16,
-        color: '#fff',
-        fontWeight: '700',
-        marginRight: 8,
-    },
-});
+const createDynamicStyles = (tc: any, isDark: boolean) =>
+    StyleSheet.create({
+        container: {
+            flex: 1,
+            padding: 12,
+        },
+        card: {
+            backgroundColor: tc.cardBackground,
+            borderRadius: 12,
+            padding: 20,
+            borderWidth: 1,
+            borderColor: tc.borderColor,
+        },
+        title: {
+            fontSize: 18,
+            fontWeight: '700',
+            color: tc.textPrimary,
+            marginBottom: 20,
+        },
+        formContainer: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+        },
+        column: {
+            width: '48%',
+        },
+        fieldContainer: {
+            marginBottom: 16,
+        },
+        label: {
+            fontSize: 14,
+            fontWeight: '600',
+            color: tc.textSecondary,
+            marginBottom: 8,
+        },
+        input: {
+            borderWidth: 1,
+            borderColor: tc.borderColor,
+            borderRadius: 8,
+            padding: 12,
+            fontSize: 14,
+            color: tc.textPrimary,
+            backgroundColor: tc.cardBackgroundAlt,
+            height: hp(6),
+        },
+        textArea: {
+            borderWidth: 1,
+            borderColor: tc.borderColor,
+            borderRadius: 8,
+            padding: 12,
+            fontSize: 14,
+            color: tc.textPrimary,
+            backgroundColor: tc.cardBackgroundAlt,
+            minHeight: hp(15),
+        },
+        footer: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginTop: 20,
+            paddingBottom: hp(5),
+        },
+        backButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderWidth: 1.5,
+            borderColor: '#58A7B3',
+            borderRadius: 8,
+            width: wp(43),
+            height: 50,
+            justifyContent: 'center',
+        },
+        backButtonText: {
+            fontSize: 16,
+            color: '#58A7B3',
+            fontWeight: '700',
+            marginLeft: 8,
+        },
+        nextButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderRadius: 8,
+            width: wp(43),
+            height: 50,
+            justifyContent: 'center',
+        },
+        nextButtonText: {
+            fontSize: 16,
+            color: '#fff',
+            fontWeight: '700',
+            marginRight: 8,
+        },
+    });
 
 export default VisitExamination;

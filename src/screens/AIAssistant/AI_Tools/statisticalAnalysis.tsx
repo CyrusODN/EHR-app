@@ -9,6 +9,7 @@ import PrimaryButton from '../../../component/button';
 import Gap from '../../../component/gap';
 import { Dropdown } from 'react-native-element-dropdown';
 import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 import { getVisitStatistics, getClinicalStatistics, getDemographicsStatistics, getSummaryStatistics, getReferralStatistics } from '../../../Services/Statistics.Service';
 
@@ -16,6 +17,8 @@ const { width } = Dimensions.get('window');
 
 const StatisticalAnalysis = () => {
     const { t } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
     const [activeTab, setActiveTab] = useState('Overview');
     const [timeframe, setTimeframe] = useState('Last Month');
     const [loading, setLoading] = useState(false);
@@ -173,17 +176,20 @@ const StatisticalAnalysis = () => {
     // ─── Render Functions ───
 
     const renderHeader = () => (
-        <View style={styles.header}>
+        <View style={ds.header}>
             <View>
-                <Text style={styles.headerTitle}>{t('aiAssistant.statisticalAnalysis.title')}</Text>
-                <Text style={styles.headerSubtitle}>{t('aiAssistant.statisticalAnalysis.subtitle')}</Text>
+                <Text style={ds.headerTitle}>{t('aiAssistant.statisticalAnalysis.title')}</Text>
+                <Text style={ds.headerSubtitle}>{t('aiAssistant.statisticalAnalysis.subtitle')}</Text>
             </View>
             <Gap height={15} />
-            <View style={styles.headerActions}>
+            <View style={ds.headerActions}>
                 <Dropdown
-                    style={styles.timeframeDropdown}
-                    placeholderStyle={styles.dropdownPlaceholder}
-                    selectedTextStyle={styles.dropdownSelectedText}
+                    style={ds.timeframeDropdown}
+                    placeholderStyle={ds.dropdownPlaceholder}
+                    selectedTextStyle={ds.dropdownSelectedText}
+                    containerStyle={ds.dropdownContainer}
+                    itemTextStyle={ds.dropdownItemText}
+                    activeColor={isDark ? 'rgba(74, 144, 185, 0.2)' : '#EBF5FF'}
                     data={timeframeOptions}
                     maxHeight={300}
                     labelField="label"
@@ -192,9 +198,9 @@ const StatisticalAnalysis = () => {
                     value={timeframe}
                     onChange={item => setTimeframe(item.value)}
                 />
-                <TouchableOpacity style={styles.exportBtn}>
-                    <Feather name="download" size={16} color="#4A90B9" />
-                    <Text style={styles.exportBtnText}>{t('aiAssistant.statisticalAnalysis.exportReport')}</Text>
+                <TouchableOpacity style={ds.exportBtn}>
+                    <Feather name="download" size={16} color={tc.accent} />
+                    <Text style={ds.exportBtnText}>{t('aiAssistant.statisticalAnalysis.exportReport')}</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -204,74 +210,74 @@ const StatisticalAnalysis = () => {
         <ScrollView 
             horizontal 
             showsHorizontalScrollIndicator={false} 
-            style={styles.kpiContainer}
+            style={ds.kpiContainer}
             contentContainerStyle={{ paddingRight: 30 }}
         >
-            <View style={styles.kpiCard}>
-                <View style={styles.kpiIconBox}>
+            <View style={ds.kpiCard}>
+                <View style={[ds.kpiIconBox, { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.15)' : '#DBEAFE' }]}>
                     <MaterialCommunityIcons name="pulse" size={20} color="#3B82F6" />
                 </View>
-                <MaterialCommunityIcons name="pulse" size={80} color="#3B82F6" style={styles.kpiBgIcon} />
-                <Text style={styles.kpiLabel}>{t('aiAssistant.statisticalAnalysis.totalVisits')}</Text>
-                <Text style={styles.kpiValue}>{summaryData?.totalVisits || 0}</Text>
-                <Text style={styles.kpiComparison}>{t('aiAssistant.statisticalAnalysis.overallTotal')}</Text>
+                <MaterialCommunityIcons name="pulse" size={80} color="#3B82F6" style={ds.kpiBgIcon} />
+                <Text style={ds.kpiLabel}>{t('aiAssistant.statisticalAnalysis.totalVisits')}</Text>
+                <Text style={ds.kpiValue}>{summaryData?.totalVisits || 0}</Text>
+                <Text style={ds.kpiComparison}>{t('aiAssistant.statisticalAnalysis.overallTotal')}</Text>
             </View>
 
-            <View style={styles.kpiCard}>
-                <View style={[styles.kpiIconBox, { backgroundColor: '#F3E8FF' }]}>
+            <View style={ds.kpiCard}>
+                <View style={[ds.kpiIconBox, { backgroundColor: isDark ? 'rgba(168, 85, 247, 0.15)' : '#F3E8FF' }]}>
                     <Ionicons name="people-outline" size={20} color="#A855F7" />
                 </View>
-                <Ionicons name="people-outline" size={80} color="#A855F7" style={styles.kpiBgIcon} />
-                <Text style={styles.kpiLabel}>{t('aiAssistant.statisticalAnalysis.totalPatients')}</Text>
-                <Text style={styles.kpiValue}>{summaryData?.totalPatients || 0}</Text>
-                <Text style={styles.kpiComparison}>{t('aiAssistant.statisticalAnalysis.uniquePatients')}</Text>
+                <Ionicons name="people-outline" size={80} color="#A855F7" style={ds.kpiBgIcon} />
+                <Text style={ds.kpiLabel}>{t('aiAssistant.statisticalAnalysis.totalPatients')}</Text>
+                <Text style={ds.kpiValue}>{summaryData?.totalPatients || 0}</Text>
+                <Text style={ds.kpiComparison}>{t('aiAssistant.statisticalAnalysis.uniquePatients')}</Text>
             </View>
 
-            <View style={styles.kpiCard}>
-                <View style={[styles.kpiIconBox, { backgroundColor: '#FFF7ED' }]}>
+            <View style={ds.kpiCard}>
+                <View style={[ds.kpiIconBox, { backgroundColor: isDark ? 'rgba(234, 88, 12, 0.15)' : '#FFF7ED' }]}>
                     <Feather name="file-text" size={20} color="#EA580C" />
                 </View>
-                <Feather name="file-text" size={80} color="#EA580C" style={styles.kpiBgIcon} />
-                <Text style={styles.kpiLabel}>{t('aiAssistant.statisticalAnalysis.referrals')}</Text>
-                <Text style={styles.kpiValue}>{summaryData?.totalReferrals || 0}</Text>
-                <Text style={styles.kpiComparison}>{t('aiAssistant.statisticalAnalysis.totalReferrals')}</Text>
+                <Feather name="file-text" size={80} color="#EA580C" style={ds.kpiBgIcon} />
+                <Text style={ds.kpiLabel}>{t('aiAssistant.statisticalAnalysis.referrals')}</Text>
+                <Text style={ds.kpiValue}>{summaryData?.totalReferrals || 0}</Text>
+                <Text style={ds.kpiComparison}>{t('aiAssistant.statisticalAnalysis.totalReferrals')}</Text>
             </View>
 
-            <View style={styles.kpiCard}>
-                <View style={[styles.kpiIconBox, { backgroundColor: '#F0FDF4' }]}>
+            <View style={ds.kpiCard}>
+                <View style={[ds.kpiIconBox, { backgroundColor: isDark ? 'rgba(22, 163, 74, 0.15)' : '#F0FDF4' }]}>
                     <Feather name="calendar" size={20} color="#16A34A" />
                 </View>
-                <Feather name="calendar" size={80} color="#16A34A" style={styles.kpiBgIcon} />
-                <Text style={styles.kpiLabel}>{t('aiAssistant.statisticalAnalysis.todaysVisits')}</Text>
-                <Text style={styles.kpiValue}>{summaryData?.todayVisits || 0}</Text>
-                <Text style={styles.kpiComparison}>{t('aiAssistant.statisticalAnalysis.scheduledForToday')}</Text>
+                <Feather name="calendar" size={80} color="#16A34A" style={ds.kpiBgIcon} />
+                <Text style={ds.kpiLabel}>{t('aiAssistant.statisticalAnalysis.todaysVisits')}</Text>
+                <Text style={ds.kpiValue}>{summaryData?.todayVisits || 0}</Text>
+                <Text style={ds.kpiComparison}>{t('aiAssistant.statisticalAnalysis.scheduledForToday')}</Text>
             </View>
         </ScrollView>
     );
 
     const renderTabs = () => (
-        <View style={styles.tabBarContainer}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabBar}>
+        <View style={ds.tabBarContainer}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={ds.tabBar}>
                 {tabs.map(tab => (
                     <TouchableOpacity 
                         key={tab} 
-                        style={[styles.tabItem, activeTab === tab && styles.activeTabItem]}
+                        style={[ds.tabItem, activeTab === tab && ds.activeTabItem]}
                         onPress={() => setActiveTab(tab)}
                     >
-                        <View style={styles.tabContent}>
-                            {tab === 'Overview' && <MaterialCommunityIcons name="pulse" size={18} color={activeTab === tab ? '#4A90B9' : '#9CA3AF'} />}
-                            {tab === 'Clinical' && <Feather name="file-text" size={18} color={activeTab === tab ? '#4A90B9' : '#9CA3AF'} />}
-                            {tab === 'Demographics' && <Ionicons name="people-outline" size={18} color={activeTab === tab ? '#4A90B9' : '#9CA3AF'} />}
-                            {tab === 'Referrals' && <Feather name="calendar" size={18} color={activeTab === tab ? '#4A90B9' : '#9CA3AF'} />}
+                        <View style={ds.tabContent}>
+                            {tab === 'Overview' && <MaterialCommunityIcons name="pulse" size={18} color={activeTab === tab ? tc.accent : tc.textMuted} />}
+                            {tab === 'Clinical' && <Feather name="file-text" size={18} color={activeTab === tab ? tc.accent : tc.textMuted} />}
+                            {tab === 'Demographics' && <Ionicons name="people-outline" size={18} color={activeTab === tab ? tc.accent : tc.textMuted} />}
+                            {tab === 'Referrals' && <Feather name="calendar" size={18} color={activeTab === tab ? tc.accent : tc.textMuted} />}
                             <Gap width={8} />
-                            <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
+                            <Text style={[ds.tabText, activeTab === tab && ds.activeTabText]}>
                                 {tab === 'Overview' ? t('aiAssistant.statisticalAnalysis.tabs.overview') :
                                  tab === 'Clinical' ? t('aiAssistant.statisticalAnalysis.tabs.clinical') :
                                  tab === 'Demographics' ? t('aiAssistant.statisticalAnalysis.tabs.demographics') :
                                  t('aiAssistant.statisticalAnalysis.tabs.referrals')}
                             </Text>
                         </View>
-                        {activeTab === tab && <View style={styles.tabIndicator} />}
+                        {activeTab === tab && <View style={ds.tabIndicator} />}
                     </TouchableOpacity>
                 ))}
             </ScrollView>
@@ -280,14 +286,14 @@ const StatisticalAnalysis = () => {
 
     const renderOverview = () => (
         <View>
-            <View style={styles.chartCard}>
-                <Text style={styles.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.visitsOverTime')}</Text>
+            <View style={ds.chartCard}>
+                <Text style={ds.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.visitsOverTime')}</Text>
                 <Gap height={20} />
                 <LineChart
                     areaChart
                     data={visitsLineData}
                     height={200}
-                    width={wp(80)}
+                    width={wp(75)}
                     spacing={wp(10)}
                     initialSpacing={10}
                     color="#3B82F6"
@@ -297,39 +303,40 @@ const StatisticalAnalysis = () => {
                     startOpacity={0.9}
                     endOpacity={0.2}
                     noOfSections={4}
-                    yAxisColor="lightgray"
+                    yAxisColor={tc.borderSubtle}
                     yAxisThickness={1}
                     rulesType="dashed"
-                    rulesColor="lightgray"
-                    yAxisTextStyle={{ color: 'gray', fontSize: 10 }}
-                    xAxisLabelTextStyle={{ color: 'gray', fontSize: 10 }}
+                    rulesColor={tc.borderSubtle}
+                    yAxisTextStyle={{ color: tc.textMuted, fontSize: 10 }}
+                    xAxisLabelTextStyle={{ color: tc.textMuted, fontSize: 10 }}
                 />
             </View>
 
-            <View style={styles.chartGrid}>
-                <View style={styles.smallChartCard}>
-                    <Text style={styles.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.visitStatus')}</Text>
+            <View style={ds.chartGrid}>
+                <View style={ds.smallChartCard}>
+                    <Text style={ds.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.visitStatus')}</Text>
                     <Gap height={20} />
-                    <View style={styles.donutContainer}>
+                    <View style={ds.donutContainer}>
                         <PieChart
                             donut
                             innerRadius={50}
                             radius={70}
                             data={visitStatusData}
+                            backgroundColor={tc.cardBackground}
                         />
                     </View>
-                    <View style={styles.legendContainer}>
+                    <View style={ds.legendContainer}>
                         {visitStatusData.map((item: any, idx: number) => (
-                            <View key={idx} style={styles.legendItem}>
-                                <View style={[styles.legendDot, { backgroundColor: item.color }]} />
-                                <Text style={styles.legendText}>{item.text}</Text>
+                            <View key={idx} style={ds.legendItem}>
+                                <View style={[ds.legendDot, { backgroundColor: item.color }]} />
+                                <Text style={ds.legendText}>{item.text}</Text>
                             </View>
                         ))}
                     </View>
                 </View>
 
-                <View style={styles.smallChartCard}>
-                    <Text style={styles.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.visitTypes')}</Text>
+                <View style={ds.smallChartCard}>
+                    <Text style={ds.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.visitTypes')}</Text>
                     <Gap height={20} />
                     <BarChart
                         data={visitTypeData}
@@ -338,14 +345,17 @@ const StatisticalAnalysis = () => {
                         barBorderRadius={4}
                         yAxisThickness={1}
                         xAxisThickness={1}
-                        yAxisTextStyle={{ color: 'gray', fontSize: 10 }}
-                        xAxisLabelTextStyle={{ color: 'gray', fontSize: 10, textAlign: 'center' }}
+                        yAxisColor={tc.borderSubtle}
+                        xAxisColor={tc.borderSubtle}
+                        rulesColor={tc.borderSubtle}
+                        yAxisTextStyle={{ color: tc.textMuted, fontSize: 10 }}
+                        xAxisLabelTextStyle={{ color: tc.textMuted, fontSize: 10, textAlign: 'center' }}
                     />
                 </View>
             </View>
 
-            <View style={styles.chartCard}>
-                <Text style={styles.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.modalityDistribution')}</Text>
+            <View style={ds.chartCard}>
+                <Text style={ds.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.modalityDistribution')}</Text>
                 <Gap height={20} />
                 <PieChart
                     radius={80}
@@ -354,12 +364,13 @@ const StatisticalAnalysis = () => {
                     showText
                     textColor="white"
                     textSize={12}
+                    backgroundColor={tc.cardBackground}
                 />
-                <View style={styles.legendContainerRow}>
+                <View style={ds.legendContainerRow}>
                     {modalityData.map((item: any, idx: number) => (
-                        <View key={idx} style={styles.legendItem}>
-                            <View style={[styles.legendDot, { backgroundColor: item.color }]} />
-                            <Text style={styles.legendText}>{item.text}</Text>
+                        <View key={idx} style={ds.legendItem}>
+                            <View style={[ds.legendDot, { backgroundColor: item.color }]} />
+                            <Text style={ds.legendText}>{item.text}</Text>
                         </View>
                     ))}
                 </View>
@@ -368,16 +379,16 @@ const StatisticalAnalysis = () => {
     );
 
     const renderClinical = () => (
-        <View style={styles.chartCard}>
-            <Text style={styles.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.topDiagnoses')}</Text>
+        <View style={ds.chartCard}>
+            <Text style={ds.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.topDiagnoses')}</Text>
             {clinicalData?.topDiagnoses?.length > 0 ? (
                 <View style={{ width: '100%', marginTop: 20 }}>
                      {/* Map handles clinical labels later */}
                 </View>
             ) : (
-                <View style={styles.emptyChartState}>
-                    <Text style={{ color: 'gray' }}>{t('aiAssistant.statisticalAnalysis.charts.noDiagnosisData')}</Text>
-                    <View style={styles.emptyPlaceholderLine} />
+                <View style={ds.emptyChartState}>
+                    <Text style={{ color: tc.textMuted }}>{t('aiAssistant.statisticalAnalysis.charts.noDiagnosisData')}</Text>
+                    <View style={ds.emptyPlaceholderLine} />
                 </View>
             )}
         </View>
@@ -385,9 +396,9 @@ const StatisticalAnalysis = () => {
 
     const renderDemographics = () => (
         <View>
-            <View style={styles.chartGrid}>
-                <View style={styles.smallChartCard}>
-                    <Text style={styles.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.genderDistribution')}</Text>
+            <View style={ds.chartGrid}>
+                <View style={ds.smallChartCard}>
+                    <Text style={ds.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.genderDistribution')}</Text>
                     <Gap height={20} />
                     <PieChart
                         radius={70}
@@ -396,19 +407,20 @@ const StatisticalAnalysis = () => {
                         showText
                         textColor="white"
                         textSize={12}
+                        backgroundColor={tc.cardBackground}
                     />
-                    <View style={styles.legendContainerRow}>
+                    <View style={ds.legendContainerRow}>
                         {genderData.map((item: any, idx: number) => (
-                            <View key={idx} style={styles.legendItem}>
-                                <View style={[styles.legendDot, { backgroundColor: item.color }]} />
-                                <Text style={styles.legendText}>{item.text}</Text>
+                            <View key={idx} style={ds.legendItem}>
+                                <View style={[ds.legendDot, { backgroundColor: item.color }]} />
+                                <Text style={ds.legendText}>{item.text}</Text>
                             </View>
                         ))}
                     </View>
                 </View>
 
-                <View style={styles.smallChartCard}>
-                    <Text style={styles.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.ageGroups')}</Text>
+                <View style={ds.smallChartCard}>
+                    <Text style={ds.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.ageGroups')}</Text>
                     <Gap height={20} />
                     <BarChart
                         data={ageGroupData}
@@ -417,14 +429,17 @@ const StatisticalAnalysis = () => {
                         barBorderRadius={4}
                         yAxisThickness={1}
                         xAxisThickness={1}
-                        yAxisTextStyle={{ color: 'gray', fontSize: 10 }}
-                        xAxisLabelTextStyle={{ color: 'gray', fontSize: 10, textAlign: 'center' }}
+                        yAxisColor={tc.borderSubtle}
+                        xAxisColor={tc.borderSubtle}
+                        rulesColor={tc.borderSubtle}
+                        yAxisTextStyle={{ color: tc.textMuted, fontSize: 10 }}
+                        xAxisLabelTextStyle={{ color: tc.textMuted, fontSize: 10, textAlign: 'center' }}
                     />
                 </View>
             </View>
 
-            <View style={styles.chartCard}>
-                <Text style={styles.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.patientsByCity')}</Text>
+            <View style={ds.chartCard}>
+                <Text style={ds.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.patientsByCity')}</Text>
                 <Gap height={20} />
                 <BarChart
                     data={cityData}
@@ -433,42 +448,46 @@ const StatisticalAnalysis = () => {
                     barBorderRadius={4}
                     yAxisThickness={1}
                     xAxisThickness={1}
-                    width={wp(75)}
-                    yAxisTextStyle={{ color: 'gray', fontSize: 10 }}
-                    xAxisLabelTextStyle={{ color: 'gray', fontSize: 9, textAlign: 'center' }}
+                    width={wp(70)}
+                    yAxisColor={tc.borderSubtle}
+                    xAxisColor={tc.borderSubtle}
+                    rulesColor={tc.borderSubtle}
+                    yAxisTextStyle={{ color: tc.textMuted, fontSize: 10 }}
+                    xAxisLabelTextStyle={{ color: tc.textMuted, fontSize: 9, textAlign: 'center' }}
                 />
             </View>
         </View>
     );
 
     const renderReferralsTab = () => (
-        <View style={styles.chartGrid}>
-            <View style={styles.smallChartCard}>
-                <Text style={styles.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.referralStatus')}</Text>
+        <View style={ds.chartGrid}>
+            <View style={ds.smallChartCard}>
+                <Text style={ds.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.referralStatus')}</Text>
                 <Gap height={20} />
-                <View style={styles.donutContainer}>
+                <View style={ds.donutContainer}>
                     <PieChart
                         donut
                         innerRadius={40}
                         radius={60}
                         data={referralStatusData}
+                        backgroundColor={tc.cardBackground}
                         centerLabelComponent={() => (
                             <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-                                <Ionicons name="stats-chart" size={20} color="#3B82F6" />
+                                <Ionicons name="stats-chart" size={20} color={tc.accent} />
                             </View>
                         )}
                     />
                 </View>
-                <View style={styles.legendContainer}>
-                    <View style={styles.legendItem}>
-                        <View style={[styles.legendDot, { backgroundColor: '#3B82F6' }]} />
-                        <Text style={styles.legendText}>{t('aiAssistant.statisticalAnalysis.charts.pending')}</Text>
+                <View style={ds.legendContainer}>
+                    <View style={ds.legendItem}>
+                        <View style={[ds.legendDot, { backgroundColor: '#3B82F6' }]} />
+                        <Text style={ds.legendText}>{t('aiAssistant.statisticalAnalysis.charts.pending')}</Text>
                     </View>
                 </View>
             </View>
 
-            <View style={styles.smallChartCard}>
-                <Text style={styles.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.topSpecializations')}</Text>
+            <View style={ds.smallChartCard}>
+                <Text style={ds.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.topSpecializations')}</Text>
                 <Gap height={20} />
                 <View style={{ marginLeft: -20 }}>
                     <BarChart
@@ -479,10 +498,13 @@ const StatisticalAnalysis = () => {
                         barBorderRadius={4}
                         yAxisThickness={1}
                         xAxisThickness={1}
-                        width={wp(18)}
+                        width={wp(20)}
                         yAxisLabelWidth={wp(15)}
-                        yAxisTextStyle={{ color: 'gray', fontSize: 9 }}
-                        xAxisLabelTextStyle={{ color: 'gray', fontSize: 9 }}
+                        yAxisColor={tc.borderSubtle}
+                        xAxisColor={tc.borderSubtle}
+                        rulesColor={tc.borderSubtle}
+                        yAxisTextStyle={{ color: tc.textMuted, fontSize: 9 }}
+                        xAxisLabelTextStyle={{ color: tc.textMuted, fontSize: 9 }}
                     />
                 </View>
             </View>
@@ -490,8 +512,8 @@ const StatisticalAnalysis = () => {
     );
 
     return (
-        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-            <View style={styles.content}>
+        <ScrollView style={ds.container} showsVerticalScrollIndicator={false}>
+            <View style={ds.content}>
                 {renderHeader()}
                 <Gap height={20} />
                 {renderKpiCards()}
@@ -501,7 +523,7 @@ const StatisticalAnalysis = () => {
                 {loading && (
                     <View style={{ position: 'absolute', top: '50%', left: '50%', zIndex: 10 }}>
                         <Animated.View style={{ transform: [{ translateX: -20 }, { translateY: -20 }] }}>
-                            <MaterialCommunityIcons name="loading" size={40} color="#4A90B9" />
+                            <MaterialCommunityIcons name="loading" size={40} color={tc.accent} />
                         </Animated.View>
                     </View>
                 )}
@@ -515,10 +537,10 @@ const StatisticalAnalysis = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F9FAFB',
+        backgroundColor: tc.screenBackground,
     },
     content: {
         padding: 20,
@@ -529,11 +551,11 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#111827',
+        color: tc.textPrimary,
     },
     headerSubtitle: {
         fontSize: 14,
-        color: '#6B7280',
+        color: tc.textSecondary,
         marginTop: 4,
     },
     headerActions: {
@@ -545,28 +567,38 @@ const styles = StyleSheet.create({
     timeframeDropdown: {
         width: '48%',
         height: 40,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
         borderRadius: 8,
         paddingHorizontal: 12,
         borderWidth: 1,
-        borderColor: '#E5E7EB',
+        borderColor: tc.borderSubtle,
     },
     dropdownPlaceholder: {
         fontSize: 14,
-        color: '#6B7280',
+        color: tc.textMuted,
     },
     dropdownSelectedText: {
         fontSize: 14,
-        color: '#111827',
+        color: tc.textPrimary,
+    },
+    dropdownContainer: {
+        backgroundColor: tc.cardBackground,
+        borderWidth: 1,
+        borderColor: tc.borderSubtle,
+        borderRadius: 8,
+    },
+    dropdownItemText: {
+        fontSize: 14,
+        color: tc.textPrimary,
     },
     exportBtn: {
         width: '48%',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
         borderWidth: 1,
-        borderColor: '#4A90B9',
+        borderColor: tc.accent,
         borderRadius: 8,
         paddingHorizontal: 12,
         height: 40,
@@ -574,7 +606,7 @@ const styles = StyleSheet.create({
     exportBtnText: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#4A90B9',
+        color: tc.accent,
         marginLeft: 6,
     },
     kpiContainer: {
@@ -582,16 +614,16 @@ const styles = StyleSheet.create({
     },
     kpiCard: {
         width: 180,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
         borderRadius: 12,
         padding: 16,
         marginRight: 15,
         borderWidth: 1,
-        borderColor: '#E5E7EB',
+        borderColor: tc.borderSubtle,
         elevation: 2,
-        shadowColor: '#000',
+        shadowColor: tc.shadow,
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
+        shadowOpacity: isDark ? 0.3 : 0.05,
         shadowRadius: 10,
         overflow: 'hidden',
     },
@@ -599,7 +631,6 @@ const styles = StyleSheet.create({
         width: 36,
         height: 36,
         borderRadius: 8,
-        backgroundColor: '#DBEAFE',
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 12,
@@ -608,26 +639,26 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: 20,
         right: -10,
-        opacity: 0.05,
+        opacity: isDark ? 0.08 : 0.05,
     },
     kpiLabel: {
         fontSize: 14,
-        color: '#6B7280',
+        color: tc.textSecondary,
         fontWeight: '600',
     },
     kpiValue: {
         fontSize: 28,
         fontWeight: 'bold',
-        color: '#111827',
+        color: tc.textPrimary,
         marginVertical: 4,
     },
     kpiComparison: {
         fontSize: 12,
-        color: '#9CA3AF',
+        color: tc.textMuted,
     },
     tabBarContainer: {
         borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB',
+        borderBottomColor: tc.borderSubtle,
         marginBottom: 20,
     },
     tabBar: {
@@ -648,10 +679,10 @@ const styles = StyleSheet.create({
     tabText: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#9CA3AF',
+        color: tc.textMuted,
     },
     activeTabText: {
-        color: '#4A90B9',
+        color: tc.accent,
     },
     tabIndicator: {
         position: 'absolute',
@@ -659,15 +690,15 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         height: 2,
-        backgroundColor: '#4A90B9',
+        backgroundColor: tc.accent,
     },
     chartCard: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
         borderRadius: 16,
         padding: 20,
         marginBottom: 20,
         borderWidth: 1,
-        borderColor: '#E5E7EB',
+        borderColor: tc.borderSubtle,
         alignItems: 'center',
     },
     chartGrid: {
@@ -676,18 +707,18 @@ const styles = StyleSheet.create({
     },
     smallChartCard: {
         width: '48%',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
         borderRadius: 16,
         padding: 16,
         marginBottom: 20,
         borderWidth: 1,
-        borderColor: '#E5E7EB',
+        borderColor: tc.borderSubtle,
         alignItems: 'center',
     },
     chartTitle: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#111827',
+        color: tc.textPrimary,
         width: '100%',
         textAlign: 'left',
     },
@@ -717,7 +748,7 @@ const styles = StyleSheet.create({
     },
     legendText: {
         fontSize: 12,
-        color: '#4B5563',
+        color: tc.textSecondary,
         fontWeight: '500',
     },
     emptyChartState: {
@@ -729,7 +760,7 @@ const styles = StyleSheet.create({
     emptyPlaceholderLine: {
         width: '90%',
         height: 1,
-        backgroundColor: '#E5E7EB',
+        backgroundColor: tc.borderSubtle,
         borderStyle: 'dashed',
         borderWidth: 1,
     }

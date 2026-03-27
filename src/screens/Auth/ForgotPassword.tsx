@@ -14,6 +14,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import {useTranslation} from 'react-i18next';
+import { useThemeColors } from '../../hooks/useThemeColors';
 import {useNavigation} from '@react-navigation/native';
 import CustomTextInput from '../../component/customTextInput';
 import PrimaryButton from '../../component/button';
@@ -22,6 +23,7 @@ import Gap from '../../component/gap';
 import { ForgotPassword } from '../../Services/Auth.Service';
 import CustomAlert from '../../component/customAlert';
 import { validateInput } from '../../utils/inputValidations';
+import LogoSvg from '../../component/logo';
 
 const defaultBody = {
 	email: "",
@@ -34,6 +36,8 @@ const defaultValidationErrors = {
 
 const ForgetPassword = () => {
     const { t } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
     const navigation = useNavigation<any>();
     const [ body , setBody] = useState(defaultBody);
     const [validationErrors, setValidationErrors] = useState(defaultValidationErrors);
@@ -139,29 +143,27 @@ const checkValidation = () => {
     
 
     return (
-        <View style={{flex: 1, backgroundColor: '#fff'}}>
+        <View style={ds.mainContainer}>
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={{ flex: 1 }}>
             <ScrollView
-                contentContainerStyle={styles.scrollContent}
+                contentContainerStyle={ds.scrollContent}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}>
-                <View style={styles.container}>
+                <View style={ds.container}>
                     {/* Logo */}
-                    <Image
-                        source={require('../../assets/images/logo.png')}
-                        style={styles.logo}
-                        resizeMode="contain"
-                    />
+                    <View style={ds.logoContainer}>
+                        <LogoSvg />
+                    </View>
 
                     {/* Header */}
                     <View style={{ width: '100%', alignItems: 'center' }}>
-                        <Text style={styles.header}>{t('forgot_password.title')}</Text>
+                        <Text style={ds.header}>{t('forgot_password.title')}</Text>
                     </View>
 
                     {/* Description */}
-                    <Text style={styles.description}>
+                    <Text style={ds.description}>
                         {t('forgot_password.reset_instructions')}
                     </Text>
 
@@ -174,7 +176,7 @@ const checkValidation = () => {
                         setValidationsState={setValidationErrors}
                         validationState={validationErrors}
                         isFormSubmitted={isFormSubmitted}
-                        icon={<Ionicons name="mail-outline" color="#777" size={20} />}
+                        icon={<Ionicons name="mail-outline" color={tc.textSecondary} size={20} />}
                         right={undefined}
                         onRightPress={undefined}
                         keyboardType="email-address"
@@ -189,7 +191,7 @@ const checkValidation = () => {
                         label={t('forgot_password.send_button')}
                         filled
                         onPress={handleSendInstructions}
-                        style={styles.primaryButton}
+                        style={ds.primaryButton}
                         loading={spinner}
                         disabled={spinner}
                         icon={undefined}
@@ -202,7 +204,7 @@ const checkValidation = () => {
 
                     {/* Back to Login Link */}
                     <TouchableOpacity onPress={() => { navigation.navigate('Sign-In') }}>
-                        <Text style={styles.backToLoginText}>{t('reset_password.back_to_login')}</Text>
+                        <Text style={ds.backToLoginText}>{t('reset_password.back_to_login')}</Text>
                     </TouchableOpacity>
                 </View>
             </ScrollView>
@@ -218,46 +220,53 @@ const checkValidation = () => {
     );
 };
 
-const styles = StyleSheet.create({
-    scrollContent: {
-        flexGrow: 1,
-        paddingVertical: hp(2),
-    },
-    container: {
-        flex: 1,
-        alignItems: 'center',
-        paddingHorizontal: wp(6),
-        backgroundColor: '#fff',
-    },
-    logo: {
-        width: wp(50),
-        height: hp(12),
-        marginTop: hp(12),
-        marginBottom: hp(1),
-    },
-    header: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#1A1A1A',
-        marginBottom: hp(1),
-    },
-    description: {
-        fontSize: 14,
-        color: '#666',
-        textAlign: 'center',
-        marginBottom: hp(3),
-        paddingHorizontal: wp(4),
-    },
-    primaryButton: {
-        width: '100%',
-        height: 52,
-        borderRadius: 12,
-    },
-    backToLoginText: {
-        color: '#007AFF',
-        fontSize: 15,
-        fontWeight: '600',
-    },
-});
+const createDynamicStyles = (tc: any, isDark: boolean) =>
+    StyleSheet.create({
+        mainContainer: {
+            flex: 1,
+            backgroundColor: tc.background,
+        },
+        scrollContent: {
+            flexGrow: 1,
+            paddingVertical: hp(2),
+        },
+        container: {
+            flex: 1,
+            alignItems: 'center',
+            paddingHorizontal: wp(6),
+            backgroundColor: tc.background,
+        },
+        logoContainer: {
+            marginTop: hp(12),
+            marginBottom: hp(1),
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: wp(50),
+            height: hp(12),
+        },
+        header: {
+            fontSize: 24,
+            fontWeight: 'bold',
+            color: tc.textPrimary,
+            marginBottom: hp(1),
+        },
+        description: {
+            fontSize: 14,
+            color: tc.textSecondary,
+            textAlign: 'center',
+            marginBottom: hp(3),
+            paddingHorizontal: wp(4),
+        },
+        primaryButton: {
+            width: '100%',
+            height: 52,
+            borderRadius: 12,
+        },
+        backToLoginText: {
+            color: '#007AFF', // Standard brand link color
+            fontSize: 15,
+            fontWeight: '600',
+        },
+    });
 
 export default ForgetPassword;

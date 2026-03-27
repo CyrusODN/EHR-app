@@ -23,6 +23,7 @@ import Employees from './employees';
 import EWUS from './ewUs';
 import CustomAlert from '../../component/customAlert';
 import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 interface NavItemProps {
     icon: React.ReactNode;
@@ -30,27 +31,31 @@ interface NavItemProps {
     index: number;
     selected: number;
     setSelected: (index: number) => void;
+    tc: any;
+    ds: any;
 }
 // Nav item component for consistent styling
-const NavItem = ({ icon, title, index, selected, setSelected }: NavItemProps) => (
-    <TouchableOpacity
-        style={[styles.navItem, selected === index && styles.selectedNavItem]}
-        onPress={
-            () => {
-                setSelected(index)
-            }
-        }
-    >
-        {icon}
-        <Text style={[styles.navItemText,
-        selected === index && styles.selectedNavItemText
-        ]}>{title}</Text>
-    </TouchableOpacity>
-);
+const NavItem = ({ icon, title, index, selected, setSelected, tc, ds }: NavItemProps) => {
+    const isSelected = selected === index;
+    return (
+        <TouchableOpacity
+            style={[ds.navItem, isSelected && ds.selectedNavItem]}
+            onPress={() => setSelected(index)}
+        >
+            {React.cloneElement(icon as React.ReactElement<any>, { color: isSelected ? tc.accent : tc.textSecondary })}
+            <Text style={[ds.navItemText, isSelected && ds.selectedNavItemText]}>
+                {title}
+            </Text>
+        </TouchableOpacity>
+    );
+};
 const Settings = () => {
 
     const { t } = useTranslation();
     const navigation = useNavigation<any>();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
+    
     const [selected, setSelected] = useState(1);
     const [alertConfig, setAlertConfig] = useState<any>({
         visible: false,
@@ -59,103 +64,114 @@ const Settings = () => {
     });
 
     return (
-        <View style={styles.safeArea}>
-            <StatusBar barStyle="dark-content" backgroundColor="#F5F5F5" />
-            <View style={{
-                width: "100%",
-                backgroundColor: "white",
-                flexDirection: "row",
-                justifyContent: "space-around",
-                paddingTop: hp(7)
-            }}>
-                <View style={styles.header}>
-                    <Text style={styles.headerTitle}>{t('settings.index.title')}</Text>
-                    <Text style={styles.headerSubtitle}>{t('settings.index.subtitle')}</Text>
+        <View style={ds.safeArea}>
+            <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={tc.cardBackground} />
+            <View style={ds.headerWrapper}>
+                <View style={ds.header}>
+                    <Text style={ds.headerTitle}>{t('settings.index.title')}</Text>
+                    <Text style={ds.headerSubtitle}>{t('settings.index.subtitle')}</Text>
                 </View>
 
                 {/* Back Button */}
                 <TouchableOpacity
-                    style={styles.backButton}
+                    style={ds.backButton}
                     onPress={() => navigation.goBack()}
                 >
-                    <Ionicons name="arrow-back" size={20} color="#4A90B9" />
+                    <Ionicons name="arrow-back" size={20} color={tc.accent} />
                 </TouchableOpacity>
             </View>
-            <View style={{ width: "96%", alignSelf: 'flex-end' }}>
+            <View style={ds.navWrapper}>
                 {/* Navigation Menu */}
                 <ScrollView
                     horizontal
+                    showsHorizontalScrollIndicator={false}
                 >
                     <NavItem
-                        icon={<Feather name="bar-chart-2" size={20} color="#4A90B9" />}
+                        icon={<Feather name="bar-chart-2" size={20} />}
                         title={t('settings.index.tabs.statistics')}
                         index={1}
                         selected={selected}
                         setSelected={setSelected}
-
+                        tc={tc}
+                        ds={ds}
                     />
                     <NavItem
-                        icon={<Feather name="file-text" size={20} color="#4A90B9" />}
+                        icon={<Feather name="file-text" size={20} />}
                         title={t('settings.index.tabs.facility_data')}
                         index={2}
                         selected={selected}
                         setSelected={setSelected}
-
+                        tc={tc}
+                        ds={ds}
                     />
                     <NavItem
-                        icon={<Feather name="map-pin" size={20} color="#4A90B9" />}
+                        icon={<Feather name="map-pin" size={20} />}
                         title={t('settings.index.tabs.offices')}
                         index={3}
                         selected={selected}
                         setSelected={setSelected}
+                        tc={tc}
+                        ds={ds}
                     />
                     <NavItem
-                        icon={<Feather name="shield" size={20} color="#4A90B9" />}
+                        icon={<Feather name="shield" size={20} />}
                         title={t('settings.index.tabs.security')}
                         index={4}
                         selected={selected}
                         setSelected={setSelected}
+                        tc={tc}
+                        ds={ds}
                     />
                     <NavItem
-                        icon={<Feather name="credit-card" size={20} color="#4A90B9" />}
+                        icon={<Feather name="credit-card" size={20} />}
                         title={t('settings.index.tabs.subscription')}
                         index={5}
                         selected={selected}
                         setSelected={setSelected}
+                        tc={tc}
+                        ds={ds}
                     />
                     <NavItem
-                        icon={<Feather name="globe" size={20} color="#4A90B9" />}
+                        icon={<Feather name="globe" size={20} />}
                         title={t('settings.index.tabs.patient_portal')}
                         index={6}
                         selected={selected}
                         setSelected={setSelected}
+                        tc={tc}
+                        ds={ds}
                     />
                     <NavItem
-                        icon={<Feather name="user" size={20} color="#4A90B9" />}
+                        icon={<Feather name="user" size={20} />}
                         title={t('settings.index.tabs.profile')}
                         index={7}
                         selected={selected}
                         setSelected={setSelected}
+                        tc={tc}
+                        ds={ds}
                     />
                     <NavItem
-                        icon={<Feather name="users" size={20} color="#4A90B9" />}
+                        icon={<Feather name="users" size={20} />}
                         title={t('settings.index.tabs.employees')}
                         index={8}
                         selected={selected}
                         setSelected={setSelected}
+                        tc={tc}
+                        ds={ds}
                     />
                     <NavItem
-                        icon={<Feather name="file" size={20} color="#4A90B9" />}
+                        icon={<Feather name="file" size={20} />}
                         title={t('settings.index.tabs.ewus')}
                         index={9}
                         selected={selected}
                         setSelected={setSelected}
+                        tc={tc}
+                        ds={ds}
                     />
 
                 </ScrollView>
             </View>
             {/* Settings Content */}
-            <ScrollView style={styles.content}>
+            <ScrollView style={ds.content} contentContainerStyle={{ paddingBottom: 50 }}>
                 {selected == 1 ? <FacilityStatistics />
                     : selected == 2 ? <FacilityData onAlert={(config: any) => setAlertConfig(config)} />
                         : selected == 3 ? <OfficeCertificates onAlert={(config: any) => setAlertConfig(config)} />
@@ -180,125 +196,83 @@ const Settings = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.screenBackground,
+    },
+    headerWrapper: {
+        width: "100%",
+        backgroundColor: tc.cardBackground,
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: 'center',
+        paddingTop: hp(6),
+        paddingBottom: 10,
+        paddingHorizontal: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: tc.borderSubtle,
     },
     header: {
-        paddingHorizontal: 10,
-        paddingVertical: 10,
+        paddingVertical: 5,
         width: "75%",
     },
     headerTitle: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#333333',
+        color: tc.textPrimary,
     },
     headerSubtitle: {
-        fontSize: 16,
-        color: '#666666',
-        marginTop: 5,
+        fontSize: 14,
+        color: tc.textSecondary,
+        marginTop: 2,
     },
     backButton: {
-        marginTop: 10,
         borderWidth: 1,
-        borderColor: '#4A90B9',
+        borderColor: tc.accent,
         borderRadius: 50,
-        marginRight: 10,
-        height: 50,
-        width: 50,
+        height: 44,
+        width: 44,
         alignItems: "center",
         justifyContent: 'center',
     },
-    navContainer: {
-        backgroundColor: 'white',
-        paddingVertical: 15,
-        paddingHorizontal: 10,
+    navWrapper: {
+        width: "100%",
+        backgroundColor: tc.cardBackground,
+        paddingVertical: 12,
+        paddingLeft: 10,
         borderBottomWidth: 1,
-        borderBottomColor: '#E0E0E0',
-        flexWrap: "wrap",
-        flexDirection: "row",
-        justifyContent: "space-between"
+        borderBottomColor: tc.borderSubtle,
     },
     navItem: {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: "center",
-        borderRadius: 8,
-        width: wp(25),
-        height: hp(7),
-        marginEnd: 3,
-        backgroundColor: '#f5f5f5'
+        borderRadius: 12,
+        width: wp(26),
+        height: hp(8),
+        marginEnd: 8,
+        backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#F3F6F8',
     },
     selectedNavItem: {
-        backgroundColor: 'white',
-        borderWidth: 1,
-        borderColor: '#4A90B9',
+        backgroundColor: isDark ? 'rgba(74, 144, 185, 0.15)' : '#EBF5FA',
+        borderWidth: 1.5,
+        borderColor: tc.accent,
     },
     navItemText: {
-        marginTop: 5,
-        fontSize: 10,
-        color: '#666666',
+        marginTop: 6,
+        fontSize: 11,
+        fontWeight: '500',
+        color: tc.textSecondary,
         textAlign: 'center',
     },
     selectedNavItemText: {
-        color: '#4A90B9',
-        fontWeight: '500',
+        color: tc.accent,
+        fontWeight: '700',
     },
     content: {
         flex: 1,
-    },
-    settingsSection: {
-        marginBottom: 16,
-        borderRadius: 8,
-        overflow: 'hidden',
-        elevation: 2,
-    },
-    sectionTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        padding: 16,
-        backgroundColor: '#F9F9F9',
-        color: '#333333',
-    },
-    buttonContainer: {
-        marginVertical: 20,
-        alignItems: 'center',
-    },
-    saveButton: {
-        borderRadius: 8,
-        paddingVertical: 12,
-        paddingHorizontal: 30,
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: wp(80),
-    },
-    saveButtonText: {
-        color: 'white',
-        fontSize: 16,
-        fontWeight: '500',
-    },
-    helpButtonFloat: {
-        position: 'absolute',
-        bottom: 20,
-        right: 20,
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        backgroundColor: '#4A90B9',
-        justifyContent: 'center',
-        alignItems: 'center',
-        elevation: 5,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 3,
-    },
-    helpText: {
-        color: 'white',
-        fontSize: 20,
-        fontWeight: 'bold',
+        backgroundColor: tc.screenBackground,
     },
 });
 

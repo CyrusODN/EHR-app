@@ -15,6 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import CustomAlert from '../../component/customAlert';
 import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 // AI Tools Components
 import ConsultChat from './AI_Tools/consultChat';
@@ -30,6 +31,8 @@ const { width } = Dimensions.get('window');
 export const AIAssistantScreen = () => {
     const navigation = useNavigation<any>();
     const { t } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
     const [activeTab, setActiveTab] = useState('Remedius Consult');
     const [serviceToken, setServiceToken] = useState<string | null>(null);
     const [alertConfig, setAlertConfig] = useState<{ visible: boolean; message: string; type: 'success' | 'warning' | 'error' }>({
@@ -102,59 +105,61 @@ export const AIAssistantScreen = () => {
     };
 
     return (
-        <View style={{ flex: 1 }}>
+        <View style={ds.mainWrapper}>
             <KeyboardAvoidingView
-                style={styles.safeArea}
+                style={ds.safeArea}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
-                <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-                <View style={styles.container}>
+                <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={tc.cardBackground} />
+                <View style={ds.container}>
                     {/* Header */}
-                    <View style={styles.header}>
+                    <View style={ds.header}>
                         <View>
-                            <Text style={styles.headerTitle}>{t('aiAssistant.header.title')}</Text>
-                            <Text style={styles.headerSubtitle}>
+                            <Text style={ds.headerTitle}>{t('aiAssistant.header.title')}</Text>
+                            <Text style={ds.headerSubtitle}>
                                 {t('aiAssistant.header.subtitle')}
                             </Text>
                         </View>
                         <TouchableOpacity
                             onPress={() => navigation.goBack()}
-                            style={styles.backButton}
+                            style={ds.backButton}
                         >
-                            <Ionicons name="arrow-back" size={20} color="#4A90B9" />
+                            <Ionicons name="arrow-back" size={20} color={tc.accent} />
                         </TouchableOpacity>
                     </View>
 
                     {/* Tabs */}
-                    <ScrollView
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        style={styles.tabContainer}
-                    >
-                        {tabs.map((tab, index) => (
-                            <TouchableOpacity
-                                key={index}
-                                style={[
-                                    styles.tab,
-                                    activeTab === tab && styles.activeTab,
-                                    {
-                                        marginEnd: 5
-                                    }
-                                ]}
-                                onPress={() => setActiveTab(tab)}
-                            >
-                                <Text style={[
-                                    styles.tabText,
-                                    activeTab === tab && styles.activeTabText
-                                ]}>
-                                    {getTabLabel(tab)}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </ScrollView>
+                    <View style={ds.tabWrapper}>
+                        <ScrollView
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            style={ds.tabContainer}
+                        >
+                            {tabs.map((tab, index) => (
+                                <TouchableOpacity
+                                    key={index}
+                                    style={[
+                                        ds.tab,
+                                        activeTab === tab && ds.activeTab,
+                                        {
+                                            marginEnd: 8
+                                        }
+                                    ]}
+                                    onPress={() => setActiveTab(tab)}
+                                >
+                                    <Text style={[
+                                        ds.tabText,
+                                        activeTab === tab && ds.activeTabText
+                                    ]}>
+                                        {getTabLabel(tab)}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                    </View>
 
                     {/* Content */}
-                    <View style={styles.contentArea}>
+                    <View style={ds.contentArea}>
                         {renderContent()}
                     </View>
                 </View>
@@ -170,97 +175,85 @@ export const AIAssistantScreen = () => {
     );
 };
 
-const styles = StyleSheet.create({
-    safeArea: {
-        paddingTop: Platform.OS == 'ios' ? hp(5) : hp(0),
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
+    mainWrapper: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.screenBackground,
+    },
+    safeArea: {
+        paddingTop: Platform.OS === 'ios' ? hp(5) : 0,
+        flex: 1,
+        backgroundColor: tc.cardBackground,
     },
     container: {
         flex: 1,
-        backgroundColor: '#F5F5F5',
+        backgroundColor: tc.screenBackground,
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: 15,
-        backgroundColor: '#FFFFFF',
-        marginBottom: hp(1)
+        padding: 20,
+        backgroundColor: tc.cardBackground,
+        borderBottomWidth: 1,
+        borderBottomColor: tc.borderSubtle,
+        marginBottom: 2,
     },
     headerTitle: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#333333',
+        color: tc.textPrimary,
     },
     headerSubtitle: {
-        fontSize: 16,
-        color: '#666666',
-        marginTop: 5,
+        fontSize: 14,
+        color: tc.textSecondary,
+        marginTop: 4,
         maxWidth: wp(70),
     },
     backButton: {
         padding: 10,
         borderWidth: 1,
-        borderColor: '#4A90B9',
-        borderRadius: 50,
-        width: 50,
-        height: 50,
+        borderColor: tc.accent,
+        borderRadius: 25,
+        width: 44,
+        height: 44,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    tabWrapper: {
+        backgroundColor: tc.cardBackground,
+        paddingVertical: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: tc.borderSubtle,
     },
     tabContainer: {
-        marginBottom: hp(1),
-        marginStart: '4%'
+        paddingHorizontal: 16,
     },
     tab: {
-        height: hp(5),
-        paddingHorizontal: 10,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 8,
         justifyContent: "center",
-        borderWidth: 0
+        alignItems: 'center',
     },
     activeTab: {
-        backgroundColor: "#fff",
-        elevation: 5,
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 1,
-            height: 1
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 2,
-        borderRadius: 5
+        backgroundColor: isDark ? 'rgba(74, 185, 179, 0.15)' : '#F0F9FF',
+        shadowColor: tc.shadow,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: isDark ? 0.3 : 0.1,
+        shadowRadius: 4,
+        elevation: 3,
     },
     tabText: {
-        color: '#666666',
+        color: tc.textSecondary,
         fontWeight: '500',
+        fontSize: 14,
     },
     activeTabText: {
-        color: '#4A90B9',
-        fontWeight: 'bold',
+        color: tc.accent,
+        fontWeight: '700',
     },
     contentArea: {
-        height: hp(76)
+        flex: 1,
     },
-    helpButton: {
-        position: 'absolute',
-        right: 20,
-        bottom: 20,
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: '#4A90B9',
-        justifyContent: 'center',
-        alignItems: 'center',
-        elevation: 5,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-    },
-    helpButtonText: {
-        color: 'white',
-        fontSize: 20,
-        fontWeight: 'bold',
-    }
 });

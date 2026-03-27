@@ -15,6 +15,7 @@ import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-nat
 import LinearGradient from 'react-native-linear-gradient';
 import RecommendationModal from './modals/RecommendationModal';
 import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 interface VisitSummaryProps {
     onBack: () => void;
@@ -25,6 +26,8 @@ interface VisitSummaryProps {
 
 const VisitSummary = ({ onBack, onFinish, visitData, onUpdate }: VisitSummaryProps) => {
     const { t } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
     const [expandedSections, setExpandedSections] = useState({
         diagnoses: false,
         documents: false,
@@ -95,39 +98,39 @@ const VisitSummary = ({ onBack, onFinish, visitData, onUpdate }: VisitSummaryPro
 
         return (
             <TouchableOpacity 
-                style={[styles.cardHeader, showAddButton && styles.multiRowHeader]} 
+                style={[ds.cardHeader, showAddButton && ds.multiRowHeader]} 
                 onPress={() => sectionKey && toggleSection(sectionKey)}
                 activeOpacity={0.7}
             >
-                <View style={styles.headerTopRow}>
-                    <View style={styles.headerTitleRow}>
+                <View style={ds.headerTopRow}>
+                    <View style={ds.headerTitleRow}>
                         {iconType === 'feather' ? (
-                            <Feather name={icon} size={20} color="#58A7B3" style={styles.sectionIcon} />
+                            <Feather name={icon} size={20} color="#58A7B3" style={ds.sectionIcon} />
                         ) : (
-                            <MaterialCommunityIcons name={icon} size={20} color="#58A7B3" style={styles.sectionIcon} />
+                            <MaterialCommunityIcons name={icon} size={20} color="#58A7B3" style={ds.sectionIcon} />
                         )}
-                        <Text style={styles.cardTitle} numberOfLines={1}>{title}</Text>
+                        <Text style={ds.cardTitle} numberOfLines={1}>{title}</Text>
                         {count !== undefined && (
-                            <View style={styles.countBadge}>
-                                <Text style={styles.countText}>{count}</Text>
+                            <View style={ds.countBadge}>
+                                <Text style={ds.countText}>{count}</Text>
                             </View>
                         )}
                     </View>
                     <Feather 
                         name={isExpanded ? "chevron-up" : "chevron-down"} 
                         size={20} 
-                        color="#1E293B" 
+                        color={tc.textPrimary} 
                     />
                 </View>
 
                 {showAddButton && (
-                    <View style={styles.headerBottomRow}>
+                    <View style={ds.headerBottomRow}>
                         <TouchableOpacity 
-                            style={styles.addRecommendationsButton}
+                            style={ds.addRecommendationsButton}
                             onPress={() => setShowRecommendationModal(true)}
                         >
                             <Feather name="plus" size={16} color="#58A7B3" />
-                            <Text style={styles.addRecommendationsText}>{t('visit.summary.actions.addRecommendations')}</Text>
+                            <Text style={ds.addRecommendationsText}>{t('visit.summary.actions.addRecommendations')}</Text>
                         </TouchableOpacity>
                     </View>
                 )}
@@ -136,79 +139,79 @@ const VisitSummary = ({ onBack, onFinish, visitData, onUpdate }: VisitSummaryPro
     };
 
     return (
-        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        <ScrollView style={ds.container} showsVerticalScrollIndicator={false}>
             {/* Diagnoses Card */}
-            <View style={styles.card}>
+            <View style={ds.card}>
                 {renderHeader(t('visit.summary.sections.diagnoses'), 'activity', 'feather', visitData?.diagnosis?.icd10?.length || 0, 'diagnoses')}
                 {expandedSections.diagnoses && (
-                    <View style={styles.cardContent}>
+                    <View style={ds.cardContent}>
                         {visitData?.diagnosis?.icd10?.length > 0 ? (
-                            <View style={styles.aiGrid}>
+                            <View style={ds.aiGrid}>
                                 {visitData.diagnosis.icd10.map((diag: any, index: number) => (
-                                    <View key={index} style={styles.aiToolPill}>
-                                        <Text style={styles.aiToolText}>{diag.code || diag}</Text>
+                                    <View key={index} style={ds.aiToolPill}>
+                                        <Text style={ds.aiToolText}>{diag.code || diag}</Text>
                                     </View>
                                 ))}
                             </View>
                              ) : (
-                            <Text style={styles.placeholderText}>{t('visit.summary.emptyDiagnoses')}</Text>
+                            <Text style={ds.placeholderText}>{t('visit.summary.emptyDiagnoses')}</Text>
                         )}
                     </View>
                 )}
             </View>
 
             {/* Issued Documents Card */}
-            <View style={styles.card}>
+            <View style={ds.card}>
                 {renderHeader(t('visit.summary.sections.documents'), 'file-text', 'feather', (visitData?.isPrescription ? 1 : 0) + (visitData?.isReferral ? 1 : 0), 'documents')}
                 {expandedSections.documents && (
-                    <View style={styles.cardContent}>
+                    <View style={ds.cardContent}>
                         {visitData?.isPrescription || visitData?.isReferral ? (
-                            <View style={styles.aiGrid}>
+                            <View style={ds.aiGrid}>
                                 {visitData?.isPrescription && (
-                                    <View style={styles.aiToolPill}>
-                                        <Text style={styles.aiToolText}>{t('visit.summary.prescriptionIssued')}</Text>
+                                    <View style={ds.aiToolPill}>
+                                        <Text style={ds.aiToolText}>{t('visit.summary.prescriptionIssued')}</Text>
                                     </View>
                                 )}
                                 {visitData?.isReferral && (
-                                    <View style={styles.aiToolPill}>
-                                        <Text style={styles.aiToolText}>{t('visit.summary.referralIssued')}</Text>
+                                    <View style={ds.aiToolPill}>
+                                        <Text style={ds.aiToolText}>{t('visit.summary.referralIssued')}</Text>
                                     </View>
                                 )}
                             </View>
                              ) : (
-                            <Text style={styles.placeholderText}>{t('visit.summary.emptyDocuments')}</Text>
+                            <Text style={ds.placeholderText}>{t('visit.summary.emptyDocuments')}</Text>
                         )}
                     </View>
                 )}
             </View>
 
             {/* Psychiatric Recommendations Card */}
-            <View style={styles.card}>
+            <View style={ds.card}>
                 {renderHeader(t('visit.summary.sections.recommendations'), 'brain', 'material', visitData?.recommendations?.aiAssistance?.features ? Object.values(visitData.recommendations.aiAssistance.features).filter(Boolean).length : 0, 'psychiatric', true)}
                 {expandedSections.psychiatric && (
-                    <View style={styles.cardContent}>
-                        <View style={styles.aiAssistanceSection}>
-                             <View style={styles.aiAssistanceHeader}>
+                    <View style={ds.cardContent}>
+                        <View style={ds.aiAssistanceSection}>
+                             <View style={ds.aiAssistanceHeader}>
                                 <MaterialCommunityIcons name="brain" size={18} color="#58A7B3" />
-                                <Text style={styles.aiAssistanceTitle}>{t('visit.summary.aiTitle')}</Text>
+                                <Text style={ds.aiAssistanceTitle}>{t('visit.summary.aiTitle')}</Text>
                             </View>
                             
-                            <View style={styles.aiGrid}>
+                            <View style={ds.aiGrid}>
                                 {visitData?.recommendations?.aiAssistance?.features ? (
                                     Object.entries(visitData.recommendations.aiAssistance.features).map(([key, value]) => {
                                         if (value) {
                                             const formattedKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
                                             return (
-                                                <View key={key} style={styles.aiToolPill}>
-                                                    <Text style={styles.aiToolText}>{formattedKey}</Text>
+                                                <View key={key} style={ds.aiToolPill}>
+                                                    <Text style={ds.aiToolText}>{formattedKey}</Text>
                                                 </View>
                                             )
                                         }
                                         return null;
                                     })
                                  ) : (
-                                    <View style={styles.aiToolPill}>
-                                        <Text style={styles.aiToolText}>{t('visit.summary.noAiFeatures')}</Text>
+                                    <View style={ds.aiToolPill}>
+                                        <Text style={ds.aiToolText}>{t('visit.summary.noAiFeatures')}</Text>
                                     </View>
                                 )}
                             </View>
@@ -218,22 +221,22 @@ const VisitSummary = ({ onBack, onFinish, visitData, onUpdate }: VisitSummaryPro
             </View>
 
             {/* Next Visit Card */}
-            <View style={styles.card}>
+            <View style={ds.card}>
                 {renderHeader(t('visit.summary.sections.nextVisit'), 'calendar', 'feather', undefined, 'nextVisit')}
                 {expandedSections.nextVisit && (
-                    <View style={styles.cardContent}>
-                         <View style={styles.schedulingSection}>
-                            <View style={styles.inputGroup}>
-                                <Text style={styles.inputLabel}>{t('common.time')}</Text>
+                    <View style={ds.cardContent}>
+                         <View style={ds.schedulingSection}>
+                            <View style={ds.inputGroup}>
+                                <Text style={ds.inputLabel}>{t('common.time')}</Text>
                                 <TouchableOpacity 
-                                    style={styles.scheduleInputContainer}
+                                    style={ds.scheduleInputContainer}
                                     onPress={() => setShowDatePicker(true)}
                                 >
-                                    <View style={styles.scheduleInputWithIcon}>
-                                        <Feather name="calendar" size={18} color="#94A3B8" />
-                                        <Text style={styles.scheduleValueText}>{formatDate(visitDate)}</Text>
+                                    <View style={ds.scheduleInputWithIcon}>
+                                        <Feather name="calendar" size={18} color={tc.textMuted} />
+                                        <Text style={ds.scheduleValueText}>{formatDate(visitDate)}</Text>
                                     </View>
-                                    <Feather name="calendar" size={18} color="#1E293B" />
+                                    <Feather name="calendar" size={18} color={tc.textPrimary} />
                                 </TouchableOpacity>
                                 {showDatePicker && (
                                     <DateTimePicker
@@ -246,18 +249,18 @@ const VisitSummary = ({ onBack, onFinish, visitData, onUpdate }: VisitSummaryPro
                                 )}
                             </View>
 
-                             <View style={styles.timeRow}>
-                                <View style={styles.timeInputWrapper}>
-                                    <Text style={styles.inputLabel}>{t('common.from')}</Text>
+                             <View style={ds.timeRow}>
+                                <View style={ds.timeInputWrapper}>
+                                    <Text style={ds.inputLabel}>{t('common.from')}</Text>
                                     <TouchableOpacity 
-                                        style={styles.scheduleInputContainer}
+                                        style={ds.scheduleInputContainer}
                                         onPress={() => setShowStartTimePicker(true)}
                                     >
-                                        <View style={styles.scheduleInputWithIcon}>
-                                            <MaterialCommunityIcons name="clock-outline" size={18} color="#94A3B8" />
-                                            <Text style={styles.scheduleValueText}>{formatTime(startTime)}</Text>
+                                        <View style={ds.scheduleInputWithIcon}>
+                                            <MaterialCommunityIcons name="clock-outline" size={18} color={tc.textMuted} />
+                                            <Text style={ds.scheduleValueText}>{formatTime(startTime)}</Text>
                                         </View>
-                                        <MaterialCommunityIcons name="clock-outline" size={18} color="#1E293B" />
+                                        <MaterialCommunityIcons name="clock-outline" size={18} color={tc.textPrimary} />
                                     </TouchableOpacity>
                                     {showStartTimePicker && (
                                         <DateTimePicker
@@ -268,17 +271,17 @@ const VisitSummary = ({ onBack, onFinish, visitData, onUpdate }: VisitSummaryPro
                                         />
                                     )}
                                 </View>
-                                 <View style={styles.timeInputWrapper}>
-                                    <Text style={styles.inputLabel}>{t('common.to')}</Text>
+                                 <View style={ds.timeInputWrapper}>
+                                    <Text style={ds.inputLabel}>{t('common.to')}</Text>
                                     <TouchableOpacity 
-                                        style={styles.scheduleInputContainer}
+                                        style={ds.scheduleInputContainer}
                                         onPress={() => setShowEndTimePicker(true)}
                                     >
-                                        <View style={styles.scheduleInputWithIcon}>
-                                            <MaterialCommunityIcons name="clock-outline" size={18} color="#94A3B8" />
-                                            <Text style={styles.scheduleValueText}>{formatTime(endTime)}</Text>
+                                        <View style={ds.scheduleInputWithIcon}>
+                                            <MaterialCommunityIcons name="clock-outline" size={18} color={tc.textMuted} />
+                                            <Text style={ds.scheduleValueText}>{formatTime(endTime)}</Text>
                                         </View>
-                                        <MaterialCommunityIcons name="clock-outline" size={18} color="#1E293B" />
+                                        <MaterialCommunityIcons name="clock-outline" size={18} color={tc.textPrimary} />
                                     </TouchableOpacity>
                                     {showEndTimePicker && (
                                         <DateTimePicker
@@ -291,15 +294,15 @@ const VisitSummary = ({ onBack, onFinish, visitData, onUpdate }: VisitSummaryPro
                                 </View>
                             </View>
 
-                            <TouchableOpacity style={styles.createVisitBtn}>
+                            <TouchableOpacity style={ds.createVisitBtn}>
                                 <LinearGradient
                                     colors={['#58A7B3', '#8ED1CC']}
                                     start={{ x: 0, y: 0 }}
                                     end={{ x: 1, y: 0 }}
-                                    style={styles.createVisitGradient}
+                                    style={ds.createVisitGradient}
                                 >
                                      <Feather name="check" size={18} color="#fff" />
-                                    <Text style={styles.createVisitText}>{t('visit.summary.nextVisitLabels.create')}</Text>
+                                    <Text style={ds.createVisitText}>{t('visit.summary.nextVisitLabels.create')}</Text>
                                 </LinearGradient>
                             </TouchableOpacity>
                         </View>
@@ -308,14 +311,14 @@ const VisitSummary = ({ onBack, onFinish, visitData, onUpdate }: VisitSummaryPro
             </View>
 
             {/* General Recommendations Card */}
-            <View style={styles.card}>
+            <View style={ds.card}>
                 {renderHeader(t('visit.summary.sections.generalRecommendations'), 'clipboard', 'feather', undefined, 'general')}
                 {expandedSections.general && (
-                    <View style={styles.cardContent}>
+                    <View style={ds.cardContent}>
                          <TextInput
-                            style={styles.generalInput}
+                            style={ds.generalInput}
                             placeholder={t('visit.summary.placeholders.recommendations')}
-                            placeholderTextColor="#94A3B8"
+                            placeholderTextColor={tc.textMuted}
                             multiline
                             numberOfLines={4}
                             textAlignVertical="top"
@@ -332,10 +335,10 @@ const VisitSummary = ({ onBack, onFinish, visitData, onUpdate }: VisitSummaryPro
             </View>
 
             {/* Footer */}
-             <View style={styles.footer}>
-                <TouchableOpacity style={styles.backButton} onPress={onBack}>
+             <View style={ds.footer}>
+                <TouchableOpacity style={ds.backButton} onPress={onBack}>
                     <Feather name="arrow-left" size={18} color="#58A7B3" />
-                    <Text style={styles.backButtonText}>{t('visit.navigation.previous')}</Text>
+                    <Text style={ds.backButtonText}>{t('visit.navigation.previous')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={onFinish}>
@@ -343,9 +346,9 @@ const VisitSummary = ({ onBack, onFinish, visitData, onUpdate }: VisitSummaryPro
                         colors={['#58A7B3', '#8ED1CC']}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
-                         style={styles.finishButton}
+                         style={ds.finishButton}
                     >
-                        <Text style={styles.finishButtonText}>{t('visit.summary.actions.finish')}</Text>
+                        <Text style={ds.finishButtonText}>{t('visit.summary.actions.finish')}</Text>
                         <Feather name="arrow-right" size={18} color="#fff" />
                     </LinearGradient>
                 </TouchableOpacity>
@@ -359,249 +362,254 @@ const VisitSummary = ({ onBack, onFinish, visitData, onUpdate }: VisitSummaryPro
     );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 12,
-    },
-    card: {
-        backgroundColor: '#fff',
-        borderRadius: 10,
-        marginBottom: 16,
-        borderWidth: 1,
-        borderColor: '#F1F5F9',
-        overflow: 'hidden',
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 2,
-    },
-    cardHeader: {
-        padding: 16,
-        minHeight: 64,
-        justifyContent: 'center',
-    },
-    multiRowHeader: {
-        paddingBottom: 20,
-    },
-    headerTopRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        width: '100%',
-    },
-    headerBottomRow: {
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
-        width: '100%',
-        marginTop: 12,
-    },
-    headerTitleRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        flex: 1,
-        marginRight: 12,
-    },
-    sectionIcon: {
-        marginRight: 10,
-    },
-    cardTitle: {
-        fontSize: 16,
-        fontWeight: '700',
-        color: '#1E293B',
-    },
-    countBadge: {
-        backgroundColor: '#E2F2F4',
-        borderRadius: 12,
-        paddingHorizontal: 8,
-        paddingVertical: 2,
-        marginLeft: 8,
-        minWidth: 24,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    countText: {
-        fontSize: 12,
-        fontWeight: '700',
-        color: '#58A7B3',
-    },
-    headerRightAction: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    addRecommendationsButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderWidth: 1.5,
-        borderColor: '#58A7B3',
-        paddingHorizontal: 8,
-        paddingVertical: 6,
-        borderRadius: 8,
-        marginRight: 8,
-    },
-    addRecommendationsText: {
-        color: '#58A7B3',
-        fontSize: 11,
-        fontWeight: '700',
-        marginLeft: 4,
-    },
-    cardContent: {
-        padding: 16,
-        paddingTop: 0,
-        borderTopWidth: 1,
-        borderTopColor: '#F8FAFC',
-    },
-    placeholderText: {
-        fontSize: 14,
-        color: '#94A3B8',
-        fontStyle: 'italic',
-        marginTop: 8,
-    },
-    aiAssistanceSection: {
-        marginTop: 16,
-        marginBottom: 8,
-    },
-    aiAssistanceHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 12,
-    },
-    aiAssistanceTitle: {
-        fontSize: 14,
-        fontWeight: '700',
-        color: '#1E293B',
-        marginLeft: 8,
-    },
-    aiGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-    },
-    aiToolPill: {
-        width: '48.5%',
-        backgroundColor: '#E2F2F4',
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderRadius: 6,
-        marginBottom: 10,
-    },
-    aiToolText: {
-        fontSize: 13,
-        color: '#58A7B3',
-        fontWeight: '600',
-    },
-    schedulingSection: {
-        marginTop: 16,
-    },
-    inputGroup: {
-        marginBottom: 16,
-    },
-    inputLabel: {
-        fontSize: 13,
-        fontWeight: '600',
-        color: '#64748B',
-        marginBottom: 8,
-    },
-    scheduleInputContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        borderWidth: 1,
-        borderColor: '#E2E8F0',
-        borderRadius: 8,
-        paddingHorizontal: 12,
-        height: 48,
-    },
-    scheduleInputWithIcon: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    scheduleValueText: {
-        fontSize: 14,
-        color: '#1E293B',
-        marginLeft: 10,
-        fontWeight: '500',
-    },
-    inlinePicker: {
-        backgroundColor: '#fff',
-        marginTop: 8,
-        borderRadius: 8,
-        overflow: 'hidden',
-    },
-    timeRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 20,
-    },
-    timeInputWrapper: {
-        width: '48.5%',
-    },
-    createVisitBtn: {
-        alignSelf: 'flex-end',
-        marginBottom: 8,
-    },
-    createVisitGradient: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: hp(5),
-        width: wp(43),
-        borderRadius: 8,
-    },
-    createVisitText: {
-        color: '#fff',
-        fontSize: 14,
-        fontWeight: '700',
-        marginLeft: 8,
-    },
-    generalInput: {
-        borderWidth: 1,
-        borderColor: '#E2E8F0',
-        borderRadius: 8,
-        padding: 12,
-        fontSize: 14,
-        color: '#1E293B',
-        minHeight: 100,
-        marginTop: 16,
-        marginBottom: 8,
-    },
-    footer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 20,
-        paddingBottom: hp(5),
-    },
-    backButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderWidth: 1.5,
-        borderColor: '#58A7B3',
-        borderRadius: 8,
-        width: wp(43),
-        height: 50,
-        justifyContent: 'center',
-    },
-    backButtonText: {
-        fontSize: 16,
-        color: '#58A7B3',
-        fontWeight: '700',
-        marginLeft: 8,
-    },
-    finishButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderRadius: 8,
-        width: wp(43),
-        height: 50,
-        justifyContent: 'center',
-    },
-    finishButtonText: {
-        fontSize: 16,
-        color: '#fff',
-        fontWeight: '700',
-        marginRight: 8,
-    },
-});
+const createDynamicStyles = (tc: any, isDark: boolean) =>
+    StyleSheet.create({
+        container: {
+            flex: 1,
+            padding: 12,
+        },
+        card: {
+            backgroundColor: tc.cardBackground,
+            borderRadius: 10,
+            marginBottom: 16,
+            borderWidth: 1,
+            borderColor: tc.borderColor,
+            overflow: 'hidden',
+            elevation: 2,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.05,
+            shadowRadius: 2,
+        },
+        cardHeader: {
+            padding: 16,
+            minHeight: 64,
+            justifyContent: 'center',
+            backgroundColor: tc.cardBackground,
+        },
+        multiRowHeader: {
+            paddingBottom: 20,
+        },
+        headerTopRow: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            width: '100%',
+        },
+        headerBottomRow: {
+            flexDirection: 'row',
+            justifyContent: 'flex-end',
+            width: '100%',
+            marginTop: 12,
+        },
+        headerTitleRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            flex: 1,
+            marginRight: 12,
+        },
+        sectionIcon: {
+            marginRight: 10,
+        },
+        cardTitle: {
+            fontSize: 16,
+            fontWeight: '700',
+            color: tc.textPrimary,
+        },
+        countBadge: {
+            backgroundColor: isDark ? 'rgba(88, 167, 179, 0.2)' : '#E2F2F4',
+            borderRadius: 12,
+            paddingHorizontal: 8,
+            paddingVertical: 2,
+            marginLeft: 8,
+            minWidth: 24,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        countText: {
+            fontSize: 12,
+            fontWeight: '700',
+            color: '#58A7B3',
+        },
+        headerRightAction: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        addRecommendationsButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderWidth: 1.5,
+            borderColor: '#58A7B3',
+            paddingHorizontal: 8,
+            paddingVertical: 6,
+            borderRadius: 8,
+            marginRight: 8,
+        },
+        addRecommendationsText: {
+            color: '#58A7B3',
+            fontSize: 11,
+            fontWeight: '700',
+            marginLeft: 4,
+        },
+        cardContent: {
+            padding: 16,
+            paddingTop: 0,
+            borderTopWidth: 1,
+            borderTopColor: tc.borderColor,
+            backgroundColor: tc.cardBackground,
+        },
+        placeholderText: {
+            fontSize: 14,
+            color: tc.textMuted,
+            fontStyle: 'italic',
+            marginTop: 8,
+        },
+        aiAssistanceSection: {
+            marginTop: 16,
+            marginBottom: 8,
+        },
+        aiAssistanceHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: 12,
+        },
+        aiAssistanceTitle: {
+            fontSize: 14,
+            fontWeight: '700',
+            color: tc.textPrimary,
+            marginLeft: 8,
+        },
+        aiGrid: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            justifyContent: 'space-between',
+        },
+        aiToolPill: {
+            width: '48.5%',
+            backgroundColor: isDark ? 'rgba(88, 167, 179, 0.1)' : '#E2F2F4',
+            paddingVertical: 8,
+            paddingHorizontal: 12,
+            borderRadius: 6,
+            marginBottom: 10,
+        },
+        aiToolText: {
+            fontSize: 13,
+            color: '#58A7B3',
+            fontWeight: '600',
+        },
+        schedulingSection: {
+            marginTop: 16,
+        },
+        inputGroup: {
+            marginBottom: 16,
+        },
+        inputLabel: {
+            fontSize: 13,
+            fontWeight: '600',
+            color: tc.textSecondary,
+            marginBottom: 8,
+        },
+        scheduleInputContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderWidth: 1,
+            borderColor: tc.borderColor,
+            borderRadius: 8,
+            paddingHorizontal: 12,
+            height: 48,
+            backgroundColor: tc.cardBackgroundAlt,
+        },
+        scheduleInputWithIcon: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        scheduleValueText: {
+            fontSize: 14,
+            color: tc.textPrimary,
+            marginLeft: 10,
+            fontWeight: '500',
+        },
+        inlinePicker: {
+            backgroundColor: tc.cardBackground,
+            marginTop: 8,
+            borderRadius: 8,
+            overflow: 'hidden',
+        },
+        timeRow: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginBottom: 20,
+        },
+        timeInputWrapper: {
+            width: '48.5%',
+        },
+        createVisitBtn: {
+            alignSelf: 'flex-end',
+            marginBottom: 8,
+        },
+        createVisitGradient: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: hp(5),
+            width: wp(43),
+            borderRadius: 8,
+        },
+        createVisitText: {
+            color: '#fff',
+            fontSize: 14,
+            fontWeight: '700',
+            marginLeft: 8,
+        },
+        generalInput: {
+            borderWidth: 1,
+            borderColor: tc.borderColor,
+            borderRadius: 8,
+            padding: 12,
+            fontSize: 14,
+            color: tc.textPrimary,
+            backgroundColor: tc.cardBackgroundAlt,
+            minHeight: 100,
+            marginTop: 16,
+            marginBottom: 8,
+        },
+        footer: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginTop: 20,
+            paddingBottom: hp(5),
+        },
+        backButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderWidth: 1.5,
+            borderColor: '#58A7B3',
+            borderRadius: 8,
+            width: wp(43),
+            height: 50,
+            justifyContent: 'center',
+        },
+        backButtonText: {
+            fontSize: 16,
+            color: '#58A7B3',
+            fontWeight: '700',
+            marginLeft: 8,
+        },
+        finishButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderRadius: 8,
+            width: wp(43),
+            height: 50,
+            justifyContent: 'center',
+        },
+        finishButtonText: {
+            fontSize: 16,
+            color: '#fff',
+            fontWeight: '700',
+            marginRight: 8,
+        },
+    });
 
 export default VisitSummary;

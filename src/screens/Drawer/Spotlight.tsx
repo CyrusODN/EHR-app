@@ -18,38 +18,42 @@ import { Searchbar } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Feather from 'react-native-vector-icons/Feather';
 import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 const SpotlightScreen = () => {
     const { t } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
     const [searchQuery, setSearchQuery] = useState('');
     const navigation = useNavigation();
     const [active, setActive] = useState(0);
     return (
-        <SafeAreaView style={styles.safeArea}>
-            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-            <View style={styles.container}>
+        <View style={{ flex: 1, backgroundColor: tc.screenBackground }}>
+            <SafeAreaView style={ds.safeArea}>
+                <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={tc.screenBackground} />
+            <View style={ds.container}>
                 {/* Header */}
-                <View style={styles.header}>
+                <View style={ds.header}>
                     <View>
-                        <Text style={styles.headerTitle}>{t('spotlight.title')}</Text>
-                        <Text style={styles.headerSubtitle}>
+                        <Text style={ds.headerTitle}>{t('spotlight.title')}</Text>
+                        <Text style={ds.headerSubtitle}>
                             {t('spotlight.subtitle')}
                         </Text>
                     </View>
-                    <View style={styles.headerRightContainer}>
+                    <View style={ds.headerRightContainer}>
                         <TouchableOpacity
                             onPress={() => {
                                 navigation.goBack();
                             }}
-                            style={styles.menuButton}>
-                            <Ionicons name="arrow-back" size={20} color="#4A90B9" />
+                            style={ds.menuButton}>
+                            <Ionicons name="arrow-back" size={20} color={tc.accent} />
                         </TouchableOpacity>
                     </View>
                 </View>
 
                 {/* Content */}
-                <View style={styles.contentContainer}>
-                    <View style={styles.actionButtonsContainer}>
+                <View style={ds.contentContainer}>
+                    <View style={ds.actionButtonsContainer}>
                         <PrimaryButton
                             label={t('spotlight.newSubmission')}
                             filled={active == 0 ? true : false}
@@ -80,53 +84,51 @@ const SpotlightScreen = () => {
                     </View>
 
                     {active == 0 ?
-                        <View style={styles.searchContainer}>
-                            <Text style={styles.searchLabel}>{t('spotlight.patientSelection')}</Text>
+                        <View style={ds.searchContainer}>
+                            <Text style={ds.searchLabel}>{t('spotlight.patientSelection')}</Text>
                             <Searchbar
                                 placeholder={t('spotlight.searchPatient')}
-                                style={styles.searchBar}
-
+                                style={ds.searchBar}
+                                iconColor={tc.textSecondary}
+                                placeholderTextColor={tc.textMuted}
+                                inputStyle={{ color: tc.textPrimary }}
                                 icon="magnify" value={''} />
                         </View>
                         :
-                        <View style={styles.searchContainer}>
-                            <Text style={styles.searchLabel}>{t('spotlight.myRequests')}</Text>
-                            <View style={{ width: '100%', backgroundColor: "#ccc", height: 1, marginVertical: hp(1) }} />
+                        <View style={ds.searchContainer}>
+                            <Text style={ds.searchLabel}>{t('spotlight.myRequests')}</Text>
+                            <View style={[ds.divider, { marginVertical: hp(1) }]} />
                             <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
                                 <View style={{ width: '65%', }}>
                                     <View style={{ flexDirection: "row", alignItems: "center", }}>
-                                        <MaterialCommunityIcons name="clock-outline" color="orange" size={20} />
-                                        <Text style={{
-                                            marginLeft: wp(1)
-                                        }}>{t('spotlight.status.pending')}</Text>
+                                        <MaterialCommunityIcons name="clock-outline" color="#f97316" size={20} />
+                                        <Text style={[ds.statusText, { color: '#f97316' }]}>{t('spotlight.status.pending')}</Text>
                                     </View>
-                                    <Text style={{ color: "grey" }}>{t('spotlight.patientId')}: P123</Text>
-                                    <Text style={{ color: "grey" }}>{t('spotlight.submissionDate')}: 19/03/2024, 10:00:00</Text>
+                                    <Text style={ds.infoText}>{t('spotlight.patientId')}: P123</Text>
+                                    <Text style={ds.infoText}>{t('spotlight.submissionDate')}: 19/03/2024, 10:00:00</Text>
                                 </View>
                                 <PrimaryButton
                                     label={"Podglad"}
                                     filled={false}
                                     onPress={() => { }}
                                     style={{ width: "35%" }}
-                                    icon={<MaterialCommunityIcons name="eye-outline" color="#4A90B9" size={20} />}
+                                    icon={<MaterialCommunityIcons name="eye-outline" color={tc.accent} size={20} />}
                                     image={undefined}
                                     iconStyle={undefined} imageStyle={undefined}
                                     loading={false}
                                     disabled={false}
                                 />
                             </View>
-                            <View style={{ width: '100%', backgroundColor: "#ccc", height: 1, marginVertical: hp(1) }} />
+                            <View style={[ds.divider, { marginVertical: hp(1) }]} />
                             <View>
                                 <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
                                     <View style={{ width: '50%', }}>
                                         <View style={{ flexDirection: "row", alignItems: "center", }}>
-                                            <Feather name="check-circle" color="green" size={20} />
-                                            <Text style={{
-                                                marginLeft: wp(1)
-                                            }}>{t('spotlight.status.accepted')}</Text>
+                                            <Feather name="check-circle" color="#10b981" size={20} />
+                                            <Text style={[ds.statusText, { color: '#10b981' }]}>{t('spotlight.status.accepted')}</Text>
                                         </View>
-                                        <Text style={{ color: "grey" }}>{t('spotlight.patientId')}: P123</Text>
-                                        <Text style={{ color: "grey" }}>{t('spotlight.submissionDate')}: 19/03/2024, 10:00:00</Text>
+                                        <Text style={ds.infoText}>{t('spotlight.patientId')}: P123</Text>
+                                        <Text style={ds.infoText}>{t('spotlight.submissionDate')}: 19/03/2024, 10:00:00</Text>
                                     </View>
                                     <View style={{ width: "50%" }} >
                                         <PrimaryButton
@@ -134,7 +136,7 @@ const SpotlightScreen = () => {
                                             filled={false}
                                             onPress={() => { }}
                                             style={{ width: "70%", alignSelf: "flex-end" }}
-                                            icon={<MaterialCommunityIcons name="eye-outline" color="#4A90B9" size={20} />}
+                                            icon={<MaterialCommunityIcons name="eye-outline" color={tc.accent} size={20} />}
                                             image={undefined}
                                             iconStyle={undefined}
                                             imageStyle={undefined}
@@ -156,10 +158,8 @@ const SpotlightScreen = () => {
                                     </View>
 
                                 </View>
-                                <Text style={{
-                                    marginLeft: wp(1)
-                                }}>{t('spotlight.clinicalCenter')}</Text>
-                                <Text style={{ marginLeft: wp(1), color: "grey" }}>{t('spotlight.migraineStudy')}</Text>
+                                <Text style={ds.clinicalCenterText}>{t('spotlight.clinicalCenter')}</Text>
+                                <Text style={[ds.infoText, { marginLeft: wp(1) }]}>{t('spotlight.migraineStudy')}</Text>
                             </View>
 
                         </View>
@@ -168,22 +168,23 @@ const SpotlightScreen = () => {
                 </View>
 
                 {/* Help Button */}
-                <TouchableOpacity style={styles.helpButtonFloat}>
-                    <Text style={styles.helpText}>?</Text>
+                <TouchableOpacity style={ds.helpButtonFloat}>
+                    <Text style={ds.helpText}>?</Text>
                 </TouchableOpacity>
             </View>
         </SafeAreaView>
+        </View>
     );
 };
 
-const styles = StyleSheet.create({
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.screenBackground,
     },
     container: {
         flex: 1,
-        backgroundColor: '#F5F5F5',
+        backgroundColor: tc.screenBackground,
     },
     header: {
         flexDirection: 'row',
@@ -192,17 +193,17 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingTop: 15,
         paddingBottom: 15,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
     },
     headerTitle: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#333333',
+        color: tc.textPrimary,
         marginTop: 5,
     },
     headerSubtitle: {
         fontSize: 16,
-        color: '#666666',
+        color: tc.textSecondary,
         marginTop: 5,
         maxWidth: wp(70),
     },
@@ -213,7 +214,7 @@ const styles = StyleSheet.create({
     menuButton: {
         padding: 8,
         borderWidth: 1,
-        borderColor: '#4A90B9',
+        borderColor: tc.accent,
         borderRadius: 50,
         height: 50,
         width: 50,
@@ -230,33 +231,43 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "space-between"
     },
-    actionButton: {
-        justifyContent: "center",
-        borderRadius: 8,
-        alignItems: 'center',
-    },
-    actionButtonText: {
-        color: 'white',
-        fontWeight: 'bold',
-    },
     searchContainer: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
         borderRadius: 10,
         padding: 15,
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
+        shadowColor: tc.shadow,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: isDark ? 0.3 : 0.1,
+        shadowRadius: 5,
         elevation: 3,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: tc.borderSubtle,
     },
     searchLabel: {
         fontSize: 18,
         fontWeight: 'bold',
         marginBottom: 10,
-        color: '#333333',
+        color: tc.textPrimary,
+    },
+    statusText: {
+        marginLeft: wp(1),
+        fontWeight: '500',
+    },
+    infoText: {
+        color: tc.textSecondary,
+        fontSize: 14,
+        marginVertical: 2,
+    },
+    clinicalCenterText: {
+        marginLeft: wp(1),
+        marginTop: 10,
+        fontWeight: 'bold',
+        color: tc.textPrimary,
+    },
+    divider: {
+        width: '100%',
+        backgroundColor: tc.borderSubtle,
+        height: 1,
     },
     helpButtonFloat: {
         position: 'absolute',
@@ -265,27 +276,27 @@ const styles = StyleSheet.create({
         width: 50,
         height: 50,
         borderRadius: 25,
-        backgroundColor: '#4A90B9',
+        backgroundColor: tc.accent,
         justifyContent: 'center',
         alignItems: 'center',
         elevation: 5,
-        shadowColor: '#000',
+        shadowColor: tc.shadow,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.3,
         shadowRadius: 3,
     },
     helpText: {
-        color: 'white',
+        color: '#FFFFFF',
         fontSize: 20,
         fontWeight: 'bold',
     },
     searchBar: {
         borderRadius: 8,
-        backgroundColor: "#fff",
+        backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#FFFFFF',
         elevation: 0,
         width: '100%',
         borderWidth: 1,
-        borderColor: "#ccc"
+        borderColor: tc.borderSubtle,
     },
 });
 

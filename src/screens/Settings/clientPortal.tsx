@@ -8,7 +8,8 @@ import {
     TouchableOpacity,
     StatusBar,
     Switch,
-    Image
+    Image,
+    Platform
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -17,94 +18,69 @@ import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-nat
 import { useNavigation } from '@react-navigation/native';
 import PrimaryButton from '../../component/button';
 import { useTranslation } from 'react-i18next';
-
-interface ToggleItemProps {
-    icon: React.ReactNode;
-    title: string;
-    description?: string;
-    value: boolean;
-    onToggle: () => void;
-}
-
-interface SubToggleItemProps {
-    title: string;
-    description?: string;
-    value: boolean;
-    onToggle: () => void;
-    indented?: boolean;
-}
-
-interface ModuleCardProps {
-    children: React.ReactNode;
-}
-
-interface InfoBoxProps {
-    type?: string;
-    title?: string;
-    description: string;
-}
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 // Toggle Item Component
-const ToggleItem = ({ icon, title, description, value, onToggle }: ToggleItemProps) => (
-    <View style={styles.toggleItem}>
-        <View style={styles.toggleItemContent}>
-            <View style={styles.toggleIcon}>
+const ToggleItem = ({ icon, title, description, value, onToggle, tc, ds }: any) => (
+    <View style={ds.toggleItem}>
+        <View style={ds.toggleItemContent}>
+            <View style={ds.toggleIcon}>
                 {icon}
             </View>
-            <View style={styles.toggleTextContainer}>
-                <Text style={styles.toggleTitle}>{title}</Text>
-                {description && <Text style={styles.toggleDescription}>{description}</Text>}
+            <View style={ds.toggleTextContainer}>
+                <Text style={ds.toggleTitle}>{title}</Text>
+                {description && <Text style={ds.toggleDescription}>{description}</Text>}
             </View>
         </View>
         <Switch
             value={value}
             onValueChange={onToggle}
-            trackColor={{ false: '#D1D1D6', true: '#58a6b8' }}
+            trackColor={{ false: tc.borderSubtle, true: tc.accent }}
             thumbColor={'#FFFFFF'}
         />
     </View>
 );
 
 // Sub Toggle Item Component
-const SubToggleItem = ({ title, description, value, onToggle, indented = false }: SubToggleItemProps) => (
-    <View style={[styles.subToggleItem,]}>
-        <View style={styles.subToggleTextContainer}>
-            <Text style={styles.subToggleTitle}>{title}</Text>
-            {description && <Text style={styles.subToggleDescription}>{description}</Text>}
+const SubToggleItem = ({ title, description, value, onToggle, tc, ds }: any) => (
+    <View style={ds.subToggleItem}>
+        <View style={ds.subToggleTextContainer}>
+            <Text style={ds.subToggleTitle}>{title}</Text>
+            {description && <Text style={ds.subToggleDescription}>{description}</Text>}
         </View>
         <Switch
             value={value}
             onValueChange={onToggle}
-            trackColor={{ false: '#D1D1D6', true: '#58a6b8' }}
+            trackColor={{ false: tc.borderSubtle, true: tc.accent }}
             thumbColor={'#FFFFFF'}
         />
     </View>
 );
 
 // Module Card Component
-const ModuleCard = ({ children }: ModuleCardProps) => {
+const ModuleCard = ({ children, ds }: any) => {
     return (
-        <View style={styles.moduleCard}>
+        <View style={ds.moduleCard}>
             {children}
         </View>
     );
 };
 
 // Info Box Component
-const InfoBox = ({ type, title, description }: InfoBoxProps) => {
+const InfoBox = ({ type, title, description, tc, ds }: any) => {
     const isWarning = type === 'warning';
 
     return (
-        <View style={[styles.infoBox, isWarning && styles.warningBox]}>
+        <View style={[ds.infoBox, isWarning && ds.warningBox]}>
             <Feather
                 name={isWarning ? "lock" : "info"}
                 size={20}
-                color={isWarning ? "#F57C00" : "#4A90B9"}
-                style={styles.infoIcon}
+                color={isWarning ? "#F59E0B" : tc.accent}
+                style={ds.infoIcon}
             />
-            <View style={styles.infoContent}>
-                {title && <Text style={[styles.infoTitle, isWarning && styles.warningTitle]}>{title}</Text>}
-                <Text style={[styles.infoText, isWarning && { color: "#F57C00" }]}>{description}</Text>
+            <View style={ds.infoContent}>
+                {title && <Text style={[ds.infoTitle, isWarning && ds.warningTitle]}>{title}</Text>}
+                <Text style={[ds.infoText, isWarning && ds.warningText]}>{description}</Text>
             </View>
         </View>
     );
@@ -112,7 +88,9 @@ const InfoBox = ({ type, title, description }: InfoBoxProps) => {
 
 const ClientPortal = () => {
     const { t } = useTranslation();
-    const navigation = useNavigation();
+    const navigation = useNavigation<any>();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
 
     // State for toggles
     const [toggleStates, setToggleStates] = useState({
@@ -157,38 +135,36 @@ const ClientPortal = () => {
 
 
     return (
-        <View style={styles.container}>
-            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-            <ScrollView style={styles.container}>
+        <View style={ds.container}>
+            <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={tc.cardBackground} />
+            <ScrollView style={ds.container}>
                 {/* Header */}
-                <View style={styles.header}>
+                <View style={ds.header}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={{ paddingRight: 10 }}>
-                        <Ionicons name="chevron-back" size={24} color="#333" />
+                        <Ionicons name="chevron-back" size={24} color={tc.textPrimary} />
                     </TouchableOpacity>
-                    <View style={{
-                        backgroundColor: "rgba(90,167,179,0.1)",
-                        height: 40, width: 40, alignItems: "center", justifyContent: 'center',
-                        borderRadius: 10, marginEnd: wp(2)
-                    }}>
-                        <Feather name="users" size={24} color="#58a6b8" />
+                    <View style={ds.headerIconContainer}>
+                        <Feather name="users" size={22} color={tc.accent} />
                     </View>
-                    <Text style={styles.headerTitle}>{t('settings.client_portal.title')}</Text>
+                    <Text style={ds.headerTitle}>{t('settings.client_portal.title')}</Text>
                 </View>
 
                 {/* Info Section */}
                 <InfoBox
                     title={t('settings.client_portal.info_box.title')}
                     description={t('settings.client_portal.info_box.description')}
+                    tc={tc} ds={ds}
                 />
 
                 {/* Appointment Scheduling Module */}
-                <ModuleCard>
+                <ModuleCard ds={ds}>
                     <ToggleItem
-                        icon={<Feather name="calendar" size={24} color="#5BA6B6" />}
+                        icon={<Feather name="calendar" size={24} color={tc.accent} />}
                         title={t('settings.client_portal.modules.appointment_scheduling.title')}
                         description={t('settings.client_portal.modules.appointment_scheduling.description')}
                         value={toggleStates.appointmentScheduling}
                         onToggle={() => handleToggle('appointmentScheduling')}
+                        tc={tc} ds={ds}
                     />
 
                     <SubToggleItem
@@ -196,6 +172,7 @@ const ClientPortal = () => {
                         description={t('settings.client_portal.modules.appointment_scheduling.reservation_desc')}
                         value={toggleStates.appointmentReservation}
                         onToggle={() => handleToggle('appointmentReservation')}
+                        tc={tc} ds={ds}
                     />
 
                     <SubToggleItem
@@ -203,6 +180,7 @@ const ClientPortal = () => {
                         description={t('settings.client_portal.modules.appointment_scheduling.rescheduling_desc')}
                         value={toggleStates.appointmentRescheduling}
                         onToggle={() => handleToggle('appointmentRescheduling')}
+                        tc={tc} ds={ds}
                     />
 
                     <SubToggleItem
@@ -210,17 +188,19 @@ const ClientPortal = () => {
                         description={t('settings.client_portal.modules.appointment_scheduling.cancellation_desc')}
                         value={toggleStates.appointmentCancellation}
                         onToggle={() => handleToggle('appointmentCancellation')}
+                        tc={tc} ds={ds}
                     />
                 </ModuleCard>
 
                 {/* Medical Documentation Module */}
-                <ModuleCard>
+                <ModuleCard ds={ds}>
                     <ToggleItem
-                        icon={<Feather name="file-text" size={24} color="#5BA6B6" />}
+                        icon={<Feather name="file-text" size={24} color={tc.accent} />}
                         title={t('settings.client_portal.modules.medical_documentation.title')}
                         description={t('settings.client_portal.modules.medical_documentation.description')}
                         value={toggleStates.medicalDocumentation}
                         onToggle={() => handleToggle('medicalDocumentation')}
+                        tc={tc} ds={ds}
                     />
 
                     <SubToggleItem
@@ -228,6 +208,7 @@ const ClientPortal = () => {
                         description={t('settings.client_portal.modules.medical_documentation.visit_history_desc')}
                         value={toggleStates.visitHistory}
                         onToggle={() => handleToggle('visitHistory')}
+                        tc={tc} ds={ds}
                     />
 
                     <SubToggleItem
@@ -235,6 +216,7 @@ const ClientPortal = () => {
                         description={t('settings.client_portal.modules.medical_documentation.test_results_desc')}
                         value={toggleStates.testResults}
                         onToggle={() => handleToggle('testResults')}
+                        tc={tc} ds={ds}
                     />
 
                     <SubToggleItem
@@ -242,17 +224,19 @@ const ClientPortal = () => {
                         description={t('settings.client_portal.modules.medical_documentation.prescriptions_desc')}
                         value={toggleStates.prescriptions}
                         onToggle={() => handleToggle('prescriptions')}
+                        tc={tc} ds={ds}
                     />
                 </ModuleCard>
 
                 {/* Communication Module */}
-                <ModuleCard>
+                <ModuleCard ds={ds}>
                     <ToggleItem
-                        icon={<Feather name="message-square" size={24} color="#5BA6B6" />}
+                        icon={<Feather name="message-square" size={24} color={tc.accent} />}
                         title={t('settings.client_portal.modules.communication.title')}
                         description={t('settings.client_portal.modules.communication.description')}
                         value={toggleStates.communication}
                         onToggle={() => handleToggle('communication')}
+                        tc={tc} ds={ds}
                     />
 
                     <SubToggleItem
@@ -260,6 +244,7 @@ const ClientPortal = () => {
                         description={t('settings.client_portal.modules.communication.chat_desc')}
                         value={toggleStates.doctorChat}
                         onToggle={() => handleToggle('doctorChat')}
+                        tc={tc} ds={ds}
                     />
 
                     <SubToggleItem
@@ -267,17 +252,19 @@ const ClientPortal = () => {
                         description={t('settings.client_portal.modules.communication.notifications_desc')}
                         value={toggleStates.notifications}
                         onToggle={() => handleToggle('notifications')}
+                        tc={tc} ds={ds}
                     />
                 </ModuleCard>
 
                 {/* Scales and Questionnaires Module */}
-                <ModuleCard>
+                <ModuleCard ds={ds}>
                     <ToggleItem
-                        icon={<Feather name="file" size={24} color="#5BA6B6" />}
+                        icon={<Feather name="file" size={24} color={tc.accent} />}
                         title={t('settings.client_portal.modules.scales_questionnaires.title')}
                         description={t('settings.client_portal.modules.scales_questionnaires.description')}
                         value={toggleStates.scalesAndQuestionnaires}
                         onToggle={() => handleToggle('scalesAndQuestionnaires')}
+                        tc={tc} ds={ds}
                     />
 
                     <SubToggleItem
@@ -285,6 +272,7 @@ const ClientPortal = () => {
                         description={t('settings.client_portal.modules.scales_questionnaires.mood_scales_desc')}
                         value={toggleStates.moodScales}
                         onToggle={() => handleToggle('moodScales')}
+                        tc={tc} ds={ds}
                     />
 
                     <SubToggleItem
@@ -292,17 +280,19 @@ const ClientPortal = () => {
                         description={t('settings.client_portal.modules.scales_questionnaires.quality_of_life_desc')}
                         value={toggleStates.qualityOfLife}
                         onToggle={() => handleToggle('qualityOfLife')}
+                        tc={tc} ds={ds}
                     />
                 </ModuleCard>
 
                 {/* Test Results Module */}
-                <ModuleCard>
+                <ModuleCard ds={ds}>
                     <ToggleItem
-                        icon={<Feather name="clipboard" size={24} color="#5BA6B6" />}
+                        icon={<Feather name="clipboard" size={24} color={tc.accent} />}
                         title={t('settings.client_portal.modules.test_results.title')}
                         description={t('settings.client_portal.modules.test_results.description')}
                         value={toggleStates.testResultsAccess}
                         onToggle={() => handleToggle('testResultsAccess')}
+                        tc={tc} ds={ds}
                     />
 
                     <SubToggleItem
@@ -310,6 +300,7 @@ const ClientPortal = () => {
                         description={t('settings.client_portal.modules.test_results.view_desc')}
                         value={toggleStates.resultsView}
                         onToggle={() => handleToggle('resultsView')}
+                        tc={tc} ds={ds}
                     />
 
                     <SubToggleItem
@@ -317,30 +308,33 @@ const ClientPortal = () => {
                         description={t('settings.client_portal.modules.test_results.history_desc')}
                         value={toggleStates.resultsHistory}
                         onToggle={() => handleToggle('resultsHistory')}
+                        tc={tc} ds={ds}
                     />
                 </ModuleCard>
 
                 {/* AI Assistant Module */}
-                <ModuleCard>
+                <ModuleCard ds={ds}>
                     <ToggleItem
-                        icon={<Image source={require('../../assets/images/brain-primary.png')} style={{ height: 20, width: 20 }} />}
+                        icon={<Image source={require('../../assets/images/brain-primary.png')} style={{ height: 20, width: 20, tintColor: tc.accent }} />}
                         title={t('settings.client_portal.modules.ai_assistant.title')}
                         description={t('settings.client_portal.modules.ai_assistant.description')}
                         value={toggleStates.aiAssistant}
                         onToggle={() => handleToggle('aiAssistant')}
+                        tc={tc} ds={ds}
                     />
-                    <View style={styles.aiPoweredTag}>
+                    <View style={ds.aiPoweredTag}>
                         <Ionicons name="flash-outline" size={14} color="white" />
-                        <Text style={styles.aiPoweredText}>{t('settings.client_portal.modules.ai_assistant.powered_tag')}</Text>
+                        <Text style={ds.aiPoweredText}>{t('settings.client_portal.modules.ai_assistant.powered_tag')}</Text>
                     </View>
-                    <Text style={styles.aiRequiresText}>{t('settings.client_portal.modules.ai_assistant.requires_plan')}</Text>
+                    <Text style={ds.aiRequiresText}>{t('settings.client_portal.modules.ai_assistant.requires_plan')}</Text>
                 </ModuleCard>
-                <View style={{ backgroundColor: "white", marginTop: hp(1) }}>
+                <View style={{ backgroundColor: tc.cardBackground, marginTop: hp(1), paddingBottom: hp(2) }}>
                     {/* Data Security Section */}
                     <InfoBox
                         type="warning"
                         title={t('settings.client_portal.security.title')}
                         description={t('settings.client_portal.security.description')}
+                        tc={tc} ds={ds}
                     />
 
                     {/* Save Button */}
@@ -357,29 +351,25 @@ const ClientPortal = () => {
     );
 };
 
-const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: '#FFFFFF',
-    },
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.screenBackground,
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 20,
         paddingVertical: 15,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
         borderBottomWidth: 1,
-        borderBottomColor: '#F1F5F9',
+        borderBottomColor: tc.borderSubtle,
     },
     headerIconContainer: {
         width: 40,
         height: 40,
-        borderRadius: 8,
-        backgroundColor: '#E8F4F8',
+        borderRadius: 10,
+        backgroundColor: isDark ? 'rgba(74, 144, 185, 0.1)' : '#E8F4F8',
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,
@@ -387,20 +377,20 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#333333',
+        color: tc.textPrimary,
     },
     infoBox: {
         flexDirection: 'row',
-        backgroundColor: '#E8F4F8',
-        borderRadius: 8,
+        backgroundColor: isDark ? 'rgba(74, 144, 185, 0.1)' : '#E8F4F8',
+        borderRadius: 12,
         padding: 16,
-        marginVertical: 10,        // margin: 16,
-    },
-    warnINfo: {
-        color: "orange"
+        margin: 16,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: 'rgba(74, 144, 185, 0.2)',
     },
     warningBox: {
-        backgroundColor: '#FFF8E1',
+        backgroundColor: isDark ? 'rgba(245, 158, 11, 0.1)' : '#FFF8E1',
+        borderColor: 'rgba(245, 158, 11, 0.2)',
     },
     infoIcon: {
         marginRight: 12,
@@ -412,43 +402,47 @@ const styles = StyleSheet.create({
     infoTitle: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: 'rgb(30 64 175)',
-        marginBottom: 8,
+        color: isDark ? '#60A5FA' : '#1E40AF',
+        marginBottom: 4,
     },
     warningTitle: {
-        color: 'rgb(133 77 14)',
+        color: isDark ? '#FBBF24' : '#854D0E',
     },
     infoText: {
         fontSize: 14,
-        color: 'blue',
+        color: tc.textSecondary,
         lineHeight: 20,
     },
+    warningText: {
+        color: isDark ? '#FBBF24' : '#854D0E',
+    },
     moduleCard: {
-        backgroundColor: '#FFFFFF',
-        marginTop: 8,
-        padding: 16,
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 1,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-        elevation: 2,
+        backgroundColor: tc.cardBackground,
+        marginTop: 12,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderTopWidth: 1,
+        borderBottomWidth: 1,
+        borderColor: tc.borderSubtle,
     },
     toggleItem: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingVertical: 8,
-
+        paddingVertical: 12,
     },
     toggleItemContent: {
         flexDirection: 'row',
         flex: 1,
+        alignItems: 'center',
     },
     toggleIcon: {
-        marginRight: 16, backgroundColor: "rgba(90,167,179,0.1)", height: 40, width: 40, borderRadius: hp(1), alignItems: "center",
+        marginRight: 16,
+        backgroundColor: isDark ? 'rgba(74, 144, 185, 0.15)' : 'rgba(90,167,179,0.1)',
+        height: 40,
+        width: 40,
+        borderRadius: 10,
+        alignItems: "center",
         justifyContent: "center"
     },
     toggleTextContainer: {
@@ -457,24 +451,21 @@ const styles = StyleSheet.create({
     toggleTitle: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#333333',
+        color: tc.textPrimary,
     },
     toggleDescription: {
         fontSize: 14,
-        color: '#666666',
-        marginTop: 4,
+        color: tc.textSecondary,
+        marginTop: 2,
     },
     subToggleItem: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingVertical: 8,
-        marginLeft: 55,
+        paddingVertical: 12,
+        marginLeft: 56,
         borderTopWidth: 1,
-        borderTopColor: '#F0F0F0',
-    },
-    indentedSubToggle: {
-        marginLeft: 60,
+        borderTopColor: tc.borderSubtle,
     },
     subToggleTextContainer: {
         flex: 1,
@@ -482,22 +473,22 @@ const styles = StyleSheet.create({
     subToggleTitle: {
         fontSize: 15,
         fontWeight: '500',
-        color: '#333333',
+        color: tc.textPrimary,
     },
     subToggleDescription: {
         fontSize: 13,
-        color: '#666666',
+        color: tc.textSecondary,
         marginTop: 2,
     },
     aiPoweredTag: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#4CAF50',
+        backgroundColor: '#10B981',
         alignSelf: 'flex-start',
-        borderRadius: 4,
+        borderRadius: 6,
         paddingHorizontal: 8,
         paddingVertical: 4,
-        marginLeft: 40,
+        marginLeft: 56,
         marginTop: 4,
     },
     aiPoweredText: {
@@ -508,23 +499,10 @@ const styles = StyleSheet.create({
     },
     aiRequiresText: {
         fontSize: 13,
-        color: '#666666',
-        marginLeft: 40,
-        marginTop: 4,
+        color: tc.textMuted,
+        marginLeft: 56,
+        marginTop: 6,
         fontStyle: 'italic',
-    },
-    saveButton: {
-        backgroundColor: '#4A90B9',
-        borderRadius: 8,
-        padding: 16,
-        margin: 16,
-        marginTop: 8,
-        alignItems: 'center',
-    },
-    saveButtonText: {
-        color: '#FFFFFF',
-        fontSize: 16,
-        fontWeight: '600',
     },
 });
 

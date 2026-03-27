@@ -15,6 +15,7 @@ import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-nat
 import { UpdateEmployeePermissions, UpdateGroupPermissions } from '../../../Services/settingServices';
 import CustomAlert from '../../../component/customAlert';
 import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 interface Permission {
     key: string;
@@ -62,6 +63,8 @@ const ManagePermissionsModal: React.FC<ManagePermissionsModalProps> = ({
     onSavePermissions,
 }) => {
     const { t } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
     const [permissions, setPermissions] = useState<{ [key: string]: boolean }>({});
     const [saving, setSaving] = useState(false);
     const [alertConfig, setAlertConfig] = useState<any>({
@@ -163,20 +166,20 @@ const ManagePermissionsModal: React.FC<ManagePermissionsModalProps> = ({
             animationType="slide"
             onRequestClose={onClose}
         >
-            <View style={styles.modalOverlay}>
-                <View style={styles.modalContent}>
+            <View style={ds.modalOverlay}>
+                <View style={ds.modalContent}>
                     {/* Header */}
-                    <View style={styles.header}>
-                        <Text style={styles.headerTitle}>{modalTitle}</Text>
-                        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                            <Feather name="x" size={24} color="#64748B" />
+                    <View style={ds.header}>
+                        <Text style={ds.headerTitle}>{modalTitle}</Text>
+                        <TouchableOpacity onPress={onClose} style={ds.closeButton}>
+                            <Feather name="x" size={24} color={tc.textMuted} />
                         </TouchableOpacity>
                     </View>
 
                     <ScrollView
-                        style={styles.permissionsList}
+                        style={ds.permissionsList}
                         showsVerticalScrollIndicator={true}
-                        contentContainerStyle={styles.scrollContent}
+                        contentContainerStyle={ds.scrollContent}
                     >
                         {PERMISSIONS_LIST.map((perm) => {
                             const requirementMet = isRequirementMet(perm);
@@ -184,24 +187,24 @@ const ManagePermissionsModal: React.FC<ManagePermissionsModalProps> = ({
                             const requiresLabel = getRequiresLabel(perm.requires);
 
                             return (
-                                <View key={perm.key} style={styles.permissionRow}>
-                                    <View style={styles.permissionLabelContainer}>
+                                <View key={perm.key} style={ds.permissionRow}>
+                                    <View style={ds.permissionLabelContainer}>
                                         <Text style={[
-                                            styles.permissionLabel,
-                                            !requirementMet && styles.permissionLabelDisabled
+                                            ds.permissionLabel,
+                                            !requirementMet && ds.permissionLabelDisabled
                                         ]}>
                                             {t(`employee_modals.permissions.labels.${perm.labelKey}`)}
                                         </Text>
                                         {requiresLabel && (
-                                            <Text style={styles.requiresText}>
+                                            <Text style={ds.requiresText}>
                                                 ({requiresLabel})
                                             </Text>
                                         )}
                                     </View>
                                     <Switch
-                                        trackColor={{ false: '#E2E8F0', true: '#4A90B9' }}
+                                        trackColor={{ false: tc.borderSubtle, true: tc.accent }}
                                         thumbColor="#FFFFFF"
-                                        ios_backgroundColor="#E2E8F0"
+                                        ios_backgroundColor={tc.borderSubtle}
                                         value={isEnabled}
                                         onValueChange={() => handleToggle(perm.key)}
                                         disabled={!requirementMet}
@@ -213,18 +216,18 @@ const ManagePermissionsModal: React.FC<ManagePermissionsModalProps> = ({
                     </ScrollView>
 
                     {/* Footer Buttons */}
-                    <View style={styles.footer}>
+                    <View style={ds.footer}>
                         <PrimaryButton
                             label={t('employee_modals.permissions.buttons.cancel')}
                             filled={false}
                             onPress={onClose}
-                            style={styles.cancelButton}
+                            style={ds.cancelButton}
                         />
                         <PrimaryButton
                             label={t('employee_modals.permissions.buttons.save')}
                             filled={true}
                             onPress={handleSave}
-                            style={styles.saveButton}
+                            style={ds.saveButton}
                             loading={saving}
                             disabled={saving}
                         />
@@ -241,33 +244,36 @@ const ManagePermissionsModal: React.FC<ManagePermissionsModalProps> = ({
     );
 };
 
-const styles = StyleSheet.create({
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
         justifyContent: 'center',
         alignItems: 'center',
     },
     modalContent: {
-        width: wp(90),
-        backgroundColor: '#fff',
-        borderRadius: 20,
+        width: wp(92),
+        backgroundColor: tc.modalBg,
+        borderRadius: 24,
         paddingTop: 20,
         maxHeight: hp(85),
+        borderWidth: isDark ? 1 : 0,
+        borderColor: tc.borderSubtle,
+        overflow: 'hidden',
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingBottom: 15,
+        paddingHorizontal: 24,
+        paddingBottom: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#F1F5F9',
+        borderBottomColor: tc.borderSubtle,
     },
     headerTitle: {
         fontSize: 20,
-        fontWeight: '700',
-        color: '#1E293B',
+        fontWeight: 'bold',
+        color: tc.textPrimary,
     },
     closeButton: {
         padding: 4,
@@ -282,53 +288,54 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingVertical: 16,
+        paddingHorizontal: 24,
+        paddingVertical: 18,
         borderBottomWidth: 1,
-        borderBottomColor: '#F1F5F9',
+        borderBottomColor: tc.borderSubtle,
     },
     permissionLabelContainer: {
         flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
         flexWrap: 'wrap',
-        gap: 6,
+        gap: 8,
         marginRight: 12,
     },
     permissionLabel: {
         fontSize: 15,
         fontWeight: '700',
-        color: '#1E293B',
+        color: tc.textPrimary,
     },
     permissionLabelDisabled: {
-        color: '#94A3B8',
+        color: tc.textMuted,
     },
     requiresText: {
         fontSize: 13,
-        color: '#94A3B8',
+        color: tc.textMuted,
         fontWeight: '400',
     },
     footer: {
         flexDirection: 'row',
         justifyContent: 'flex-end',
         alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingVertical: 16,
+        paddingHorizontal: 24,
+        paddingVertical: 18,
         borderTopWidth: 1,
-        borderTopColor: '#F1F5F9',
+        borderTopColor: tc.borderSubtle,
         gap: 12,
+        backgroundColor: isDark ? 'rgba(0,0,0,0.1)' : tc.cardBackground,
     },
     cancelButton: {
-        width: wp(25),
-        height: 45,
+        width: wp(28),
+        height: 48,
         marginBottom: 0,
-        borderRadius: 10,
+        borderRadius: 12,
     },
     saveButton: {
-        width: wp(38),
-        height: 45,
+        width: wp(40),
+        height: 48,
         marginBottom: 0,
-        borderRadius: 10,
+        borderRadius: 12,
     },
 });
 

@@ -3,6 +3,7 @@ import React from 'react'
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen'
 import Gap from '../../../component/gap'
 import Feather from 'react-native-vector-icons/Feather';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 interface StatCardProps {
     title: string;
@@ -12,22 +13,25 @@ interface StatCardProps {
 }
 
 const StatCard = ({ title, icon, score, subtitle }: StatCardProps) => {
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
+    
     return (
-        <View style={styles.container}>
-            <View style={styles.headerContainer}>
-                <Text style={styles.titleText}>{title}</Text>
+        <View style={ds.container}>
+            <View style={ds.headerContainer}>
+                <Text style={ds.titleText}>{title}</Text>
                 <View style={{ alignSelf: "flex-start" }}>
                     {icon}
                 </View>
             </View>
             <Gap height={hp(1)} />
-            <View style={styles.scoreContainer}>
-                <Text style={styles.scoreText}>{score}</Text>
+            <View style={ds.scoreContainer}>
+                <Text style={ds.scoreText}>{score}</Text>
             </View>
             <Gap height={hp(1)} />
-            <View style={styles.subtitleContainer}>
-                <Feather name={'trending-up'} color={'#22c55e'} size={20} />
-                <Text style={styles.subtitleText}>{subtitle}</Text>
+            <View style={ds.subtitleContainer}>
+                <Feather name={'trending-up'} color={isDark ? '#4ade80' : '#22c55e'} size={20} />
+                <Text style={[ds.subtitleText, { color: isDark ? '#4ade80' : '#22c55e' }]}>{subtitle}</Text>
             </View>
         </View>
     )
@@ -35,24 +39,21 @@ const StatCard = ({ title, icon, score, subtitle }: StatCardProps) => {
 
 export default StatCard
 
-const styles = StyleSheet.create({
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     container: {
-        backgroundColor: "white",
+        backgroundColor: tc.cardBackground,
         width: "48%",
         height: hp(18),
         padding: 10,
         justifyContent: "space-between",
         borderRadius: 10,
-        // iOS shadow
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.23,
-        shadowRadius: 2.62,
-        // Android shadow
+        shadowColor: tc.shadow,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: isDark ? 0.3 : 0.15,
+        shadowRadius: 5,
         elevation: 4,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: tc.borderSubtle,
     },
     headerContainer: {
         flexDirection: "row",
@@ -64,6 +65,7 @@ const styles = StyleSheet.create({
     titleText: {
         fontSize: 18,
         fontWeight: 'bold',
+        color: tc.textPrimary,
         width: '75%',
         alignSelf: "flex-start"
     },
@@ -72,7 +74,8 @@ const styles = StyleSheet.create({
     },
     scoreText: {
         fontSize: 30,
-        fontWeight: 'bold'
+        fontWeight: 'bold',
+        color: tc.textPrimary,
     },
     subtitleContainer: {
         alignSelf: "flex-start",
@@ -82,6 +85,5 @@ const styles = StyleSheet.create({
     subtitleText: {
         fontSize: 20,
         fontWeight: '300',
-        color: "#22c55e"
     }
 })

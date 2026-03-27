@@ -20,11 +20,15 @@ import StatCard from './Layout/statCard';
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 import MedicalCharts from './Layout/medicalCharts';
 import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 
 const AIAnalysis = ({ }) => {
     const navigation = useNavigation();
     const { t } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
+    
     const tabs = [
         t('aiAnalysis.tabs.analysis'),
         t('aiAnalysis.tabs.summary'),
@@ -33,36 +37,37 @@ const AIAnalysis = ({ }) => {
     const [activeTab, setActiveTab] = useState(tabs[0]);
 
     return (
-        <KeyboardAvoidingView
-            style={styles.safeArea}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+        <View style={ds.safeArea}>
+            <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            >
+            <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={tc.screenBackground} />
 
             {/* Header */}
-            <View style={styles.header}>
+            <View style={ds.header}>
                 <View style={{
-                    backgroundColor: "rgba(90,167,179,0.1)",
+                    backgroundColor: isDark ? "rgba(90,167,179,0.2)" : "rgba(90,167,179,0.1)",
                     height: 45, width: 45, alignItems: "center", justifyContent: 'center',
                     borderRadius: 10
                 }}>
                     <Image source={require('../../assets/images/brain-primary.png')} style={{ height: 25, width: 25 }} />
                 </View>
                 <View style={{ width: wp(65) }}>
-                    <Text style={styles.headerTitle}>{t('aiAnalysis.header.title')}</Text>
-                    <Text style={styles.headerSubtitle}>
+                    <Text style={ds.headerTitle}>{t('aiAnalysis.header.title')}</Text>
+                    <Text style={ds.headerSubtitle}>
                         {t('aiAnalysis.header.subtitle')}
                     </Text>
                 </View>
                 <TouchableOpacity
                     onPress={() => navigation.goBack()}
-                    style={styles.backButton}
+                    style={ds.backButton}
                 >
-                    <Ionicons name="arrow-back" size={20} color="#4A90B9" />
+                    <Ionicons name="arrow-back" size={20} color={tc.accent} />
                 </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.container}>
+            <ScrollView contentContainerStyle={{ padding: 16 }} style={ds.container} showsVerticalScrollIndicator={false}>
                 {/* Section 0 Form */}
                 <MedicalFilterForm />
 
@@ -104,27 +109,15 @@ const AIAnalysis = ({ }) => {
 
 
                 {/* Section 3  Conclusions AI*/}
-                <View style={{
-                    shadowColor: "#000",
-                    shadowOffset: {
-                        width: 0,
-                        height: 2,
-                    },
-                    shadowOpacity: 0.23,
-                    shadowRadius: 2.62,
-                    // Android shadow
-                    elevation: 4,
-                    backgroundColor: "white", padding: 10, borderRadius: 10,
-
-                }}>
+                <View style={ds.card}>
                     <View style={{ flexDirection: "row", width: "100%", alignItems: "center", justifyContent: "space-between" }} >
                         <Image source={require('../../assets/images/brain-primary.png')} style={{ height: 25, width: 25, alignSelf: "flex-start", marginTop: hp(0.5) }} />
                         <View style={{ width: wp(80) }}>
-                            <Text style={styles.headerTitle}>{t('aiAnalysis.conclusions.title')}</Text>
+                            <Text style={ds.cardHeaderTitle}>{t('aiAnalysis.conclusions.title')}</Text>
                             <Gap height={hp(0.5)} />
                             <View style={{ flexDirection: "row" }} >
                                 <Image source={require('../../assets/images/stars.png')} style={{ width: 20, height: 20, marginRight: 10 }} />
-                                <Text style={styles.headerSubtitle}>
+                                <Text style={ds.cardHeaderSubtitle}>
                                     {t('aiAnalysis.conclusions.subtitle')}
                                 </Text>
                             </View>
@@ -132,60 +125,36 @@ const AIAnalysis = ({ }) => {
                     </View>
 
                     <Gap height={hp(2)} />
-                    <Text style={{ fontSize: 16, fontWeight: "bold" }}>{t('aiAnalysis.conclusions.clinicalPatterns')}</Text>
+                    <Text style={ds.sectionTitle}>{t('aiAnalysis.conclusions.clinicalPatterns')}</Text>
                     <Gap height={hp(1)} />
-                    <View style={{
-                        flexDirection: "row",
-                        backgroundColor: "rgba(90,167,179,0.1)",
-                        padding: 10, width: "100%",
-                        justifyContent: "space-between",
-                        alignItems: "center", borderRadius: 10
-                    }} >
+                    <View style={[ds.infoBox, { backgroundColor: isDark ? "rgba(74, 144, 185, 0.15)" : "rgba(90,167,179,0.1)" }]} >
                         <Image source={require('../../assets/images/chartbeat.png')} style={{ height: 20, width: 20, alignSelf: 'flex-start', marginTop: hp(0.5) }} />
-                        <Text style={{ width: "90%", color: "#4A90B9" }}>
+                        <Text style={[ds.infoBoxText, { color: tc.accent }]}>
                             {t('aiAnalysis.conclusions.pattern1')}
                         </Text>
                     </View>
                     <Gap height={hp(1)} />
-                    <View style={{
-                        flexDirection: "row",
-                        backgroundColor: "rgba(90,167,179,0.1)",
-                        padding: 10, width: "100%",
-                        justifyContent: "space-between",
-                        alignItems: "center", borderRadius: 10
-                    }} >
+                    <View style={[ds.infoBox, { backgroundColor: isDark ? "rgba(34, 197, 94, 0.15)" : "rgba(34, 197, 94, 0.1)" }]} >
                         <Feather name="trending-up" size={20} color={'#22c55e'} style={{ alignSelf: "flex-start", marginTop: hp(0.5) }} />
-                        <Text style={{ width: "90%", color: "#166534" }}>
+                        <Text style={[ds.infoBoxText, { color: isDark ? '#4ade80' : "#166534" }]}>
                             {t('aiAnalysis.conclusions.pattern2')}
                         </Text>
                     </View>
                     <Gap height={hp(2)} />
-                    <Text style={{ fontSize: 16, fontWeight: "bold" }}>{t('aiAnalysis.conclusions.therapeuticRecommendations')}</Text>
+                    <Text style={ds.sectionTitle}>{t('aiAnalysis.conclusions.therapeuticRecommendations')}</Text>
                     <Gap height={hp(1)} />
-                    <View style={{
-                        flexDirection: "row",
-                        backgroundColor: "#faf5ff",
-                        padding: 10, width: "100%",
-                        justifyContent: "space-between",
-                        alignItems: "center", borderRadius: 10
-                    }}>
+                    <View style={[ds.infoBox, { backgroundColor: isDark ? "rgba(168, 85, 247, 0.15)" : "#faf5ff" }]}>
                         <Image
                             source={require('../../assets/images/brain-purple.png')}
                             style={{ height: 20, width: 20, alignSelf: 'flex-start', marginTop: hp(0.5) }} />
-                        <Text style={{ width: "90%", color: "#6b21a8" }}>
+                        <Text style={[ds.infoBoxText, { color: isDark ? '#c084fc' : "#6b21a8" }]}>
                             {t('aiAnalysis.conclusions.recommendation1')}
                         </Text>
                     </View>
                     <Gap height={hp(1)} />
-                    <View style={{
-                        flexDirection: "row",
-                        backgroundColor: "#fff7ed",
-                        padding: 10, width: "100%",
-                        justifyContent: "space-between",
-                        alignItems: "center", borderRadius: 10
-                    }} >
+                    <View style={[ds.infoBox, { backgroundColor: isDark ? "rgba(249, 115, 22, 0.15)" : "#fff7ed" }]}>
                         <Feather name="info" size={20} color={'#f97316'} style={{ alignSelf: "flex-start", marginTop: hp(0.5) }} />
-                        <Text style={{ width: "90%", color: "#9a3412" }}>
+                        <Text style={[ds.infoBoxText, { color: isDark ? '#fb923c' : "#9a3412" }]}>
                             {t('aiAnalysis.conclusions.recommendation2')}
                         </Text>
                     </View>
@@ -194,207 +163,176 @@ const AIAnalysis = ({ }) => {
 
                 {/*Section 4 last cards*/}
                 <Gap height={hp(3)} />
-                <View style={{
-                    shadowColor: "#000",
-                    shadowOffset: {
-                        width: 0,
-                        height: 2,
-                    },
-                    shadowOpacity: 0.23,
-                    shadowRadius: 2.62,
-                    // Android shadow
-                    elevation: 4,
-                    backgroundColor: "white", padding: 10, borderRadius: 10,
-                }}>
+                <View style={ds.card}>
                     <View style={{ flexDirection: "row", width: "100%", alignItems: "center", justifyContent: "space-between" }} >
-                        <Feather name={"users"} color={"#4A90B9"} size={20} />
+                        <Feather name={"users"} color={tc.accent} size={20} />
                         <View style={{ width: wp(80) }}>
-                            <Text style={{ fontSize: 16, fontWeight: "bold" }}>{t('aiAnalysis.demographics.title')}</Text>
+                            <Text style={ds.sectionTitle}>{t('aiAnalysis.demographics.title')}</Text>
                         </View>
                     </View>
                     <Gap height={hp(1)} />
-                    <View style={{
-                        flexDirection: "row",
-                        width: "100%",
-                        alignItems: "center", justifyContent: "space-between", marginVertical: 5
-                    }}>
-                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.demographics.middleAge')}</Text>
-                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.demographics.middleAgeValue')}</Text>
+                    <View style={ds.metricRow}>
+                        <Text style={ds.metricLabel}>{t('aiAnalysis.demographics.middleAge')}</Text>
+                        <Text style={ds.metricValue}>{t('aiAnalysis.demographics.middleAgeValue')}</Text>
                     </View>
-                    <View style={{
-                        flexDirection: "row",
-                        width: "100%",
-                        alignItems: "center", justifyContent: "space-between", marginVertical: 5
-                    }}>
-                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.demographics.genderDistribution')}</Text>
-                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.demographics.genderDistributionValue')}</Text>
+                    <View style={ds.metricRow}>
+                        <Text style={ds.metricLabel}>{t('aiAnalysis.demographics.genderDistribution')}</Text>
+                        <Text style={ds.metricValue}>{t('aiAnalysis.demographics.genderDistributionValue')}</Text>
                     </View>
-                    <View style={{
-                        flexDirection: "row",
-                        width: "100%",
-                        alignItems: "center", justifyContent: "space-between", marginVertical: 5
-                    }}>
-                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.demographics.newPatients')}</Text>
-                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.demographics.newPatientsValue')}</Text>
+                    <View style={ds.metricRow}>
+                        <Text style={ds.metricLabel}>{t('aiAnalysis.demographics.newPatients')}</Text>
+                        <Text style={ds.metricValue}>{t('aiAnalysis.demographics.newPatientsValue')}</Text>
                     </View>
                 </View>
                 <Gap height={hp(3)} />
-                <View style={{
-                    shadowColor: "#000",
-                    shadowOffset: {
-                        width: 0,
-                        height: 2,
-                    },
-                    shadowOpacity: 0.23,
-                    shadowRadius: 2.62,
-                    // Android shadow
-                    elevation: 4,
-                    backgroundColor: "white", padding: 10, borderRadius: 10,
-                }}>
+                <View style={ds.card}>
                     <View style={{ flexDirection: "row", width: "100%", alignItems: "center", justifyContent: "space-between" }} >
                         <Image source={require('../../assets/images/chartbeat.png')} style={{ height: 20, width: 20 }} />
                         <View style={{ width: wp(80) }}>
-                            <Text style={{ fontSize: 16, fontWeight: "bold" }}>{t('aiAnalysis.treatmentMetrics.title')}</Text>
+                            <Text style={ds.sectionTitle}>{t('aiAnalysis.treatmentMetrics.title')}</Text>
                         </View>
                     </View>
                     <Gap height={hp(1)} />
-                    <View style={{
-                        flexDirection: "row",
-                        width: "100%",
-                        alignItems: "center", justifyContent: "space-between", marginVertical: 5
-                    }}>
-                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.treatmentMetrics.avgTherapyLength')}</Text>
-                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.treatmentMetrics.avgTherapyLengthValue')}</Text>
+                    <View style={ds.metricRow}>
+                        <Text style={ds.metricLabel}>{t('aiAnalysis.treatmentMetrics.avgTherapyLength')}</Text>
+                        <Text style={ds.metricValue}>{t('aiAnalysis.treatmentMetrics.avgTherapyLengthValue')}</Text>
                     </View>
-                    <View style={{
-                        flexDirection: "row",
-                        width: "100%",
-                        alignItems: "center", justifyContent: "space-between", marginVertical: 5
-                    }}>
-                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.treatmentMetrics.remissionRate')}</Text>
-                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.treatmentMetrics.remissionRateValue')}</Text>
+                    <View style={ds.metricRow}>
+                        <Text style={ds.metricLabel}>{t('aiAnalysis.treatmentMetrics.remissionRate')}</Text>
+                        <Text style={ds.metricValue}>{t('aiAnalysis.treatmentMetrics.remissionRateValue')}</Text>
                     </View>
-                    <View style={{
-                        flexDirection: "row",
-                        width: "100%",
-                        alignItems: "center", justifyContent: "space-between", marginVertical: 5
-                    }}>
-                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.treatmentMetrics.continuationOfTreatment')}</Text>
-                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.treatmentMetrics.continuationOfTreatmentValue')}</Text>
+                    <View style={ds.metricRow}>
+                        <Text style={ds.metricLabel}>{t('aiAnalysis.treatmentMetrics.continuationOfTreatment')}</Text>
+                        <Text style={ds.metricValue}>{t('aiAnalysis.treatmentMetrics.continuationOfTreatmentValue')}</Text>
                     </View>
                 </View>
                 <Gap height={hp(3)} />
-                <View style={{
-                    shadowColor: "#000",
-                    shadowOffset: {
-                        width: 0,
-                        height: 2,
-                    },
-                    shadowOpacity: 0.23,
-                    shadowRadius: 2.62,
-                    // Android shadow
-                    elevation: 4,
-                    backgroundColor: "white", padding: 10, borderRadius: 10,
-                }}>
+                <View style={ds.card}>
                     <View style={{ flexDirection: "row", width: "100%", alignItems: "center", justifyContent: "space-between" }} >
-                        <Feather name={"bar-chart-2"} color={"#4A90B9"} size={20} />
+                        <Feather name={"bar-chart-2"} color={tc.accent} size={20} />
                         <View style={{ width: wp(80) }}>
-                            <Text style={{ fontSize: 16, fontWeight: "bold" }}>{t('aiAnalysis.qualityIndicators.title')}</Text>
+                            <Text style={ds.sectionTitle}>{t('aiAnalysis.qualityIndicators.title')}</Text>
                         </View>
                     </View>
-                    <View style={{
-                        flexDirection: "row",
-                        width: "100%",
-                        alignItems: "center", justifyContent: "space-between", marginVertical: 5
-                    }}>
-                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.qualityIndicators.patientSatisfaction')}</Text>
-                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.qualityIndicators.patientSatisfactionValue')}</Text>
+                    <View style={ds.metricRow}>
+                        <Text style={ds.metricLabel}>{t('aiAnalysis.qualityIndicators.patientSatisfaction')}</Text>
+                        <Text style={ds.metricValue}>{t('aiAnalysis.qualityIndicators.patientSatisfactionValue')}</Text>
                     </View>
-                    <View style={{
-                        flexDirection: "row",
-                        width: "100%",
-                        alignItems: "center", justifyContent: "space-between", marginVertical: 5
-                    }}>
-                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.qualityIndicators.readmissions')}</Text>
-                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.qualityIndicators.readmissionsValue')}</Text>
+                    <View style={ds.metricRow}>
+                        <Text style={ds.metricLabel}>{t('aiAnalysis.qualityIndicators.readmissions')}</Text>
+                        <Text style={ds.metricValue}>{t('aiAnalysis.qualityIndicators.readmissionsValue')}</Text>
                     </View>
-                    <View style={{
-                        flexDirection: "row",
-                        width: "100%",
-                        alignItems: "center", justifyContent: "space-between", marginVertical: 5
-                    }}>
-                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.qualityIndicators.documentationCompleteness')}</Text>
-                        <Text style={{ fontSize: 16 }} >{t('aiAnalysis.qualityIndicators.documentationCompletenessValue')}</Text>
+                    <View style={ds.metricRow}>
+                        <Text style={ds.metricLabel}>{t('aiAnalysis.qualityIndicators.documentationCompleteness')}</Text>
+                        <Text style={ds.metricValue}>{t('aiAnalysis.qualityIndicators.documentationCompletenessValue')}</Text>
                     </View>
                 </View>
                 <Gap height={hp(10)} />
 
             </ScrollView>
-        </KeyboardAvoidingView>
+            </KeyboardAvoidingView>
+        </View>
     );
 };
 
 export default AIAnalysis;
 
-const styles = StyleSheet.create({
-
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: "white",
-        paddingTop: Platform.OS == 'ios' ? hp(6) : 0
+        backgroundColor: tc.screenBackground,
     },
     container: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
-        padding: 16,
+        backgroundColor: tc.screenBackground,
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 20,
-        width: '95%', alignSelf: "center"
+        paddingBottom: 20,
+        paddingHorizontal: 20,
+        width: '100%',
+        backgroundColor: tc.cardBackground,
+        paddingTop: Platform.OS == 'ios' ? hp(6) : hp(2),
+        borderBottomWidth: 1,
+        borderBottomColor: tc.borderSubtle,
+        marginBottom: 10
     },
     headerTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#333',
+        color: tc.textPrimary,
         marginLeft: 2,
         marginTop: hp(2)
     },
     headerSubtitle: {
         fontSize: 14,
-        color: '#777',
+        color: tc.textSecondary,
     },
     backButton: {
         padding: 10,
         borderWidth: 1,
-        borderColor: '#4A90B9',
+        borderColor: tc.accent,
         borderRadius: 50,
-        width: 50,
-        height: 50,
+        width: 44,
+        height: 44,
         justifyContent: 'center',
         alignItems: 'center',
     },
-    tabContainer: {
-        flexDirection: 'row',
-        marginBottom: 20,
-
+    card: {
+        backgroundColor: tc.cardBackground,
+        padding: 15,
+        borderRadius: 12,
+        shadowColor: tc.shadow,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: isDark ? 0.3 : 0.1,
+        shadowRadius: 5,
+        elevation: 4,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: tc.borderSubtle,
     },
-    tab: {
-        paddingHorizontal: 20,
-        borderRadius: 20,
-        backgroundColor: '#f0f0f0', height: hp(5),
-        alignItems: "center", justifyContent: "center"
+    cardHeaderTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: tc.textPrimary,
     },
-    activeTab: {
-        backgroundColor: '#4A90B9', height: hp(5)
+    cardHeaderSubtitle: {
+        fontSize: 14,
+        color: tc.textSecondary,
     },
-    tabText: {
+    sectionTitle: {
         fontSize: 16,
-        color: '#333',
+        fontWeight: "bold",
+        color: tc.textPrimary,
     },
-    activeTabText: {
-        color: '#FFFFFF',
+    infoBox: {
+        flexDirection: "row",
+        padding: 12,
+        width: "100%",
+        justifyContent: "space-between",
+        alignItems: "center",
+        borderRadius: 10
     },
+    infoBoxText: {
+        width: "90%",
+        fontSize: 14,
+        fontWeight: '500',
+    },
+    metricRow: {
+        flexDirection: "row",
+        width: "100%",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginVertical: 6
+    },
+    metricLabel: {
+        fontSize: 16,
+        color: tc.textSecondary,
+    },
+    metricValue: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: tc.textPrimary,
+    }
 });
