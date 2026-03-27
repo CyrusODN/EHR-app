@@ -225,7 +225,7 @@ const Pathfinder = () => {
                             >
                                 {selectedContentType === type ? (
                                     <LinearGradient
-                                        colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
+                                        colors={[tc.accentGradientStart || '#4A90B9', tc.accentGradientEnd || '#68BFB3']}
                                         start={{ x: 0, y: 0 }}
                                         end={{ x: 1, y: 0 }}
                                         style={styles.chipGradientWrapper}
