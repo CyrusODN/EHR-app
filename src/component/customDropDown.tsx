@@ -53,13 +53,13 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
                 inputSearchStyle={[
                     styles.inputSearchStyle, 
                     { 
-                        backgroundColor: isDark ? '#252536' : '#fff', 
+                        backgroundColor: tc.inputBackground, 
                         color: tc.textPrimary,
                         borderColor: tc.borderColor
                     }
                 ]}
                 containerStyle={{ 
-                    backgroundColor: isDark ? '#1E1E2D' : '#fff', 
+                    backgroundColor: tc.drawerBg, 
                     borderColor: tc.borderColor,
                     borderRadius: 12,
                     overflow: 'hidden'
@@ -77,7 +77,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
                 onChange={item => onChange(item.value)}
                 renderLeftIcon={renderLeftIcon}
                 renderItem={(item) => (
-                    <View style={[styles.item, { backgroundColor: isDark ? '#1E1E2D' : '#fff' }]}>
+                    <View style={[styles.item, { backgroundColor: tc.drawerBg }]}>
                         <Text style={[styles.itemText, { color: tc.textPrimary }]}>{item.label}</Text>
                     </View>
                 )}

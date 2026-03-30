@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     View,
     Text,
@@ -12,6 +12,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import LinearGradient from 'react-native-linear-gradient';
+import { GetPreviousVisits, UpdateVisit, GetVisitDetails } from '../../Services/Visit.Service';
 import { useTranslation } from 'react-i18next';
 import { useThemeColors } from '../../hooks/useThemeColors';
 
@@ -26,10 +27,12 @@ interface Referral {
 interface VisitDocumentsProps {
     onNext: () => void;
     onBack: () => void;
+    visitId?: string;
     visitData?: any;
+    onUpdate?: (data: any) => void;
 }
 
-const VisitDocuments = ({ onNext, onBack, visitData }: VisitDocumentsProps) => {
+const VisitDocuments = ({ onNext, onBack, visitId, visitData, onUpdate }: VisitDocumentsProps) => {
     const { t } = useTranslation();
     const { colors: tc, isDark } = useThemeColors();
     const ds = createDynamicStyles(tc, isDark);
@@ -42,8 +45,68 @@ const VisitDocuments = ({ onNext, onBack, visitData }: VisitDocumentsProps) => {
     const [showPayerSearch, setShowPayerSearch] = useState(false);
     const [isHospitalStay, setIsHospitalStay] = useState(false);
     const [referrals, setReferrals] = useState<Referral[]>(visitData?.patient?.referrals || []);
+    const [sickLeaveNotes, setSickLeaveNotes] = useState(visitData?.sickLeaveNotes || '');
+
+    const debounceTimeoutRef = useRef<any>(null);
+    const pendingUpdatesRef = useRef<any>({});
+
+    const handleSync = useCallback(async () => {
+        if (!visitId) return;
+
+        const updates = { ...pendingUpdatesRef.current };
+        pendingUpdatesRef.current = {};
+
+        const payload = {
+            ...visitData,
+            ...updates,
+            visitId, id: visitId, _id: visitId
+        };
+
+        // Handle nested merges if needed (e.g. for patient.referrals)
+        if (updates.patient && updates.patient.referrals) {
+            payload.patient = {
+                ...(visitData?.patient || {}),
+                ...updates.patient
+            };
+        }
+
+        try {
+            await UpdateVisit(payload);
+            const detailsResult = await GetVisitDetails(visitId);
+            const fullData = detailsResult?.data || detailsResult;
+            if (fullData && onUpdate) {
+                onUpdate(fullData);
+            }
+        } catch (error) {
+            console.error("Sync error:", error);
+        }
+    }, [visitId, visitData, onUpdate]);
+
+    const debouncedSync = (updatedFields: any) => {
+        const accumulate = (target: any, source: any) => {
+            Object.keys(source).forEach(key => {
+                if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+                    target[key] = target[key] || {};
+                    accumulate(target[key], source[key]);
+                } else {
+                    target[key] = source[key];
+                }
+            });
+        };
+        accumulate(pendingUpdatesRef.current, updatedFields);
+
+        if (debounceTimeoutRef.current) {
+            clearTimeout(debounceTimeoutRef.current);
+        }
+        debounceTimeoutRef.current = setTimeout(() => {
+            handleSync();
+        }, 700);
+    };
 
     useEffect(() => {
+        if (visitData?.sickLeaveNotes) {
+            setSickLeaveNotes(visitData.sickLeaveNotes);
+        }
         if (visitData?.patient?.referrals) {
             setReferrals(visitData.patient.referrals);
         }
@@ -64,11 +127,15 @@ const VisitDocuments = ({ onNext, onBack, visitData }: VisitDocumentsProps) => {
             reason: '',
             notes: '',
         };
-        setReferrals([...referrals, newReferral]);
+        const newRefs = [...referrals, newReferral];
+        setReferrals(newRefs);
+        debouncedSync({ patient: { referrals: newRefs } });
     };
 
     const removeReferral = (id: number) => {
-        setReferrals(referrals.filter(ref => ref.id !== id));
+        const newRefs = referrals.filter(ref => ref.id !== id);
+        setReferrals(newRefs);
+        debouncedSync({ patient: { referrals: newRefs } });
     };
 
     return (
@@ -241,6 +308,11 @@ const VisitDocuments = ({ onNext, onBack, visitData }: VisitDocumentsProps) => {
                                         multiline
                                         numberOfLines={4}
                                         textAlignVertical="top"
+                                        value={sickLeaveNotes}
+                                        onChangeText={(text) => {
+                                            setSickLeaveNotes(text);
+                                            debouncedSync({ sickLeaveNotes: text });
+                                        }}
                                     />
                                 </View>
 
@@ -352,6 +424,13 @@ const VisitDocuments = ({ onNext, onBack, visitData }: VisitDocumentsProps) => {
                                             style={ds.referralInput} 
                                             placeholder={t('visit.documents.referrals.specialization_placeholder')} 
                                             placeholderTextColor={tc.textMuted}
+                                            value={referral.specialization}
+                                            onChangeText={(text) => {
+                                                const newRefs = [...referrals];
+                                                newRefs[index].specialization = text;
+                                                setReferrals(newRefs);
+                                                debouncedSync({ patient: { referrals: newRefs } });
+                                            }}
                                         />
                                     </View>
                                     <View style={ds.referralFieldHalf}>
@@ -371,6 +450,13 @@ const VisitDocuments = ({ onNext, onBack, visitData }: VisitDocumentsProps) => {
                                         numberOfLines={3}
                                         textAlignVertical="top"
                                         placeholderTextColor={tc.textMuted}
+                                        value={referral.reason}
+                                        onChangeText={(text) => {
+                                            const newRefs = [...referrals];
+                                            newRefs[index].reason = text;
+                                            setReferrals(newRefs);
+                                            debouncedSync({ patient: { referrals: newRefs } });
+                                        }}
                                     />
                                 </View>
 
@@ -382,6 +468,13 @@ const VisitDocuments = ({ onNext, onBack, visitData }: VisitDocumentsProps) => {
                                         numberOfLines={3}
                                         textAlignVertical="top"
                                         placeholderTextColor={tc.textMuted}
+                                        value={referral.notes}
+                                        onChangeText={(text) => {
+                                            const newRefs = [...referrals];
+                                            newRefs[index].notes = text;
+                                            setReferrals(newRefs);
+                                            debouncedSync({ patient: { referrals: newRefs } });
+                                        }}
                                     />
                                 </View>
                             </View>
@@ -829,7 +922,9 @@ const createDynamicStyles = (tc: any, isDark: boolean) =>
             flexDirection: 'row',
             justifyContent: 'space-between',
             marginTop: 20,
-            paddingBottom: hp(5),
+            width:wp(80),
+            alignItems:'center',
+            gap:wp(2)
         },
         backButton: {
             flexDirection: 'row',

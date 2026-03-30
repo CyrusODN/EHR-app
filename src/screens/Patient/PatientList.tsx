@@ -30,372 +30,113 @@ import PatientDetailsModal from './modals/PatientDetails';
 import CustomAlert from '../../component/customAlert';
 import { useThemeColors } from '../../hooks/useThemeColors';
 
-const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: tc.screenBackground,
-    },
-    container: {
-        flex: 1,
-        backgroundColor: tc.screenBackground,
-    },
-    headerWrap: {
-        width: "100%", 
-        backgroundColor: tc.headerBg,
-        flexDirection: "row", 
-        justifyContent: "space-around", 
-        paddingTop: hp(2),
-        borderBottomWidth: 1,
-        borderBottomColor: tc.borderLight,
-    },
-    header: {
-        paddingHorizontal: 10,
-        paddingVertical: 10,
-        width: "75%",
-    },
-    headerTitle: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: tc.textPrimary,
-    },
-    headerSubtitle: {
-        fontSize: 16,
-        color: tc.textSecondary,
-        marginTop: 5,
-    },
-    headerButtons: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: "flex-end",
-        alignSelf: "center",
-        marginVertical: hp(1), 
-        width: "95%",
-    },
-    backButton: {
-        marginTop: 10,
-        borderWidth: 1,
-        borderColor: tc.accent,
-        borderRadius: 50,
-        marginRight: 10,
-        height: 50,
-        width: 50,
-        alignItems: "center", 
-        justifyContent: 'center',
-        backgroundColor: tc.cardBackgroundAlt,
-    },
-    buttonText: {
-        color: tc.accent,
-        marginLeft: 8,
-        fontSize: 15,
-    },
-    filtersButtonText: {
-        color: '#FFFFFF',
-        marginLeft: 8,
-        fontSize: 15,
-    },
-    secondaryButton: {
-        marginLeft: 10, 
-        borderRadius: 8, 
-        flexDirection: "row", 
-        height: hp(5),
-        alignItems: "center",
-        paddingHorizontal: 12,
-        justifyContent: "center", 
-        minWidth: wp(20), 
-        borderWidth: 1, 
-        borderColor: tc.accent, 
-        backgroundColor: tc.cardBackgroundAlt
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: tc.screenBackground,
-    },
-    loadingText: {
-        marginTop: 10,
-        fontSize: 16,
-        color: tc.textSecondary,
-    },
-    listContent: {
-        paddingBottom: 20,
-    },
-    listHeader: {
-        flexDirection: 'row',
-        paddingHorizontal: 20,
-        paddingVertical: 15,
-        borderBottomWidth: 1,
-        borderBottomColor: tc.borderLight,
-        backgroundColor: tc.cardBackgroundAlt,
-        marginTop: hp(1)
-    },
-    headerCell: {
-        width: 120, 
-        marginEnd: 5,
-    },
-    headerText: {
-        fontWeight: '700',
-        color: tc.textSecondary,
-        fontSize: 12,
-        textAlign: "left"
-    },
-    patientCard: {
-        backgroundColor: tc.cardBackground,
-        borderBottomWidth: 1,
-        borderBottomColor: tc.borderLight,
-    },
-    patientRow: {
-        flexDirection: 'row',
-        paddingHorizontal: 20,
-        paddingVertical: 15,
-        alignItems: 'center',
-    },
-    patientInfo: {
-        width: 150,
-        marginEnd: 5,
-    },
-    patientName: {
-        fontSize: 14,
-        fontWeight: '500',
-        color: tc.textPrimary,
-    },
-    patientId: {
-        fontSize: 12,
-        color: tc.textMuted,
-        marginTop: 4,
-    },
-    patientDetail: {
-        width: 120, 
-        marginEnd: 5
-    },
-    detailValue: {
-        fontSize: 12,
-        color: tc.textSecondary,
-    },
-    statusBadge: {
-        width: 90,
-        paddingVertical: 6,
-        borderRadius: 20,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    statusText: {
-        fontSize: 10,
-        fontWeight: '500',
-    },
-    actionButtons: {
-        width: 60,
-        flexDirection: 'row',
-        justifyContent: 'center'
-    },
-    actionButton: {
-        paddingVertical: 10, 
-        borderWidth: 1, 
-        borderColor: tc.accent, 
-        borderRadius: 10, 
-        paddingHorizontal: 5,
-        backgroundColor: tc.cardBackgroundAlt,
-    },
-    // Filter Styles
-    filtersContainer: {
-        backgroundColor: tc.cardBackground,
-        marginHorizontal: 15,
-        marginBottom: 10,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: tc.borderLight,
-    },
-    filtersInner: {
-        padding: 15,
-    },
-    filterRow: {
-        flexDirection: 'row',
-        marginBottom: 15,
-    },
-    filterGroup: {
-        flex: 1,
-    },
-    filterLabel: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: tc.textPrimary,
-        marginBottom: 8,
-    },
-    dateRangeContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    dateInput: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        borderWidth: 1,
-        borderColor: tc.borderColor,
-        borderRadius: 8,
-        paddingHorizontal: 10,
-        height: 42,
-        backgroundColor: tc.inputBackground,
-        marginHorizontal: 2,
-    },
-    dateText: {
-        fontSize: 13,
-        color: tc.textSecondary,
-    },
-    checkboxesSection: {
-        marginBottom: 15,
-    },
-    checkboxRow: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 12,
-    },
-    checkboxContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginRight: 10,
-        marginBottom: 8,
-    },
-    checkbox: {
-        width: 18,
-        height: 18,
-        borderWidth: 1,
-        borderColor: tc.borderColor,
-        borderRadius: 4,
-        marginRight: 8,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    checkboxChecked: {
-        backgroundColor: tc.accent,
-        borderColor: tc.accent,
-    },
-    checkboxLabel: {
-        fontSize: 13,
-        color: tc.textSecondary,
-    },
-    filterActions: {
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
-        gap: 10,
-        marginTop: 5,
-    },
-    clearFiltersBtn: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 15,
-        height: 40,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: tc.accent,
-        backgroundColor: tc.cardBackgroundAlt,
-    },
-    clearFiltersBtnText: {
-        color: tc.accent,
-        fontSize: 14,
-        fontWeight: '600',
-        marginLeft: 5,
-    },
-    applyFiltersBtn: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 15,
-        height: 40,
-        borderRadius: 8,
-        backgroundColor: tc.accent,
-    },
-    applyFiltersBtnText: {
-        color: 'white',
-        fontSize: 14,
-        fontWeight: '600',
-        marginLeft: 5,
-    },
-    // Calendar Modal Styles
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.6)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    calendarModalContent: {
-        width: '90%',
-        backgroundColor: tc.modalBg,
-        borderRadius: 20,
-        padding: 10,
-        borderWidth: 1,
-        borderColor: tc.borderColor,
-    },
-    calendarHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingHorizontal: 10,
-        paddingVertical: 10,
-    },
-    calendarCancelText: {
-        fontSize: 16,
-        color: tc.textSecondary,
-    },
-    calendarConfirmText: {
-        fontSize: 16,
-        color: tc.accent,
-        fontWeight: '600',
-    },
-    iosPicker: {
-        height: 350,
-    },
-    paginationWrapper: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        paddingHorizontal: 20,
-        paddingVertical: 15,
-        backgroundColor: tc.cardBackgroundAlt,
-        borderTopWidth: 1,
-        borderTopColor: tc.borderLight,
-        minWidth: wp(100)
-    },
-    paginationText: {
-        fontSize: 14,
-        color: tc.textSecondary,
-        marginRight: 15,
-    },
-    paginationArrow: {
-        padding: 5,
-        marginHorizontal: 5,
-    },
-    pageNumberBox: {
-        width: 32,
-        height: 32,
-        borderWidth: 1,
-        borderColor: tc.accent,
-        borderRadius: 6,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginHorizontal: 5,
-        backgroundColor: tc.hoverLayer,
-    },
-    pageNumberText: {
-        color: tc.accent,
-        fontSize: 14,
-        fontWeight: '500',
-    },
-    pageSizeSelector: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: tc.borderColor,
-        borderRadius: 8,
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        marginLeft: 15,
-        backgroundColor: tc.cardBackground,
-    },
-    pageSizeText: {
-        fontSize: 14,
-        color: tc.textSecondary,
-        marginRight: 10,
-    },
-});
+
+const CustomCalendarModal = ({ visible, value, onSelect, onClose, tc, isDark, t, ds }: any) => {
+    const [currentDate, setCurrentDate] = useState(value || new Date());
+    const [selectedDate, setSelectedDate] = useState(value || new Date());
+    
+    const cellWidth = (wp(92) - 48) / 7;
+    
+    useEffect(() => {
+        if (visible && value) {
+            setCurrentDate(value);
+            setSelectedDate(value);
+        }
+    }, [visible, value]);
+
+    const daysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
+    const firstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
+    
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    
+    const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
+    const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
+    
+    const days = [];
+    const numDays = daysInMonth(year, month);
+    const startDay = firstDayOfMonth(year, month);
+    
+    // Previous month padding
+    for (let i = 0; i < startDay; i++) days.push(null);
+    // Current month days
+    for (let i = 1; i <= numDays; i++) days.push(i);
+    
+    const isSelected = (day: number) => 
+        selectedDate && 
+        day &&
+        selectedDate.getDate() === day && 
+        selectedDate.getMonth() === month && 
+        selectedDate.getFullYear() === year;
+
+    const isToday = (day: number) => {
+        const today = new Date();
+        return today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
+    };
+
+    return (
+        <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+            <View style={ds.modalOverlay}>
+                <View style={ds.customCalendarContent}>
+                    <View style={ds.customCalendarHeader}>
+                        <Text style={ds.customCalendarTitle}>{t('patientList.selectDate') || 'Select date'}</Text>
+                        <TouchableOpacity onPress={onClose}>
+                            <Feather name="x" size={24} color="#fff" />
+                        </TouchableOpacity>
+                    </View>
+                    
+                    <View style={ds.monthYearNav}>
+                        <Text style={ds.monthYearText}>{monthNames[month]} {year} <Feather name="chevron-right" size={18} color={tc.accent} /></Text>
+                        <View style={ds.navArrows}>
+                            <TouchableOpacity onPress={prevMonth} style={ds.navArrow}>
+                                <Feather name="chevron-left" size={24} color={tc.accent} />
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={nextMonth} style={ds.navArrow}>
+                                <Feather name="chevron-right" size={24} color={isDark ? "#4B5563" : tc.textMuted} />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                    
+                    <View style={ds.weekdaysRow}>
+                        {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map(d => (
+                            <Text key={d} style={[ds.weekdayText, { width: cellWidth }]}>{d}</Text>
+                        ))}
+                    </View>
+                    
+                    <View style={ds.daysGrid}>
+                        {days.map((day, idx) => (
+                            <TouchableOpacity 
+                                key={idx} 
+                                style={[ds.dayCell, { width: cellWidth }, isSelected(day!) && ds.selectedDayCell]}
+                                disabled={!day}
+                                onPress={() => day && setSelectedDate(new Date(year, month, day))}
+                            >
+                                {day && (
+                                    <Text style={[
+                                        ds.dayText, 
+                                        isSelected(day) && ds.selectedDayText,
+                                        !isSelected(day) && isToday(day) && { color: tc.accent }
+                                    ]}>
+                                        {day}
+                                    </Text>
+                                )}
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                    
+                    <TouchableOpacity 
+                        style={ds.calendarConfirmBtn}
+                        onPress={() => onSelect(selectedDate)}
+                    >
+                        <Text style={ds.calendarConfirmBtnText}>{t('common.confirm') || 'Confirm'}</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </Modal>
+    );
+};
+
 
 const PatientListScreen = () => {
     const { colors: tc, isDark } = useThemeColors();
@@ -506,14 +247,12 @@ const PatientListScreen = () => {
     };
 
     // Handle date change
-    const onDateChange = (event: any, selectedDate?: Date) => {
-        if (selectedDate && activePicker) {
+    const onDateChange = (date: Date) => {
+        if (date && activePicker) {
             switch (activePicker) {
-                case 'dobStart': setDobStartDate(selectedDate); break;
-                case 'dobEnd': setDobEndDate(selectedDate); break;
+                case 'dobStart': setDobStartDate(date); break;
+                case 'dobEnd': setDobEndDate(date); break;
             }
-            setActivePicker(null);
-        } else if (event.type === 'dismissed') {
             setActivePicker(null);
         }
     };
@@ -790,14 +529,17 @@ const PatientListScreen = () => {
                         onPress={handleFilterToggle}
                     >
                         <LinearGradient
-                            colors={[tc.accentGradientStart, tc.accentGradientEnd]}
+                            colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 0 }}
                             style={{
-                                marginLeft: 10, borderRadius: 8, flexDirection: "row", height: hp(5),
+                                borderRadius: 8,
+                                flexDirection: "row",
+                                height: hp(5),
                                 alignItems: "center",
-                                paddingHorizontal: 15,
-                                justifyContent: "center", minWidth: wp(25)
+                                justifyContent: "center",
+                                width: wp(38),
+                                marginLeft: wp(4)
                             }}>
                             <Feather name="filter" size={20} color="white" />
                             <Text style={ds.filtersButtonText}>{t('patientList.filters')}</Text>
@@ -818,7 +560,7 @@ const PatientListScreen = () => {
                 <View style={ds.filtersContainer}>
                     <View style={ds.filtersInner}>
                         <View style={ds.filterRow}>
-                            <View style={[ds.filterGroup, { flex: 1.5 }]}>
+                            <View style={[ds.filterGroup, { flex: 1.8 }]}>
                                 <Text style={ds.filterLabel}>{t('patientList.dateOfBirth')}</Text>
                                 <View style={ds.dateRangeContainer}>
                                     <TouchableOpacity
@@ -826,19 +568,19 @@ const PatientListScreen = () => {
                                         onPress={() => setActivePicker('dobStart')}
                                     >
                                         <Text style={ds.dateText}>{formatDate(dobStartDate)}</Text>
-                                        <MaterialCommunityIcons name="calendar-blank" size={18} color={tc.textMuted} />
+                                        <MaterialCommunityIcons name="calendar-blank" size={16} color={tc.accent} />
                                     </TouchableOpacity>
                                     <TouchableOpacity
                                         style={ds.dateInput}
                                         onPress={() => setActivePicker('dobEnd')}
                                     >
                                         <Text style={ds.dateText}>{formatDate(dobEndDate)}</Text>
-                                        <MaterialCommunityIcons name="calendar-blank" size={18} color={tc.textMuted} />
+                                        <MaterialCommunityIcons name="calendar-blank" size={16} color={tc.accent} />
                                     </TouchableOpacity>
                                 </View>
                             </View>
 
-                            <View style={[ds.filterGroup, { flex: 1, marginLeft: 15 }]}>
+                            <View style={[ds.filterGroup, { flex: 0.7, marginLeft: 12 }]}>
                                 <Text style={ds.filterLabel}>{t('patientList.gender')}</Text>
                                 <CustomDropdown
                                     placeholder={t('patientList.gender')}
@@ -965,54 +707,17 @@ const PatientListScreen = () => {
                 }}
             />
             {/* Date Picker Modal */}
-            {activePicker && (
-                Platform.OS === 'ios' ? (
-                    <Modal
-                        transparent={true}
-                        animationType="fade"
-                        visible={!!activePicker}
-                        onRequestClose={() => setActivePicker(null)}
-                    >
-                        <TouchableOpacity 
-                            style={ds.modalOverlay} 
-                            activeOpacity={1} 
-                            onPress={() => setActivePicker(null)}
-                        >
-                            <View style={ds.calendarModalContent}>
-                                <View style={ds.calendarHeader}>
-                                    <TouchableOpacity onPress={() => setActivePicker(null)}>
-                                        <Text style={ds.calendarCancelText}>{t('patientList.cancel')}</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => setActivePicker(null)}>
-                                        <Text style={ds.calendarConfirmText}>{t('patientList.done')}</Text>
-                                    </TouchableOpacity>
-                                </View>
-                                <DateTimePicker
-                                    value={
-                                        activePicker === 'dobStart' ? dobStartDate || new Date() :
-                                        dobEndDate || new Date()
-                                    }
-                                    mode="date"
-                                    display="inline"
-                                    onChange={onDateChange}
-                                    style={ds.iosPicker}
-                                    textColor={tc.textPrimary}
-                                />
-                            </View>
-                        </TouchableOpacity>
-                    </Modal>
-                ) : (
-                    <DateTimePicker
-                        value={
-                            activePicker === 'dobStart' ? dobStartDate || new Date() :
-                            dobEndDate || new Date()
-                        }
-                        mode="date"
-                        display="default"
-                        onChange={onDateChange}
-                    />
-                )
-            )}
+            {/* Custom Calendar Modal */}
+            <CustomCalendarModal
+                visible={!!activePicker}
+                value={activePicker === 'dobStart' ? dobStartDate : dobEndDate}
+                onSelect={(date: Date) => onDateChange(date)}
+                onClose={() => setActivePicker(null)}
+                tc={tc}
+                isDark={isDark}
+                t={t}
+                ds={ds}
+            />
 
             <CustomAlert
                 visible={alertConfig.visible}
@@ -1026,3 +731,435 @@ const PatientListScreen = () => {
 
 
 export default PatientListScreen;
+
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
+    safeArea: {
+        flex: 1,
+        backgroundColor: tc.screenBackground,
+    },
+    container: {
+        flex: 1,
+        backgroundColor: tc.screenBackground,
+    },
+    headerWrap: {
+        width: "100%", 
+        backgroundColor: tc.headerBg,
+        flexDirection: "row", 
+        justifyContent: "space-around", 
+        paddingTop: hp(2),
+        borderBottomWidth: 1,
+        borderBottomColor: tc.borderLight,
+    },
+    header: {
+        paddingHorizontal: 10,
+        paddingVertical: 10,
+        width: "75%",
+    },
+    headerTitle: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: tc.textPrimary,
+    },
+    headerSubtitle: {
+        fontSize: 16,
+        color: tc.textSecondary,
+        marginTop: 5,
+    },
+    headerButtons: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: "flex-end",
+        alignSelf: "center",
+        marginVertical: hp(1), 
+        width: "95%",
+    },
+    backButton: {
+        marginTop: 10,
+        borderWidth: 1,
+        borderColor: tc.accent,
+        borderRadius: 50,
+        marginRight: 10,
+        height: 50,
+        width: 50,
+        alignItems: "center", 
+        justifyContent: 'center',
+        backgroundColor: tc.cardBackgroundAlt,
+    },
+    buttonText: {
+        color: tc.accent,
+        marginLeft: 8,
+        fontSize: 15,
+    },
+    filtersButtonText: {
+        color: '#FFFFFF',
+        marginLeft: 8,
+        fontSize: 15,
+    },
+    secondaryButton: {
+        marginLeft: 10, 
+        borderRadius: 8, 
+        flexDirection: "row", 
+        height: hp(5),
+        alignItems: "center",
+        paddingHorizontal: 12,
+        justifyContent: "center", 
+        minWidth: wp(20), 
+        borderWidth: 1, 
+        borderColor: tc.accent, 
+        backgroundColor: tc.cardBackgroundAlt
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: tc.screenBackground,
+    },
+    loadingText: {
+        marginTop: 10,
+        fontSize: 16,
+        color: tc.textSecondary,
+    },
+    listContent: {
+        paddingBottom: 20,
+    },
+    listHeader: {
+        flexDirection: 'row',
+        paddingHorizontal: 20,
+        paddingVertical: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: tc.borderLight,
+        backgroundColor: tc.cardBackgroundAlt,
+        marginTop: hp(1)
+    },
+    headerCell: {
+        width: 120, 
+        marginEnd: 5,
+    },
+    headerText: {
+        fontWeight: '700',
+        color: tc.textSecondary,
+        fontSize: 12,
+        textAlign: "left"
+    },
+    patientCard: {
+        backgroundColor: tc.cardBackground,
+        borderBottomWidth: 1,
+        borderBottomColor: tc.borderLight,
+    },
+    patientRow: {
+        flexDirection: 'row',
+        paddingHorizontal: 20,
+        paddingVertical: 15,
+        alignItems: 'center',
+    },
+    patientInfo: {
+        width: 150,
+        marginEnd: 5,
+    },
+    patientName: {
+        fontSize: 14,
+        fontWeight: '500',
+        color: tc.textPrimary,
+    },
+    patientId: {
+        fontSize: 12,
+        color: tc.textMuted,
+        marginTop: 4,
+    },
+    patientDetail: {
+        width: 120, 
+        marginEnd: 5
+    },
+    detailValue: {
+        fontSize: 12,
+        color: tc.textSecondary,
+    },
+    statusBadge: {
+        width: 90,
+        paddingVertical: 6,
+        borderRadius: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    statusText: {
+        fontSize: 10,
+        fontWeight: '500',
+    },
+    actionButtons: {
+        width: 60,
+        flexDirection: 'row',
+        justifyContent: 'center'
+    },
+    actionButton: {
+        paddingVertical: 10, 
+        borderWidth: 1, 
+        borderColor: tc.accent, 
+        borderRadius: 10, 
+        paddingHorizontal: 5,
+        backgroundColor: tc.cardBackgroundAlt,
+    },
+    // Filter Styles
+    filtersContainer: {
+        backgroundColor: tc.cardBackground,
+        marginHorizontal: 15,
+        marginBottom: 10,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: tc.borderLight,
+    },
+    filtersInner: {
+        padding: 15,
+    },
+    filterRow: {
+        flexDirection: 'row',
+        marginBottom: 15,
+    },
+    filterGroup: {
+        flex: 1,
+    },
+    filterLabel: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: tc.textPrimary,
+        marginBottom: 8,
+    },
+    dateRangeContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    dateInput: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderWidth: 1,
+        borderColor: tc.borderColor,
+        borderRadius: 8,
+        paddingHorizontal: 10,
+        height: 40,
+        backgroundColor: tc.inputBackground,
+        marginHorizontal: 3,
+    },
+    dateText: {
+        fontSize: 13,
+        color: tc.textSecondary,
+    },
+    checkboxesSection: {
+        marginBottom: 15,
+    },
+    checkboxRow: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 12,
+    },
+    checkboxContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginRight: 10,
+        marginBottom: 8,
+    },
+    checkbox: {
+        width: 18,
+        height: 18,
+        borderWidth: 1,
+        borderColor: tc.borderColor,
+        borderRadius: 4,
+        marginRight: 8,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    checkboxChecked: {
+        backgroundColor: tc.accent,
+        borderColor: tc.accent,
+    },
+    checkboxLabel: {
+        fontSize: 13,
+        color: tc.textSecondary,
+    },
+    filterActions: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        gap: 10,
+        marginTop: 5,
+    },
+    clearFiltersBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        height: 40,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: tc.accent,
+        backgroundColor: tc.cardBackgroundAlt,
+    },
+    clearFiltersBtnText: {
+        color: tc.accent,
+        fontSize: 14,
+        fontWeight: '600',
+        marginLeft: 5,
+    },
+    applyFiltersBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        height: 40,
+        borderRadius: 8,
+        backgroundColor: tc.accent,
+    },
+    applyFiltersBtnText: {
+        color: 'white',
+        fontSize: 14,
+        fontWeight: '600',
+        marginLeft: 5,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    // Custom Calendar Modal Styles
+    customCalendarContent: {
+        width: wp(92),
+        backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
+        borderRadius: 24,
+        padding: 24,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.3,
+        shadowRadius: 20,
+        elevation: 10,
+    },
+    customCalendarHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    customCalendarTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: isDark ? '#FFFFFF' : tc.textPrimary,
+    },
+    monthYearNav: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 24,
+    },
+    monthYearText: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: isDark ? '#FFFFFF' : tc.textPrimary,
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    navArrows: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    navArrow: {
+        marginLeft: 15,
+    },
+    weekdaysRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        marginBottom: 16,
+    },
+    weekdayText: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: isDark ? '#6B7280' : tc.textMuted,
+        textAlign: 'center',
+    },
+    daysGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'flex-start',
+        marginBottom: 24,
+    },
+    dayCell: {
+        height: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 4,
+        borderRadius: 20,
+    },
+    selectedDayCell: {
+        backgroundColor: '#3B82F6',
+    },
+    dayText: {
+        fontSize: 16,
+        color: isDark ? '#FFFFFF' : tc.textPrimary,
+        fontWeight: '500',
+    },
+    selectedDayText: {
+        color: '#FFFFFF',
+        fontWeight: '700',
+    },
+    calendarConfirmBtn: {
+        backgroundColor: tc.accent || '#4DA1C0',
+        borderRadius: 16,
+        height: 54,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 10,
+    },
+    calendarConfirmBtnText: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#FFFFFF',
+    },
+    paginationWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        paddingHorizontal: 20,
+        paddingVertical: 15,
+        backgroundColor: tc.cardBackgroundAlt,
+        borderTopWidth: 1,
+        borderTopColor: tc.borderLight,
+        minWidth: wp(100)
+    },
+    paginationText: {
+        fontSize: 14,
+        color: tc.textSecondary,
+        marginRight: 15,
+    },
+    paginationArrow: {
+        padding: 5,
+        marginHorizontal: 5,
+    },
+    pageNumberBox: {
+        width: 32,
+        height: 32,
+        borderWidth: 1,
+        borderColor: tc.accent,
+        borderRadius: 6,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginHorizontal: 5,
+        backgroundColor: tc.hoverLayer,
+    },
+    pageNumberText: {
+        color: tc.accent,
+        fontSize: 14,
+        fontWeight: '500',
+    },
+    pageSizeSelector: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: tc.borderColor,
+        borderRadius: 8,
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        marginLeft: 15,
+        backgroundColor: tc.cardBackground,
+    },
+    pageSizeText: {
+        fontSize: 14,
+        color: tc.textSecondary,
+        marginRight: 10,
+    },
+});

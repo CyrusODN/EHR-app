@@ -42,68 +42,72 @@ const ModuleSelection = () => {
                 }}
                     style={ds.cardWrapper}>
                     <Card style={ds.card}>
-                        <LinearGradient
-                            colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 0 }}
-                            style={ds.gradientBackground}>
-                            <Card.Content style={ds.cardContentPadding}>
-                                <View style={ds.cardHeader}>
-                                    <View style={ds.iconContainer} >
-                                        <Image source={require('../../assets/images/brain.png')} style={ds.brainIcon} />
-                                    </View>
+                        <View style={ds.cardContentWrapper}>
+                            <LinearGradient
+                                colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 0 }}
+                                style={ds.gradientBackground}>
+                                <Card.Content style={ds.cardContentPadding}>
+                                    <View style={ds.cardHeader}>
+                                        <View style={ds.iconContainer} >
+                                            <Image source={require('../../assets/images/brain.png')} style={ds.brainIcon} />
+                                        </View>
 
-                                    <View>
-                                        <Text style={ds.moduleTitleAccent}>{t('moduleSelection.selection.psychiatry.title')}</Text>
-                                        <Text style={ds.moduleSubtitleAccent}>{t('moduleSelection.selection.psychiatry.subtitle')}</Text>
+                                        <View>
+                                            <Text style={ds.moduleTitleAccent}>{t('moduleSelection.selection.psychiatry.title')}</Text>
+                                            <Text style={ds.moduleSubtitleAccent}>{t('moduleSelection.selection.psychiatry.subtitle')}</Text>
+                                        </View>
                                     </View>
-                                </View>
-                                <Text style={ds.toolDescriptionAccent}>{t('moduleSelection.selection.psychiatry.description')}</Text>
-                                <View style={ds.bulletPoints}>
-                                    <Text style={ds.bulletAccent}>{t('moduleSelection.selection.psychiatry.bullet1')}</Text>
-                                    <Text style={ds.bulletAccent}>{t('moduleSelection.selection.psychiatry.bullet2')}</Text>
-                                    <Text style={ds.bulletAccent}>{t('moduleSelection.selection.psychiatry.bullet3')}</Text>
-                                </View>
-                            </Card.Content>
-                        </LinearGradient>
+                                    <Text style={ds.toolDescriptionAccent}>{t('moduleSelection.selection.psychiatry.description')}</Text>
+                                    <View style={ds.bulletPoints}>
+                                        <Text style={ds.bulletAccent}>{t('moduleSelection.selection.psychiatry.bullet1')}</Text>
+                                        <Text style={ds.bulletAccent}>{t('moduleSelection.selection.psychiatry.bullet2')}</Text>
+                                        <Text style={ds.bulletAccent}>{t('moduleSelection.selection.psychiatry.bullet3')}</Text>
+                                    </View>
+                                </Card.Content>
+                            </LinearGradient>
+                        </View>
                     </Card>
                 </TouchableOpacity>
 
                 {/* POZ Card - Disabled */}
                 <TouchableOpacity disabled style={ds.cardWrapper}>
                     <Card style={[ds.card, ds.disabledCard]}>
-                        <Card.Content style={ds.cardContentPadding}>
-                            <View style={ds.cardHeader}>
-                                <View style={ds.disabledIconContainer} >
-                                    <FontAwesome6
-                                        name="stethoscope"
-                                        size={20}
-                                        color={tc.textMuted}
+                        <View style={ds.cardContentWrapper}>
+                            <Card.Content style={ds.cardContentPadding}>
+                                <View style={ds.cardHeader}>
+                                    <View style={ds.disabledIconContainer} >
+                                        <FontAwesome6
+                                            name="stethoscope"
+                                            size={20}
+                                            color={tc.textMuted}
+                                        />
+                                    </View>
+                                    <View>
+                                        <Text style={ds.disabledModuleTitle}>{t('moduleSelection.selection.poz.title')}</Text>
+                                        <Text style={ds.disabledModuleSubtitle}>{t('moduleSelection.selection.poz.subtitle')}</Text>
+                                    </View>
+                                </View>
+                                <Text style={ds.disabledToolDescription}>
+                                    {t('moduleSelection.selection.poz.description')}
+                                </Text>
+                                <View style={ds.bulletPoints}>
+                                    <Text style={ds.disabledBullet}>{t('moduleSelection.selection.poz.bullet1')}</Text>
+                                    <Text style={ds.disabledBullet}>{t('moduleSelection.selection.poz.bullet2')}</Text>
+                                    <Text style={ds.disabledBullet}>{t('moduleSelection.selection.poz.bullet3')}</Text>
+                                </View>
+                                <View style={ds.comingSoon}>
+                                    <AntDesign
+                                        name="exclamationcircleo"
+                                        size={14}
+                                        color="#FFFFFF"
                                     />
+                                    <Gap width={6} />
+                                    <Text style={ds.comingSoonText}>{t('moduleSelection.selection.poz.comingSoon')}</Text>
                                 </View>
-                                <View>
-                                    <Text style={ds.disabledModuleTitle}>{t('moduleSelection.selection.poz.title')}</Text>
-                                    <Text style={ds.disabledModuleSubtitle}>{t('moduleSelection.selection.poz.subtitle')}</Text>
-                                </View>
-                            </View>
-                            <Text style={ds.disabledToolDescription}>
-                                {t('moduleSelection.selection.poz.description')}
-                            </Text>
-                            <View style={ds.bulletPoints}>
-                                <Text style={ds.disabledBullet}>{t('moduleSelection.selection.poz.bullet1')}</Text>
-                                <Text style={ds.disabledBullet}>{t('moduleSelection.selection.poz.bullet2')}</Text>
-                                <Text style={ds.disabledBullet}>{t('moduleSelection.selection.poz.bullet3')}</Text>
-                            </View>
-                            <View style={ds.comingSoon}>
-                                <AntDesign
-                                    name="exclamationcircleo"
-                                    size={14}
-                                    color="#FFFFFF"
-                                />
-                                <Gap width={6} />
-                                <Text style={ds.comingSoonText}>{t('moduleSelection.selection.poz.comingSoon')}</Text>
-                            </View>
-                        </Card.Content>
+                            </Card.Content>
+                        </View>
                     </Card>
                 </TouchableOpacity>
             </View>
@@ -142,9 +146,12 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
         shadowOpacity: isDark ? 0.3 : 0.1,
         shadowRadius: 10,
         backgroundColor: tc.cardBackground,
-        overflow: 'hidden',
         borderWidth: isDark ? 1 : 0,
         borderColor: tc.borderSubtle,
+    },
+    cardContentWrapper: {
+        overflow: 'hidden',
+        borderRadius: 16,
     },
     disabledCard: {
         backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#F3F4F6',

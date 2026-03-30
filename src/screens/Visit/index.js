@@ -272,6 +272,7 @@ const VisitScreen = () => {
                     <VisitExamination 
                         onNext={() => setCurrentStep(4)} 
                         onBack={() => setCurrentStep(2)} 
+                        visitId={visitId}
                         visitData={visitData}
                         onUpdate={handleVisitUpdate}
                     />
@@ -290,6 +291,7 @@ const VisitScreen = () => {
                     <VisitDocuments 
                         onNext={() => setCurrentStep(6)} 
                         onBack={() => setCurrentStep(4)} 
+                        visitId={visitId}
                         visitData={visitData}
                         onUpdate={handleVisitUpdate}
                     />
@@ -299,6 +301,7 @@ const VisitScreen = () => {
                     <VisitSummary 
                         onFinish={() => {/* Final action */}} 
                         onBack={() => setCurrentStep(5)} 
+                        visitId={visitId}
                         visitData={visitData}
                         onUpdate={handleVisitUpdate}
                     />

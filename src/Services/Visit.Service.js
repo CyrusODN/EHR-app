@@ -46,7 +46,7 @@ export async function CreateVisit(payload){
 		console.log("CreateVisit API Response:", JSON.stringify(result, null, 4));
 		return result;
 	} catch (err) {
-		console.log("CreateVisit API Error:", JSON.stringify(err, null, 4));
+		console.log("CreateVisit API Error:", JSON.stringify(err, null, 4)); 
 		return throwServerError(err);
 	}
 }

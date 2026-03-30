@@ -250,7 +250,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) =>
             paddingHorizontal: 20,
         },
         modalContent: {
-            backgroundColor: tc.cardBackground,
+            backgroundColor: tc.modalBg,
             borderRadius: 16,
             overflow: 'hidden',
             maxHeight: hp(90),
@@ -308,7 +308,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) =>
             borderRadius: 8,
             paddingHorizontal: 12,
             justifyContent: 'center',
-            backgroundColor: tc.cardBackgroundAlt,
+            backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : tc.cardBackgroundAlt,
         },
         searchInput: {
             fontSize: 14,
@@ -329,7 +329,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) =>
         },
         assessmentCard: {
             width: '48.5%',
-            backgroundColor: tc.cardBackgroundAlt,
+            backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : tc.cardBackgroundAlt,
             borderRadius: 8,
             padding: 12,
             marginBottom: 10,
@@ -391,7 +391,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) =>
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
-            backgroundColor: tc.cardBackgroundAlt,
+            backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : tc.cardBackgroundAlt,
             borderRadius: 10,
             padding: 16,
             marginBottom: 12,

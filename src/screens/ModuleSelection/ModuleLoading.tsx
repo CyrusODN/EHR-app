@@ -51,14 +51,16 @@ const ModuleLoading = () => {
 
             <View style={{ width: "80%" }}>
                 <View style={ds.moduleHeader}>
-                    <LinearGradient
-                        colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                        style={ds.brainIconContainer}
-                    >
-                        <Image source={require('../../assets/images/brain.png')} style={ds.brainIcon} />
-                    </LinearGradient>
+                    <View style={ds.brainIconContainer}>
+                        <LinearGradient
+                            colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                            style={ds.brainIconGradient}
+                        >
+                            <Image source={require('../../assets/images/brain.png')} style={ds.brainIcon} />
+                        </LinearGradient>
+                    </View>
                     <Text style={ds.moduleTitle}>{t('moduleSelection.loading.title')}</Text>
                 </View>
 
@@ -117,13 +119,19 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
         width: 48,
         marginEnd: 15,
         borderRadius: 14,
-        alignItems: "center",
-        justifyContent: "center",
+        backgroundColor: tc.cardBackground,
         shadowColor: tc.shadow,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: isDark ? 0.3 : 0.1,
         shadowRadius: 8,
         elevation: 4,
+    },
+    brainIconGradient: {
+        height: '100%',
+        width: '100%',
+        borderRadius: 14,
+        alignItems: "center",
+        justifyContent: "center",
     },
     brainIcon: {
         height: 24,

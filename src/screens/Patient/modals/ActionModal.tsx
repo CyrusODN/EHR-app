@@ -149,7 +149,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
         alignItems: 'center',
     },
     modalContainer: {
-        backgroundColor: tc.cardBackground,
+        backgroundColor: tc.modalBg,
         borderRadius: 20,
         width: '65%',
         paddingVertical: 10,

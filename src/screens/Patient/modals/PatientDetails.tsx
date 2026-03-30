@@ -253,7 +253,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     modalView: {
         width: '92%',
         maxHeight: '80%',
-        backgroundColor: tc.cardBackground,
+        backgroundColor: tc.modalBg,
         borderRadius: 24,
         overflow: 'hidden',
         shadowColor: '#000',
@@ -271,7 +271,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
         flexDirection: 'row',
         padding: 20,
         paddingTop: 25,
-        backgroundColor: tc.cardBackgroundAlt,
+        backgroundColor: tc.drawerBg,
     },
     patientHeaderLeft: {
         flexDirection: 'row',
@@ -320,7 +320,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
         color: tc.accent,
         paddingHorizontal: 20,
         paddingVertical: 12,
-        backgroundColor: tc.layer1,
+        backgroundColor: tc.drawerBg,
         marginTop: 5,
     },
     infoRow: {
@@ -426,7 +426,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
         justifyContent: 'space-between',
         padding: 20,
         width: "100%",
-        backgroundColor: tc.cardBackgroundAlt,
+        backgroundColor: tc.drawerBg,
     },
 });
 

@@ -250,7 +250,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) =>
             paddingHorizontal: wp(3),
         },
         modalContainer: {
-            backgroundColor: tc.cardBackground,
+            backgroundColor: tc.modalBg,
             borderRadius: 12,
             width: '100%',
             maxHeight: hp(90),
@@ -281,7 +281,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) =>
             paddingVertical: 15,
             borderBottomWidth: 1,
             borderBottomColor: tc.borderColor,
-            backgroundColor: tc.cardBackgroundAlt,
+            backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : tc.cardBackgroundAlt,
         },
         activeLabel: {
             fontSize: 14,
@@ -299,7 +299,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) =>
         contentContainer: {
             padding: 16,
             flex: 1,
-            backgroundColor: tc.cardBackground,
+            backgroundColor: tc.modalBg,
         },
         loadingContainer: {
             flex: 1,
@@ -314,7 +314,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) =>
             borderColor: tc.borderColor,
             borderRadius: 10,
             marginBottom: 12,
-            backgroundColor: tc.cardBackgroundAlt,
+            backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : tc.cardBackgroundAlt,
             overflow: 'hidden',
         },
         visitCardExpanded: {
@@ -383,7 +383,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) =>
             paddingHorizontal: 16,
             paddingTop: 12,
             paddingBottom: 16,
-            backgroundColor: tc.cardBackground,
+            backgroundColor: tc.modalBg,
         },
         expandedSection: {
             marginBottom: 16,

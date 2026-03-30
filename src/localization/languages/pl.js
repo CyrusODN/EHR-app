@@ -8,6 +8,7 @@ export const pl = {
         search: 'Szukaj',
         cancel: 'Anuluj',
         save: 'Zapisz',
+        confirm: 'Potwierdź',
         delete: 'Usuń',
         edit: 'Edytuj',
         back: 'Wstecz',
@@ -38,7 +39,9 @@ export const pl = {
         dateLocale: 'pl-PL',
         dateTimeLocale: 'pl-PL',
         datePlaceholder: 'dd/mm/rrrr',
-        na: 'Brak danych'
+        na: 'Brak danych',
+        logout: 'Wyloguj się',
+        monthsShort: ['Sty', 'Lut', 'Mar', 'Kwi', 'Maj', 'Cze', 'Lip', 'Sie', 'Wrz', 'Paź', 'Lis', 'Gru'],
     },
     loading: {
         psychiatricModule: 'Moduł Psychiatryczny',
@@ -922,6 +925,7 @@ export const pl = {
         filters: "Filtry",
         dateOfBirth: "Data urodzenia",
         gender: "Płeć",
+        selectDate: "Wybierz datę",
         hasPesel: "Ma PESEL",
         hasDeclaration: "Ma deklarację",
         deceased: "Zmarły",
@@ -964,10 +968,21 @@ export const pl = {
         summary: "PODSUMOWANIE",
         loadingLogs: "Pobieranie logów...",
         noLogsFound: "Nie znaleziono logów",
-        showingLogs: "Pokazuje {{filtered}} z {{total}} logów",
-        na: "Brak",
-        viewedMedicalInfo: "Przeglądano informacje medyczne",
-        updated: "Zaktualizowano {{field}}"
+        showingLogs: "Pokazuje {{count}} z {{total}} logów",
+        na: "Brak danych",
+        patientActivityLogs: "Dziennik aktywności pacjenta",
+        searchLogs: "Szukaj w logach",
+        viewedMedicalInformation: "Przeglądano informacje medyczne",
+        updatedMedicalData: "Zaktualizowano dane medyczne",
+        updated: "Zaktualizowano {{field}}",
+        activityTypes: {
+            medical_data_updated: "Zaktualizowano dane medyczne",
+            medical_record_accessed: "Uzyskano dostęp do dokumentacji",
+            profile_viewed: "Wyświetlono profil",
+            patient_record_updated: "Zaktualizowano kartotekę pacjenta",
+            personal_data_updated: "Zaktualizowano dane osobowe",
+            visit_scheduled: "Zaplanowano wizytę"
+        }
     },
 
     personalData: {
@@ -4982,11 +4997,14 @@ export const pl = {
                 branch: "Oddział:",
                 contractor_type: "Typ świadczeniodawcy:",
                 login: "Login:",
-                password: "Hasło:"
+                password: "Hasło:",
+                personnel_code: "Kod personelu:"
             },
             placeholders: {
                 personnel_code: "Wprowadź kod personelu",
-                login: "Wprowadź login"
+                login: "Wprowadź login",
+                enter_personnel_code: "Wprowadź kod personelu",
+                enter_login: "Wprowadź login"
             },
             password_not_changed: "(nie zmieniono)",
             buttons: {

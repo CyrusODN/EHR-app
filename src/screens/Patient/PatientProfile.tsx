@@ -298,6 +298,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: tc.borderColor,
         paddingTop: 4,
+        marginBottom: hp(2)
     },
     tabsContainer: {
         paddingHorizontal: 16,

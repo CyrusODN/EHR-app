@@ -50,6 +50,7 @@ const PharmacopediaChat = ({ serviceToken: propToken, onShowAlert }: Pharmacoped
 
     const scrollViewRef = useRef<ScrollView>(null);
     const drawerAnim = useRef(new Animated.Value(-wp(75))).current;
+    const backdropAnim = useRef(new Animated.Value(0)).current;
 
     // Animated dots for thinking indicator
     const dot1 = useRef(new Animated.Value(0.3)).current;
@@ -134,14 +135,24 @@ const PharmacopediaChat = ({ serviceToken: propToken, onShowAlert }: Pharmacoped
     }, [isAiThinking]);
 
     const toggleHistory = () => {
-        const toValue = isHistoryOpen ? -wp(75) : 0;
-        Animated.spring(drawerAnim, {
-            toValue,
-            useNativeDriver: false,
-            friction: 8,
-            tension: 40,
-        }).start();
-        setIsHistoryOpen(!isHistoryOpen);
+        const toOpen = !isHistoryOpen;
+        const toValue = toOpen ? 0 : -wp(75);
+        const backdropToValue = toOpen ? 1 : 0;
+
+        Animated.parallel([
+            Animated.spring(drawerAnim, {
+                toValue,
+                useNativeDriver: false,
+                friction: 8,
+                tension: 40,
+            }),
+            Animated.timing(backdropAnim, {
+                toValue: backdropToValue,
+                duration: 250,
+                useNativeDriver: false,
+            })
+        ]).start();
+        setIsHistoryOpen(toOpen);
     };
 
     const handleNewSession = async () => {
@@ -219,7 +230,22 @@ const PharmacopediaChat = ({ serviceToken: propToken, onShowAlert }: Pharmacoped
             console.error("[PharmacopediaChat] Error fetching session details:", error);
         } finally {
             setIsAiThinking(false);
-            if (isHistoryOpen) toggleHistory();
+            if (isHistoryOpen) {
+                setIsHistoryOpen(false);
+                Animated.parallel([
+                    Animated.spring(drawerAnim, {
+                        toValue: -wp(75),
+                        useNativeDriver: false,
+                        friction: 8,
+                        tension: 40,
+                    }),
+                    Animated.timing(backdropAnim, {
+                        toValue: 0,
+                        duration: 250,
+                        useNativeDriver: false,
+                    })
+                ]).start();
+            }
         }
     };
 
@@ -294,6 +320,23 @@ const PharmacopediaChat = ({ serviceToken: propToken, onShowAlert }: Pharmacoped
     // ─── Main Render ───
     return (
         <View style={ds.container}>
+            {/* Backdrop Overlay */}
+            <Animated.View 
+                pointerEvents={isHistoryOpen ? 'auto' : 'none'}
+                style={[
+                    ds.backdrop, 
+                    { 
+                        opacity: backdropAnim,
+                    }
+                ]} 
+            >
+                <TouchableOpacity 
+                    activeOpacity={1} 
+                    style={{ flex: 1 }} 
+                    onPress={toggleHistory} 
+                />
+            </Animated.View>
+
             {/* Side Drawer */}
             <Animated.View style={[ds.drawer, { left: drawerAnim }]}>
                 <View style={ds.drawerHeader}>
@@ -344,7 +387,7 @@ const PharmacopediaChat = ({ serviceToken: propToken, onShowAlert }: Pharmacoped
                 <View style={ds.mainWrapper}>
                     <View style={ds.header}>
                         <TouchableOpacity onPress={toggleHistory} style={ds.menuBtn}>
-                            <Feather name="menu" size={22} color={tc.textPrimary} />
+                            <Feather name="menu" size={22} color={tc.accent} />
                         </TouchableOpacity>
                         <Text style={ds.headerTitle}>{t('aiAssistant.pharmacopedia.title')}</Text>
                     </View>
@@ -477,15 +520,24 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
         top: 0,
         bottom: 0,
         width: wp(75),
-        backgroundColor: tc.cardBackground,
+        backgroundColor: tc.drawerBg,
         zIndex: 1000,
         borderRightWidth: 1,
         borderRightColor: tc.borderSubtle,
         elevation: 10,
         shadowColor: tc.shadow,
         shadowOffset: { width: 4, height: 0 },
-        shadowOpacity: isDark ? 0.3 : 0.1,
+        shadowOpacity: isDark ? 0.4 : 0.15,
         shadowRadius: 10,
+    },
+    backdrop: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        zIndex: 999,
     },
     drawerHeader: {
         flexDirection: 'row',
@@ -569,8 +621,13 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
         backgroundColor: tc.cardBackground,
     },
     menuBtn: {
-        marginRight: 16,
-        padding: 4,
+        width: wp(10),
+        height: hp(4.5),
+        borderRadius: 10,
+        backgroundColor: isDark ? 'rgba(74, 144, 185, 0.15)' : '#EBF5FF',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: wp(2), 
     },
     headerTitle: {
         fontSize: 18,

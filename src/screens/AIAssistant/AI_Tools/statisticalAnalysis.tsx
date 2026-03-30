@@ -94,7 +94,8 @@ const StatisticalAnalysis = () => {
         return visitData.statusDistribution.map((item: any, idx: number) => ({
             value: item.count,
             color: colors[idx % colors.length],
-            text: item._id
+            text: item._id,
+            label: item._id,
         }));
     }, [visitData]);
 
@@ -312,46 +313,46 @@ const StatisticalAnalysis = () => {
                 />
             </View>
 
-            <View style={ds.chartGrid}>
-                <View style={ds.smallChartCard}>
-                    <Text style={ds.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.visitStatus')}</Text>
-                    <Gap height={20} />
-                    <View style={ds.donutContainer}>
-                        <PieChart
-                            donut
-                            innerRadius={50}
-                            radius={70}
-                            data={visitStatusData}
-                            backgroundColor={tc.cardBackground}
-                        />
-                    </View>
-                    <View style={ds.legendContainer}>
-                        {visitStatusData.map((item: any, idx: number) => (
-                            <View key={idx} style={ds.legendItem}>
-                                <View style={[ds.legendDot, { backgroundColor: item.color }]} />
-                                <Text style={ds.legendText}>{item.text}</Text>
-                            </View>
-                        ))}
-                    </View>
-                </View>
-
-                <View style={ds.smallChartCard}>
-                    <Text style={ds.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.visitTypes')}</Text>
-                    <Gap height={20} />
-                    <BarChart
-                        data={visitTypeData}
-                        barWidth={wp(15)}
-                        noOfSections={4}
-                        barBorderRadius={4}
-                        yAxisThickness={1}
-                        xAxisThickness={1}
-                        yAxisColor={tc.borderSubtle}
-                        xAxisColor={tc.borderSubtle}
-                        rulesColor={tc.borderSubtle}
-                        yAxisTextStyle={{ color: tc.textMuted, fontSize: 10 }}
-                        xAxisLabelTextStyle={{ color: tc.textMuted, fontSize: 10, textAlign: 'center' }}
+            <View style={ds.chartCard}>
+                <Text style={ds.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.visitStatus')}</Text>
+                <Gap height={40} />
+                <View style={ds.donutContainer}>
+                    <PieChart
+                        donut
+                        innerRadius={65}
+                        radius={90}
+                        data={visitStatusData}
+                        backgroundColor={tc.cardBackground}
                     />
                 </View>
+                <Gap height={40} />
+                <View style={ds.legendContainerRow}>
+                    {visitStatusData.map((item: any, idx: number) => (
+                        <View key={idx} style={ds.legendItem}>
+                            <View style={[ds.legendSquare, { backgroundColor: item.color }]} />
+                            <Text style={[ds.legendText, { color: item.color }]}>{item.text}</Text>
+                        </View>
+                    ))}
+                </View>
+            </View>
+
+            <View style={ds.chartCard}>
+                <Text style={ds.chartTitle}>{t('aiAssistant.statisticalAnalysis.charts.visitTypes')}</Text>
+                <Gap height={20} />
+                <BarChart
+                    data={visitTypeData}
+                    barWidth={wp(20)}
+                    noOfSections={4}
+                    barBorderRadius={6}
+                    yAxisThickness={1}
+                    xAxisThickness={1}
+                    width={wp(75)}
+                    yAxisColor={tc.borderSubtle}
+                    xAxisColor={tc.borderSubtle}
+                    rulesColor={tc.borderSubtle}
+                    yAxisTextStyle={{ color: tc.textMuted, fontSize: 10 }}
+                    xAxisLabelTextStyle={{ color: tc.textMuted, fontSize: 11, textAlign: 'center' }}
+                />
             </View>
 
             <View style={ds.chartCard}>
@@ -369,7 +370,7 @@ const StatisticalAnalysis = () => {
                 <View style={ds.legendContainerRow}>
                     {modalityData.map((item: any, idx: number) => (
                         <View key={idx} style={ds.legendItem}>
-                            <View style={[ds.legendDot, { backgroundColor: item.color }]} />
+                            <View style={[ds.legendSquare, { backgroundColor: item.color }]} />
                             <Text style={ds.legendText}>{item.text}</Text>
                         </View>
                     ))}
@@ -412,7 +413,7 @@ const StatisticalAnalysis = () => {
                     <View style={ds.legendContainerRow}>
                         {genderData.map((item: any, idx: number) => (
                             <View key={idx} style={ds.legendItem}>
-                                <View style={[ds.legendDot, { backgroundColor: item.color }]} />
+                                <View style={[ds.legendSquare, { backgroundColor: item.color }]} />
                                 <Text style={ds.legendText}>{item.text}</Text>
                             </View>
                         ))}
@@ -480,7 +481,7 @@ const StatisticalAnalysis = () => {
                 </View>
                 <View style={ds.legendContainer}>
                     <View style={ds.legendItem}>
-                        <View style={[ds.legendDot, { backgroundColor: '#3B82F6' }]} />
+                        <View style={[ds.legendSquare, { backgroundColor: '#3B82F6' }]} />
                         <Text style={ds.legendText}>{t('aiAssistant.statisticalAnalysis.charts.pending')}</Text>
                     </View>
                 </View>
@@ -740,14 +741,14 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
         alignItems: 'center',
         marginHorizontal: 10,
     },
-    legendDot: {
-        width: 10,
-        height: 10,
-        borderRadius: 5,
-        marginRight: 6,
+    legendSquare: {
+        width: 14,
+        height: 14,
+        borderRadius: 2,
+        marginRight: 8,
     },
     legendText: {
-        fontSize: 12,
+        fontSize: 16,
         color: tc.textSecondary,
         fontWeight: '500',
     },

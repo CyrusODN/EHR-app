@@ -13,8 +13,8 @@ import LinearGradient from 'react-native-linear-gradient';
 import PsychiatricScalesModal from './modals/PsychiatricScalesModal';
 import ScaleQuestionnaireModal from './modals/ScaleQuestionnaireModal';
 import VisitHistoryModal from './modals/VisitHistoryModal';
-import { GetPreviousVisits, GetPatientVisits } from '../../Services/Visit.Service';
-import { useEffect } from 'react';
+import { GetPreviousVisits, UpdateVisit, GetVisitDetails } from '../../Services/Visit.Service';
+import { useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useThemeColors } from '../../hooks/useThemeColors';
 
@@ -41,6 +41,83 @@ const VisitInterview = ({ onNext, onBack, visitId, patientId, visitData, onUpdat
     const [totalVisits, setTotalVisits] = useState(0);
     const [loading, setLoading] = useState(false);
     const [completedScales, setCompletedScales] = useState<Record<string, number>>(visitData?.interview?.psychiatricScales || {});
+    const debounceTimeoutRef = useRef<any>(null);
+    const pendingUpdatesRef = useRef<any>({});
+
+    const handleSync = useCallback(async () => {
+        if (!visitId) return;
+
+        const updates = { ...pendingUpdatesRef.current };
+        pendingUpdatesRef.current = {}; // Clear for next cycle
+
+        // Construct payload similar to user's example
+        const payload = {
+            ...visitData,
+            ...updates,
+            visitId: visitId,
+            id: visitId,
+            _id: visitId
+        };
+
+        // Handle nested merges for interview fields if they were in the updates
+        if (updates.interview) {
+            payload.interview = {
+                ...(visitData?.interview || {}),
+                ...updates.interview
+            };
+            if (updates.interview.psychiatricScales) {
+                payload.interview.psychiatricScales = {
+                    ...(visitData?.interview?.psychiatricScales || {}),
+                    ...updates.interview.psychiatricScales
+                };
+            }
+        }
+
+        try {
+            await UpdateVisit(payload);
+            
+            // Refresh history list
+            const prevResult = await GetPreviousVisits(visitId);
+            const historyData = prevResult?.data || prevResult;
+            if (historyData) {
+                setVisits(historyData.previousVisits || []);
+                setTotalVisits(historyData.total || historyData.previousVisits?.length || 0);
+            }
+
+            // Refresh full visit details from backend to ensure state consistency
+            // and notify parent so all components stay in sync
+            const detailsResult = await GetVisitDetails(visitId);
+            const fullData = detailsResult?.data || detailsResult;
+            if (fullData && onUpdate) {
+                onUpdate(fullData);
+            }
+        } catch (error) {
+            console.error("Sync error:", error);
+        }
+    }, [visitId, visitData, onUpdate]);
+
+    const debouncedSync = (updatedFields: any) => {
+        // Accumulate updates in the ref to avoid losing data between fields
+        const accumulate = (target: any, source: any) => {
+            Object.keys(source).forEach(key => {
+                if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+                    target[key] = target[key] || {};
+                    accumulate(target[key], source[key]);
+                } else {
+                    target[key] = source[key];
+                }
+            });
+        };
+        
+        accumulate(pendingUpdatesRef.current, updatedFields);
+
+        if (debounceTimeoutRef.current) {
+            clearTimeout(debounceTimeoutRef.current);
+        }
+        debounceTimeoutRef.current = setTimeout(() => {
+            handleSync();
+        }, 700);
+    };
 
     // Update state if visitData changes
     useEffect(() => {
@@ -114,9 +191,7 @@ const VisitInterview = ({ onNext, onBack, visitId, patientId, visitData, onUpdat
                         value={mainSymptoms}
                         onChangeText={(text) => {
                             setMainSymptoms(text);
-                            if (onUpdate) {
-                                onUpdate({ interview: { mainSymptoms: text } });
-                            }
+                            debouncedSync({ interview: { mainSymptoms: text } });
                         }}
                     />
                 </View>
@@ -161,9 +236,7 @@ const VisitInterview = ({ onNext, onBack, visitId, patientId, visitData, onUpdat
                         value={additionalNotes}
                         onChangeText={(text) => {
                             setAdditionalNotes(text);
-                            if (onUpdate) {
-                                onUpdate({ notes: text });
-                            }
+                            debouncedSync({ notes: text });
                         }}
                     />
                 </View>
@@ -202,6 +275,25 @@ const VisitInterview = ({ onNext, onBack, visitId, patientId, visitData, onUpdat
                     visible={showQuestionnaire}
                     onClose={() => setShowQuestionnaire(false)}
                     scaleId={selectedScale}
+                    onFinish={(score) => {
+                        const newScales = { ...completedScales, [selectedScale.toLowerCase()]: score };
+                        setCompletedScales(newScales);
+                        
+                        // Use debouncedSync logic (accumulate updates) for consistency
+                        const updates = { interview: { psychiatricScales: newScales } };
+                        const accumulate = (target: any, source: any) => {
+                            Object.keys(source).forEach(key => {
+                                if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+                                    target[key] = target[key] || {};
+                                    accumulate(target[key], source[key]);
+                                } else {
+                                    target[key] = source[key];
+                                }
+                            });
+                        };
+                        accumulate(pendingUpdatesRef.current, updates);
+                        handleSync(); // But trigger sync immediately
+                    }}
                 />
 
                 <VisitHistoryModal
@@ -333,6 +425,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) =>
             justifyContent: 'space-between',
             marginTop: 16,
             paddingTop: 10,
+            gap: wp(2),
         },
         backButton: {
             flexDirection: 'row',

@@ -8,6 +8,7 @@ export const en = {
         search: 'Search',
         cancel: 'Cancel',
         save: 'Save',
+        confirm: 'Confirm',
         delete: 'Delete',
         edit: 'Edit',
         back: 'Back',
@@ -38,7 +39,9 @@ export const en = {
         dateLocale: 'en-GB',
         dateTimeLocale: 'en-GB',
         datePlaceholder: 'dd/mm/yyyy',
-        na: 'N/A'
+        na: 'N/A',
+        logout: 'Logout',
+        monthsShort: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
     },
     loading: {
         psychiatricModule: 'Psychiatric Module',
@@ -852,10 +855,21 @@ export const en = {
         summary: "SUMMARY",
         loadingLogs: "Loading logs...",
         noLogsFound: "No logs found",
-        showingLogs: "Showing {{filtered}} of {{total}} logs",
+        showingLogs: "Showing {{count}} of {{total}} logs",
         na: "N/A",
-        viewedMedicalInfo: "Viewed Medical Information",
-        updated: "Updated {{field}}"
+        patientActivityLogs: "Patient Activity Logs",
+        searchLogs: "Search logs",
+        viewedMedicalInformation: "Viewed Medical Information",
+        updatedMedicalData: "Updated medical data",
+        updated: "Updated {{field}}",
+        activityTypes: {
+            medical_data_updated: "Medical Data Updated",
+            medical_record_accessed: "Medical Record Accessed",
+            profile_viewed: "Profile Viewed",
+            patient_record_updated: "Patient Record Updated",
+            personal_data_updated: "Personal Data Updated",
+            visit_scheduled: "Visit Scheduled"
+        }
     },
 
     personalData: {
@@ -1279,6 +1293,7 @@ export const en = {
         filters: "Filters",
         dateOfBirth: "Date of Birth",
         gender: "Gender",
+        selectDate: "Select date",
         hasPesel: "Has PESEL",
         hasDeclaration: "Has Declaration",
         active: "Active",
@@ -5189,11 +5204,14 @@ export const en = {
                 branch: "Branch:",
                 contractor_type: "Contractor Type:",
                 login: "Login:",
-                password: "Password:"
+                password: "Password:",
+                personnel_code: "Personnel Code:"
             },
             placeholders: {
                 personnel_code: "Enter Personnel Code",
-                login: "Enter Login"
+                login: "Enter Login",
+                enter_personnel_code: "Enter personnel code",
+                enter_login: "Enter login"
             },
             password_not_changed: "(not changed)",
             buttons: {

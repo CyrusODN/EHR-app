@@ -145,7 +145,7 @@ const ActionModal = ({ visible, onClose, onView, onStart, onAddNote }: {
                         activeOpacity={0.85}
                     >
                         <LinearGradient
-                            colors={[tc.accentGradientStart, tc.accentGradientEnd]}
+                            colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 0 }}
                             style={ds.startVisitGradient}

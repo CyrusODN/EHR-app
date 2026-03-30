@@ -1381,17 +1381,19 @@ export default PersonalData;
             overflow: 'hidden',
             borderWidth: 1,
             borderColor: tc.borderColor,
-            ...Platform.select({
-                ios: { shadowColor: tc.shadow, shadowOffset: { width: 0, height: 2 }, shadowOpacity: isDark ? 0 : 0.05, shadowRadius: 10 },
-                android: { elevation: isDark ? 0 : 2 },
-            }),
+            // Elevation/Shadow for premium feel
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: isDark ? 0.3 : 0.05,
+            shadowRadius: 4,
+            elevation: 3,
+            
         },
         accordionHeader: {
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: 16,
-            backgroundColor: tc.cardBackground,
         },
         expandedHeader: {
             borderBottomWidth: 1,
@@ -1403,9 +1405,9 @@ export default PersonalData;
             flex: 1,
         },
         iconContainer: {
-            width: 36,
-            height: 36,
-            borderRadius: 10,
+            width: 32,
+            height: 32,
+            borderRadius: 8,
             backgroundColor: tc.accentLight,
             justifyContent: 'center',
             alignItems: 'center',
@@ -1419,7 +1421,7 @@ export default PersonalData;
         },
         accordionContent: {
             padding: 16,
-            backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : tc.cardBackground,
+            backgroundColor: tc.cardBackground,
         },
         inputGroup: {
             marginBottom: 16,

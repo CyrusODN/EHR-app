@@ -60,6 +60,7 @@ const Pathfinder = () => {
     const [projects, setProjects] = useState<ResearchProject[]>([]);
     const [loadingSessions, setLoadingSessions] = useState(false);
     const slideAnim = useRef(new Animated.Value(-wp(72))).current;
+    const backdropAnim = useRef(new Animated.Value(0)).current;
 
     // useEffect(() => {
     //     fetchSessions();
@@ -89,18 +90,32 @@ const Pathfinder = () => {
 
     const togglePanel = () => {
         if (showPanel) {
-            Animated.timing(slideAnim, {
-                toValue: -wp(72),
-                duration: 250,
-                useNativeDriver: true,
-            }).start(() => setShowPanel(false));
+            Animated.parallel([
+                Animated.timing(slideAnim, {
+                    toValue: -wp(72),
+                    duration: 250,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(backdropAnim, {
+                    toValue: 0,
+                    duration: 250,
+                    useNativeDriver: true,
+                })
+            ]).start(() => setShowPanel(false));
         } else {
             setShowPanel(true);
-            Animated.timing(slideAnim, {
-                toValue: 0,
-                duration: 250,
-                useNativeDriver: true,
-            }).start();
+            Animated.parallel([
+                Animated.timing(slideAnim, {
+                    toValue: 0,
+                    duration: 250,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(backdropAnim, {
+                    toValue: 1,
+                    duration: 250,
+                    useNativeDriver: true,
+                })
+            ]).start();
         }
     };
 
@@ -320,91 +335,86 @@ const Pathfinder = () => {
                 <Gap height={hp(3)} />
             </ScrollView>
 
-            {/* Side Panel Overlay */}
-            {showPanel && (
+            {/* Side Panel Overlay & Panel */}
+            <Animated.View 
+                pointerEvents={showPanel ? 'auto' : 'none'}
+                style={[ds.overlay, { opacity: backdropAnim }]}
+            >
                 <TouchableOpacity
-                    style={ds.overlay}
+                    style={{ flex: 1 }}
                     activeOpacity={1}
                     onPress={togglePanel}
-                >
-                    <Animated.View
-                        style={[ds.sidePanel, { transform: [{ translateX: slideAnim }] }]}
-                    >
-                        <TouchableOpacity activeOpacity={1}>
-                            {/* Panel Header */}
-                            <LinearGradient
-                                colors={[tc.accentGradientStart || '#4A90B9', tc.accentGradientEnd || '#68BFB3']}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 0 }}
-                                style={ds.panelHeader}
-                            >
-                                <View style={ds.panelHeaderLeft}>
-                                    <View style={ds.panelIconCircle}>
-                                        <MaterialCommunityIcons name="file-document-outline" size={20} color="#FFFFFF" />
-                                    </View>
-                                    <Text style={ds.panelHeaderTitle}>{t('aiAssistant.pathfinder.researchProjects')}</Text>
-                                </View>
-                                <View style={ds.panelHeaderRight}>
-                                    <TouchableOpacity
-                                        style={ds.newProjectBtn}
-                                        onPress={() => { togglePanel(); }}
-                                    >
-                                        <Feather name="plus" size={14} color="#FFFFFF" />
-                                        <Text style={ds.newProjectBtnText}>{t('aiAssistant.pathfinder.newProject')}</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={togglePanel} style={ds.panelCloseBtn}>
-                                        <Feather name="chevron-left" size={20} color="#FFFFFF" />
-                                    </TouchableOpacity>
-                                </View>
-                            </LinearGradient>
+                />
+            </Animated.View>
 
-                            {/* Panel Content */}
-                            <ScrollView style={ds.panelContent}>
-                                {projects.length > 0 ? (
-                                    projects.map((project) => (
-                                        <TouchableOpacity key={project.id} style={ds.projectItem}>
-                                            <View style={ds.projectItemRow}>
-                                                <Feather name="file-text" size={14} color={tc.accent} />
-                                                <Text style={ds.projectItemTitle} numberOfLines={1}>
-                                                    {project.topic}
-                                                </Text>
-                                            </View>
-                                            <View style={ds.projectItemRow}>
-                                                <Feather name="clock" size={12} color={tc.textMuted} />
-                                                <Text style={ds.projectItemDate}>{project.date}</Text>
-                                                <Text style={ds.projectItemBadge}>{project.contentType}</Text>
-                                            </View>
-                                        </TouchableOpacity>
-                                    ))
-                                ) : (
-                                    <View style={ds.emptyState}>
-                                        <MaterialCommunityIcons name="file-document-outline" size={48} color={isDark ? tc.borderNormal : "#D1D5DB"} />
-                                        <Gap height={hp(1.5)} />
-                                        <Text style={ds.emptyStateTitle}>{t('aiAssistant.pathfinder.noProjectsYet')}</Text>
-                                        <Text style={ds.emptyStateDesc}>{t('aiAssistant.pathfinder.createFirstProject')}</Text>
+            <Animated.View
+                style={[ds.sidePanel, { transform: [{ translateX: slideAnim }] }]}
+            >
+                <TouchableOpacity activeOpacity={1} style={{ flex: 1 }}>
+                    {/* Panel Header */}
+                    <LinearGradient
+                        colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={ds.panelHeader}
+                    >
+                        <View style={ds.panelHeaderLeft}>
+                            <View style={ds.panelIconCircle}>
+                                <MaterialCommunityIcons name="file-document-outline" size={20} color="#FFFFFF" />
+                            </View>
+                            <Text style={ds.panelHeaderTitle}>{t('aiAssistant.pathfinder.researchProjects')}</Text>
+                        </View>
+                        <View style={ds.panelHeaderRight}>
+                            <TouchableOpacity
+                                style={ds.newProjectBtn}
+                                onPress={() => { togglePanel(); }}
+                            >
+                                <Feather name="plus" size={14} color="#FFFFFF" />
+                                <Text style={ds.newProjectBtnText}>{t('aiAssistant.pathfinder.newProject')}</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={togglePanel} style={ds.panelCloseBtn}>
+                                <Feather name="chevron-left" size={20} color="#FFFFFF" />
+                            </TouchableOpacity>
+                        </View>
+                    </LinearGradient>
+
+                    {/* Panel Content */}
+                    <ScrollView style={ds.panelContent}>
+                        {projects.length > 0 ? (
+                            projects.map((project) => (
+                                <TouchableOpacity key={project.id} style={ds.projectItem}>
+                                    <View style={ds.projectItemRow}>
+                                        <Feather name="file-text" size={14} color={tc.accent} />
+                                        <Text style={ds.projectItemTitle} numberOfLines={1}>
+                                            {project.topic}
+                                        </Text>
                                     </View>
-                                )}
-                            </ScrollView>
-                        </TouchableOpacity>
-                    </Animated.View>
+                                    <View style={ds.projectItemRow}>
+                                        <Feather name="clock" size={12} color={tc.textMuted} />
+                                        <Text style={ds.projectItemDate}>{project.date}</Text>
+                                        <Text style={ds.projectItemBadge}>{project.contentType}</Text>
+                                    </View>
+                                </TouchableOpacity>
+                            ))
+                        ) : (
+                            <View style={ds.emptyState}>
+                                <MaterialCommunityIcons name="file-document-outline" size={48} color={isDark ? tc.borderNormal : "#D1D5DB"} />
+                                <Gap height={hp(1.5)} />
+                                <Text style={ds.emptyStateTitle}>{t('aiAssistant.pathfinder.noProjectsYet')}</Text>
+                                <Text style={ds.emptyStateDesc}>{t('aiAssistant.pathfinder.createFirstProject')}</Text>
+                            </View>
+                        )}
+                    </ScrollView>
                 </TouchableOpacity>
-            )}
+            </Animated.View>
         </View>
     );
 };
 
 const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     outerWrapper: {
+        flex: 1,
         backgroundColor: tc.cardBackground,
-        margin: 15,
-        borderRadius: 12,
-        overflow: 'hidden',
-        shadowColor: tc.shadow,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: isDark ? 0.3 : 0.08,
-        shadowRadius: 4,
-        elevation: 3,
-        height: hp(68),
         borderWidth: isDark ? 1 : 0,
         borderColor: tc.borderSubtle,
     },
@@ -419,8 +429,8 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
         gap: 12,
     },
     menuBtn: {
-        width: 38,
-        height: 38,
+        width: wp(10),
+        height: hp(4.5),
         borderRadius: 10,
         backgroundColor: isDark ? 'rgba(74, 144, 185, 0.15)' : '#EBF5FF',
         justifyContent: 'center',
@@ -429,7 +439,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     headerTitle: {
         fontSize: 16,
         fontWeight: '700',
-        color: tc.accent,
+        color: tc.textPrimary,
     },
     headerSubtitle: {
         fontSize: 12,
@@ -602,7 +612,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
         backgroundColor: tc.cardBackground,
     },
     chipGradientWrapper: {
-        paddingHorizontal: wp(6),
+        width: wp(35),
         borderRadius: 20,
         height: hp(4),
         justifyContent: 'center',
@@ -648,7 +658,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        backgroundColor: 'rgba(0,0,0,0.6)',
         zIndex: 100,
         borderRadius: 12,
     },
@@ -658,24 +668,30 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
         left: 0,
         bottom: 0,
         width: wp(72),
-        backgroundColor: tc.cardBackground,
+        backgroundColor: tc.drawerBg,
         borderRightWidth: 1,
         borderRightColor: tc.borderSubtle,
         borderTopLeftRadius: 12,
         borderBottomLeftRadius: 12,
         zIndex: 101,
+        shadowColor: tc.shadow,
+        shadowOffset: { width: 4, height: 0 },
+        shadowOpacity: isDark ? 0.4 : 0.15,
+        shadowRadius: 10,
+        elevation: 10,
     },
     panelHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: 14,
         borderTopLeftRadius: 12,
+        height: hp(7)
     },
     panelHeaderLeft: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 10,
+        gap: wp(2),
+        marginLeft: wp(2)
     },
     panelIconCircle: {
         width: 36,
@@ -694,7 +710,8 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     panelHeaderRight: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 8,
+        gap: 6,
+        marginRight: wp(2)  
     },
     newProjectBtn: {
         flexDirection: 'row',

@@ -19,49 +19,51 @@ import { GetPatientMedicalRecord, UpdatePatientMedicalRecord } from '../../../Se
 import { uploadFileOnServer } from '../../../Services/Upload.Service';
 import userStore from '../../../store/user';
 import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../../hooks/useThemeColors';
+import { useMemo } from 'react';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const FormInput = ({ label, placeholder, required = false, isDropdown = false, multiline = false }: any) => (
-    <View style={styles.inputGroup}>
-        <View style={styles.labelRow}>
-            {required && <Text style={styles.requiredStar}>* </Text>}
-            <Text style={styles.inputLabel}>{label}</Text>
+const FormInput = ({ label, placeholder, required = false, isDropdown = false, multiline = false, ds, tc }: any) => (
+    <View style={ds.inputGroup}>
+        <View style={ds.labelRow}>
+            {required && <Text style={ds.requiredStar}>* </Text>}
+            <Text style={ds.inputLabel}>{label}</Text>
         </View>
-        <View style={[styles.inputWrapper, multiline && styles.textAreaWrapper]}>
+        <View style={[ds.inputWrapper, multiline && ds.textAreaWrapper]}>
             <TextInput 
-                style={[styles.textInput, multiline && styles.textArea]}
+                style={[ds.textInput, multiline && ds.textArea]}
                 placeholder={placeholder}
-                placeholderTextColor="#cbd5e1"
+                placeholderTextColor={tc.textMuted}
                 editable={!isDropdown}
                 multiline={multiline}
             />
-            {isDropdown && <Feather name="chevron-down" size={16} color="#cbd5e1" />}
+            {isDropdown && <Feather name="chevron-down" size={16} color={tc.textMuted} />}
         </View>
     </View>
 );
 
-const SubmitButton = ({ title, icon, color = ['#68BFB4', '#4DA1C0'], onPress, style, disabled = false, loading = false }: any) => (
+const SubmitButton = ({ title, icon, color, onPress, style, disabled = false, loading = false, ds, tc }: any) => (
     <TouchableOpacity 
-        style={[styles.submitButtonContainer, style, disabled && styles.disabledButton, loading && { opacity: 0.7 }]} 
+        style={[ds.submitButtonContainer, style, disabled && ds.disabledButton, loading && { opacity: 0.7 }]} 
         onPress={disabled || loading ? undefined : onPress}
         disabled={disabled || loading}
     >
         <LinearGradient
-            colors={disabled ? ['#B0B0B0', '#D3D3D3'] : color}
+            colors={disabled ? [tc.buttonDisabledBg || '#B0B0B0', tc.buttonDisabledBgAlt || '#D3D3D3'] : ['#4A90B9', '#5BA6B6', '#68BFB3']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            style={styles.gradientButton}
+            style={ds.gradientButton}
         >
-            <View style={styles.buttonContent}>
+            <View style={ds.buttonContent}>
                 {loading ? (
                     <ActivityIndicator size="small" color="#ffffff" />
                 ) : (
                     <>
                         {icon && <Feather name={icon} size={16} color="#ffffff" style={{ marginRight: 8 }} />}
-                        <Text style={[styles.submitButtonText, disabled && styles.disabledButtonText]}>{title}</Text>
+                        <Text style={[ds.submitButtonText, disabled && ds.disabledButtonText]}>{title}</Text>
                     </>
                 )}
             </View>
@@ -71,6 +73,9 @@ const SubmitButton = ({ title, icon, color = ['#68BFB4', '#4DA1C0'], onPress, st
 
 const Documents = ({ patientData, onAlert }: { patientData: any, onAlert: any }) => {
     const { t } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = useMemo(() => createDynamicStyles(tc, isDark), [tc, isDark]);
+    const commonProps = { ds, tc };
     const [docData, setDocData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [expanded, setExpanded] = useState(true);
@@ -227,8 +232,8 @@ const Documents = ({ patientData, onAlert }: { patientData: any, onAlert: any })
     if (loading) {
         return (
             <View style={{ flex: 1, paddingVertical: 40, alignItems: 'center', justifyContent: 'center' }}>
-                <ActivityIndicator size="large" color="#4A90B9" />
-                <Text style={{ marginTop: 15, color: '#64748b' }}>{t('patientDocuments.fetchingDocuments')}</Text>
+                <ActivityIndicator size="large" color={tc.accent} />
+                <Text style={{ marginTop: 15, color: tc.textSecondary }}>{t('patientDocuments.fetchingDocuments')}</Text>
             </View>
         );
     }
@@ -240,80 +245,80 @@ const Documents = ({ patientData, onAlert }: { patientData: any, onAlert: any })
             animationType="fade" 
             onRequestClose={() => setShowUploadModal(false)}
         >
-            <View style={styles.modalOverlay}>
-                <View style={styles.modalContent}>
-                    <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>{t('patientDocuments.uploadTitle')}</Text>
+            <View style={ds.modalOverlay}>
+                <View style={ds.modalContent}>
+                    <View style={ds.modalHeader}>
+                        <Text style={ds.modalTitle}>{t('patientDocuments.uploadTitle')}</Text>
                         <TouchableOpacity onPress={() => setShowUploadModal(false)}>
-                            <Feather name="x" size={20} color="#94a3b8" />
+                            <Feather name="x" size={20} color={tc.textMuted} />
                         </TouchableOpacity>
                     </View>
                     
-                    <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
-                        <View style={styles.inputGroup}>
-                            <View style={styles.labelRow}>
-                                <Text style={styles.requiredStar}>* </Text>
-                                <Text style={styles.inputLabel}>{t('patientDocuments.documentCategory')}</Text>
+                    <ScrollView style={ds.modalScroll} showsVerticalScrollIndicator={false}>
+                        <View style={ds.inputGroup}>
+                            <View style={ds.labelRow}>
+                                <Text style={ds.requiredStar}>* </Text>
+                                <Text style={ds.inputLabel}>{t('patientDocuments.documentCategory')}</Text>
                             </View>
                             <TouchableOpacity 
-                                style={[styles.inputWrapper, showCategoryDropdown && styles.dropdownActive]} 
+                                style={[ds.inputWrapper, showCategoryDropdown && ds.dropdownActive]} 
                                 onPress={() => setShowCategoryDropdown(!showCategoryDropdown)}
                             >
-                                <Text style={[styles.textInput, !selectedCategory && { color: '#cbd5e1' }]}>
+                                <Text style={[ds.textInput, !selectedCategory && { color: tc.textMuted }]}>
                                     {selectedCategory || t('patientDocuments.selectCategory')}
                                 </Text>
-                                <Feather name="chevron-down" size={16} color="#cbd5e1" />
+                                <Feather name="chevron-down" size={16} color={tc.textMuted} />
                             </TouchableOpacity>
                             
                             {showCategoryDropdown && (
-                                <View style={styles.dropdownOptionsContainer}>
+                                <View style={ds.dropdownOptionsContainer}>
                                     <TouchableOpacity 
-                                        style={styles.dropdownOption} 
+                                        style={ds.dropdownOption} 
                                         onPress={() => {
                                             setSelectedCategory('Laboratory Results');
                                             setShowCategoryDropdown(false);
                                         }}
                                     >
-                                        <Text style={styles.dropdownOptionText}>{t('patientDocuments.categoryLabResults')}</Text>
+                                        <Text style={ds.dropdownOptionText}>{t('patientDocuments.categoryLabResults')}</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity 
-                                        style={styles.dropdownOption}
+                                        style={ds.dropdownOption}
                                         onPress={() => {
                                             setSelectedCategory('Informed Consent');
                                             setShowCategoryDropdown(false);
                                         }}
                                     >
-                                        <Text style={styles.dropdownOptionText}>{t('patientDocuments.categoryInformedConsent')}</Text>
+                                        <Text style={ds.dropdownOptionText}>{t('patientDocuments.categoryInformedConsent')}</Text>
                                     </TouchableOpacity>
                                 </View>
                             )}
                         </View>
                         
-                        <Text style={styles.inputLabel}>{t('patientDocuments.documentFile')}</Text>
-                        <TouchableOpacity style={styles.uploadArea} onPress={handlePickDocument}>
-                            <View style={styles.uploadIconContainer}>
-                                <Feather name="inbox" size={32} color="#58a6b8" />
+                        <Text style={ds.inputLabel}>{t('patientDocuments.documentFile')}</Text>
+                        <TouchableOpacity style={ds.uploadArea} onPress={handlePickDocument}>
+                            <View style={ds.uploadIconContainer}>
+                                <Feather name="inbox" size={32} color={tc.accent} />
                             </View>
-                            <Text style={styles.uploadMainText}>{t('patientDocuments.uploadAreaText')}</Text>
-                            <Text style={styles.uploadSubText}>
+                            <Text style={ds.uploadMainText}>{t('patientDocuments.uploadAreaText')}</Text>
+                            <Text style={ds.uploadSubText}>
                                 {t('patientDocuments.uploadAreaSubText')}
                             </Text>
                         </TouchableOpacity>
 
                         {selectedFile && (
-                            <View style={styles.selectedFilePreview}>
-                                <Feather name="paperclip" size={16} color="#475569" />
-                                <Text style={styles.selectedFileName}>{selectedFile.name}</Text>
+                            <View style={ds.selectedFilePreview}>
+                                <Feather name="paperclip" size={16} color={tc.textSecondary} />
+                                <Text style={ds.selectedFileName}>{selectedFile.name}</Text>
                             </View>
                         )}
 
-                        <View style={styles.inputGroup}>
-                            <Text style={styles.inputLabel}>{t('patientDocuments.description')}</Text>
-                            <View style={[styles.inputWrapper, styles.textAreaWrapper]}>
+                        <View style={ds.inputGroup}>
+                            <Text style={ds.inputLabel}>{t('patientDocuments.description')}</Text>
+                            <View style={[ds.inputWrapper, ds.textAreaWrapper]}>
                                 <TextInput 
-                                    style={[styles.textInput, styles.textArea]}
+                                    style={[ds.textInput, ds.textArea]}
                                     placeholder={t('patientDocuments.descriptionPlaceholder')}
-                                    placeholderTextColor="#cbd5e1"
+                                    placeholderTextColor={tc.textMuted}
                                     multiline
                                     value={description}
                                     onChangeText={setDescription}
@@ -322,36 +327,36 @@ const Documents = ({ patientData, onAlert }: { patientData: any, onAlert: any })
                         </View>
                         
                         <TouchableOpacity 
-                            style={styles.dashedAddButton} 
+                            style={ds.dashedAddButton} 
                             onPress={addToQueue}
                         >
-                            <Feather name="plus" size={16} color="#94a3b8" />
-                            <Text style={styles.dashedAddText}>{t('patientDocuments.addDocument')}</Text>
+                            <Feather name="plus" size={16} color={tc.textMuted} />
+                            <Text style={ds.dashedAddText}>{t('patientDocuments.addDocument')}</Text>
                         </TouchableOpacity>
 
                         {queuedDocs.length > 0 && (
-                            <View style={styles.queueContainer}>
-                                <View style={styles.queueHeaderRow}>
-                                    <View style={styles.queueHeaderLine} />
-                                    <Text style={styles.queueHeaderText}>{t('patientDocuments.documentsToUpload')}</Text>
-                                    <View style={styles.queueHeaderLine} />
+                            <View style={ds.queueContainer}>
+                                <View style={ds.queueHeaderRow}>
+                                    <View style={ds.queueHeaderLine} />
+                                    <Text style={ds.queueHeaderText}>{t('patientDocuments.documentsToUpload')}</Text>
+                                    <View style={ds.queueHeaderLine} />
                                 </View>
                                 {queuedDocs.map((item) => (
-                                    <View key={item.id} style={styles.queuedItem}>
-                                        <View style={styles.queuedItemInfo}>
-                                            <Text style={styles.queuedItemName}>{item.file.name}</Text>
-                                            <Text style={styles.queuedItemCategory}>{item.category}</Text>
-                                            <Text style={styles.queuedItemDescription}>{item.description}</Text>
+                                    <View key={item.id} style={ds.queuedItem}>
+                                        <View style={ds.queuedItemInfo}>
+                                            <Text style={ds.queuedItemName}>{item.file.name}</Text>
+                                            <Text style={ds.queuedItemCategory}>{item.category}</Text>
+                                            <Text style={ds.queuedItemDescription}>{item.description}</Text>
                                         </View>
-                                        <View style={styles.queuedItemActions}>
-                                            <TouchableOpacity style={styles.queuedActionBtn}>
-                                                <Feather name="edit-2" size={16} color="#475569" />
+                                        <View style={ds.queuedItemActions}>
+                                            <TouchableOpacity style={ds.queuedActionBtn}>
+                                                <Feather name="edit-2" size={16} color={tc.textSecondary} />
                                             </TouchableOpacity>
                                             <TouchableOpacity 
-                                                style={styles.queuedActionBtn}
+                                                style={ds.queuedActionBtn}
                                                 onPress={() => removeFromQueue(item.id)}
                                             >
-                                                <Feather name="trash-2" size={16} color="#ef4444" />
+                                                <Feather name="trash-2" size={16} color={tc.accentRed || '#ef4444'} />
                                             </TouchableOpacity>
                                         </View>
                                     </View>
@@ -360,17 +365,18 @@ const Documents = ({ patientData, onAlert }: { patientData: any, onAlert: any })
                         )}
                     </ScrollView>
 
-                    <View style={styles.modalFooter}>
+                    <View style={ds.modalFooter}>
                         <TouchableOpacity 
-                            style={styles.cancelOutlineButton} 
+                            style={ds.cancelOutlineButton} 
                             onPress={() => {
                                 setShowUploadModal(false);
                                 setQueuedDocs([]);
                             }}
                         >
-                            <Text style={styles.cancelOutlineText}>{t('patientDocuments.cancel')}</Text>
+                            <Text style={ds.cancelOutlineText}>{t('patientDocuments.cancel')}</Text>
                         </TouchableOpacity>
                         <SubmitButton 
+                            {...commonProps}
                             title={t('patientDocuments.uploadDocuments')} 
                             disabled={queuedDocs.length === 0} 
                             onPress={handleUploadAll}
@@ -384,40 +390,41 @@ const Documents = ({ patientData, onAlert }: { patientData: any, onAlert: any })
     );
 
     return (
-        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        <ScrollView style={ds.container} showsVerticalScrollIndicator={false}>
             {renderUploadModal()}
             
-            <View style={styles.card}>
+            <View style={ds.card}>
                 <TouchableOpacity 
-                    style={[styles.header, expanded && styles.expandedHeader]} 
+                    style={[ds.header, expanded && ds.expandedHeader]} 
                     onPress={toggleExpand}
                     activeOpacity={0.7}
                 >
-                    <View style={styles.headerLeft}>
-                        <Feather name="file-text" size={18} color="#58a6b8" style={styles.icon} />
-                        <Text style={styles.title}>{t('patientDocuments.title')}</Text>
+                    <View style={ds.headerLeft}>
+                        <Feather name="file-text" size={18} color={tc.accent} style={ds.icon} />
+                        <Text style={ds.title}>{t('patientDocuments.title')}</Text>
                     </View>
-                    <Feather name={expanded ? "chevron-up" : "chevron-down"} size={20} color="#94a3b8" />
+                    <Feather name={expanded ? "chevron-up" : "chevron-down"} size={20} color={tc.textMuted} />
                 </TouchableOpacity>
 
                 {expanded && (
-                    <View style={styles.content}>
-                        <View style={styles.searchRow}>
-                            <View style={styles.searchBar}>
-                                <Feather name="search" size={18} color="#94a3b8" />
+                    <View style={ds.content}>
+                        <View style={ds.searchRow}>
+                            <View style={ds.searchBar}>
+                                <Feather name="search" size={18} color={tc.textMuted} />
                                 <TextInput 
-                                    style={styles.searchInput}
+                                    style={ds.searchInput}
                                     placeholder={t('patientDocuments.searchPlaceholder')}
+                                    placeholderTextColor={tc.textMuted}
                                     value={searchText}
                                     onChangeText={setSearchText}
-                                    placeholderTextColor="#94a3b8"
                                 />
                             </View>
                             <SubmitButton 
+                                {...commonProps}
                                 title={t('patientDocuments.newDocument')} 
                                 icon="plus" 
                                 onPress={() => setShowUploadModal(true)}
-                                style={styles.newDocBtn}
+                                style={ds.newDocBtn}
                             />
                         </View>
 
@@ -429,36 +436,36 @@ const Documents = ({ patientData, onAlert }: { patientData: any, onAlert: any })
 
                             return filteredDocs.length > 0 ? (
                                 filteredDocs.map((doc: any, index: number) => (
-                                    <View key={index} style={styles.docItem}>
-                                        <View style={styles.docItemTop}>
-                                            <View style={styles.docIconCircle}>
-                                                <Feather name="file-text" size={18} color="#58a6b8" />
+                                    <View key={index} style={ds.docItem}>
+                                        <View style={ds.docItemTop}>
+                                            <View style={ds.docIconCircle}>
+                                                <Feather name="file-text" size={18} color={tc.accent} />
                                             </View>
                                             <View style={{ flex: 1, marginLeft: 12 }}>
-                                                <Text style={styles.docName}>{doc.title || doc.name || doc.fileName || t('patientDocuments.untitledDocument')}</Text>
-                                                <View style={styles.docSubMeta}>
-                                                    <View style={styles.metaItem}>
-                                                        <Feather name="calendar" size={12} color="#94a3b8" />
-                                                        <Text style={styles.docMetaText}>
+                                                <Text style={ds.docName}>{doc.title || doc.name || doc.fileName || t('patientDocuments.untitledDocument')}</Text>
+                                                <View style={ds.docSubMeta}>
+                                                    <View style={ds.metaItem}>
+                                                        <Feather name="calendar" size={12} color={tc.textMuted} />
+                                                        <Text style={ds.docMetaText}>
                                                             {doc.date ? new Date(doc.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : t('patientDocuments.noDate')}
                                                         </Text>
                                                     </View>
-                                                    <Text style={styles.docMetaText}>  {t('patientDocuments.author')} {doc.author || t('patientDocuments.system')}</Text>
+                                                    <Text style={ds.docMetaText}>  {t('patientDocuments.author')} {doc.author || t('patientDocuments.system')}</Text>
                                                 </View>
                                             </View>
-                                            <TouchableOpacity style={styles.viewBtn}>
-                                                <Feather name="eye" size={18} color="#58a6b8" />
+                                            <TouchableOpacity style={ds.viewBtn}>
+                                                <Feather name="eye" size={18} color={tc.accent} />
                                             </TouchableOpacity>
                                         </View>
                                         
-                                        <View style={styles.docItemBottom}>
-                                            <Text style={styles.docDescription} numberOfLines={2}>
+                                        <View style={ds.docItemBottom}>
+                                            <Text style={ds.docDescription} numberOfLines={2}>
                                                 {doc.description || t('patientDocuments.noDescription')}
                                             </Text>
-                                            <View style={styles.tagContainer}>
+                                            <View style={ds.tagContainer}>
                                                 {((doc.tags || [doc.category]) || ['General']).map((tag: string, tid: number) => (
-                                                    <View key={tid} style={styles.tagPill}>
-                                                        <Text style={styles.tagText}>{tag}</Text>
+                                                    <View key={tid} style={ds.tagPill}>
+                                                        <Text style={ds.tagText}>{tag}</Text>
                                                     </View>
                                                 ))}
                                             </View>
@@ -466,8 +473,8 @@ const Documents = ({ patientData, onAlert }: { patientData: any, onAlert: any })
                                     </View>
                                 ))
                             ) : (
-                                <View style={styles.emptyContainer}>
-                                    <Text style={styles.emptyText}>
+                                <View style={ds.emptyContainer}>
+                                    <Text style={ds.emptyText}>
                                         {searchText ? t('patientDocuments.noSearchMatch') : t('patientDocuments.noDocuments')}
                                     </Text>
                                 </View>
@@ -480,16 +487,18 @@ const Documents = ({ patientData, onAlert }: { patientData: any, onAlert: any })
     );
 };
 
-const styles = StyleSheet.create({
+export default Documents;
+
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     container: {
         paddingHorizontal: 16,
     },
     card: {
-        backgroundColor: '#ffffff',
+        backgroundColor: tc.cardBackground,
         borderRadius: 12,
         marginBottom: 16,
         borderWidth: 1,
-        borderColor: '#f1f5f9',
+        borderColor: tc.borderColor,
         overflow: 'hidden',
     },
     header: {
@@ -500,7 +509,7 @@ const styles = StyleSheet.create({
     },
     expandedHeader: {
         borderBottomWidth: 1,
-        borderBottomColor: '#f1f5f9',
+        borderBottomColor: tc.borderColor,
     },
     headerLeft: {
         flexDirection: 'row',
@@ -512,7 +521,7 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 13,
         fontWeight: '700',
-        color: '#1e293b',
+        color: tc.textPrimary,
         letterSpacing: 0.5,
     },
     content: {
@@ -528,9 +537,9 @@ const styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#ffffff',
+        backgroundColor: tc.inputBackground,
         borderWidth: 1,
-        borderColor: '#e2e8f0',
+        borderColor: tc.borderColor,
         borderRadius: 8,
         paddingHorizontal: 12,
         height: 44,
@@ -539,7 +548,7 @@ const styles = StyleSheet.create({
         flex: 1,
         marginLeft: 8,
         fontSize: 14,
-        color: '#1e293b',
+        color: tc.textPrimary,
         padding: 0,
     },
     newDocBtn: {
@@ -548,30 +557,32 @@ const styles = StyleSheet.create({
         height: 44,
     },
     emptyContainer: {
-        backgroundColor: '#f8fafc',
+        backgroundColor: tc.cardBackgroundAlt || (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc'),
         borderRadius: 8,
         padding: 16,
         alignItems: 'flex-start',
     },
     emptyText: {
         fontSize: 13,
-        color: '#64748b',
+        color: tc.textMuted,
         fontWeight: '500',
     },
     // Modal Styles
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        backgroundColor: 'rgba(0,0,0,0.6)',
         justifyContent: 'center',
         alignItems: 'center',
         padding: 20
     },
     modalContent: {
-        backgroundColor: '#ffffff',
+        backgroundColor: tc.modalBg,
         borderRadius: 12,
         padding: 24,
         width: '95%',
         maxHeight: '90%',
+        borderWidth: isDark ? 1 : 0,
+        borderColor: tc.borderColor,
     },
     modalHeader: {
         flexDirection: 'row',
@@ -582,7 +593,7 @@ const styles = StyleSheet.create({
     modalTitle: {
         fontSize: 18,
         fontWeight: '700',
-        color: '#1e293b'
+        color: tc.textPrimary
     },
     modalScroll: {
         marginBottom: 16,
@@ -596,12 +607,12 @@ const styles = StyleSheet.create({
         marginBottom: 8
     },
     requiredStar: {
-        color: '#ef4444',
+        color: tc.accentRed || '#ef4444',
         fontSize: 14
     },
     inputLabel: {
         fontSize: 13,
-        color: '#1e293b',
+        color: tc.textPrimary,
         fontWeight: '600',
         marginBottom: 8
     },
@@ -609,15 +620,16 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#e2e8f0',
+        borderColor: tc.borderColor,
         borderRadius: 8,
         paddingHorizontal: 12,
-        height: 44
+        height: 44,
+        backgroundColor: tc.inputBackground,
     },
     textInput: {
         flex: 1,
         fontSize: 14,
-        color: '#1e293b',
+        color: tc.textPrimary,
         padding: 0
     },
     textAreaWrapper: {
@@ -630,13 +642,13 @@ const styles = StyleSheet.create({
     },
     uploadArea: {
         borderWidth: 1,
-        borderColor: '#3b82f6',
+        borderColor: tc.accent,
         borderStyle: 'dashed',
         borderRadius: 12,
         padding: 30,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#f8fafc',
+        backgroundColor: tc.cardBackgroundAlt || (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc'),
         marginBottom: 20
     },
     uploadIconContainer: {
@@ -645,13 +657,13 @@ const styles = StyleSheet.create({
     uploadMainText: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#1e293b',
+        color: tc.textPrimary,
         textAlign: 'center',
         marginBottom: 4
     },
     uploadSubText: {
         fontSize: 12,
-        color: '#94a3b8',
+        color: tc.textMuted,
         textAlign: 'center'
     },
     dashedAddButton: {
@@ -659,7 +671,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
-        borderColor: '#e2e8f0',
+        borderColor: tc.borderColor,
         borderStyle: 'dashed',
         borderRadius: 8,
         paddingVertical: 10,
@@ -667,7 +679,7 @@ const styles = StyleSheet.create({
     },
     dashedAddText: {
         fontSize: 13,
-        color: '#94a3b8',
+        color: tc.textMuted,
         marginLeft: 6
     },
     modalFooter: {
@@ -676,23 +688,25 @@ const styles = StyleSheet.create({
         gap: 12,
         paddingTop: 16,
         borderTopWidth: 1,
-        borderTopColor: '#f1f5f9'
+        borderTopColor: tc.borderColor,
     },
     cancelOutlineButton: {
-        height: 38,
+        height: 40,
         paddingHorizontal: 20,
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: '#e2e8f0',
+        borderColor: tc.borderColor,
+        backgroundColor: isDark ? tc.buttonMutedBg : 'transparent',
         justifyContent: 'center',
         alignItems: 'center'
     },
     cancelOutlineText: {
-        color: '#1e293b',
+        color: tc.textSecondary,
         fontSize: 14,
         fontWeight: '600'
     },
     submitButtonContainer: {
+        height: 40,
         borderRadius: 8,
         overflow: 'hidden'
     },
@@ -718,12 +732,12 @@ const styles = StyleSheet.create({
         color: '#94a3b8'
     },
     dropdownActive: {
-        borderColor: '#3b82f6',
+        borderColor: tc.accent,
     },
     dropdownOptionsContainer: {
-        backgroundColor: '#ffffff',
+        backgroundColor: tc.cardBackground,
         borderWidth: 1,
-        borderColor: '#e2e8f0',
+        borderColor: tc.borderColor,
         borderRadius: 8,
         marginTop: 4,
         overflow: 'hidden',
@@ -737,17 +751,17 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         paddingHorizontal: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#f8fafc',
+        borderBottomColor: tc.borderColor,
     },
     dropdownOptionText: {
         fontSize: 14,
-        color: '#1e293b',
+        color: tc.textPrimary,
         fontWeight: '500',
     },
     docItem: {
-        backgroundColor: '#ffffff',
+        backgroundColor: tc.cardBackground,
         borderWidth: 1,
-        borderColor: '#f1f5f9',
+        borderColor: tc.borderColor,
         borderRadius: 12,
         padding: 12,
         marginBottom: 12,
@@ -756,18 +770,18 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: '#f0f9f8',
+        backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#f0f9f8',
         justifyContent: 'center',
         alignItems: 'center',
     },
     docName: {
         fontSize: 14,
         fontWeight: '700',
-        color: '#1e293b',
+        color: tc.textPrimary,
     },
     docMeta: {
         fontSize: 12,
-        color: '#94a3b8',
+        color: tc.textMuted,
         marginTop: 2,
     },
     downloadBtn: {
@@ -776,14 +790,16 @@ const styles = StyleSheet.create({
     selectedFilePreview: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#f1f5f9',
+        backgroundColor: tc.cardBackgroundAlt || (isDark ? 'rgba(100,116,139,0.1)' : '#f1f5f9'),
         padding: 10,
         borderRadius: 8,
         marginBottom: 20,
+        borderWidth: 1,
+        borderColor: tc.borderColor,
     },
     selectedFileName: {
         fontSize: 13,
-        color: '#475569',
+        color: tc.textPrimary,
         marginLeft: 8,
         fontWeight: '500',
     },
@@ -799,23 +815,23 @@ const styles = StyleSheet.create({
     queueHeaderLine: {
         flex: 1,
         height: 1,
-        backgroundColor: '#f1f5f9',
+        backgroundColor: tc.borderColor,
     },
     queueHeaderText: {
         fontSize: 13,
         fontWeight: '600',
-        color: '#64748b',
+        color: tc.textSecondary,
         marginHorizontal: 12,
     },
     queuedItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#ffffff',
+        backgroundColor: tc.cardBackground,
         padding: 12,
         borderRadius: 8,
         marginBottom: 10,
         borderWidth: 1,
-        borderColor: '#f1f5f9',
+        borderColor: tc.borderColor,
     },
     queuedItemInfo: {
         flex: 1,
@@ -823,16 +839,16 @@ const styles = StyleSheet.create({
     queuedItemName: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#1e293b',
+        color: tc.textPrimary,
     },
     queuedItemCategory: {
         fontSize: 12,
-        color: '#64748b',
+        color: tc.textSecondary,
         marginTop: 2,
     },
     queuedItemDescription: {
         fontSize: 12,
-        color: '#94a3b8',
+        color: tc.textMuted,
         marginTop: 4,
     },
     queuedItemActions: {
@@ -859,7 +875,7 @@ const styles = StyleSheet.create({
     },
     docMetaText: {
         fontSize: 12,
-        color: '#94a3b8',
+        color: tc.textMuted,
         marginLeft: 4,
     },
     viewBtn: {
@@ -867,18 +883,19 @@ const styles = StyleSheet.create({
         height: 36,
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: '#58a6b8',
+        borderColor: tc.accent,
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: isDark ? tc.buttonMutedBg : 'transparent',
     },
     docItemBottom: {
         borderTopWidth: 1,
-        borderTopColor: '#f8fafc',
+        borderTopColor: tc.borderColor,
         paddingTop: 12,
     },
     docDescription: {
         fontSize: 13,
-        color: '#64748b',
+        color: tc.textSecondary,
         lineHeight: 18,
         marginBottom: 12,
     },
@@ -888,16 +905,16 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     tagPill: {
-        backgroundColor: '#f1f5f9',
+        backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#f1f5f9',
         paddingHorizontal: 10,
         paddingVertical: 4,
         borderRadius: 12,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: tc.borderColor,
     },
     tagText: {
         fontSize: 11,
-        color: '#64748b',
+        color: tc.textSecondary,
         fontWeight: '500',
     }
 });
-
-export default Documents;

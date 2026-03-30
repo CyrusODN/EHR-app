@@ -636,6 +636,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) =>
             justifyContent: 'space-between',
             marginTop: 30,
             paddingTop: 10,
+            gap: wp(2),
         },
         backButton: {
             flexDirection: 'row',

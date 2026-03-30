@@ -356,7 +356,7 @@ const CreateVisitModal = ({ visible, onClose, onSaveSuccess }: { visible: boolea
                 <View style={ds.header}>
                     <View style={ds.headerLeft}>
                         <LinearGradient
-                            colors={['#4A90B9', '#68BFB3']}
+                            colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 0 }}
                             style={ds.headerIconGradient}
@@ -395,6 +395,7 @@ const CreateVisitModal = ({ visible, onClose, onSaveSuccess }: { visible: boolea
                                 onChange={(v: any) => setPatient(v)}
                                 search={true}
                                 icon={<Feather name="search" color={tc.accent} size={18} />}
+                                style={ds.dropdown}
                             />
                             <Gap height={12} />
                             <PrimaryButton
@@ -531,6 +532,7 @@ const CreateVisitModal = ({ visible, onClose, onSaveSuccess }: { visible: boolea
                                 value={doctor}
                                 onChange={(v: any) => setDoctor(v)}
                                 icon={<FontAwesome6 name="user-doctor" size={16} color={tc.accent} />}
+                                style={ds.dropdown}
                             />
                             <Gap height={14} />
                             <Text style={ds.label}>{t('dashboard.createVisit.officeLabel')}</Text>
@@ -540,6 +542,7 @@ const CreateVisitModal = ({ visible, onClose, onSaveSuccess }: { visible: boolea
                                 value={office}
                                 onChange={(v: any) => setOffice(v)}
                                 icon={<MaterialCommunityIcons name="office-building-outline" size={18} color={tc.accent} />}
+                                style={ds.dropdown}
                             />
                             <Gap height={14} />
                             <Text style={ds.label}>{t('dashboard.createVisit.typeLabel')}</Text>
@@ -549,6 +552,7 @@ const CreateVisitModal = ({ visible, onClose, onSaveSuccess }: { visible: boolea
                                 value={type}
                                 onChange={(v: any) => setType(v)}
                                 icon={<MaterialCommunityIcons name="tag-outline" size={18} color={tc.accent} />}
+                                style={ds.dropdown}
                             />
                             <Gap height={14} />
                             <Text style={ds.label}>{t('dashboard.createVisit.specializationLabel')}</Text>
@@ -558,6 +562,7 @@ const CreateVisitModal = ({ visible, onClose, onSaveSuccess }: { visible: boolea
                                 value={specialization}
                                 onChange={(v: any) => setSpecialization(v)}
                                 icon={<FontAwesome name="stethoscope" size={16} color={tc.accent} />}
+                                style={ds.dropdown}
                             />
                         </View>
 
@@ -721,6 +726,12 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
         fontWeight: '600',
         color: tc.textPrimary,
         marginBottom: 6,
+    },
+    dropdown: {
+        backgroundColor: tc.cardBackgroundAlt,
+        borderRadius: 12,
+        height: 50,
+        borderColor: tc.borderColor,
     },
     datePickerButton: {
         flexDirection: 'row',

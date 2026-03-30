@@ -13,6 +13,8 @@ import {
 import Feather from 'react-native-vector-icons/Feather';
 import { GetPatientVisits } from '../../../Services/Visit.Service';
 import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../../hooks/useThemeColors';
+import { useMemo } from 'react';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -22,11 +24,24 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
  
 
-const StatusBadge = ({ status, t }: { status: string, t: any }) => {
+const StatusBadge = ({ status, t, ds, tc }: { status: string, t: any, ds: any, tc: any }) => {
     const isScheduled = status?.toLowerCase() === 'scheduled';
+    const isCompleted = status?.toLowerCase() === 'completed' || status?.toLowerCase() === 'zakończona';
+    
+    let badgeStyle = ds.statusBadge;
+    let textStyle = ds.statusText;
+    
+    if (isScheduled) {
+        badgeStyle = [ds.statusBadge, ds.scheduledBadge];
+        textStyle = [ds.statusText, ds.scheduledText];
+    } else if (isCompleted) {
+        badgeStyle = [ds.statusBadge, ds.completedBadge];
+        textStyle = [ds.statusText, ds.completedText];
+    }
+
     return (
-        <View style={[styles.statusBadge, isScheduled && styles.scheduledBadge]}>
-            <Text style={[styles.statusText, isScheduled && styles.scheduledText]}>
+        <View style={badgeStyle}>
+            <Text style={textStyle}>
                 {t(`visitList.${status?.toLowerCase()?.replace(/\s+/g, '') || 'noData'}`, { defaultValue: status })}
             </Text>
         </View>
@@ -35,6 +50,10 @@ const StatusBadge = ({ status, t }: { status: string, t: any }) => {
 
 const VisitList = ({ patientData }: { patientData: any }) => {
     const { t, i18n } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = useMemo(() => createDynamicStyles(tc, isDark), [tc, isDark]);
+    const commonProps = { ds, tc };
+    
     const [visitsData, setVisitsData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [expanded, setExpanded] = useState(true);
@@ -90,59 +109,59 @@ const VisitList = ({ patientData }: { patientData: any }) => {
     if (loading) {
         return (
             <View style={{ flex: 1, paddingVertical: 40, alignItems: 'center', justifyContent: 'center' }}>
-                <ActivityIndicator size="large" color="#4A90B9" />
-                <Text style={{ marginTop: 15, color: '#64748b' }}>{t('visitList.fetchingVisitHistory')}</Text>
+                <ActivityIndicator size="large" color={tc.accent} />
+                <Text style={{ marginTop: 15, color: tc.textSecondary }}>{t('visitList.fetchingVisitHistory')}</Text>
             </View>
         );
     }
 
     return (
-        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-            <View style={styles.card}>
+        <ScrollView style={ds.container} showsVerticalScrollIndicator={false}>
+            <View style={ds.card}>
                 <TouchableOpacity 
-                    style={[styles.header, expanded && styles.expandedHeader]} 
+                    style={[ds.header, expanded && ds.expandedHeader]} 
                     onPress={toggleExpand}
                     activeOpacity={0.7}
                 >
-                    <View style={styles.headerLeft}>
-                        <Feather name="calendar" size={18} color="#58a6b8" style={styles.icon} />
-                        <Text style={styles.title}>{t('visitList.visitHistory')}</Text>
+                    <View style={ds.headerLeft}>
+                        <Feather name="calendar" size={18} color={tc.accent} style={ds.icon} />
+                        <Text style={ds.title}>{t('visitList.visitHistory')}</Text>
                     </View>
-                    <Feather name={expanded ? "chevron-up" : "chevron-down"} size={20} color="#94a3b8" />
+                    <Feather name={expanded ? "chevron-up" : "chevron-down"} size={20} color={tc.textMuted} />
                 </TouchableOpacity>
 
                 {expanded && (
-                    <View style={styles.content}>
-                        <View style={styles.sectionHeaderRow}>
-                            <Text style={styles.subHeader}>{t('visitList.visitHistory')}</Text>
-                            <Text style={styles.totalText}>{t('visitList.totalVisits', { count: visitsData?.total || 0 })}</Text>
+                    <View style={ds.content}>
+                        <View style={ds.sectionHeaderRow}>
+                            <Text style={ds.subHeader}>{t('visitList.visitHistory')}</Text>
+                            <Text style={ds.totalText}>{t('visitList.totalVisits', { count: visitsData?.total || 0 })}</Text>
                         </View>
                         
                         {visitsData?.visits?.length > 0 ? (
                             visitsData.visits.map((visit: any) => (
-                                <View key={visit.id || visit._id} style={styles.visitItemCard}>
+                                <View key={visit.id || visit._id} style={ds.visitItemCard}>
                                     <TouchableOpacity 
-                                        style={styles.visitSummary} 
+                                        style={ds.visitSummary} 
                                         onPress={() => toggleVisitExpand(visit.id || visit._id)}
                                         activeOpacity={0.7}
                                     >
-                                        <View style={styles.visitDetailsRow}>
-                                            <View style={styles.calendarIconContainer}>
-                                                <Feather name="calendar" size={18} color="#4A90B9" />
+                                        <View style={ds.visitDetailsRow}>
+                                            <View style={ds.calendarIconContainer}>
+                                                <Feather name="calendar" size={18} color={tc.accent} />
                                             </View>
-                                            <View style={styles.visitBasicInfo}>
-                                                <Text style={styles.visitDateText}>{formatDate(visit.date)}</Text>
-                                                <Text style={styles.visitTypeText}>
+                                            <View style={ds.visitBasicInfo}>
+                                                <Text style={ds.visitDateText}>{formatDate(visit.date)}</Text>
+                                                <Text style={ds.visitTypeText}>
                                                     {visit.visitType ? t(`visitList.${visit.visitType.toLowerCase()}`, { defaultValue: visit.visitType }) : t('visitList.regular')}
                                                 </Text>
-                                                <Text style={styles.visitTimeText}>{formatTime(visit.startTime, visit.endTime)}</Text>
+                                                <Text style={ds.visitTimeText}>{formatTime(visit.startTime, visit.endTime)}</Text>
                                             </View>
-                                            <View style={styles.visitRightSection}>
-                                                <StatusBadge status={visit.status} t={t} />
+                                            <View style={ds.visitRightSection}>
+                                                <StatusBadge {...commonProps} status={visit.status} t={t} />
                                                 <Feather 
                                                     name={expandedVisitId === (visit.id || visit._id) ? "chevron-up" : "chevron-down"} 
                                                     size={18} 
-                                                    color="#94a3b8" 
+                                                    color={tc.textMuted} 
                                                     style={{ marginLeft: 8 }}
                                                 />
                                             </View>
@@ -150,49 +169,49 @@ const VisitList = ({ patientData }: { patientData: any }) => {
                                     </TouchableOpacity>
 
                                     {expandedVisitId === (visit.id || visit._id) && (
-                                        <View style={styles.visitExpandedContent}>
-                                            <View style={styles.infoRow}>
-                                                <Feather name="user" size={14} color="#64748b" />
-                                                <Text style={styles.infoLabel}>{t('visitList.doctor')}</Text>
+                                        <View style={ds.visitExpandedContent}>
+                                            <View style={ds.infoRow}>
+                                                <Feather name="user" size={14} color={tc.textSecondary} />
+                                                <Text style={ds.infoLabel}>{t('visitList.doctor')}</Text>
                                             </View>
-                                            <Text style={styles.infoValue}>{visit.doctor?.name || t('visitList.noData')}</Text>
+                                            <Text style={ds.infoValue}>{visit.doctor?.name || t('visitList.noData')}</Text>
  
-                                            <View style={styles.infoRow}>
-                                                <Feather name="file-text" size={14} color="#64748b" />
-                                                <Text style={styles.infoLabel}>{t('visitList.notes')}</Text>
+                                            <View style={ds.infoRow}>
+                                                <Feather name="file-text" size={14} color={tc.textSecondary} />
+                                                <Text style={ds.infoLabel}>{t('visitList.notes')}</Text>
                                             </View>
-                                            <Text style={styles.infoValue}>{visit.notes || t('visitList.noNotes')}</Text>
+                                            <Text style={ds.infoValue}>{visit.notes || t('visitList.noNotes')}</Text>
 
-                                            <View style={styles.infoRow}>
-                                                <Feather name="file-text" size={14} color="#64748b" />
-                                                <Text style={styles.infoLabel}>{t('visitList.medicalInterview')}</Text>
+                                            <View style={ds.infoRow}>
+                                                <Feather name="file-text" size={14} color={tc.textSecondary} />
+                                                <Text style={ds.infoLabel}>{t('visitList.medicalInterview')}</Text>
                                             </View>
-                                            <View style={styles.subInfoSection}>
-                                                <Text style={styles.subInfoLabel}>{t('visitList.mainSymptoms')}</Text>
-                                                <Text style={styles.subInfoValue}>{t('visitList.noData')}</Text>
+                                            <View style={ds.subInfoSection}>
+                                                <Text style={ds.subInfoLabel}>{t('visitList.mainSymptoms')}</Text>
+                                                <Text style={ds.subInfoValue}>{t('visitList.noData')}</Text>
                                                 
-                                                <View style={styles.infoRowSmall}>
-                                                    <Feather name="brain" size={14} color="#64748b" />
-                                                    <Text style={styles.infoLabel}>{t('visitList.psychiatricScales')}</Text>
+                                                <View style={ds.infoRowSmall}>
+                                                    <Feather name="brain" size={14} color={tc.textSecondary} />
+                                                    <Text style={ds.infoLabel}>{t('visitList.psychiatricScales')}</Text>
                                                 </View>
                                             </View>
 
-                                            <View style={styles.infoRow}>
-                                                <Feather name="activity" size={14} color="#64748b" />
-                                                <Text style={styles.infoLabel}>{t('visitList.examination')}</Text>
+                                            <View style={ds.infoRow}>
+                                                <Feather name="activity" size={14} color={tc.textSecondary} />
+                                                <Text style={ds.infoLabel}>{t('visitList.examination')}</Text>
                                             </View>
-                                            <View style={styles.examGrid}>
-                                                <View style={styles.examItem}>
-                                                    <Text style={styles.examLabel}>{t('visitList.bloodPressure')}: <Text style={styles.examValue}>{t('visitList.noData')}</Text></Text>
+                                            <View style={ds.examGrid}>
+                                                <View style={ds.examItem}>
+                                                    <Text style={ds.examLabel}>{t('visitList.bloodPressure')}: <Text style={ds.examValue}>{t('visitList.noData')}</Text></Text>
                                                 </View>
-                                                <View style={styles.examItem}>
-                                                    <Text style={styles.examLabel}>{t('visitList.generalCondition')}: <Text style={styles.examValue}>{t('visitList.noData')}</Text></Text>
+                                                <View style={ds.examItem}>
+                                                    <Text style={ds.examLabel}>{t('visitList.generalCondition')}: <Text style={ds.examValue}>{t('visitList.noData')}</Text></Text>
                                                 </View>
-                                                <View style={styles.examItem}>
-                                                    <Text style={styles.examLabel}>{t('visitList.heartRate')}: <Text style={styles.examValue}>{t('visitList.noData')}</Text></Text>
+                                                <View style={ds.examItem}>
+                                                    <Text style={ds.examLabel}>{t('visitList.heartRate')}: <Text style={ds.examValue}>{t('visitList.noData')}</Text></Text>
                                                 </View>
-                                                <View style={styles.examItem}>
-                                                    <Text style={styles.examLabel}>{t('visitList.temperature')}: <Text style={styles.examValue}>{t('visitList.noData')}</Text></Text>
+                                                <View style={ds.examItem}>
+                                                    <Text style={ds.examLabel}>{t('visitList.temperature')}: <Text style={ds.examValue}>{t('visitList.noData')}</Text></Text>
                                                 </View>
                                             </View>
                                         </View>
@@ -200,8 +219,8 @@ const VisitList = ({ patientData }: { patientData: any }) => {
                                 </View>
                             ))
                         ) : (
-                            <View style={styles.emptyContainer}>
-                                <Text style={styles.emptyText}>{t('visitList.noVisits')}</Text>
+                            <View style={ds.emptyContainer}>
+                                <Text style={ds.emptyText}>{t('visitList.noVisits')}</Text>
                             </View>
                         )}
                     </View>
@@ -211,16 +230,16 @@ const VisitList = ({ patientData }: { patientData: any }) => {
     );
 };
 
-const styles = StyleSheet.create({
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     container: {
         paddingHorizontal: 16,
     },
     card: {
-        backgroundColor: '#ffffff',
+        backgroundColor: tc.cardBackground,
         borderRadius: 12,
         marginBottom: 16,
         borderWidth: 1,
-        borderColor: '#f1f5f9',
+        borderColor: tc.borderColor,
         overflow: 'hidden',
     },
     header: {
@@ -231,7 +250,7 @@ const styles = StyleSheet.create({
     },
     expandedHeader: {
         borderBottomWidth: 1,
-        borderBottomColor: '#f1f5f9',
+        borderBottomColor: tc.borderColor,
     },
     headerLeft: {
         flexDirection: 'row',
@@ -243,7 +262,7 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 13,
         fontWeight: '700',
-        color: '#1e293b',
+        color: tc.textPrimary,
         letterSpacing: 0.5,
     },
     content: {
@@ -258,11 +277,11 @@ const styles = StyleSheet.create({
     subHeader: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#1e293b',
+        color: tc.textPrimary,
     },
     totalText: {
         fontSize: 13,
-        color: '#94a3b8',
+        color: tc.textMuted,
     },
     emptyContainer: {
         alignItems: 'center',
@@ -270,13 +289,13 @@ const styles = StyleSheet.create({
     },
     emptyText: {
         fontSize: 14,
-        color: '#94a3b8',
+        color: tc.textMuted,
     },
     visitItemCard: {
-        backgroundColor: '#fdfdfd',
+        backgroundColor: tc.cardBackgroundAlt || (isDark ? 'rgba(255,255,255,0.03)' : '#fdfdfd'),
         borderRadius: 10,
         borderWidth: 1,
-        borderColor: '#f1f5f9',
+        borderColor: tc.borderColor,
         marginBottom: 12,
         overflow: 'hidden',
     },
@@ -291,7 +310,7 @@ const styles = StyleSheet.create({
         width: 36,
         height: 36,
         borderRadius: 8,
-        backgroundColor: '#f0f9fb',
+        backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#f0f9fb',
         alignItems: 'center',
         justifyContent: 'center',
         marginRight: 12,
@@ -302,16 +321,16 @@ const styles = StyleSheet.create({
     visitDateText: {
         fontSize: 14,
         fontWeight: '700',
-        color: '#1e293b',
+        color: tc.textPrimary,
     },
     visitTypeText: {
         fontSize: 12,
-        color: '#64748b',
+        color: tc.textSecondary,
         marginTop: 2,
     },
     visitTimeText: {
         fontSize: 11,
-        color: '#94a3b8',
+        color: tc.textMuted,
         marginTop: 1,
     },
     visitRightSection: {
@@ -322,25 +341,31 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         paddingVertical: 4,
         borderRadius: 12,
-        backgroundColor: '#f1f5f9',
+        backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#f1f5f9',
     },
     statusText: {
         fontSize: 11,
         fontWeight: '600',
-        color: '#64748b',
+        color: tc.textSecondary,
         textTransform: 'lowercase',
     },
     scheduledBadge: {
-        backgroundColor: '#e0f2fe',
+        backgroundColor: isDark ? 'rgba(2, 132, 199, 0.2)' : '#e0f2fe',
     },
     scheduledText: {
-        color: '#0284c7',
+        color: isDark ? '#38bdf8' : '#0284c7',
+    },
+    completedBadge: {
+        backgroundColor: isDark ? 'rgba(16, 185, 129, 0.2)' : '#DCFCE7',
+    },
+    completedText: {
+        color: isDark ? '#34d399' : '#166534',
     },
     visitExpandedContent: {
         padding: 16,
         paddingTop: 0,
         borderTopWidth: 1,
-        borderTopColor: '#f1f5f9',
+        borderTopColor: tc.borderColor,
     },
     infoRow: {
         flexDirection: 'row',
@@ -356,12 +381,12 @@ const styles = StyleSheet.create({
     infoLabel: {
         fontSize: 12,
         fontWeight: '600',
-        color: '#64748b',
+        color: tc.textSecondary,
         marginLeft: 6,
     },
     infoValue: {
         fontSize: 14,
-        color: '#1e293b',
+        color: tc.textPrimary,
         marginLeft: 20,
         marginBottom: 4,
     },
@@ -371,12 +396,12 @@ const styles = StyleSheet.create({
     subInfoLabel: {
         fontSize: 13,
         fontWeight: '700',
-        color: '#1e293b',
+        color: tc.textPrimary,
         marginTop: 4,
     },
     subInfoValue: {
         fontSize: 13,
-        color: '#64748b',
+        color: tc.textSecondary,
         marginTop: 2,
     },
     examGrid: {
@@ -389,11 +414,11 @@ const styles = StyleSheet.create({
     examLabel: {
         fontSize: 13,
         fontWeight: '700',
-        color: '#1e293b',
+        color: tc.textPrimary,
     },
     examValue: {
         fontWeight: '400',
-        color: '#64748b',
+        color: tc.textSecondary,
     }
 });
 

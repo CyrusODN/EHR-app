@@ -21,6 +21,7 @@ interface ScaleQuestionnaireModalProps {
     visible: boolean;
     onClose: () => void;
     scaleId: string;
+    onFinish: (score: number) => void;
 }
 
 interface Option {
@@ -35,7 +36,7 @@ interface Question {
     options: (string | Option)[];
 }
 
-const ScaleQuestionnaireModal = ({ visible, onClose, scaleId }: ScaleQuestionnaireModalProps) => {
+const ScaleQuestionnaireModal = ({ visible, onClose, scaleId, onFinish }: ScaleQuestionnaireModalProps) => {
     const { t } = useTranslation();
     const { colors: tc, isDark } = useThemeColors();
     const ds = createDynamicStyles(tc, isDark);
@@ -124,6 +125,12 @@ const ScaleQuestionnaireModal = ({ visible, onClose, scaleId }: ScaleQuestionnai
         setCurrentQuestion(0);
         setAnswers({});
         onClose();
+    };
+
+    const handleFinish = () => {
+        const totalScore = Object.values(answers).reduce((acc, current) => acc + current, 0);
+        onFinish(totalScore);
+        handleCancel();
     };
 
     const insets = useSafeAreaInsets();
@@ -225,7 +232,7 @@ const ScaleQuestionnaireModal = ({ visible, onClose, scaleId }: ScaleQuestionnai
                         </TouchableOpacity>
 
                         {currentQuestion === totalQuestions - 1 && (
-                            <TouchableOpacity onPress={handleCancel}>
+                            <TouchableOpacity onPress={handleFinish}>
                                 <LinearGradient
                                     colors={[tc.accentGradientStart, tc.accentGradientEnd]}
                                     start={{ x: 0, y: 0 }}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     View,
     Text,
@@ -11,6 +11,7 @@ import {
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import {  UpdateVisit, GetVisitDetails } from '../../Services/Visit.Service';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import LinearGradient from 'react-native-linear-gradient';
 import RecommendationModal from './modals/RecommendationModal';
@@ -20,11 +21,12 @@ import { useThemeColors } from '../../hooks/useThemeColors';
 interface VisitSummaryProps {
     onBack: () => void;
     onFinish: () => void;
+    visitId?: string;
     visitData?: any;
     onUpdate?: (data: any) => void;
 }
 
-const VisitSummary = ({ onBack, onFinish, visitData, onUpdate }: VisitSummaryProps) => {
+const VisitSummary = ({ onBack, onFinish, visitId, visitData, onUpdate }: VisitSummaryProps) => {
     const { t } = useTranslation();
     const { colors: tc, isDark } = useThemeColors();
     const ds = createDynamicStyles(tc, isDark);
@@ -37,6 +39,62 @@ const VisitSummary = ({ onBack, onFinish, visitData, onUpdate }: VisitSummaryPro
     });
     const [showRecommendationModal, setShowRecommendationModal] = useState(false);
     const [generalRecommendations, setGeneralRecommendations] = useState(visitData?.recommendations?.specialization || '');
+
+    const debounceTimeoutRef = useRef<any>(null);
+    const pendingUpdatesRef = useRef<any>({});
+
+    const handleSync = useCallback(async () => {
+        if (!visitId) return;
+
+        const updates = { ...pendingUpdatesRef.current };
+        pendingUpdatesRef.current = {};
+
+        const payload = {
+            ...visitData,
+            ...updates,
+            visitId, id: visitId, _id: visitId
+        };
+
+        // Handle nested merges for recommendations
+        if (updates.recommendations) {
+            payload.recommendations = {
+                ...(visitData?.recommendations || {}),
+                ...updates.recommendations
+            };
+        }
+
+        try {
+            await UpdateVisit(payload);
+            const detailsResult = await GetVisitDetails(visitId);
+            const fullData = detailsResult?.data || detailsResult;
+            if (fullData && onUpdate) {
+                onUpdate(fullData);
+            }
+        } catch (error) {
+            console.error("Sync error:", error);
+        }
+    }, [visitId, visitData, onUpdate]);
+
+    const debouncedSync = (updatedFields: any) => {
+        const accumulate = (target: any, source: any) => {
+            Object.keys(source).forEach(key => {
+                if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+                    target[key] = target[key] || {};
+                    accumulate(target[key], source[key]);
+                } else {
+                    target[key] = source[key];
+                }
+            });
+        };
+        accumulate(pendingUpdatesRef.current, updatedFields);
+
+        if (debounceTimeoutRef.current) {
+            clearTimeout(debounceTimeoutRef.current);
+        }
+        debounceTimeoutRef.current = setTimeout(() => {
+            handleSync();
+        }, 700);
+    };
 
     useEffect(() => {
         if (visitData?.recommendations?.specialization) {
@@ -325,9 +383,7 @@ const VisitSummary = ({ onBack, onFinish, visitData, onUpdate }: VisitSummaryPro
                             value={generalRecommendations}
                             onChangeText={(text) => {
                                 setGeneralRecommendations(text);
-                                if (onUpdate) {
-                                    onUpdate({ recommendations: { specialization: text } });
-                                }
+                                debouncedSync({ recommendations: { specialization: text } });
                             }}
                         />
                     </View>
@@ -578,7 +634,9 @@ const createDynamicStyles = (tc: any, isDark: boolean) =>
             flexDirection: 'row',
             justifyContent: 'space-between',
             marginTop: 20,
-            paddingBottom: hp(5),
+            width:wp(80),
+            alignItems:'center',
+            gap:wp(2)
         },
         backButton: {
             flexDirection: 'row',

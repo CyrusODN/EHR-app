@@ -17,56 +17,58 @@ import LinearGradient from 'react-native-linear-gradient';
 import { GetPatientMedicalRecord, UpdatePatientMedicalRecord } from '../../../Services/PatientRecord.Service';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../../hooks/useThemeColors';
+import { useMemo } from 'react';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const FormInput = ({ label, placeholder, required = false, isDropdown = false, hasCalendar = false, multiline = false, value, onChangeText, onPress }: any) => (
-    <View style={styles.inputGroup}>
-        <View style={styles.labelRow}>
-            {required && <Text style={styles.requiredStar}>* </Text>}
-            <Text style={styles.inputLabel}>{label}</Text>
+const FormInput = ({ label, placeholder, required = false, isDropdown = false, hasCalendar = false, multiline = false, value, onChangeText, onPress, ds, tc }: any) => (
+    <View style={ds.inputGroup}>
+        <View style={ds.labelRow}>
+            {required && <Text style={ds.requiredStar}>* </Text>}
+            <Text style={ds.inputLabel}>{label}</Text>
         </View>
         <TouchableOpacity 
             activeOpacity={isDropdown || hasCalendar ? 0.7 : 1}
             onPress={(isDropdown || hasCalendar) ? onPress : undefined}
-            style={[styles.inputWrapper, multiline && styles.textAreaWrapper]}
+            style={[ds.inputWrapper, multiline && ds.textAreaWrapper]}
         >
             <TextInput 
-                style={[styles.textInput, multiline && styles.textArea]}
+                style={[ds.textInput, multiline && ds.textArea]}
                 placeholder={placeholder}
-                placeholderTextColor="#cbd5e1"
+                placeholderTextColor={tc.textMuted}
                 editable={!isDropdown && !hasCalendar}
                 multiline={multiline}
                 value={value}
                 onChangeText={onChangeText}
                 pointerEvents={(isDropdown || hasCalendar) ? 'none' : 'auto'}
             />
-            {isDropdown && <Feather name="chevron-down" size={16} color="#cbd5e1" />}
-            {hasCalendar && <Feather name="calendar" size={16} color="#4A90B9" />}
+            {isDropdown && <Feather name="chevron-down" size={16} color={tc.textMuted} />}
+            {hasCalendar && <Feather name="calendar" size={16} color={tc.accent} />}
         </TouchableOpacity>
     </View>
 );
 
-const SubmitButton = ({ title, icon, color = ['#68BFB4', '#4DA1C0'], onPress, style, loading = false }: any) => (
+const SubmitButton = ({ title, icon, color, onPress, style, loading = false, ds, tc }: any) => (
     <TouchableOpacity 
-        style={[styles.submitButtonContainer, style, loading && { opacity: 0.7 }]} 
+        style={[ds.submitButtonContainer, style, loading && { opacity: 0.7 }]} 
         onPress={loading ? undefined : onPress}
     >
         <LinearGradient
-            colors={color}
+            colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            style={styles.gradientButton}
+            style={ds.gradientButton}
         >
-            <View style={styles.buttonContent}>
+            <View style={ds.buttonContent}>
                 {loading ? (
                     <ActivityIndicator size="small" color="#ffffff" />
                 ) : (
                     <>
                         {icon && <Feather name={icon} size={16} color="#ffffff" style={{ marginRight: 8 }} />}
-                        <Text style={styles.submitButtonText}>{title}</Text>
+                        <Text style={ds.submitButtonText}>{title}</Text>
                     </>
                 )}
             </View>
@@ -74,15 +76,19 @@ const SubmitButton = ({ title, icon, color = ['#68BFB4', '#4DA1C0'], onPress, st
     </TouchableOpacity>
 );
 
-const ActionOutlineButton = ({ title, icon, onPress }: any) => (
-    <TouchableOpacity style={styles.outlineButton} onPress={onPress}>
-        <Feather name={icon} size={16} color="#58a6b8" />
-        <Text style={styles.outlineButtonText}>{title}</Text>
+const ActionOutlineButton = ({ title, icon, onPress, ds, tc }: any) => (
+    <TouchableOpacity style={ds.outlineButton} onPress={onPress}>
+        <Feather name={icon} size={16} color={tc.accent} />
+        <Text style={ds.outlineButtonText}>{title}</Text>
     </TouchableOpacity>
 );
 
 const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (type: string, msg: string) => void }) => {
     const { t } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = useMemo(() => createDynamicStyles(tc, isDark), [tc, isDark]);
+    const commonProps = { ds, tc };
+
     const [labData, setLabData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -228,8 +234,8 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
     if (loading) {
         return (
             <View style={{ flex: 1, paddingVertical: 40, alignItems: 'center', justifyContent: 'center' }}>
-                <ActivityIndicator size="large" color="#4A90B9" />
-                <Text style={{ marginTop: 15, color: '#64748b' }}>{t('patientLaboratory.fetchingRecords')}</Text>
+                <ActivityIndicator size="large" color={tc.accent} />
+                <Text style={{ marginTop: 15, color: tc.textSecondary }}>{t('patientLaboratory.fetchingRecords')}</Text>
             </View>
         );
     }
@@ -246,20 +252,21 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
             animationType="fade" 
             onRequestClose={() => setShowResultsModal(false)}
         >
-            <View style={styles.modalOverlay}>
-                <View style={[styles.modalContent, { width: '96%' }]}>
-                    <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>{t('patientLaboratory.addLabResults')}</Text>
+            <View style={ds.modalOverlay}>
+                <View style={[ds.modalContent, { width: '96%' }]}>
+                    <View style={ds.modalHeader}>
+                        <Text style={ds.modalTitle}>{t('patientLaboratory.addLabResults')}</Text>
                         <TouchableOpacity onPress={() => setShowResultsModal(false)}>
-                            <Feather name="x" size={20} color="#94a3b8" />
+                            <Feather name="x" size={20} color={tc.textMuted} />
                         </TouchableOpacity>
                     </View>
                     
-                    <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
-                        <Text style={styles.modalSubheading}>{t('patientLaboratory.basicInformation')}</Text>
-                        <View style={styles.row}>
+                    <ScrollView style={ds.modalScroll} showsVerticalScrollIndicator={false}>
+                        <Text style={ds.modalSubheading}>{t('patientLaboratory.basicInformation')}</Text>
+                        <View style={ds.row}>
                             <View style={{ flex: 1, marginRight: 8 }}>
                                 <FormInput 
+                                    {...commonProps}
                                     label={t('patientLaboratory.testName')} 
                                     required 
                                     placeholder={t('patientLaboratory.testNamePlaceholder')} 
@@ -269,6 +276,7 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
                             </View>
                             <View style={{ flex: 1 }}>
                                 <FormInput 
+                                    {...commonProps}
                                     label={t('patientLaboratory.orderDate')} 
                                     required 
                                     placeholder={t('patientLaboratory.selectDate')} 
@@ -281,16 +289,17 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
                         </View>
                         
                         {showDatePicker && (
-                            <View style={styles.datePickerContainer}>
-                                <View style={styles.datePickerHeader}>
+                            <View style={ds.datePickerContainer}>
+                                <View style={ds.datePickerHeader}>
                                     <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                                        <Text style={styles.datePickerDone}>{t('patientLaboratory.done')}</Text>
+                                        <Text style={ds.datePickerDone}>{t('patientLaboratory.done')}</Text>
                                     </TouchableOpacity>
                                 </View>
                                 <DateTimePicker
                                     value={newTest.orderDate || new Date()}
                                     mode="date"
                                     display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                    textColor={tc.textPrimary}
                                     onChange={(event, date) => {
                                         if (Platform.OS === 'android') setShowDatePicker(false);
                                         if (date) handleNewTestChange('orderDate', date);
@@ -300,6 +309,7 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
                         )}
 
                         <FormInput 
+                            {...commonProps}
                             label={t('patientLaboratory.labReferenceNumber')} 
                             required 
                             placeholder={t('patientLaboratory.labRefPlaceholder')} 
@@ -307,9 +317,10 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
                             onChangeText={(val: string) => handleNewTestChange('labReferenceNumber', val)}
                         />
 
-                        <View style={styles.parametersHeader}>
-                            <Text style={styles.modalSubheading}>{t('patientLaboratory.testParameters')}</Text>
+                        <View style={ds.parametersHeader}>
+                            <Text style={ds.modalSubheading}>{t('patientLaboratory.testParameters')}</Text>
                             <ActionOutlineButton 
+                                {...commonProps}
                                 title={t('patientLaboratory.addParameter')} 
                                 icon="plus" 
                                 onPress={() => {
@@ -321,32 +332,33 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
 
                         {newTest.parameters?.length > 0 ? (
                             newTest.parameters.map((p: any, idx: number) => (
-                                <View key={idx} style={styles.addedParamItem}>
+                                <View key={idx} style={ds.addedParamItem}>
                                     <View style={{ flex: 1 }}>
-                                        <Text style={styles.addedParamName}>{p.name}</Text>
-                                        <Text style={styles.addedParamDetail}>{p.value} {p.unit} ({p.range})</Text>
+                                        <Text style={ds.addedParamName}>{p.name}</Text>
+                                        <Text style={ds.addedParamDetail}>{p.value} {p.unit} ({p.range})</Text>
                                     </View>
                                     <TouchableOpacity onPress={() => removeParameter(idx)}>
-                                        <Feather name="trash-2" size={16} color="#ef4444" />
+                                        <Feather name="trash-2" size={16} color={tc.accentRed} />
                                     </TouchableOpacity>
                                 </View>
                             ))
                         ) : (
-                            <View style={styles.emptyBox}>
-                                <Text style={styles.emptyBoxText}>{t('patientLaboratory.noParametersAdded')}</Text>
+                            <View style={ds.emptyBox}>
+                                <Text style={ds.emptyBoxText}>{t('patientLaboratory.noParametersAdded')}</Text>
                             </View>
                         )}
                     </ScrollView>
 
-                    <View style={styles.modalFooter}>
+                    <View style={ds.modalFooter}>
                         <TouchableOpacity 
-                            style={styles.cancelOutlineButton} 
+                            style={ds.cancelOutlineButton} 
                             onPress={() => setShowResultsModal(false)}
                             disabled={isSaving}
                         >
-                            <Text style={styles.cancelOutlineText}>{t('patientLaboratory.cancel')}</Text>
+                            <Text style={ds.cancelOutlineText}>{t('patientLaboratory.cancel')}</Text>
                         </TouchableOpacity>
                         <SubmitButton 
+                            {...commonProps}
                             title={t('patientLaboratory.addResult')} 
                             icon="plus" 
                             style={{ width: 150 }} 
@@ -368,18 +380,19 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
             animationType="fade" 
             onRequestClose={() => setShowParameterModal(false)}
         >
-            <View style={styles.modalOverlay}>
-                <View style={[styles.modalContent, { width: '96%' }]}>
-                    <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>{t('patientLaboratory.addParameter')}</Text>
+            <View style={ds.modalOverlay}>
+                <View style={[ds.modalContent, { width: '96%' }]}>
+                    <View style={ds.modalHeader}>
+                        <Text style={ds.modalTitle}>{t('patientLaboratory.addParameter')}</Text>
                         <TouchableOpacity onPress={() => setShowParameterModal(false)}>
-                            <Feather name="x" size={20} color="#94a3b8" />
+                            <Feather name="x" size={20} color={tc.textMuted} />
                         </TouchableOpacity>
                     </View>
 
-                    <View style={styles.row}>
+                    <View style={ds.row}>
                         <View style={{ flex: 1, marginRight: 8 }}>
                             <FormInput 
+                                {...commonProps}
                                 label={t('patientLaboratory.parameterName')} required placeholder="" 
                                 value={tempParameter.name}
                                 onChangeText={(val: string) => handleTempParamChange('name', val)}
@@ -387,6 +400,7 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
                         </View>
                         <View style={{ flex: 1 }}>
                             <FormInput 
+                                {...commonProps}
                                 label={t('patientLaboratory.normalRange')} required placeholder={t('patientLaboratory.normalRangePlaceholder')} 
                                 value={tempParameter.range}
                                 onChangeText={(val: string) => handleTempParamChange('range', val)}
@@ -394,9 +408,10 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
                         </View>
                     </View>
 
-                    <View style={styles.row}>
+                    <View style={ds.row}>
                         <View style={{ flex: 1, marginRight: 8 }}>
                             <FormInput 
+                                {...commonProps}
                                 label={t('patientLaboratory.unit')} required placeholder={t('patientLaboratory.unitPlaceholder')} 
                                 value={tempParameter.unit}
                                 onChangeText={(val: string) => handleTempParamChange('unit', val)}
@@ -404,6 +419,7 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
                         </View>
                         <View style={{ flex: 1 }}>
                             <FormInput 
+                                {...commonProps}
                                 label={t('patientLaboratory.value')} required placeholder="" 
                                 value={tempParameter.value}
                                 onChangeText={(val: string) => handleTempParamChange('value', val)}
@@ -411,14 +427,14 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
                         </View>
                     </View>
 
-                    <View style={styles.modalFooter}>
+                    <View style={ds.modalFooter}>
                         <TouchableOpacity 
-                            style={styles.cancelOutlineButton} 
+                            style={ds.cancelOutlineButton} 
                             onPress={() => setShowParameterModal(false)}
                         >
-                            <Text style={styles.cancelOutlineText}>{t('patientLaboratory.cancel')}</Text>
+                            <Text style={ds.cancelOutlineText}>{t('patientLaboratory.cancel')}</Text>
                         </TouchableOpacity>
-                        <SubmitButton title={t('patientLaboratory.addParameter')} icon="plus" onPress={addParameterRecord} style={{ width: 160 }} />
+                        <SubmitButton {...commonProps} title={t('patientLaboratory.addParameter')} icon="plus" onPress={addParameterRecord} style={{ width: 160 }} />
                     </View>
 
                 </View>
@@ -427,40 +443,41 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
     );
 
     return (
-        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        <ScrollView style={ds.container} showsVerticalScrollIndicator={false}>
             {renderAddResultsModal()}
             
-            <View style={styles.card}>
+            <View style={ds.card}>
                 <TouchableOpacity 
-                    style={[styles.header, expanded && styles.expandedHeader]} 
+                    style={[ds.header, expanded && ds.expandedHeader]} 
                     onPress={toggleExpand}
                     activeOpacity={0.7}
                 >
-                    <View style={styles.headerLeft}>
-                        <Feather name="test-tube" size={18} color="#58a6b8" style={styles.icon} />
-                        <Text style={styles.title}>{t('patientLaboratory.title')}</Text>
+                    <View style={ds.headerLeft}>
+                        <Feather name="test-tube" size={18} color={tc.accent} style={ds.icon} />
+                        <Text style={ds.title}>{t('patientLaboratory.title')}</Text>
                     </View>
-                    <Feather name={expanded ? "chevron-up" : "chevron-down"} size={20} color="#94a3b8" />
+                    <Feather name={expanded ? "chevron-up" : "chevron-down"} size={20} color={tc.textMuted} />
                 </TouchableOpacity>
 
                 {expanded && (
-                    <View style={styles.content}>
-                        <View style={styles.searchRow}>
-                            <View style={styles.searchBar}>
-                                <Feather name="search" size={18} color="#94a3b8" />
+                    <View style={ds.content}>
+                        <View style={ds.searchRow}>
+                            <View style={ds.searchBar}>
+                                <Feather name="search" size={18} color={tc.textMuted} />
                                 <TextInput 
-                                    style={styles.searchInput}
+                                    style={ds.searchInput}
                                     placeholder={t('patientLaboratory.searchPlaceholder')}
                                     value={searchText}
                                     onChangeText={setSearchText}
-                                    placeholderTextColor="#94a3b8"
+                                    placeholderTextColor={tc.textMuted}
                                 />
                             </View>
                             <SubmitButton 
+                                {...commonProps}
                                 title={t('patientLaboratory.addResults')} 
                                 icon="plus" 
                                 onPress={() => setShowResultsModal(true)}
-                                style={styles.addResultsBtn}
+                                style={ds.addResultsBtn}
                             />
                         </View>
 
@@ -472,38 +489,38 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
 
                             return filteredResults.length > 0 ? (
                                 filteredResults.map((result: any, index: number) => (
-                                    <View key={index} style={styles.resultItem}>
-                                        <View style={styles.resultHeader}>
-                                            <Text style={styles.resultName}>{result.testName || t('patientLaboratory.laboratoryTest')}</Text>
-                                            <View style={styles.resultInfoRow}>
+                                    <View key={index} style={ds.resultItem}>
+                                        <View style={ds.resultHeader}>
+                                            <Text style={ds.resultName}>{result.testName || t('patientLaboratory.laboratoryTest')}</Text>
+                                            <View style={ds.resultInfoRow}>
                                                 <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 15 }}>
-                                                    <Feather name="calendar" size={14} color="#94a3b8" style={{ marginRight: 5 }} />
-                                                    <Text style={styles.resultInfoText}>{formatDateDisplay(result.orderDate)}</Text>
+                                                    <Feather name="calendar" size={14} color={tc.textMuted} style={{ marginRight: 5 }} />
+                                                    <Text style={ds.resultInfoText}>{formatDateDisplay(result.orderDate)}</Text>
                                                 </View>
-                                                <Text style={styles.resultInfoText}>{t('patientLaboratory.orderNumber')} {result.labReferenceNumber || t('patientInsurance.na')}</Text>
+                                                <Text style={ds.resultInfoText}>{t('patientLaboratory.orderNumber')} {result.labReferenceNumber || t('patientInsurance.na')}</Text>
                                             </View>
                                         </View>
                                         
-                                        <View style={styles.resultContent}>
+                                        <View style={ds.resultContent}>
                                             {result.parameters?.length > 0 ? (
                                                 result.parameters.map((p: any, pIdx: number) => (
-                                                    <View key={pIdx} style={[styles.parameterRow, pIdx === result.parameters.length - 1 && { marginBottom: 0 }]}>
+                                                    <View key={pIdx} style={[ds.parameterRow, pIdx === result.parameters.length - 1 && { marginBottom: 0 }]}>
                                                         <View style={{ flex: 1 }}>
-                                                            <Text style={styles.parameterName}>{p.name}</Text>
-                                                            <Text style={styles.parameterRange}>{t('patientLaboratory.normalRangeLabel')} {p.range || p.normalRange || t('patientInsurance.na')}</Text>
+                                                            <Text style={ds.parameterName}>{p.name}</Text>
+                                                            <Text style={ds.parameterRange}>{t('patientLaboratory.normalRangeLabel')} {p.range || p.normalRange || t('patientInsurance.na')}</Text>
                                                         </View>
-                                                        <Text style={styles.parameterValue}>{p.value} {p.unit}</Text>
+                                                        <Text style={ds.parameterValue}>{p.value} {p.unit}</Text>
                                                     </View>
                                                 ))
                                             ) : (
-                                                <Text style={styles.emptyParamsText}>{t('patientLaboratory.noParametersRecorded')}</Text>
+                                                <Text style={ds.emptyParamsText}>{t('patientLaboratory.noParametersRecorded')}</Text>
                                             )}
                                         </View>
                                     </View>
                                 ))
                             ) : (
-                                <View style={styles.emptyContainer}>
-                                    <Text style={styles.emptyText}>
+                                <View style={ds.emptyContainer}>
+                                    <Text style={ds.emptyText}>
                                         {searchText ? t('patientLaboratory.noSearchMatch') : t('patientLaboratory.noLabResults')}
                                     </Text>
                                 </View>
@@ -516,16 +533,18 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
     );
 };
 
-const styles = StyleSheet.create({
+export default Laboratory;
+
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     container: {
         paddingHorizontal: 16,
     },
     card: {
-        backgroundColor: '#ffffff',
+        backgroundColor: tc.cardBackground,
         borderRadius: 12,
         marginBottom: 16,
         borderWidth: 1,
-        borderColor: '#f1f5f9',
+        borderColor: tc.borderColor,
         overflow: 'hidden',
     },
     header: {
@@ -536,7 +555,7 @@ const styles = StyleSheet.create({
     },
     expandedHeader: {
         borderBottomWidth: 1,
-        borderBottomColor: '#f1f5f9',
+        borderBottomColor: tc.borderColor,
     },
     headerLeft: {
         flexDirection: 'row',
@@ -548,7 +567,7 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 14,
         fontWeight: '700',
-        color: '#1e293b',
+        color: tc.textPrimary,
         letterSpacing: 0.5,
     },
     content: {
@@ -564,9 +583,9 @@ const styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#ffffff',
+        backgroundColor: tc.inputBackground,
         borderWidth: 1,
-        borderColor: '#e2e8f0',
+        borderColor: tc.borderColor,
         borderRadius: 8,
         paddingHorizontal: 12,
         height: 44,
@@ -575,7 +594,7 @@ const styles = StyleSheet.create({
         flex: 1,
         marginLeft: 8,
         fontSize: 14,
-        color: '#1e293b',
+        color: tc.textPrimary,
         padding: 0,
     },
     addResultsBtn: {
@@ -583,7 +602,7 @@ const styles = StyleSheet.create({
         minWidth: 150,
     },
     emptyContainer: {
-        backgroundColor: '#f8fafc',
+        backgroundColor: tc.cardBackgroundAlt || (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc'),
         borderRadius: 8,
         padding: 16,
         alignItems: 'center',
@@ -591,22 +610,24 @@ const styles = StyleSheet.create({
     },
     emptyText: {
         fontSize: 13,
-        color: '#94a3b8',
+        color: tc.textMuted,
     },
     // Modal Styles
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        backgroundColor: 'rgba(0,0,0,0.6)',
         justifyContent: 'center',
         alignItems: 'center',
         padding: 20,
         zIndex: 1000
     },
     modalContent: {
-        backgroundColor: '#ffffff',
+        backgroundColor: tc.modalBg,
         borderRadius: 12,
         padding: 24,
         maxHeight: '85%',
+        borderWidth: isDark ? 1 : 0,
+        borderColor: tc.borderColor,
     },
     modalHeader: {
         flexDirection: 'row',
@@ -617,12 +638,12 @@ const styles = StyleSheet.create({
     modalTitle: {
         fontSize: 18,
         fontWeight: '700',
-        color: '#1e293b'
+        color: tc.textPrimary
     },
     modalSubheading: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#1e293b',
+        color: tc.textPrimary,
         marginBottom: 12,
     },
     modalScroll: {
@@ -637,27 +658,28 @@ const styles = StyleSheet.create({
         marginBottom: 6
     },
     requiredStar: {
-        color: '#ef4444',
+        color: tc.accentRed,
         fontSize: 14
     },
     inputLabel: {
         fontSize: 13,
-        color: '#475569',
+        color: tc.textSecondary,
         fontWeight: '500'
     },
     inputWrapper: {
         flexDirection: 'row',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#e2e8f0',
+        borderColor: tc.borderColor,
         borderRadius: 8,
         paddingHorizontal: 12,
-        height: 44
+        height: 48,
+        backgroundColor: tc.inputBackground,
     },
     textInput: {
         flex: 1,
         fontSize: 14,
-        color: '#1e293b',
+        color: tc.textPrimary,
         padding: 0
     },
     textAreaWrapper: {
@@ -679,16 +701,16 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     emptyBox: {
-        backgroundColor: '#F8FAFC',
+        backgroundColor: tc.cardBackgroundAlt || (isDark ? 'rgba(255,255,255,0.05)' : '#F8FAFC'),
         borderRadius: 8,
         padding: 20,
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#E2E8F0',
+        borderColor: tc.borderColor,
         marginBottom: 16
     },
     emptyBoxText: {
-        color: '#94A3B8',
+        color: tc.textMuted,
         fontSize: 13,
         textAlign: 'center'
     },
@@ -699,21 +721,22 @@ const styles = StyleSheet.create({
         marginTop: 8
     },
     cancelOutlineButton: {
-        height: 38,
+        height: 40,
         paddingHorizontal: 20,
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: '#58a6b8',
+        borderColor: tc.borderColor,
+        backgroundColor: isDark ? tc.buttonMutedBg : 'transparent',
         justifyContent: 'center',
         alignItems: 'center'
     },
     cancelOutlineText: {
-        color: '#58a6b8',
+        color: tc.textSecondary,
         fontSize: 14,
         fontWeight: '600'
     },
     submitButtonContainer: {
-        height: 38,
+        height: 40,
         borderRadius: 8,
         overflow: 'hidden'
     },
@@ -727,6 +750,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         width: '100%',
+        paddingHorizontal: 16,
     },
     submitButtonText: {
         color: '#ffffff',
@@ -738,7 +762,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#58a6b8',
+        borderColor: tc.accent,
+        backgroundColor: isDark ? tc.buttonMutedBg : 'transparent',
         borderRadius: 8,
         paddingVertical: 6,
         paddingHorizontal: 12
@@ -746,27 +771,27 @@ const styles = StyleSheet.create({
     outlineButtonText: {
         fontSize: 13,
         fontWeight: '600',
-        color: '#58a6b8',
+        color: tc.accent,
         marginLeft: 6
     },
     resultItem: {
-        backgroundColor: '#ffffff',
+        backgroundColor: tc.cardBackground,
         borderWidth: 1,
-        borderColor: '#f1f5f9',
+        borderColor: tc.borderColor,
         borderRadius: 12,
         marginBottom: 16,
         overflow: 'hidden',
     },
     resultHeader: {
-        backgroundColor: '#F8FAFC',
+        backgroundColor: tc.cardBackgroundAlt || (isDark ? 'rgba(255,255,255,0.03)' : '#F8FAFC'),
         padding: 12,
         borderBottomWidth: 1,
-        borderBottomColor: '#f1f5f9',
+        borderBottomColor: tc.borderColor,
     },
     resultName: {
         fontSize: 14,
         fontWeight: '700',
-        color: '#1e293b',
+        color: tc.textPrimary,
         marginBottom: 4,
     },
     resultInfoRow: {
@@ -775,7 +800,7 @@ const styles = StyleSheet.create({
     },
     resultInfoText: {
         fontSize: 12,
-        color: '#94a3b8',
+        color: tc.textMuted,
     },
     resultContent: {
         padding: 12,
@@ -789,68 +814,64 @@ const styles = StyleSheet.create({
     parameterName: {
         fontSize: 13,
         fontWeight: '700',
-        color: '#1e293b',
+        color: tc.textPrimary,
     },
     parameterRange: {
         fontSize: 12,
-        color: '#94a3b8',
+        color: tc.textMuted,
         marginTop: 2,
     },
     parameterValue: {
         fontSize: 13,
         fontWeight: '700',
-        color: '#1e293b',
+        color: tc.textPrimary,
     },
     emptyParamsText: {
         fontSize: 12,
-        color: '#94a3b8',
+        color: tc.textMuted,
         fontStyle: 'italic',
         textAlign: 'center',
     },
     datePickerContainer: {
-        backgroundColor: '#f8fafc',
+        backgroundColor: isDark ? tc.modalBg : tc.cardBackground,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: '#e2e8f0',
+        borderColor: tc.borderColor,
         marginTop: 4,
-        marginBottom: 8,
+        marginBottom: 16,
         overflow: 'hidden',
     },
     datePickerHeader: {
         flexDirection: 'row',
         justifyContent: 'flex-end',
-        alignItems: 'center',
-        paddingHorizontal: 14,
-        paddingVertical: 10,
+        padding: 10,
+        backgroundColor: tc.cardBackgroundAlt || (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc'),
         borderBottomWidth: 1,
-        borderBottomColor: '#e2e8f0',
-        backgroundColor: '#ffffff',
+        borderBottomColor: tc.borderColor,
     },
     datePickerDone: {
         fontSize: 14,
         fontWeight: '700',
-        color: '#58a6b8',
+        color: tc.accent,
     },
     addedParamItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#ffffff',
-        borderWidth: 1,
-        borderColor: '#f1f5f9',
+        backgroundColor: tc.cardBackgroundAlt || (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc'),
         borderRadius: 8,
-        padding: 10,
+        padding: 12,
         marginBottom: 8,
+        borderWidth: 1,
+        borderColor: tc.borderColor,
     },
     addedParamName: {
         fontSize: 13,
-        fontWeight: '700',
-        color: '#1e293b',
+        fontWeight: '600',
+        color: tc.textPrimary,
     },
     addedParamDetail: {
         fontSize: 12,
-        color: '#64748b',
+        color: tc.textSecondary,
         marginTop: 2,
-    }
+    },
 });
-
-export default Laboratory;

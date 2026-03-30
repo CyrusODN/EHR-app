@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
     View,
     Text,
@@ -10,17 +10,19 @@ import {
 import Feather from 'react-native-vector-icons/Feather';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import LinearGradient from 'react-native-linear-gradient';
+import { GetPreviousVisits, UpdateVisit, GetVisitDetails } from '../../Services/Visit.Service';
 import { useTranslation } from 'react-i18next';
 import { useThemeColors } from '../../hooks/useThemeColors';
 
 interface VisitExaminationProps {
     onNext: () => void;
     onBack: () => void;
+    visitId?: string;
     visitData?: any;
     onUpdate?: (data: any) => void;
 }
 
-const VisitExamination = ({ onNext, onBack, visitData, onUpdate }: VisitExaminationProps) => {
+const VisitExamination = ({ onNext, onBack, visitId, visitData, onUpdate }: VisitExaminationProps) => {
     const { t } = useTranslation();
     const { colors: tc, isDark } = useThemeColors();
     const ds = createDynamicStyles(tc, isDark);
@@ -29,6 +31,65 @@ const VisitExamination = ({ onNext, onBack, visitData, onUpdate }: VisitExaminat
     const [temperature, setTemperature] = useState(visitData?.examination?.temperature || '');
     const [generalCondition, setGeneralCondition] = useState(visitData?.examination?.generalCondition || '');
     const [additionalFindings, setAdditionalFindings] = useState(visitData?.examination?.additionalFindings || '');
+
+    const debounceTimeoutRef = useRef<any>(null);
+    const pendingUpdatesRef = useRef<any>({});
+
+    const handleSync = useCallback(async () => {
+        if (!visitId) return;
+
+        const updates = { ...pendingUpdatesRef.current };
+        pendingUpdatesRef.current = {}; // Clear for next cycle
+
+        // Construct payload
+        const payload = {
+            ...visitData,
+            ...updates,
+            visitId, id: visitId, _id: visitId
+        };
+
+        // Handle nested merges for examination fields
+        if (updates.examination) {
+            payload.examination = {
+                ...(visitData?.examination || {}),
+                ...updates.examination
+            };
+        }
+
+        try {
+            await UpdateVisit(payload);
+            
+            // Refresh full visit details from backend to ensure state consistency
+            const detailsResult = await GetVisitDetails(visitId);
+            const fullData = detailsResult?.data || detailsResult;
+            if (fullData && onUpdate) {
+                onUpdate(fullData);
+            }
+        } catch (error) {
+            console.error("Sync error:", error);
+        }
+    }, [visitId, visitData, onUpdate]);
+
+    const debouncedSync = (updatedFields: any) => {
+        const accumulate = (target: any, source: any) => {
+            Object.keys(source).forEach(key => {
+                if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+                    target[key] = target[key] || {};
+                    accumulate(target[key], source[key]);
+                } else {
+                    target[key] = source[key];
+                }
+            });
+        };
+        accumulate(pendingUpdatesRef.current, updatedFields);
+
+        if (debounceTimeoutRef.current) {
+            clearTimeout(debounceTimeoutRef.current);
+        }
+        debounceTimeoutRef.current = setTimeout(() => {
+            handleSync();
+        }, 700);
+    };
 
     useEffect(() => {
         if (visitData?.examination) {
@@ -57,7 +118,7 @@ const VisitExamination = ({ onNext, onBack, visitData, onUpdate }: VisitExaminat
                                 value={bloodPressure}
                                 onChangeText={(text) => {
                                     setBloodPressure(text);
-                                    if (onUpdate) onUpdate({ examination: { bloodPressure: text } });
+                                    debouncedSync({ examination: { bloodPressure: text } });
                                 }}
                             />
                         </View>
@@ -72,7 +133,7 @@ const VisitExamination = ({ onNext, onBack, visitData, onUpdate }: VisitExaminat
                                 value={heartRate}
                                 onChangeText={(text) => {
                                     setHeartRate(text);
-                                    if (onUpdate) onUpdate({ examination: { heartRate: text } });
+                                    debouncedSync({ examination: { heartRate: text } });
                                 }}
                             />
                         </View>
@@ -87,7 +148,7 @@ const VisitExamination = ({ onNext, onBack, visitData, onUpdate }: VisitExaminat
                                 value={temperature}
                                 onChangeText={(text) => {
                                     setTemperature(text);
-                                    if (onUpdate) onUpdate({ examination: { temperature: text } });
+                                    debouncedSync({ examination: { temperature: text } });
                                 }}
                             />
                         </View>
@@ -107,7 +168,7 @@ const VisitExamination = ({ onNext, onBack, visitData, onUpdate }: VisitExaminat
                                 value={generalCondition}
                                 onChangeText={(text) => {
                                     setGeneralCondition(text);
-                                    if (onUpdate) onUpdate({ examination: { generalCondition: text } });
+                                    debouncedSync({ examination: { generalCondition: text } });
                                 }}
                             />
                         </View>
@@ -124,7 +185,7 @@ const VisitExamination = ({ onNext, onBack, visitData, onUpdate }: VisitExaminat
                                 value={additionalFindings}
                                 onChangeText={(text) => {
                                     setAdditionalFindings(text);
-                                    if (onUpdate) onUpdate({ examination: { additionalFindings: text } });
+                                    debouncedSync({ examination: { additionalFindings: text } });
                                 }}
                             />
                         </View>
@@ -211,10 +272,12 @@ const createDynamicStyles = (tc: any, isDark: boolean) =>
             minHeight: hp(15),
         },
         footer: {
+            width: '80%',
             flexDirection: 'row',
             justifyContent: 'space-between',
+            alignItems:'center',
             marginTop: 20,
-            paddingBottom: hp(5),
+            gap:wp(2)
         },
         backButton: {
             flexDirection: 'row',

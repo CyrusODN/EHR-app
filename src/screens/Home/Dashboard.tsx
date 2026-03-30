@@ -629,7 +629,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) =>
         },
         greeting: {
             fontSize: 26,
-            fontWeight: '800',
+            fontWeight: '700',
             color: tc.textPrimary,
             letterSpacing: -0.3,
         },

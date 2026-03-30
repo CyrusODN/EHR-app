@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
     View, 
     Text, 
@@ -14,20 +14,25 @@ import Feather from 'react-native-vector-icons/Feather';
 import { GetPatientPersonalData } from '../../../Services/PersonalData.Service';
 import { ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const ActionOutlineButton = ({ title, icon, onPress }: any) => (
-    <TouchableOpacity style={styles.outlineButton} onPress={onPress}>
-        <Feather name={icon} size={16} color="#58a6b8" />
-        <Text style={styles.outlineButtonText}>{title}</Text>
+const ActionOutlineButton = ({ title, icon, onPress, ds, tc }: any) => (
+    <TouchableOpacity style={ds.outlineButton} onPress={onPress}>
+        <Feather name={icon} size={16} color={tc.accent} />
+        <Text style={ds.outlineButtonText}>{title}</Text>
     </TouchableOpacity>
 );
 
 const Insurance = ({ patientData }: { patientData: any }) => {
     const { t } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = useMemo(() => createDynamicStyles(tc, isDark), [tc, isDark]);
+    const commonProps = { ds, tc };
+
     const [expanded, setExpanded] = useState(true);
     const [searchText, setSearchText] = useState('');
     const [personalData, setPersonalData] = useState<any>(null);
@@ -66,77 +71,77 @@ const Insurance = ({ patientData }: { patientData: any }) => {
     };
 
     return (
-        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-            <View style={styles.card}>
+        <ScrollView style={ds.container} showsVerticalScrollIndicator={false}>
+            <View style={ds.card}>
                 <TouchableOpacity 
-                    style={[styles.header, expanded && styles.expandedHeader]} 
+                    style={[ds.header, expanded && ds.expandedHeader]} 
                     onPress={toggleExpand}
                     activeOpacity={0.7}
                 >
-                    <View style={styles.headerLeft}>
-                        <Feather name="clock" size={18} color="#58a6b8" style={styles.icon} />
-                        <Text style={styles.title}>{t('patientInsurance.title')}</Text>
+                    <View style={ds.headerLeft}>
+                        <Feather name="clock" size={18} color={tc.accent} style={ds.icon} />
+                        <Text style={ds.title}>{t('patientInsurance.title')}</Text>
                     </View>
-                    <Feather name={expanded ? "chevron-up" : "chevron-down"} size={20} color="#94a3b8" />
+                    <Feather name={expanded ? "chevron-up" : "chevron-down"} size={20} color={tc.textMuted} />
                 </TouchableOpacity>
 
                 {expanded && (
-                    <View style={styles.content}>
-                        <View style={styles.actionRow}>
-                            <View style={styles.searchBar}>
-                                <Feather name="search" size={18} color="#94a3b8" />
+                    <View style={ds.content}>
+                        <View style={ds.actionRow}>
+                            <View style={ds.searchBar}>
+                                <Feather name="search" size={18} color={tc.textMuted} />
                                 <TextInput 
-                                    style={styles.searchInput}
+                                    style={ds.searchInput}
                                     placeholder={t('patientInsurance.searchPlaceholder')}
                                     value={searchText}
                                     onChangeText={setSearchText}
-                                    placeholderTextColor="#94a3b8"
+                                    placeholderTextColor={tc.textMuted}
                                 />
                             </View>
-                            <View style={styles.buttonGroup}>
-                                <ActionOutlineButton title={t('patientInsurance.filter')} icon="calendar" />
-                                <ActionOutlineButton title={t('patientInsurance.export')} icon="download" />
+                            <View style={ds.buttonGroup}>
+                                <ActionOutlineButton {...commonProps} title={t('patientInsurance.filter')} icon="calendar" />
+                                <ActionOutlineButton {...commonProps} title={t('patientInsurance.export')} icon="download" />
                             </View>
                         </View>
 
                         {loading ? (
                             <View style={{ padding: 20, alignItems: 'center' }}>
-                                <ActivityIndicator color="#58a6b8" />
+                                <ActivityIndicator color={tc.accent} />
                             </View>
                         ) : personalData?.privateInsurers?.length > 0 ? (
                             personalData.privateInsurers
                                 .filter((item: any) => item.name?.toLowerCase().includes(searchText.toLowerCase()))
                                 .map((item: any, index: number) => (
-                                    <View key={index} style={styles.insuranceCard}>
-                                        <View style={styles.cardTop}>
-                                            <View style={styles.insurerHeader}>
-                                                <View style={styles.shieldIcon}>
-                                                    <Feather name="shield" size={16} color="#58a6b8" />
+                                    <View key={index} style={ds.insuranceCard}>
+                                        <View style={ds.cardTop}>
+                                            <View style={ds.insurerHeader}>
+                                                <View style={ds.shieldIcon}>
+                                                    <Feather name="shield" size={16} color={tc.accent} />
                                                 </View>
-                                                <Text style={styles.insurerName}>{item.name}</Text>
+                                                <Text style={ds.insurerName}>{item.name}</Text>
                                             </View>
-                                            <View style={styles.dateRangeRow}>
-                                                <Feather name="calendar" size={14} color="#94a3b8" />
-                                                <Text style={styles.dateRangeText}>
+                                            <View style={ds.dateRangeRow}>
+                                                <Feather name="calendar" size={14} color={tc.textMuted} />
+                                                <Text style={ds.dateRangeText}>
                                                     {formatDate(item.startDate)} - {formatDate(item.validUntil)}
                                                 </Text>
                                             </View>
                                         </View>
-                                        <View style={styles.cardDetails}>
-                                            <View style={styles.detailCol}>
-                                                <Text style={styles.detailLabel}>{t('patientInsurance.insurer')}</Text>
-                                                <Text style={styles.detailValue}>{item.name}</Text>
+                                        <View style={ds.cardDetails}>
+                                            <View style={ds.detailCol}>
+                                                <Text style={ds.detailLabel}>{t('patientInsurance.insurer')}</Text>
+                                                <Text style={ds.detailValue}>{item.name}</Text>
                                             </View>
-                                            <View style={styles.detailCol}>
-                                                <Text style={styles.detailLabel}>{t('patientInsurance.policyNumber')}</Text>
-                                                <Text style={styles.detailValue}>{item.policyNumber}</Text>
+                                            <View style={ds.detailCol}>
+                                                <Text style={ds.detailLabel}>{t('patientInsurance.policyNumber')}</Text>
+                                                <Text style={ds.detailValue}>{item.policyNumber}</Text>
                                             </View>
                                         </View>
                                     </View>
                                 ))
                         ) : (
-                            <View style={styles.emptyContainer}>
-                                <Text style={styles.emptyText}>{t('patientInsurance.noInsuranceHistory')}</Text>
+                            <View style={ds.emptyContainer}>
+                                <Text style={ds.emptyText}>{t('patientInsurance.noInsuranceHistory')}</Text>
                             </View>
                         )}
                     </View>
@@ -146,16 +151,16 @@ const Insurance = ({ patientData }: { patientData: any }) => {
     );
 };
 
-const styles = StyleSheet.create({
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     container: {
         paddingHorizontal: 16,
     },
     card: {
-        backgroundColor: '#ffffff',
+        backgroundColor: tc.cardBackground,
         borderRadius: 12,
         marginBottom: 16,
         borderWidth: 1,
-        borderColor: '#f1f5f9',
+        borderColor: tc.borderColor,
         overflow: 'hidden',
     },
     header: {
@@ -166,7 +171,7 @@ const styles = StyleSheet.create({
     },
     expandedHeader: {
         borderBottomWidth: 1,
-        borderBottomColor: '#f1f5f9',
+        borderBottomColor: tc.borderColor,
     },
     headerLeft: {
         flexDirection: 'row',
@@ -178,7 +183,7 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 13,
         fontWeight: '700',
-        color: '#1e293b',
+        color: tc.textPrimary,
         letterSpacing: 0.5,
     },
     content: {
@@ -194,9 +199,9 @@ const styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#ffffff',
+        backgroundColor: tc.inputBackground,
         borderWidth: 1,
-        borderColor: '#e2e8f0',
+        borderColor: tc.borderColor,
         borderRadius: 8,
         paddingHorizontal: 12,
         height: 44,
@@ -205,7 +210,7 @@ const styles = StyleSheet.create({
         flex: 1,
         marginLeft: 8,
         fontSize: 14,
-        color: '#1e293b',
+        color: tc.textPrimary,
         padding: 0,
     },
     buttonGroup: {
@@ -216,34 +221,35 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#58a6b8',
+        borderColor: tc.accent,
         borderRadius: 8,
         paddingVertical: 8,
         paddingHorizontal: 12,
         height: 44,
+        backgroundColor: isDark ? tc.buttonMutedBg : 'transparent',
     },
     outlineButtonText: {
         fontSize: 13,
         fontWeight: '600',
-        color: '#58a6b8',
+        color: tc.accent,
         marginLeft: 6
     },
     emptyContainer: {
-        backgroundColor: '#f8fafc',
+        backgroundColor: tc.cardBackgroundAlt || (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc'),
         borderRadius: 8,
         padding: 16,
         alignItems: 'flex-start',
     },
     emptyText: {
         fontSize: 13,
-        color: '#64748b',
+        color: tc.textMuted,
         fontWeight: '500',
     },
     insuranceCard: {
-        backgroundColor: '#f8fafc',
+        backgroundColor: tc.cardBackgroundAlt || (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc'),
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: '#f1f5f9',
+        borderColor: tc.borderColor,
         overflow: 'hidden',
         marginBottom: 12,
     },
@@ -259,17 +265,17 @@ const styles = StyleSheet.create({
         width: 32,
         height: 32,
         borderRadius: 8,
-        backgroundColor: '#ffffff',
+        backgroundColor: isDark ? tc.buttonMutedBg : '#ffffff',
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 10,
         borderWidth: 1,
-        borderColor: '#e2e8f0',
+        borderColor: tc.borderColor,
     },
     insurerName: {
         fontSize: 15,
         fontWeight: '700',
-        color: '#1e293b',
+        color: tc.textPrimary,
     },
     dateRangeRow: {
         flexDirection: 'row',
@@ -278,28 +284,28 @@ const styles = StyleSheet.create({
     },
     dateRangeText: {
         fontSize: 12,
-        color: '#94a3b8',
+        color: tc.textMuted,
         fontWeight: '500',
     },
     cardDetails: {
         flexDirection: 'row',
-        backgroundColor: '#ffffff',
+        backgroundColor: tc.cardBackground,
         padding: 16,
         borderTopWidth: 1,
-        borderTopColor: '#f1f5f9',
+        borderTopColor: tc.borderColor,
     },
     detailCol: {
         flex: 1,
     },
     detailLabel: {
         fontSize: 12,
-        color: '#94a3b8',
+        color: tc.textMuted,
         marginBottom: 4,
     },
     detailValue: {
         fontSize: 14,
         fontWeight: '700',
-        color: '#1e293b',
+        color: tc.textPrimary,
     },
 });
 

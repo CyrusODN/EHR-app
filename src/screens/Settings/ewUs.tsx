@@ -37,16 +37,16 @@ const EWUS = () => {
 
     // Departments
     const departments = [
-        { label: t('settings.ewus.departments.maritime'), value: 'Maritime (11)' },
-        { label: t('settings.ewus.departments.masovian'), value: 'Masovian (07)' },
-        { label: t('settings.ewus.departments.silesian'), value: 'Silesian (12)' }
+        { label: t('settings.ewus.options.branches.maritime'), value: 'Maritime (11)' },
+        { label: t('settings.ewus.options.branches.masovian'), value: 'Masovian (07)' },
+        { label: t('settings.ewus.options.branches.silesian'), value: 'Silesian (12)' }
     ];
 
     // Contractor Types
     const contractorTypes = [
-        { label: t('settings.ewus.contractor_types.doctor'), value: 'Doctor' },
-        { label: t('settings.ewus.contractor_types.clinic'), value: 'Clinic' },
-        { label: t('settings.ewus.contractor_types.hospital'), value: 'Hospital' }
+        { label: t('settings.ewus.options.contractors.doctor'), value: 'Doctor' },
+        { label: t('settings.ewus.options.contractors.clinic'), value: 'Clinic' },
+        { label: t('settings.ewus.options.contractors.hospital'), value: 'Hospital' }
     ];
 
     return (
@@ -67,7 +67,7 @@ const EWUS = () => {
                 {/* Automatic Insurance Check */}
                 <View style={ds.settingRow}>
                     <View style={ds.settingTextContainer}>
-                        <Text style={ds.settingTitle}>{t('settings.ewus.auto_insurance')}</Text>
+                        <Text style={ds.settingTitle}>{t('settings.ewus.auto_verification')}</Text>
                         <Ionicons
                             name="information-circle-outline"
                             size={20}
@@ -85,7 +85,7 @@ const EWUS = () => {
 
                 {/* eWUŚ System */}
                 <View style={ds.settingRow}>
-                    <Text style={ds.settingTitle}>{t('settings.ewus.system_ewus')}</Text>
+                    <Text style={ds.settingTitle}>{t('settings.ewus.system_status')}</Text>
                     <Switch
                         value={eWUSSystem}
                         onValueChange={setEWUSSystem}
@@ -96,10 +96,10 @@ const EWUS = () => {
 
                 {/* Branch Dropdown */}
                 <View style={ds.inputContainer}>
-                    <Text style={ds.inputLabel}>{t('settings.ewus.branch')}</Text>
+                    <Text style={ds.inputLabel}>{t('settings.ewus.labels.branch')}</Text>
                     <View style={ds.pickerContainer}>
                         <CustomDropdown
-                            placeholder={t('settings.ewus.placeholders.maritime')}
+                            placeholder={t('settings.ewus.options.branches.maritime')}
                             options={departments}
                             value={branch}
                             onChange={setBranch}
@@ -110,10 +110,10 @@ const EWUS = () => {
 
                 {/* Contractor Type Dropdown */}
                 <View style={ds.inputContainer}>
-                    <Text style={ds.inputLabel}>{t('settings.ewus.contractor_type')}</Text>
+                    <Text style={ds.inputLabel}>{t('settings.ewus.labels.contractor_type')}</Text>
                     <View style={ds.pickerContainer}>
                         <CustomDropdown
-                            placeholder={t('settings.ewus.placeholders.doctor')}
+                            placeholder={t('settings.ewus.options.contractors.doctor')}
                             options={contractorTypes}
                             value={contractor}
                             onChange={setContractor}
@@ -124,7 +124,7 @@ const EWUS = () => {
 
                 {/* Personnel Code Input */}
                 <View style={ds.inputContainer}>
-                    <Text style={ds.inputLabel}>{t('settings.ewus.personnel_code')}</Text>
+                    <Text style={ds.inputLabel}>{t('settings.ewus.labels.personnel_code')}</Text>
                     <TextInput
                         style={ds.textInput}
                         value={personnelCode}
@@ -136,7 +136,7 @@ const EWUS = () => {
 
                 {/* Password Input */}
                 <View style={ds.inputContainer}>
-                    <Text style={ds.inputLabel}>{t('settings.ewus.login')}</Text>
+                    <Text style={ds.inputLabel}>{t('settings.ewus.labels.login')}</Text>
                     <TextInput
                         style={ds.textInput}
                         value={login}
@@ -149,14 +149,14 @@ const EWUS = () => {
 
                 {/* Password Section */}
                 <View style={ds.inputContainer}>
-                    <Text style={ds.inputLabel}>{t('settings.ewus.password')}</Text>
-                    <Text style={ds.passwordText}>{t('settings.ewus.not_changed')}</Text>
+                    <Text style={ds.inputLabel}>{t('settings.ewus.labels.password')}</Text>
+                    <Text style={ds.passwordText}>{t('settings.ewus.password_not_changed')}</Text>
                 </View>
                 <View style={{ backgroundColor: tc.cardBackground }}>
 
 
                     <PrimaryButton
-                        label={'Save and verify data accuracy'}
+                        label={t('settings.ewus.buttons.save_verify')}
                         filled={true}
                         onPress={() => { }}
                         style={{ width: wp(85), alignSelf: "center" }}
@@ -170,7 +170,7 @@ const EWUS = () => {
                     {/* Action Buttons */}
 
                     <PrimaryButton
-                        label={'Change Password'}
+                        label={t('settings.ewus.buttons.change_password')}
                         filled={false}
                         onPress={() => { }}
                         style={{ width: wp(85), alignSelf: "center" }}
@@ -183,7 +183,7 @@ const EWUS = () => {
                     />
 
                     <PrimaryButton
-                        label={'Check Now'}
+                        label={t('settings.ewus.buttons.check_now')}
                         filled={true}
                         onPress={() => { }}
                         style={{ alignSelf: "center", width: wp(85) }}

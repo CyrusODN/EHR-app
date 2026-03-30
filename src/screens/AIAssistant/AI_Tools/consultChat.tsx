@@ -44,6 +44,7 @@ const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
     const scrollViewRef = useRef<ScrollView>(null);
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
     const drawerAnim = useRef(new Animated.Value(-wp(70))).current;
+    const backdropAnim = useRef(new Animated.Value(0)).current;
 
     const [sessions, setSessions] = useState<any[]>([]);
     const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
@@ -224,13 +225,23 @@ const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
     };
 
     const toggleHistory = () => {
-        const toValue = isHistoryOpen ? -wp(70) : 0;
-        Animated.timing(drawerAnim, {
-            toValue,
-            duration: 300,
-            useNativeDriver: false,
-        }).start();
-        setIsHistoryOpen(!isHistoryOpen);
+        const toOpen = !isHistoryOpen;
+        const toValue = toOpen ? 0 : -wp(70);
+        const backdropToValue = toOpen ? 1 : 0;
+
+        Animated.parallel([
+            Animated.timing(drawerAnim, {
+                toValue,
+                duration: 300,
+                useNativeDriver: false,
+            }),
+            Animated.timing(backdropAnim, {
+                toValue: backdropToValue,
+                duration: 300,
+                useNativeDriver: false,
+            }),
+        ]).start();
+        setIsHistoryOpen(toOpen);
     };
 
     const handleBackToSelection = () => {
@@ -285,11 +296,18 @@ const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
                 setIsHistoryOpen(false);
                 
                 // Close the drawer animation
-                Animated.timing(drawerAnim, {
-                    toValue: -wp(70),
-                    duration: 300,
-                    useNativeDriver: false,
-                }).start();
+                Animated.parallel([
+                    Animated.timing(drawerAnim, {
+                        toValue: -wp(70),
+                        duration: 300,
+                        useNativeDriver: false,
+                    }),
+                    Animated.timing(backdropAnim, {
+                        toValue: 0,
+                        duration: 300,
+                        useNativeDriver: false,
+                    }),
+                ]).start();
 
                 console.log("[ConsultChat] Session loaded and history populated");
             } else {
@@ -333,6 +351,23 @@ const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
     // ─── Main Render ───
     return (
         <View style={ds.container}>
+            {/* Backdrop Overlay */}
+            <Animated.View 
+                pointerEvents={isHistoryOpen ? 'auto' : 'none'}
+                style={[
+                    ds.backdrop, 
+                    { 
+                        opacity: backdropAnim,
+                    }
+                ]} 
+            >
+                <TouchableOpacity 
+                    activeOpacity={1} 
+                    style={{ flex: 1 }} 
+                    onPress={toggleHistory} 
+                />
+            </Animated.View>
+
             {/* History Drawer */}
             <Animated.View style={[ds.drawer, { left: drawerAnim }]}>
                 <View style={ds.drawerHeader}>
@@ -390,7 +425,7 @@ const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
                     {/* Header for Selection Screen */}
                     <View style={ds.chatHeader}>
                         <TouchableOpacity onPress={toggleHistory} style={ds.menuBtn}>
-                            <Feather name="menu" size={22} color={tc.textPrimary} />
+                            <Feather name="menu" size={22} color={tc.accent} />
                         </TouchableOpacity>
                         <View style={ds.chatHeaderTitleContainer}>
                             <Text style={ds.chatHeaderTitle}>{t('aiAssistant.consultChat.clinicalAssistant')}</Text>
@@ -552,15 +587,24 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
         top: 0,
         bottom: 0,
         width: wp(70),
-        backgroundColor: tc.cardBackground,
+        backgroundColor: tc.drawerBg,
         zIndex: 1000,
         borderRightWidth: 1,
         borderRightColor: tc.borderSubtle,
         elevation: 10,
         shadowColor: tc.shadow,
         shadowOffset: { width: 2, height: 0 },
-        shadowOpacity: isDark ? 0.3 : 0.1,
+        shadowOpacity: isDark ? 0.4 : 0.15,
         shadowRadius: 10,
+    },
+    backdrop: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        zIndex: 999,
     },
     drawerHeader: {
         flexDirection: 'row',
@@ -702,7 +746,13 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
         backgroundColor: tc.cardBackground,
     },
     menuBtn: {
-        marginRight: 16,
+        width: wp(10),
+        height: hp(4.5),
+        borderRadius: 10,
+        backgroundColor: isDark ? 'rgba(74, 144, 185, 0.15)' : '#EBF5FF',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: wp(2), 
     },
     chatHeaderTitleContainer: {
         flex: 1,

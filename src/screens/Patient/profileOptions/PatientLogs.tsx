@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
     View, 
     Text, 
@@ -16,15 +16,16 @@ import {
 import Feather from 'react-native-vector-icons/Feather';
 import { useTranslation } from 'react-i18next';
 import { GetPatientLogs } from '../../../Services/PatientLogs.Service';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const formatDateTime = (dateString: string) => {
-    if (!dateString) return { date: 'N/A', time: 'N/A' };
+const formatDateTime = (dateString: string, t: any) => {
+    if (!dateString) return { date: t('common.na'), time: t('common.na') };
     const date = new Date(dateString);
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const months = t('common.monthsShort', { returnObjects: true }) || ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const formattedDate = `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
     
     let hours = date.getHours();
@@ -37,24 +38,33 @@ const formatDateTime = (dateString: string) => {
     return { date: formattedDate, time: formattedTime };
 };
 
-const formatActivityType = (type: string) => {
+const formatActivityType = (type: string, t: any) => {
+    const key = `patientLogs.activityTypes.${type}`;
+    const translated = t(key);
+    if (translated !== key) return translated;
+
     return type
         .split('_')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
 };
 
-const formatSummary = (log: any) => {
+const formatSummary = (log: any, t: any) => {
     const { type, details } = log;
     if (type === 'visit_scheduled') {
-        return `Date: ${details.date}, Time: ${details.startTime}`;
+        const dateStr = details?.date || t('common.na');
+        const timeStr = details?.startTime || t('common.na');
+        return `${t('visitWizard.form.date')}: ${dateStr}, ${t('common.time')}: ${timeStr}`;
     }
     if (type === 'medical_record_accessed' || type === 'profile_viewed') {
-        return 'Viewed Medical Information';
+        return t('patientLogs.viewedMedicalInformation');
     }
     if (type === 'medical_data_updated') {
-        const fields = details?.fieldsUpdated?.[0] || 'medical data';
-        return `Updated ${fields.replace(/([A-Z])/g, ' $1').toLowerCase()}`;
+        const fields = details?.fieldsUpdated?.[0];
+        if (fields) {
+            return t('patientLogs.updated', { field: fields.replace(/([A-Z])/g, ' $1').toLowerCase() });
+        }
+        return t('patientLogs.updatedMedicalData');
     }
     if (type === 'patient_record_updated' || type === 'personal_data_updated') {
         // Return stringified details without braces for a cleaner look
@@ -75,24 +85,27 @@ const getIcon = (type: string) => {
     }
 };
 
-const getIconColor = (type: string) => {
+const getIconColor = (type: string, tc: any) => {
     switch (type) {
-        case 'medical_data_updated': return '#22c55e'; // Green
+        case 'medical_data_updated': return tc.accentGreen || '#22c55e';
         case 'personal_data_updated': return '#3b82f6'; // Blue
         case 'medical_record_accessed':
-        case 'profile_viewed': return '#64748b'; // Slate
-        case 'patient_record_updated': return '#64748b'; // Slate
-        default: return '#94a3b8';
+        case 'profile_viewed': return tc.textMuted;
+        case 'patient_record_updated': return tc.textMuted;
+        default: return tc.textMuted;
     }
 };
 
 const PatientLogs = ({ patientData }: { patientData: any }) => {
     const { t } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = useMemo(() => createDynamicStyles(tc, isDark), [tc, isDark]);
+
     const [logs, setLogs] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [expanded, setExpanded] = useState(true);
     const [searchText, setSearchText] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState('All Categories');
+    const [selectedCategory, setSelectedCategory] = useState(t('patientLogs.allCategories'));
     const [showDropdown, setShowDropdown] = useState(false);
 
     const categories = [t('patientLogs.allCategories'), t('patientLogs.medical'), t('patientLogs.other'), t('patientLogs.personal'), t('patientLogs.system')];
@@ -125,9 +138,9 @@ const PatientLogs = ({ patientData }: { patientData: any }) => {
 
     const filteredLogs = logs.filter(log => {
         const matchesSearch = 
-            formatActivityType(log.type).toLowerCase().includes(searchText.toLowerCase()) ||
+            formatActivityType(log.type, t).toLowerCase().includes(searchText.toLowerCase()) ||
             (log.performedBy?.name || '').toLowerCase().includes(searchText.toLowerCase()) ||
-            formatSummary(log).toLowerCase().includes(searchText.toLowerCase());
+            formatSummary(log, t).toLowerCase().includes(searchText.toLowerCase());
         
         if (selectedCategory === t('patientLogs.allCategories')) return matchesSearch;
         
@@ -148,37 +161,37 @@ const PatientLogs = ({ patientData }: { patientData: any }) => {
     });
 
     return (
-        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-            <View style={styles.card}>
+        <ScrollView style={ds.container} showsVerticalScrollIndicator={false}>
+            <View style={ds.card}>
                 <TouchableOpacity 
-                    style={[styles.header, expanded && styles.expandedHeader]} 
+                    style={[ds.header, expanded && ds.expandedHeader]} 
                     onPress={toggleExpand}
                     activeOpacity={0.7}
                 >
-                    <Text style={styles.title}>{t('patientLogs.patientActivityLogs')}</Text>
-                    <Feather name={expanded ? "chevron-up" : "chevron-down"} size={20} color="#94a3b8" />
+                    <Text style={ds.title}>{t('patientLogs.patientActivityLogs')}</Text>
+                    <Feather name={expanded ? "chevron-up" : "chevron-down"} size={20} color={tc.textMuted} />
                 </TouchableOpacity>
 
                 {expanded && (
-                    <View style={styles.content}>
-                        <View style={styles.filterRow}>
-                            <View style={styles.searchBar}>
-                                <Feather name="search" size={16} color="#94a3b8" />
+                    <View style={ds.content}>
+                        <View style={ds.filterRow}>
+                            <View style={ds.searchBar}>
+                                <Feather name="search" size={16} color={tc.textMuted} />
                                 <TextInput 
-                                    style={styles.searchInput}
+                                    style={ds.searchInput}
                                     placeholder={t('patientLogs.searchLogs')}
                                     value={searchText}
                                     onChangeText={setSearchText}
-                                    placeholderTextColor="#94a3b8"
+                                    placeholderTextColor={tc.textMuted}
                                 />
                             </View>
                             <View>
                                 <TouchableOpacity 
-                                    style={styles.categoryButton}
+                                    style={ds.categoryButton}
                                     onPress={() => setShowDropdown(true)}
                                 >
-                                    <Feather name="filter" size={16} color="#94a3b8" />
-                                    <Text style={styles.categoryText}>{selectedCategory}</Text>
+                                    <Feather name="filter" size={16} color={tc.textMuted} />
+                                    <Text style={ds.categoryText}>{selectedCategory}</Text>
                                     <Modal
                                         visible={showDropdown}
                                         transparent={true}
@@ -186,31 +199,31 @@ const PatientLogs = ({ patientData }: { patientData: any }) => {
                                         onRequestClose={() => setShowDropdown(false)}
                                     >
                                         <Pressable 
-                                            style={styles.modalOverlay} 
+                                            style={ds.modalOverlay} 
                                             onPress={() => setShowDropdown(false)}
                                         >
-                                            <View style={styles.dropdownMenu}>
+                                            <View style={ds.dropdownMenu}>
                                                 {categories.map((cat) => (
                                                     <TouchableOpacity
                                                         key={cat}
                                                         style={[
-                                                            styles.dropdownItem,
-                                                            selectedCategory === cat && styles.selectedDropdownItem
+                                                            ds.dropdownItem,
+                                                            selectedCategory === cat && ds.selectedDropdownItem
                                                         ]}
                                                         onPress={() => {
                                                             setSelectedCategory(cat);
                                                             setShowDropdown(false);
                                                         }}
                                                     >
-                                                        <View style={styles.dropdownItemContent}>
+                                                        <View style={ds.dropdownItemContent}>
                                                             {selectedCategory === cat ? (
-                                                                <Feather name="check" size={16} color="#fff" style={styles.checkIcon} />
+                                                                <Feather name="check" size={16} color="#fff" style={ds.checkIcon} />
                                                             ) : (
-                                                                <View style={styles.checkPlaceholder} />
+                                                                <View style={ds.checkPlaceholder} />
                                                             )}
                                                             <Text style={[
-                                                                styles.dropdownItemText,
-                                                                selectedCategory === cat && styles.selectedDropdownItemText
+                                                                ds.dropdownItemText,
+                                                                selectedCategory === cat && ds.selectedDropdownItemText
                                                             ]}>
                                                                 {cat}
                                                             </Text>
@@ -222,56 +235,56 @@ const PatientLogs = ({ patientData }: { patientData: any }) => {
                                     </Modal>
                                 </TouchableOpacity>
                             </View>
-                            <Text style={styles.showingText}>
+                            <Text style={ds.showingText}>
                                 {t('patientLogs.showingLogs', { count: filteredLogs.length, total: logs.length })}
                             </Text>
                         </View>
 
                         {loading ? (
                             <View style={{ paddingVertical: 40, alignItems: 'center' }}>
-                                <ActivityIndicator size="small" color="#4DA1C0" />
-                                <Text style={{ marginTop: 10, color: '#94a3b8', fontSize: 12 }}>{t('patientLogs.loadingLogs')}</Text>
+                                <ActivityIndicator size="small" color={tc.accent} />
+                                <Text style={{ marginTop: 10, color: tc.textMuted, fontSize: 12 }}>{t('patientLogs.loadingLogs')}</Text>
                             </View>
                         ) : (
-                            <View style={styles.tableContainer}>
+                            <View style={ds.tableContainer}>
                                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                                    <View style={styles.tableMinWidth}>
-                                        <View style={styles.tableHeader}>
-                                            <Text style={[styles.columnLabel, { width: 180 }]}>{t('patientLogs.activityType')}</Text>
-                                            <Text style={[styles.columnLabel, { width: 140 }]}>{t('patientLogs.performedBy')}</Text>
-                                            <View style={[styles.columnLabel, { width: 140, flexDirection: 'row', alignItems: 'center' }]}>
-                                                <Text style={styles.columnLabelText}>{t('patientLogs.dateTime')}</Text>
-                                                <Feather name="arrow-down" size={12} color="#94a3b8" style={{ marginLeft: 4 }} />
+                                    <View style={ds.tableMinWidth}>
+                                        <View style={ds.tableHeader}>
+                                            <Text style={[ds.columnLabelText, { width: 180 }]}>{t('patientLogs.activityType')}</Text>
+                                            <Text style={[ds.columnLabelText, { width: 140 }]}>{t('patientLogs.performedBy')}</Text>
+                                            <View style={[ds.columnLabel, { width: 140, flexDirection: 'row', alignItems: 'center' }]}>
+                                                <Text style={ds.columnLabelText}>{t('patientLogs.dateTime')}</Text>
+                                                <Feather name="arrow-down" size={12} color={tc.textMuted} style={{ marginLeft: 4 }} />
                                             </View>
-                                            <Text style={[styles.columnLabel, { width: 220 }]}>{t('patientLogs.summary')}</Text>
+                                            <Text style={[ds.columnLabelText, { width: 220 }]}>{t('patientLogs.summary')}</Text>
                                         </View>
 
                                         {filteredLogs.length > 0 ? (
                                             filteredLogs.map((log, index) => {
-                                                const { date, time } = formatDateTime(log.createdAt);
+                                                const { date, time } = formatDateTime(log.createdAt, t);
                                                 return (
-                                                    <View key={log.id || index} style={[styles.tableRow, index === filteredLogs.length - 1 && { borderBottomWidth: 0 }]}>
+                                                    <View key={log.id || index} style={[ds.tableRow, index === filteredLogs.length - 1 && { borderBottomWidth: 0 }]}>
                                                         <View style={{ width: 180, flexDirection: 'row', alignItems: 'center' }}>
-                                                            <Feather name="chevron-right" size={14} color="#94a3b8" style={{ marginRight: 8, opacity: 0.5 }} />
-                                                            <Feather name={getIcon(log.type) as any} size={15} color={getIconColor(log.type)} style={{ marginRight: 10 }} />
-                                                            <Text style={styles.activityType}>{formatActivityType(log.type)}</Text>
+                                                            <Feather name="chevron-right" size={14} color={tc.textMuted} style={{ marginRight: 8, opacity: 0.5 }} />
+                                                            <Feather name={getIcon(log.type) as any} size={15} color={getIconColor(log.type, tc)} style={{ marginRight: 10 }} />
+                                                            <Text style={ds.activityType}>{formatActivityType(log.type, t)}</Text>
                                                         </View>
                                                         <View style={{ width: 140 }}>
-                                                            <Text style={styles.cellText}>{log.performedBy?.name || 'N/A'}</Text>
+                                                            <Text style={ds.cellText}>{log.performedBy?.name || t('common.na')}</Text>
                                                         </View>
                                                         <View style={{ width: 140 }}>
-                                                            <Text style={styles.cellText}>{date}</Text>
-                                                            <Text style={styles.timeText}>{time}</Text>
+                                                            <Text style={ds.cellText}>{date}</Text>
+                                                            <Text style={ds.timeText}>{time}</Text>
                                                         </View>
                                                         <View style={{ width: 220 }}>
-                                                            <Text style={styles.cellText} numberOfLines={1}>{formatSummary(log)}</Text>
+                                                            <Text style={ds.cellText} numberOfLines={1}>{formatSummary(log, t)}</Text>
                                                         </View>
                                                     </View>
                                                 );
                                             })
                                         ) : (
                                             <View style={{ padding: 20, alignItems: 'center', width: 680 }}>
-                                                <Text style={{ color: '#94a3b8', fontSize: 12 }}>{t('patientLogs.noLogsFound')}</Text>
+                                                <Text style={{ color: tc.textMuted, fontSize: 12 }}>{t('patientLogs.noLogsFound')}</Text>
                                             </View>
                                         )}
                                     </View>
@@ -285,16 +298,16 @@ const PatientLogs = ({ patientData }: { patientData: any }) => {
     );
 };
 
-const styles = StyleSheet.create({
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     container: {
         paddingHorizontal: 16,
     },
     card: {
-        backgroundColor: '#ffffff',
+        backgroundColor: tc.cardBackground,
         borderRadius: 12,
         marginBottom: 16,
         borderWidth: 1,
-        borderColor: '#f1f5f9',
+        borderColor: tc.borderColor,
         overflow: 'hidden',
     },
     header: {
@@ -305,12 +318,12 @@ const styles = StyleSheet.create({
     },
     expandedHeader: {
         borderBottomWidth: 1,
-        borderBottomColor: '#f1f5f9',
+        borderBottomColor: tc.borderColor,
     },
     title: {
         fontSize: 14,
         fontWeight: '700',
-        color: '#1e293b',
+        color: tc.textPrimary,
     },
     content: {
         padding: 16,
@@ -326,9 +339,9 @@ const styles = StyleSheet.create({
         width: 150,
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#ffffff',
+        backgroundColor: tc.inputBackground,
         borderWidth: 1,
-        borderColor: '#e2e8f0',
+        borderColor: tc.borderColor,
         borderRadius: 8,
         paddingHorizontal: 10,
         height: 36,
@@ -337,15 +350,15 @@ const styles = StyleSheet.create({
         flex: 1,
         marginLeft: 6,
         fontSize: 12,
-        color: '#1e293b',
+        color: tc.textPrimary,
         padding: 0,
     },
     categoryButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#ffffff',
+        backgroundColor: tc.cardBackground,
         borderWidth: 1,
-        borderColor: '#e2e8f0',
+        borderColor: tc.borderColor,
         borderRadius: 8,
         paddingHorizontal: 12,
         height: 36,
@@ -353,27 +366,27 @@ const styles = StyleSheet.create({
     categoryText: {
         fontSize: 13,
         fontWeight: '600',
-        color: '#1e293b',
+        color: tc.textPrimary,
         marginLeft: 6,
     },
     showingText: {
         fontSize: 12,
-        color: '#94a3b8',
+        color: tc.textMuted,
         marginLeft: 'auto',
     },
     tableContainer: {
         borderWidth: 1,
-        borderColor: '#e2e8f0',
+        borderColor: tc.borderColor,
         borderRadius: 8,
         overflow: 'hidden',
     },
     tableHeader: {
         flexDirection: 'row',
-        backgroundColor: '#f8fafc',
+        backgroundColor: tc.cardBackgroundAlt || (isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc'),
         paddingVertical: 10,
         paddingHorizontal: 12,
         borderBottomWidth: 1,
-        borderBottomColor: '#e2e8f0',
+        borderBottomColor: tc.borderColor,
     },
     tableMinWidth: {
         minWidth: 680,
@@ -384,29 +397,29 @@ const styles = StyleSheet.create({
     columnLabelText: {
         fontSize: 11,
         fontWeight: '700',
-        color: '#94a3b8',
+        color: tc.textMuted,
     },
     tableRow: {
         flexDirection: 'row',
         paddingVertical: 12,
         paddingHorizontal: 12,
         borderBottomWidth: 1,
-        borderBottomColor: '#f1f5f9',
+        borderBottomColor: tc.divider,
         alignItems: 'center',
     },
     activityType: {
         fontSize: 12,
         fontWeight: '600',
-        color: '#1e293b',
+        color: tc.textPrimary,
         flex: 1,
     },
     cellText: {
         fontSize: 12,
-        color: '#475569',
+        color: tc.textSecondary,
     },
     timeText: {
         fontSize: 11,
-        color: '#94a3b8',
+        color: tc.textMuted,
         marginTop: 2,
     },
     modalOverlay: {
@@ -416,7 +429,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     dropdownMenu: {
-        backgroundColor: '#4c4c4c',
+        backgroundColor: isDark ? tc.modalBg : '#4c4c4c',
         borderRadius: 12,
         padding: 6,
         width: 180,
@@ -425,6 +438,8 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 8,
         elevation: 10,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: tc.borderColor,
     },
     dropdownItem: {
         paddingVertical: 8,
@@ -432,7 +447,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
     },
     selectedDropdownItem: {
-        backgroundColor: '#3b82f6',
+        backgroundColor: tc.accent,
     },
     dropdownItemContent: {
         flexDirection: 'row',

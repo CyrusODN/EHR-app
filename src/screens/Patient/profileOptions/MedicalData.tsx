@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
     View, 
     Text, 
@@ -16,73 +16,76 @@ import {
 import Feather from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
 import { GetPatientMedicalData, UpdateMedicalData, MEDICATION_FORMS, SEVERITY_LEVELS, ALLERGY_TYPES, CONDITION_STATUSES, RELATIONSHIP_OPTIONS, RISK_CATEGORIES, RISK_LEVELS } from '../../../Services/MedicalData.Service';
-
-
-
-
-
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const FormInput = ({ label, placeholder, required = false, isDropdown = false, isDate = false, unit = '', hasInfo = false, multiline = false, value, onChangeText, onPress }: any) => (
-    <View style={styles.inputGroup}>
-        <View style={styles.labelRow}>
-            {required && <Text style={styles.requiredStar}>* </Text>}
-            <Text style={styles.inputLabel}>{label}</Text>
-            {hasInfo && <Feather name="help-circle" size={14} color="#94a3b8" style={{ marginLeft: 4 }} />}
+const FormInput = ({ label, placeholder, required = false, isDropdown = false, isDate = false, unit = '', hasInfo = false, multiline = false, value, onChangeText, onPress, ds, tc }: any) => (
+    <View style={ds.inputGroup}>
+        <View style={ds.labelRow}>
+            {required && <Text style={ds.requiredStar}>* </Text>}
+            <Text style={ds.inputLabel}>{label}</Text>
+            {hasInfo && <Feather name="help-circle" size={14} color={tc.textMuted} style={{ marginLeft: 4 }} />}
         </View>
         <TouchableOpacity 
             activeOpacity={isDropdown || isDate ? 0.7 : 1}
             onPress={(isDropdown || isDate) ? onPress : undefined}
-            style={[styles.inputWrapper, multiline && styles.textAreaWrapper]}
+            style={[ds.inputWrapper, multiline && ds.textAreaWrapper]}
         >
             <TextInput 
-                style={[styles.textInput, multiline && styles.textArea]}
+                style={[ds.textInput, multiline && ds.textArea]}
                 placeholder={placeholder}
-                placeholderTextColor="#cbd5e1"
+                placeholderTextColor={tc.textMuted}
                 editable={!isDropdown && !isDate}
                 multiline={multiline}
                 value={value}
                 onChangeText={onChangeText}
                 pointerEvents={(isDropdown || isDate) ? 'none' : 'auto'}
             />
-            {unit ? <Text style={styles.unitText}>{unit}</Text> : null}
-            {isDropdown && <Feather name="chevron-down" size={16} color="#cbd5e1" />}
-            {isDate && <Feather name="calendar" size={16} color="#4A90B9" />}
+            {unit ? <Text style={ds.unitText}>{unit}</Text> : null}
+            {isDropdown && <Feather name="chevron-down" size={16} color={tc.textMuted} />}
+            {isDate && <Feather name="calendar" size={16} color={tc.accent} />}
         </TouchableOpacity>
     </View>
 );
 
 
-const SubmitButton = ({ title, icon, color = ['#68BFB4', '#4DA1C0'], onPress }: any) => (
-    <TouchableOpacity style={styles.submitButtonContainer} onPress={onPress}>
+const SubmitButton = ({ title, onPress, color, loading = false, ds, tc }: any) => (
+    <TouchableOpacity 
+        style={[ds.submitButtonContainer, loading && { opacity: 0.7 }]} 
+        onPress={loading ? undefined : onPress}
+        activeOpacity={0.7}
+    >
         <LinearGradient
-            colors={color}
+            colors={color || [tc.accentGradientStart || '#68BFB4', tc.accentGradientEnd || '#4DA1C0']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            style={styles.gradientButton}
+            style={ds.gradientButton}
         >
-            <View style={styles.buttonContent}>
-                {icon && <Feather name={icon} size={16} color="#ffffff" style={{ marginRight: 8 }} />}
-                <Text style={styles.submitButtonText}>{title}</Text>
+            <View style={ds.buttonContent}>
+                {loading ? (
+                    <ActivityIndicator size="small" color="#ffffff" />
+                ) : (
+                    <Text style={ds.submitButtonText}>{title}</Text>
+                )}
             </View>
         </LinearGradient>
     </TouchableOpacity>
 );
 
-const ActionOutlineButton = ({ title, icon, onPress }: any) => (
-    <TouchableOpacity style={styles.outlineButton} onPress={onPress}>
-        <Feather name={icon} size={16} color="#58a6b8" />
-        <Text style={styles.outlineButtonText}>{title}</Text>
+const ActionOutlineButton = ({ title, icon, onPress, ds, tc }: any) => (
+    <TouchableOpacity style={ds.outlineButton} onPress={onPress}>
+        <Feather name={icon} size={16} color={tc.accent} />
+        <Text style={ds.outlineButtonText}>{title}</Text>
     </TouchableOpacity>
 );
 
-const AccordionItem = ({ title, icon, children }: { title: string, icon: string, children: React.ReactNode }) => {
+const AccordionItem = ({ title, icon, children, ds, tc }: { title: string, icon: string, children: React.ReactNode, ds: any, tc: any }) => {
     const [expanded, setExpanded] = useState(false);
 
     const toggleExpand = () => {
@@ -91,22 +94,22 @@ const AccordionItem = ({ title, icon, children }: { title: string, icon: string,
     };
 
     return (
-        <View style={styles.accordionContainer}>
+        <View style={ds.accordionContainer}>
             <TouchableOpacity 
-                style={[styles.accordionHeader, expanded && styles.expandedHeader]} 
+                style={[ds.accordionHeader, expanded && ds.expandedHeader]} 
                 onPress={toggleExpand}
                 activeOpacity={0.7}
             >
-                <View style={styles.headerLeft}>
-                    <View style={styles.iconContainer}>
-                        <Feather name={icon} size={18} color="#58a6b8" />
+                <View style={ds.headerLeft}>
+                    <View style={ds.iconContainer}>
+                        <Feather name={icon} size={18} color={tc.accent} />
                     </View>
-                    <Text style={styles.accordionTitle}>{title}</Text>
+                    <Text style={ds.accordionTitle}>{title}</Text>
                 </View>
-                <Feather name={expanded ? "chevron-up" : "chevron-down"} size={20} color="#94a3b8" />
+                <Feather name={expanded ? "chevron-up" : "chevron-down"} size={20} color={tc.textMuted} />
             </TouchableOpacity>
             {expanded && (
-                <View style={[styles.accordionContent, { backgroundColor: '#ffffff' }]}>
+                <View style={ds.accordionContent}>
                     {children}
                 </View>
             )}
@@ -116,6 +119,10 @@ const AccordionItem = ({ title, icon, children }: { title: string, icon: string,
 
 const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (type: 'success' | 'error' | 'warning', message: string) => void }) => {
     const { t } = useTranslation();
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = useMemo(() => createDynamicStyles(tc, isDark), [tc, isDark]);
+    const commonProps = { ds, tc };
+
     const [medicalData, setMedicalData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [showMedModal, setShowMedModal] = useState(false);
@@ -442,51 +449,51 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
 
     if (loading) {
         return (
-            <View style={{ flex: 1, paddingVertical: 40, alignItems: 'center', justifyContent: 'center' }}>
-                <ActivityIndicator size="large" color="#4A90B9" />
-                <Text style={{ marginTop: 15, color: '#64748b' }}>{t('medicalData.fetchingHistory')}</Text>
+            <View style={{ flex: 1, paddingVertical: 40, alignItems: 'center', justifyContent: 'center', backgroundColor: tc.cardBackground }}>
+                <ActivityIndicator size="large" color={tc.accent} />
+                <Text style={{ marginTop: 15, color: tc.textSecondary }}>{t('medicalData.fetchingHistory')}</Text>
             </View>
         );
     }
 
     const renderAddMedicationModal = () => (
         <Modal visible={showMedModal} transparent animationType="fade" onRequestClose={() => setShowMedModal(false)}>
-            <View style={styles.modalOverlay}>
-                <View style={styles.modalContent}>
-                    <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>{t('medicalData.addMedication')}</Text>
+            <View style={ds.modalOverlay}>
+                <View style={ds.modalContent}>
+                    <View style={ds.modalHeader}>
+                        <Text style={ds.modalTitle}>{t('medicalData.addMedication')}</Text>
                         <TouchableOpacity onPress={() => setShowMedModal(false)}><Feather name="x" size={20} color="#94a3b8" /></TouchableOpacity>
                     </View>
-                    <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
-                        <FormInput 
+                    <ScrollView style={ds.modalScroll} showsVerticalScrollIndicator={false}>
+                        <FormInput {...commonProps} 
                             label={t('medicalData.medicationName')} required placeholder={t('medicalData.placeholderMedName')} 
                             value={newMedication.name}
                             onChangeText={(val: string) => handleMedicationChange('name', val)}
                         />
-                        <FormInput 
+                        <FormInput {...commonProps} 
                             label={t('medicalData.commonName')} placeholder={t('medicalData.placeholderGenericName')} 
                             value={newMedication.genericName}
                             onChangeText={(val: string) => handleMedicationChange('genericName', val)}
                         />
-                        <View style={[styles.row, { zIndex: 10 }]}>
+                        <View style={[ds.row, { zIndex: 10 }]}>
                             <View style={{ flex: 1, marginRight: 8 }}>
-                                <FormInput 
+                                <FormInput {...commonProps} 
                                     label={t('medicalData.form')} placeholder={t('medicalData.placeholderForm')} isDropdown 
                                     value={newMedication.form}
                                     onPress={() => setShowFormDropdown(!showFormDropdown)}
                                 />
                                 {showFormDropdown && (
-                                    <View style={styles.inlineDropdown}>
+                                    <View style={ds.inlineDropdown}>
                                         {MEDICATION_FORMS.map((option) => (
                                             <TouchableOpacity 
                                                 key={option} 
-                                                style={[styles.dropdownItem, newMedication.form === option && styles.dropdownItemActive]}
+                                                style={[ds.dropdownItem, newMedication.form === option && ds.dropdownItemActive]}
                                                 onPress={() => {
                                                     handleMedicationChange('form', option);
                                                     setShowFormDropdown(false);
                                                 }}
                                             >
-                                                <Text style={[styles.dropdownItemText, newMedication.form === option && styles.dropdownItemTextActive]}>
+                                                <Text style={[ds.dropdownItemText, newMedication.form === option && ds.dropdownItemTextActive]}>
                                                     {t(`medicalData.options.medicationForms.${option}`, { defaultValue: option })}
                                                 </Text>
                                             </TouchableOpacity>
@@ -495,30 +502,30 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
                                 )}
                             </View>
                             <View style={{ flex: 1 }}>
-                                <FormInput 
+                                <FormInput {...commonProps} 
                                     label={t('medicalData.dose')} placeholder={t('medicalData.placeholderDose')} unit="mg" 
                                     value={newMedication.dose}
                                     onChangeText={(val: string) => handleMedicationChange('dose', val)}
                                 />
                             </View>
                         </View>
-                        <FormInput 
+                        <FormInput {...commonProps} 
                             label={t('medicalData.dosageInstructions')} required placeholder={t('medicalData.placeholderInstructions')} 
                             value={newMedication.instructions}
                             onChangeText={(val: string) => handleMedicationChange('instructions', val)}
                         />
-                        <FormInput 
+                        <FormInput {...commonProps} 
                             label={t('medicalData.startDate')} placeholder={t('medicalData.placeholderSelectDate')} isDate 
                             value={newMedication.startDate.toISOString().split('T')[0].replace(/-/g, '/')}
                             onPress={() => setShowStartDatePicker(!showStartDatePicker)}
                         />
                         
                         {showStartDatePicker && (
-                            <View style={styles.datePickerContainer}>
+                            <View style={ds.datePickerContainer}>
                                 {Platform.OS === 'ios' && (
-                                    <View style={styles.datePickerHeader}>
+                                    <View style={ds.datePickerHeader}>
                                         <TouchableOpacity onPress={() => setShowStartDatePicker(false)}>
-                                            <Text style={styles.datePickerDone}>{t('medicalData.done')}</Text>
+                                            <Text style={ds.datePickerDone}>{t('medicalData.done')}</Text>
                                         </TouchableOpacity>
                                     </View>
                                 )}
@@ -531,26 +538,26 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
                             </View>
                         )}
 
-                        <FormInput 
+                        <FormInput {...commonProps} 
                             label={t('medicalData.notes')} multiline placeholder={t('medicalData.notesPlaceholder')} 
                             value={newMedication.notes}
                             onChangeText={(val: string) => handleMedicationChange('notes', val)}
                         />
                         
-                        <View style={styles.checkboxRow}>
+                        <View style={ds.checkboxRow}>
                             <Switch 
                                 value={isRegularMed} 
                                 onValueChange={setIsRegularMed}
-                                trackColor={{ false: '#e2e8f0', true: '#58a6b8' }}
+                                trackColor={{ false: tc.borderColor || '#e2e8f0', true: tc.accent || '#58a6b8' }}
                             />
-                            <Text style={styles.checkboxLabel}>{t('medicalData.regularMedication')}</Text>
+                            <Text style={ds.checkboxLabel}>{t('medicalData.regularMedication')}</Text>
                         </View>
                     </ScrollView>
-                    <View style={styles.modalFooter}>
-                        <TouchableOpacity style={styles.cancelOutlineButton} onPress={() => setShowMedModal(false)}>
-                            <Text style={styles.cancelOutlineText}>{t('medicalData.cancel')}</Text>
+                    <View style={ds.modalFooter}>
+                        <TouchableOpacity style={ds.cancelOutlineButton} onPress={() => setShowMedModal(false)}>
+                            <Text style={ds.cancelOutlineText}>{t('medicalData.cancel')}</Text>
                         </TouchableOpacity>
-                        <SubmitButton title={t('medicalData.addEntry')} onPress={() => {
+                        <SubmitButton {...commonProps} tc={tc} ds={ds} title={t('medicalData.addEntry')} onPress={() => {
                             // Add logic here if needed, or just close for now
                             console.log("Adding medication:", newMedication);
                             setShowMedModal(false);
@@ -564,52 +571,52 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
 
     const renderAddDiagnosisModal = () => (
         <Modal visible={showDiagModal} transparent animationType="fade" onRequestClose={() => setShowDiagModal(false)}>
-            <View style={styles.modalOverlay}>
-                <View style={styles.modalContent}>
-                    <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>{t('medicalData.addDiagnosis')}</Text>
+            <View style={ds.modalOverlay}>
+                <View style={ds.modalContent}>
+                    <View style={ds.modalHeader}>
+                        <Text style={ds.modalTitle}>{t('medicalData.addDiagnosis')}</Text>
                         <TouchableOpacity onPress={() => setShowDiagModal(false)}><Feather name="x" size={20} color="#94a3b8" /></TouchableOpacity>
                     </View>
-                    <ScrollView style={styles.modalScroll}>
-                        <FormInput label={t('medicalData.description')} hasInfo placeholder="" />
-                        <FormInput label={t('medicalData.code')} required hasInfo placeholder={t('medicalData.placeholderDiagnosisCode')} />
+                    <ScrollView style={ds.modalScroll}>
+                        <FormInput {...commonProps} label={t('medicalData.description')} hasInfo placeholder="" />
+                        <FormInput {...commonProps} label={t('medicalData.code')} required hasInfo placeholder={t('medicalData.placeholderDiagnosisCode')} />
                         
-                        <View style={styles.radioGroup}>
-                            <View style={styles.labelRow}>
-                                <Text style={styles.requiredStar}>* </Text>
-                                <Text style={styles.inputLabel}>{t('medicalData.diagnosisType')}</Text>
+                        <View style={ds.radioGroup}>
+                            <View style={ds.labelRow}>
+                                <Text style={ds.requiredStar}>* </Text>
+                                <Text style={ds.inputLabel}>{t('medicalData.diagnosisType')}</Text>
                                 <Feather name="help-circle" size={14} color="#94a3b8" style={{ marginLeft: 4 }} />
                             </View>
-                            <View style={styles.radioRow}>
+                            <View style={ds.radioRow}>
                                 <TouchableOpacity 
-                                    style={styles.radioItem} 
+                                    style={ds.radioItem} 
                                     onPress={() => setDiagType('primary')}
                                 >
-                                    <View style={[styles.radioOuter, diagType === 'primary' && styles.radioOuterActive]}>
-                                        {diagType === 'primary' && <View style={styles.radioInner} />}
+                                    <View style={[ds.radioOuter, diagType === 'primary' && ds.radioOuterActive]}>
+                                        {diagType === 'primary' && <View style={ds.radioInner} />}
                                     </View>
-                                    <Text style={styles.radioLabel}>{t('medicalData.options.diagnosisTypes.Primary')}</Text>
+                                    <Text style={ds.radioLabel}>{t('medicalData.options.diagnosisTypes.Primary')}</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity 
-                                    style={styles.radioItem} 
+                                    style={ds.radioItem} 
                                     onPress={() => setDiagType('secondary')}
                                 >
-                                    <View style={[styles.radioOuter, diagType === 'secondary' && styles.radioOuterActive]}>
-                                        {diagType === 'secondary' && <View style={styles.radioInner} />}
+                                    <View style={[ds.radioOuter, diagType === 'secondary' && ds.radioOuterActive]}>
+                                        {diagType === 'secondary' && <View style={ds.radioInner} />}
                                     </View>
-                                    <Text style={styles.radioLabel}>{t('medicalData.options.diagnosisTypes.Secondary')}</Text>
+                                    <Text style={ds.radioLabel}>{t('medicalData.options.diagnosisTypes.Secondary')}</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
 
-                        <FormInput label={t('medicalData.notes')} hasInfo multiline placeholder={t('medicalData.diagnosisNotesPlaceholder')} />
-                        <Text style={styles.charCount}>0 / 500</Text>
+                        <FormInput {...commonProps} label={t('medicalData.notes')} hasInfo multiline placeholder={t('medicalData.diagnosisNotesPlaceholder')} />
+                        <Text style={ds.charCount}>0 / 500</Text>
                     </ScrollView>
-                    <View style={styles.modalFooter}>
-                        <TouchableOpacity style={styles.cancelOutlineButton} onPress={() => setShowDiagModal(false)}>
-                            <Text style={styles.cancelOutlineText}>{t('medicalData.cancel')}</Text>
+                    <View style={ds.modalFooter}>
+                        <TouchableOpacity style={ds.cancelOutlineButton} onPress={() => setShowDiagModal(false)}>
+                            <Text style={ds.cancelOutlineText}>{t('medicalData.cancel')}</Text>
                         </TouchableOpacity>
-                        <SubmitButton title={t('medicalData.addEntry')} />
+                        <SubmitButton {...commonProps} tc={tc} ds={ds} title={t('medicalData.addEntry')} />
                     </View>
                 </View>
             </View>
@@ -618,31 +625,31 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
 
     const renderAddAllergyModal = () => (
         <Modal visible={showAllergyModal} transparent animationType="fade" onRequestClose={() => setShowAllergyModal(false)}>
-            <View style={styles.modalOverlay}>
-                <View style={styles.modalContent}>
-                    <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>{t('medicalData.addAllergy')}</Text>
+            <View style={ds.modalOverlay}>
+                <View style={ds.modalContent}>
+                    <View style={ds.modalHeader}>
+                        <Text style={ds.modalTitle}>{t('medicalData.addAllergy')}</Text>
                         <TouchableOpacity onPress={() => setShowAllergyModal(false)}><Feather name="x" size={20} color="#94a3b8" /></TouchableOpacity>
                     </View>
-                    <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
+                    <ScrollView style={ds.modalScroll} showsVerticalScrollIndicator={false}>
                         <View style={{ zIndex: 20 }}>
-                            <FormInput 
+                            <FormInput {...commonProps} 
                                 label={t('medicalData.allergyType')} required placeholder={t('medicalData.placeholderSelectType')} isDropdown 
                                 value={newAllergy.type}
                                 onPress={() => setShowAllergyTypeDropdown(!showAllergyTypeDropdown)}
                             />
                             {showAllergyTypeDropdown && (
-                                <View style={styles.inlineDropdown}>
+                                <View style={ds.inlineDropdown}>
                                     {ALLERGY_TYPES.map((option) => (
                                         <TouchableOpacity 
                                             key={option} 
-                                            style={[styles.dropdownItem, newAllergy.type === option && styles.dropdownItemActive]}
+                                            style={[ds.dropdownItem, newAllergy.type === option && ds.dropdownItemActive]}
                                             onPress={() => {
                                                 handleAllergyChange('type', option);
                                                 setShowAllergyTypeDropdown(false);
                                             }}
                                         >
-                                            <Text style={[styles.dropdownItemText, newAllergy.type === option && styles.dropdownItemTextActive]}>
+                                            <Text style={[ds.dropdownItemText, newAllergy.type === option && ds.dropdownItemTextActive]}>
                                                 {t(`medicalData.options.allergyTypes.${option}`, { defaultValue: option })}
                                             </Text>
                                         </TouchableOpacity>
@@ -651,35 +658,35 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
                             )}
                         </View>
 
-                        <FormInput 
+                        <FormInput {...commonProps} 
                             label={t('medicalData.allergenName')} placeholder={t('medicalData.placeholderAllergenName')} 
                             value={newAllergy.allergen}
                             onChangeText={(val: string) => handleAllergyChange('allergen', val)}
                         />
-                        <FormInput 
+                        <FormInput {...commonProps} 
                             label={t('medicalData.allergicReaction')} multiline placeholder={t('medicalData.placeholderAllergicReaction')} 
                             value={newAllergy.reaction}
                             onChangeText={(val: string) => handleAllergyChange('reaction', val)}
                         />
 
                         <View style={{ zIndex: 10 }}>
-                            <FormInput 
+                            <FormInput {...commonProps} 
                                 label={t('medicalData.severity')} required placeholder={t('medicalData.placeholderSelectSeverity')} isDropdown 
                                 value={newAllergy.severity}
                                 onPress={() => setShowAllergySeverityDropdown(!showAllergySeverityDropdown)}
                             />
                             {showAllergySeverityDropdown && (
-                                <View style={styles.inlineDropdown}>
+                                <View style={ds.inlineDropdown}>
                                     {SEVERITY_LEVELS.map((option) => (
                                         <TouchableOpacity 
                                             key={option} 
-                                            style={[styles.dropdownItem, newAllergy.severity === option && styles.dropdownItemActive]}
+                                            style={[ds.dropdownItem, newAllergy.severity === option && ds.dropdownItemActive]}
                                             onPress={() => {
                                                 handleAllergyChange('severity', option);
                                                 setShowAllergySeverityDropdown(false);
                                             }}
                                         >
-                                            <Text style={[styles.dropdownItemText, newAllergy.severity === option && styles.dropdownItemTextActive]}>
+                                            <Text style={[ds.dropdownItemText, newAllergy.severity === option && ds.dropdownItemTextActive]}>
                                                 {t(`medicalData.options.severityLevels.${option}`, { defaultValue: option })}
                                             </Text>
                                         </TouchableOpacity>
@@ -689,18 +696,18 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
                             )}
                         </View>
 
-                        <FormInput 
+                        <FormInput {...commonProps} 
                             label={t('medicalData.notes')} multiline placeholder={t('medicalData.notesPlaceholder')} 
                             value={newAllergy.notes}
                             onChangeText={(val: string) => handleAllergyChange('notes', val)}
                         />
-                        <Text style={styles.charCount}>{newAllergy.notes.length} / 500</Text>
+                        <Text style={ds.charCount}>{newAllergy.notes.length} / 500</Text>
                     </ScrollView>
-                    <View style={styles.modalFooter}>
-                        <TouchableOpacity style={styles.cancelOutlineButton} onPress={() => setShowAllergyModal(false)}>
-                            <Text style={styles.cancelOutlineText}>{t('medicalData.cancel')}</Text>
+                    <View style={ds.modalFooter}>
+                        <TouchableOpacity style={ds.cancelOutlineButton} onPress={() => setShowAllergyModal(false)}>
+                            <Text style={ds.cancelOutlineText}>{t('medicalData.cancel')}</Text>
                         </TouchableOpacity>
-                        <SubmitButton title={t('medicalData.addAllergy')} onPress={() => {
+                        <SubmitButton {...commonProps} tc={tc} ds={ds} title={t('medicalData.addAllergy')} onPress={() => {
                             console.log("Adding allergy:", newAllergy);
                             setShowAllergyModal(false);
                         }} />
@@ -713,37 +720,37 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
 
     const renderAddChronicModal = () => (
         <Modal visible={showChronicModal} transparent animationType="fade" onRequestClose={() => setShowChronicModal(false)}>
-            <View style={styles.modalOverlay}>
-                <View style={styles.modalContent}>
-                    <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>{t('medicalData.addCondition')}</Text>
+            <View style={ds.modalOverlay}>
+                <View style={ds.modalContent}>
+                    <View style={ds.modalHeader}>
+                        <Text style={ds.modalTitle}>{t('medicalData.addCondition')}</Text>
                         <TouchableOpacity onPress={() => setShowChronicModal(false)}><Feather name="x" size={20} color="#94a3b8" /></TouchableOpacity>
                     </View>
-                    <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
-                        <FormInput 
+                    <ScrollView style={ds.modalScroll} showsVerticalScrollIndicator={false}>
+                        <FormInput {...commonProps} 
                             label={t('medicalData.conditionName')} placeholder={t('medicalData.placeholderConditionName')} 
                             value={newCondition.name}
                             onChangeText={(val: string) => handleConditionChange('name', val)}
                         />
                         
                         <View style={{ zIndex: 20 }}>
-                            <FormInput 
+                            <FormInput {...commonProps} 
                                 label={t('medicalData.status')} required placeholder={t('medicalData.placeholderSelectStatus')} isDropdown 
                                 value={newCondition.status}
                                 onPress={() => setShowConditionStatusDropdown(!showConditionStatusDropdown)}
                             />
                             {showConditionStatusDropdown && (
-                                <View style={styles.inlineDropdown}>
+                                <View style={ds.inlineDropdown}>
                                     {CONDITION_STATUSES.map((option) => (
                                         <TouchableOpacity 
                                             key={option} 
-                                            style={[styles.dropdownItem, newCondition.status === option && styles.dropdownItemActive]}
+                                            style={[ds.dropdownItem, newCondition.status === option && ds.dropdownItemActive]}
                                             onPress={() => {
                                                 handleConditionChange('status', option);
                                                 setShowConditionStatusDropdown(false);
                                             }}
                                         >
-                                            <Text style={[styles.dropdownItemText, newCondition.status === option && styles.dropdownItemTextActive]}>
+                                            <Text style={[ds.dropdownItemText, newCondition.status === option && ds.dropdownItemTextActive]}>
                                                 {t(`medicalData.options.conditionStatuses.${option}`, { defaultValue: option })}
                                             </Text>
                                         </TouchableOpacity>
@@ -753,23 +760,23 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
                         </View>
 
                         <View style={{ zIndex: 10 }}>
-                            <FormInput 
+                            <FormInput {...commonProps} 
                                 label={t('medicalData.severity')} required placeholder={t('medicalData.placeholderSelectSeverity')} isDropdown 
                                 value={newCondition.severity}
                                 onPress={() => setShowConditionSeverityDropdown(!showConditionSeverityDropdown)}
                             />
                             {showConditionSeverityDropdown && (
-                                <View style={styles.inlineDropdown}>
+                                <View style={ds.inlineDropdown}>
                                     {SEVERITY_LEVELS.map((option) => (
                                         <TouchableOpacity 
                                             key={option} 
-                                            style={[styles.dropdownItem, newCondition.severity === option && styles.dropdownItemActive]}
+                                            style={[ds.dropdownItem, newCondition.severity === option && ds.dropdownItemActive]}
                                             onPress={() => {
                                                 handleConditionChange('severity', option);
                                                 setShowConditionSeverityDropdown(false);
                                             }}
                                         >
-                                            <Text style={[styles.dropdownItemText, newCondition.severity === option && styles.dropdownItemTextActive]}>
+                                            <Text style={[ds.dropdownItemText, newCondition.severity === option && ds.dropdownItemTextActive]}>
                                                 {t(`medicalData.options.severityLevels.${option}`, { defaultValue: option })}
                                             </Text>
                                         </TouchableOpacity>
@@ -778,23 +785,23 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
                             )}
                         </View>
 
-                        <FormInput 
+                        <FormInput {...commonProps} 
                             label={t('medicalData.currentTreatment')} multiline placeholder={t('medicalData.placeholderTreatmentPlan')} 
                             value={newCondition.treatment}
                             onChangeText={(val: string) => handleConditionChange('treatment', val)}
                         />
-                        <FormInput 
+                        <FormInput {...commonProps} 
                             label={t('medicalData.notes')} multiline placeholder={t('medicalData.notesPlaceholder')} 
                             value={newCondition.notes}
                             onChangeText={(val: string) => handleConditionChange('notes', val)}
                         />
-                        <Text style={styles.charCount}>{newCondition.notes.length} / 500</Text>
+                        <Text style={ds.charCount}>{newCondition.notes.length} / 500</Text>
                     </ScrollView>
-                    <View style={styles.modalFooter}>
-                        <TouchableOpacity style={styles.cancelOutlineButton} onPress={() => setShowChronicModal(false)}>
-                            <Text style={styles.cancelOutlineText}>{t('medicalData.cancel')}</Text>
+                    <View style={ds.modalFooter}>
+                        <TouchableOpacity style={ds.cancelOutlineButton} onPress={() => setShowChronicModal(false)}>
+                            <Text style={ds.cancelOutlineText}>{t('medicalData.cancel')}</Text>
                         </TouchableOpacity>
-                        <SubmitButton title={t('medicalData.addEntry')} onPress={() => {
+                        <SubmitButton {...commonProps} tc={tc} ds={ds} title={t('medicalData.addEntry')} onPress={() => {
                             console.log("Adding condition:", newCondition);
                             setShowChronicModal(false);
                         }} />
@@ -807,38 +814,38 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
 
     const renderAddFamilyModal = () => (
         <Modal visible={showFamilyModal} transparent animationType="fade" onRequestClose={() => setShowFamilyModal(false)}>
-            <View style={styles.modalOverlay}>
-                <View style={styles.modalContent}>
-                    <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>{t('medicalData.addEntry')}</Text>
+            <View style={ds.modalOverlay}>
+                <View style={ds.modalContent}>
+                    <View style={ds.modalHeader}>
+                        <Text style={ds.modalTitle}>{t('medicalData.addEntry')}</Text>
                         <TouchableOpacity onPress={() => setShowFamilyModal(false)}><Feather name="x" size={20} color="#94a3b8" /></TouchableOpacity>
                     </View>
-                    <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
-                        <FormInput 
+                    <ScrollView style={ds.modalScroll} showsVerticalScrollIndicator={false}>
+                        <FormInput {...commonProps} 
                             label={t('medicalData.diseaseName')} required placeholder={t('medicalData.placeholderDiseaseName')} 
                             value={newFamilyHistory.diseaseName}
                             onChangeText={(val: string) => handleFamilyHistoryChange('diseaseName', val)}
                         />
                         
                         <View style={{ zIndex: 10 }}>
-                            <FormInput 
+                            <FormInput {...commonProps} 
                                 label={t('medicalData.relationship')} required placeholder={t('medicalData.placeholderSelectRelationship')} isDropdown 
                                 value={newFamilyHistory.relationship}
                                 onPress={() => setShowRelationshipDropdown(!showRelationshipDropdown)}
                             />
                             {showRelationshipDropdown && (
-                                <View style={styles.inlineDropdown}>
+                                <View style={ds.inlineDropdown}>
                                     <ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled={true}>
                                         {RELATIONSHIP_OPTIONS.map((option) => (
                                             <TouchableOpacity 
                                                 key={option} 
-                                                style={[styles.dropdownItem, newFamilyHistory.relationship === option && styles.dropdownItemActive]}
+                                                style={[ds.dropdownItem, newFamilyHistory.relationship === option && ds.dropdownItemActive]}
                                                 onPress={() => {
                                                     handleFamilyHistoryChange('relationship', option);
                                                     setShowRelationshipDropdown(false);
                                                 }}
                                             >
-                                                <Text style={[styles.dropdownItemText, newFamilyHistory.relationship === option && styles.dropdownItemTextActive]}>
+                                                <Text style={[ds.dropdownItemText, newFamilyHistory.relationship === option && ds.dropdownItemTextActive]}>
                                                     {t(`medicalData.options.relationships.${option}`, { defaultValue: option })}
                                                 </Text>
                                             </TouchableOpacity>
@@ -848,23 +855,23 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
                             )}
                         </View>
  
-                        <FormInput 
+                        <FormInput {...commonProps} 
                             label={t('medicalData.ageOfOnset')} placeholder={t('medicalData.placeholderAgeOfOnset')} 
                             value={newFamilyHistory.ageOfOnset}
                             onChangeText={(val: string) => handleFamilyHistoryChange('ageOfOnset', val)}
                         />
-                        <FormInput 
+                        <FormInput {...commonProps} 
                             label={t('medicalData.notes')} multiline placeholder={t('medicalData.notesPlaceholder')} 
                             value={newFamilyHistory.notes}
                             onChangeText={(val: string) => handleFamilyHistoryChange('notes', val)}
                         />
-                        <Text style={styles.charCount}>{newFamilyHistory.notes.length} / 500</Text>
+                        <Text style={ds.charCount}>{newFamilyHistory.notes.length} / 500</Text>
                     </ScrollView>
-                    <View style={styles.modalFooter}>
-                        <TouchableOpacity style={styles.cancelOutlineButton} onPress={() => setShowFamilyModal(false)}>
-                            <Text style={styles.cancelOutlineText}>{t('medicalData.cancel')}</Text>
+                    <View style={ds.modalFooter}>
+                        <TouchableOpacity style={ds.cancelOutlineButton} onPress={() => setShowFamilyModal(false)}>
+                            <Text style={ds.cancelOutlineText}>{t('medicalData.cancel')}</Text>
                         </TouchableOpacity>
-                        <SubmitButton title={t('medicalData.addEntry')} onPress={() => {
+                        <SubmitButton {...commonProps} tc={tc} ds={ds} title={t('medicalData.addEntry')} onPress={() => {
                             console.log("Adding family history:", newFamilyHistory);
                             setShowFamilyModal(false);
                         }} />
@@ -877,31 +884,31 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
 
     const renderAddRiskModal = () => (
         <Modal visible={showRiskModal} transparent animationType="fade" onRequestClose={() => setShowRiskModal(false)}>
-            <View style={styles.modalOverlay}>
-                <View style={styles.modalContent}>
-                    <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>{t('medicalData.addRiskFactor')}</Text>
+            <View style={ds.modalOverlay}>
+                <View style={ds.modalContent}>
+                    <View style={ds.modalHeader}>
+                        <Text style={ds.modalTitle}>{t('medicalData.addRiskFactor')}</Text>
                         <TouchableOpacity onPress={() => setShowRiskModal(false)}><Feather name="x" size={20} color="#94a3b8" /></TouchableOpacity>
                     </View>
-                    <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
+                    <ScrollView style={ds.modalScroll} showsVerticalScrollIndicator={false}>
                         <View style={{ zIndex: 20 }}>
-                            <FormInput 
+                            <FormInput {...commonProps} 
                                 label={t('medicalData.riskCategory')} required placeholder={t('medicalData.placeholderSelectCategory')} isDropdown 
                                 value={newRiskFactor.category}
                                 onPress={() => setShowRiskCategoryDropdown(!showRiskCategoryDropdown)}
                             />
                             {showRiskCategoryDropdown && (
-                                <View style={styles.inlineDropdown}>
+                                <View style={ds.inlineDropdown}>
                                     {RISK_CATEGORIES.map((option) => (
                                         <TouchableOpacity 
                                             key={option} 
-                                            style={[styles.dropdownItem, newRiskFactor.category === option && styles.dropdownItemActive]}
+                                            style={[ds.dropdownItem, newRiskFactor.category === option && ds.dropdownItemActive]}
                                             onPress={() => {
                                                 handleRiskFactorChange('category', option);
                                                 setShowRiskCategoryDropdown(false);
                                             }}
                                         >
-                                            <Text style={[styles.dropdownItemText, newRiskFactor.category === option && styles.dropdownItemTextActive]}>
+                                            <Text style={[ds.dropdownItemText, newRiskFactor.category === option && ds.dropdownItemTextActive]}>
                                                 {t(`medicalData.options.riskCategories.${option}`, { defaultValue: option })}
                                             </Text>
                                         </TouchableOpacity>
@@ -910,30 +917,30 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
                             )}
                         </View>
  
-                        <FormInput 
+                        <FormInput {...commonProps} 
                             label={t('medicalData.riskFactor')} required placeholder={t('medicalData.placeholderEnterRiskFactor')} 
                             value={newRiskFactor.factor}
                             onChangeText={(val: string) => handleRiskFactorChange('factor', val)}
                         />
  
                         <View style={{ zIndex: 10 }}>
-                            <FormInput 
+                            <FormInput {...commonProps} 
                                 label={t('medicalData.riskLevel')} required placeholder={t('medicalData.placeholderSelectSeverity')} isDropdown 
                                 value={newRiskFactor.level}
                                 onPress={() => setShowRiskLevelDropdown(!showRiskLevelDropdown)}
                             />
                             {showRiskLevelDropdown && (
-                                <View style={styles.inlineDropdown}>
+                                <View style={ds.inlineDropdown}>
                                     {RISK_LEVELS.map((option) => (
                                         <TouchableOpacity 
                                             key={option} 
-                                            style={[styles.dropdownItem, newRiskFactor.level === option && styles.dropdownItemActive]}
+                                            style={[ds.dropdownItem, newRiskFactor.level === option && ds.dropdownItemActive]}
                                             onPress={() => {
                                                 handleRiskFactorChange('level', option);
                                                 setShowRiskLevelDropdown(false);
                                             }}
                                         >
-                                            <Text style={[styles.dropdownItemText, newRiskFactor.level === option && styles.dropdownItemTextActive]}>
+                                            <Text style={[ds.dropdownItemText, newRiskFactor.level === option && ds.dropdownItemTextActive]}>
                                                 {t(`medicalData.options.severityLevels.${option}`, { defaultValue: option })}
                                             </Text>
                                         </TouchableOpacity>
@@ -942,18 +949,18 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
                             )}
                         </View>
  
-                        <FormInput 
+                        <FormInput {...commonProps} 
                             label={t('medicalData.notes')} multiline placeholder={t('medicalData.notesPlaceholder')} 
                             value={newRiskFactor.notes}
                             onChangeText={(val: string) => handleRiskFactorChange('notes', val)}
                         />
-                        <Text style={styles.charCount}>{newRiskFactor.notes.length} / 500</Text>
+                        <Text style={ds.charCount}>{newRiskFactor.notes.length} / 500</Text>
                     </ScrollView>
-                    <View style={styles.modalFooter}>
-                        <TouchableOpacity style={styles.cancelOutlineButton} onPress={() => setShowRiskModal(false)}>
-                            <Text style={styles.cancelOutlineText}>{t('medicalData.cancel')}</Text>
+                    <View style={ds.modalFooter}>
+                        <TouchableOpacity style={ds.cancelOutlineButton} onPress={() => setShowRiskModal(false)}>
+                            <Text style={ds.cancelOutlineText}>{t('medicalData.cancel')}</Text>
                         </TouchableOpacity>
-                        <SubmitButton title={t('medicalData.add')} onPress={() => {
+                        <SubmitButton {...commonProps} tc={tc} ds={ds} title={t('medicalData.add')} onPress={() => {
                             console.log("Adding risk factor:", newRiskFactor);
                             setShowRiskModal(false);
                         }} />
@@ -965,54 +972,54 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
 
 
     const renderEmptyBox = (text: string) => (
-        <View style={styles.emptyBox}>
-            <Text style={styles.emptyBoxText}>{text}</Text>
+        <View style={ds.emptyBox}>
+            <Text style={ds.emptyBoxText}>{text}</Text>
         </View>
     );
 
     const renderListItem = (title: string, subtitle: string, subInfo: string = '', status: string = '', key?: any) => (
-        <View style={styles.listItem} key={key}>
+        <View style={ds.listItem} key={key}>
             <View style={{ flex: 1 }}>
-                <Text style={styles.listItemTitle}>{title}</Text>
-                <Text style={styles.listItemSubtitle}>{subtitle}</Text>
-                {subInfo ? <Text style={styles.listItemSubInfo}>{subInfo}</Text> : null}
+                <Text style={ds.listItemTitle}>{title}</Text>
+                <Text style={ds.listItemSubtitle}>{subtitle}</Text>
+                {subInfo ? <Text style={ds.listItemSubInfo}>{subInfo}</Text> : null}
             </View>
             {status ? (
-                <View style={[styles.statusTag, status === 'Active' ? styles.statusTagActive : styles.statusTagHistory]}>
-                    <Text style={[styles.statusTagText, status === 'Active' ? styles.statusTagTextActive : styles.statusTagTextHistory]}>{status}</Text>
+                <View style={[ds.statusTag, status === 'Active' ? ds.statusTagActive : ds.statusTagHistory]}>
+                    <Text style={[ds.statusTagText, status === 'Active' ? ds.statusTagTextActive : ds.statusTagTextHistory]}>{status}</Text>
                 </View>
             ) : null}
         </View>
     );
 
     const renderMedicationItem = (med: any, key: any, index: number, isHistory: boolean = false) => (
-        <View style={styles.medicationCard} key={key}>
-            <View style={styles.medicationHeader}>
-                <View style={styles.medicationTitleRow}>
-                    <Feather name="link" size={16} color="#4DA1C0" style={{ marginRight: 6, transform: [{ rotate: '45deg' }] }} />
-                    <Text style={styles.medicationName}>{med.name}</Text>
+        <View style={ds.medicationCard} key={key}>
+            <View style={ds.medicationHeader}>
+                <View style={ds.medicationTitleRow}>
+                    <Feather name="link" size={16} color={tc.accent} style={{ marginRight: 6, transform: [{ rotate: '45deg' }] }} />
+                    <Text style={ds.medicationName}>{med.name}</Text>
                 </View>
-                <Text style={styles.doctorName}>{med.doctor || 'Hamad Alvi'}</Text>
+                <Text style={ds.doctorName}>{med.doctor || 'Hamad Alvi'}</Text>
             </View>
             
-            <View style={styles.medicationBody}>
-                <View style={styles.medicationInfoColumn}>
-                    <Text style={styles.medicationDetail}>{t('medicalData.dosage')}: {med.dosage || '1 tablet daily'}</Text>
-                    <View style={styles.dateRow}>
-                        <Feather name="clock" size={12} color="#94a3b8" style={{ marginRight: 4 }} />
-                        <Text style={styles.medicationDetail}>{t('medicalData.from')} {formatDate(med.startDate) || '04/03/2026'}</Text>
+            <View style={ds.medicationBody}>
+                <View style={ds.medicationInfoColumn}>
+                    <Text style={ds.medicationDetail}>{t('medicalData.dosage')}: {med.dosage || '1 tablet daily'}</Text>
+                    <View style={ds.dateRow}>
+                        <Feather name="clock" size={12} color={tc.textMuted} style={{ marginRight: 4 }} />
+                        <Text style={ds.medicationDetail}>{t('medicalData.from')} {formatDate(med.startDate) || '04/03/2026'}</Text>
                     </View>
-                    <Text style={styles.medicationDetail}>{t('medicalData.notes')}: {med.instructions || med.notes || 'It is for headache'}</Text>
+                    <Text style={ds.medicationDetail}>{t('medicalData.notes')}: {med.instructions || med.notes || 'It is for headache'}</Text>
                 </View>
 
-                <View style={styles.medicationActions}>
+                <View style={ds.medicationActions}>
                     {!isHistory && (
-                        <TouchableOpacity style={styles.endButton} onPress={() => endMedication(index)}>
-                            <Text style={styles.endButtonText}>{t('medicalData.end')}</Text>
+                        <TouchableOpacity style={ds.endButton} onPress={() => endMedication(index)}>
+                            <Text style={ds.endButtonText}>{t('medicalData.end')}</Text>
                         </TouchableOpacity>
                     )}
-                    <TouchableOpacity style={styles.deleteButton} onPress={() => deleteMedication(index, isHistory)}>
-                        <Feather name="x" size={16} color="#ef4444" />
+                    <TouchableOpacity style={ds.deleteButton} onPress={() => deleteMedication(index, isHistory)}>
+                        <Feather name="x" size={16} color={tc.accentRed || (isDark ? '#ff6b6b' : '#ef4444')} />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -1020,47 +1027,47 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
     );
 
     const renderDiagnosisItem = (diag: any, key: any, index: number, isHistory: boolean = false) => (
-        <View style={styles.medicationCard} key={key}>
-            <View style={styles.medicationHeader}>
-                <View style={styles.medicationTitleRow}>
-                    <Feather name="activity" size={16} color="#4DA1C0" style={{ marginRight: 6 }} />
-                    <Text style={styles.medicationName}>{diag.description || diag.code} - </Text>
-                    <View style={[styles.statusBadge, { backgroundColor: '#E0F2FE' }]}>
-                        <Text style={[styles.statusBadgeText, { color: '#0EA5E9' }]}>{t(`medicalData.options.diagnosisTypes.${diag.type || 'Primary'}`, { defaultValue: diag.type || 'Primary' })}</Text>
+        <View style={ds.medicationCard} key={key}>
+            <View style={ds.medicationHeader}>
+                <View style={ds.medicationTitleRow}>
+                    <Feather name="activity" size={16} color={tc.accent} style={{ marginRight: 6 }} />
+                    <Text style={ds.medicationName}>{diag.description || diag.code} - </Text>
+                    <View style={[ds.statusBadge, { backgroundColor: isDark ? (tc.accent + '25') : '#E0F2FE' }]}>
+                        <Text style={[ds.statusBadgeText, { color: isDark ? tc.accent : '#0EA5E9' }]}>{t(`medicalData.options.diagnosisTypes.${diag.type || 'Primary'}`, { defaultValue: diag.type || 'Primary' })}</Text>
                     </View>
                 </View>
-                <Text style={styles.doctorName}>{diag.doctor || 'Hamad Alvi'}</Text>
+                <Text style={ds.doctorName}>{diag.doctor || 'Hamad Alvi'}</Text>
             </View>
             
-            <View style={styles.medicationBody}>
-                <View style={styles.medicationInfoColumn}>
-                    <View style={styles.dateRow}>
-                        <Feather name="calendar" size={12} color="#94a3b8" style={{ marginRight: 4 }} />
-                        <Text style={styles.medicationDetail}>{t('medicalData.from')} {formatDate(diag.date || diag.onsetDate) || '04/03/2026'}</Text>
+            <View style={ds.medicationBody}>
+                <View style={ds.medicationInfoColumn}>
+                    <View style={ds.dateRow}>
+                        <Feather name="calendar" size={12} color={tc.textMuted} style={{ marginRight: 4 }} />
+                        <Text style={ds.medicationDetail}>{t('medicalData.from')} {formatDate(diag.date || diag.onsetDate) || '04/03/2026'}</Text>
                     </View>
-                    <Text style={styles.medicationDetail}>{t('medicalData.notes')}: {diag.notes || 'Health is fine'}</Text>
+                    <Text style={ds.medicationDetail}>{t('medicalData.notes')}: {diag.notes || 'Health is fine'}</Text>
                 </View>
                 
-                <View style={styles.medicationActions}>
+                <View style={ds.medicationActions}>
                     {!isHistory && (
                         <View style={{ position: 'relative', zIndex: 50 }}>
                             <TouchableOpacity 
-                                style={[styles.statusDropdownBtn, openStatusMenu?.type === 'diag' && openStatusMenu.index === index && { borderColor: '#4DA1C0' }]}
+                                style={[ds.statusDropdownBtn, openStatusMenu?.type === 'diag' && openStatusMenu.index === index && { borderColor: tc.accent }]}
                                 onPress={() => setOpenStatusMenu(openStatusMenu?.type === 'diag' && openStatusMenu.index === index ? null : { type: 'diag', index })}
                             >
-                                <Text style={styles.statusDropdownBtnText}>{t(`medicalData.options.conditionStatuses.${diag.status || 'Active'}`, { defaultValue: diag.status || 'Active' })}</Text>
-                                <Feather name="chevron-down" size={12} color="#94a3b8" />
+                                <Text style={ds.statusDropdownBtnText}>{t(`medicalData.options.conditionStatuses.${diag.status || 'Active'}`, { defaultValue: diag.status || 'Active' })}</Text>
+                                <Feather name="chevron-down" size={12} color={tc.textMuted} />
                             </TouchableOpacity>
                             
                             {openStatusMenu?.type === 'diag' && openStatusMenu.index === index && (
-                                <View style={styles.statusMenuPopup}>
+                                <View style={ds.statusMenuPopup}>
                                     {CONDITION_STATUSES.map((status) => (
                                         <TouchableOpacity 
                                             key={status} 
-                                            style={[styles.statusOption, diag.status === status && styles.statusOptionActive]}
+                                            style={[ds.statusOption, diag.status === status && ds.statusOptionActive]}
                                             onPress={() => updateDiagnosisStatus(index, status)}
                                         >
-                                            <Text style={[styles.statusOptionText, diag.status === status && styles.statusOptionTextActive]}>
+                                            <Text style={[ds.statusOptionText, diag.status === status && ds.statusOptionTextActive]}>
                                                 {t(`medicalData.options.conditionStatuses.${status}`, { defaultValue: status })}
                                             </Text>
                                         </TouchableOpacity>
@@ -1070,8 +1077,8 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
                             )}
                         </View>
                     )}
-                    <TouchableOpacity style={styles.deleteButton} onPress={() => deleteDiagnosis(index, isHistory)}>
-                        <Feather name="x" size={16} color="#ef4444" />
+                    <TouchableOpacity style={ds.deleteButton} onPress={() => deleteDiagnosis(index, isHistory)}>
+                        <Feather name="x" size={16} color={isDark ? '#ff6b6b' : '#ef4444'} />
                     </TouchableOpacity>
                 </View>
 
@@ -1080,31 +1087,31 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
     );
 
     const renderAllergyItem = (allergy: any, key: any, index: number, isHistory: boolean = false) => (
-        <View style={[styles.medicationCard, isHistory && { opacity: 0.7 }]} key={key}>
-            <View style={styles.medicationHeader}>
-                <View style={styles.medicationTitleRow}>
-                    <Feather name="alert-circle" size={16} color={isHistory ? "#94a3b8" : "#4DA1C0"} style={{ marginRight: 6 }} />
-                    <Text style={[styles.medicationName, isHistory && { color: '#64748b' }]}>{allergy.name || allergy.allergen}</Text>
-                    <View style={[styles.statusBadge, { backgroundColor: isHistory ? '#f1f5f9' : '#FEF3C7' }]}>
-                        <Text style={[styles.statusBadgeText, { color: isHistory ? '#94a3b8' : '#D97706' }]}>{t(`medicalData.options.severityLevels.${allergy.severity || 'Moderate'}`, { defaultValue: allergy.severity || 'Moderate' })}</Text>
+        <View style={[ds.medicationCard, isHistory && { opacity: 0.7 }]} key={key}>
+            <View style={ds.medicationHeader}>
+                <View style={ds.medicationTitleRow}>
+                    <Feather name="alert-circle" size={16} color={isHistory ? tc.textMuted : tc.accent} style={{ marginRight: 6 }} />
+                    <Text style={[ds.medicationName, isHistory && { color: tc.textMuted }]}>{allergy.name || allergy.allergen}</Text>
+                    <View style={[ds.statusBadge, { backgroundColor: isHistory ? (isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9') : (isDark ? 'rgba(217, 119, 6, 0.2)' : '#FEF3C7') }]}>
+                        <Text style={[ds.statusBadgeText, { color: isHistory ? tc.textMuted : (isDark ? '#fbbf24' : '#D97706') }]}>{t(`medicalData.options.severityLevels.${allergy.severity || 'Moderate'}`, { defaultValue: allergy.severity || 'Moderate' })}</Text>
                     </View>
                 </View>
-                <Text style={styles.doctorName}>{allergy.doctor || 'Hamad Alvi'}</Text>
+                <Text style={ds.doctorName}>{allergy.doctor || 'Hamad Alvi'}</Text>
             </View>
             
-            <View style={styles.medicationBody}>
-                <View style={styles.medicationInfoColumn}>
-                    <Text style={styles.medicationDetail}>{t('medicalData.reaction')}: {allergy.reaction || 'Allergic to skin'}</Text>
-                    <View style={styles.dateRow}>
-                        <Feather name="calendar" size={12} color="#94a3b8" style={{ marginRight: 4 }} />
-                        <Text style={styles.medicationDetail}>{t('medicalData.diagnosed')}: {formatDate(allergy.date || allergy.diagnosedDate) || '04/03/2026'}</Text>
+            <View style={ds.medicationBody}>
+                <View style={ds.medicationInfoColumn}>
+                    <Text style={ds.medicationDetail}>{t('medicalData.reaction')}: {allergy.reaction || 'Allergic to skin'}</Text>
+                    <View style={ds.dateRow}>
+                        <Feather name="calendar" size={12} color={tc.textMuted} style={{ marginRight: 4 }} />
+                        <Text style={ds.medicationDetail}>{t('medicalData.diagnosed')}: {formatDate(allergy.date || allergy.diagnosedDate) || '04/03/2026'}</Text>
                     </View>
-                    <Text style={styles.medicationDetail}>{t('medicalData.notes')}: {allergy.notes || 'Not too risky'}</Text>
+                    <Text style={ds.medicationDetail}>{t('medicalData.notes')}: {allergy.notes || 'Not too risky'}</Text>
                 </View>
                 
-                <View style={styles.medicationActions}>
-                    <TouchableOpacity style={styles.deleteButton} onPress={() => deleteAllergy(index, isHistory)}>
-                        <Feather name="x" size={16} color="#ef4444" />
+                <View style={ds.medicationActions}>
+                    <TouchableOpacity style={ds.deleteButton} onPress={() => deleteAllergy(index, isHistory)}>
+                        <Feather name="x" size={16} color={isDark ? '#ff6b6b' : '#ef4444'} />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -1112,48 +1119,48 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
     );
 
     const renderChronicItem = (item: any, key: any, index: number, isHistory: boolean = false) => (
-        <View style={[styles.medicationCard, isHistory && { opacity: 0.7 }]} key={key}>
-            <View style={styles.medicationHeader}>
-                <View style={styles.medicationTitleRow}>
-                    <Feather name="heart" size={16} color={isHistory ? "#94a3b8" : "#4DA1C0"} style={{ marginRight: 6 }} />
-                    <Text style={[styles.medicationName, isHistory && { color: '#64748b' }]}>{item.name || item.condition}</Text>
-                    <View style={[styles.statusBadge, { backgroundColor: isHistory ? '#f1f5f9' : '#E0F2FE' }]}>
-                        <Text style={[styles.statusBadgeText, { color: isHistory ? '#94a3b8' : '#0EA5E9' }]}>{t(`medicalData.options.conditionStatuses.${item.status || 'Active'}`, { defaultValue: item.status || 'Active' })}</Text>
+        <View style={[ds.medicationCard, isHistory && { opacity: 0.7 }]} key={key}>
+            <View style={ds.medicationHeader}>
+                <View style={ds.medicationTitleRow}>
+                    <Feather name="heart" size={16} color={isHistory ? tc.textMuted : tc.accent} style={{ marginRight: 6 }} />
+                    <Text style={[ds.medicationName, isHistory && { color: tc.textMuted }]}>{item.name || item.condition}</Text>
+                    <View style={[ds.statusBadge, { backgroundColor: isHistory ? (isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9') : (isDark ? (tc.accent + '25') : '#E0F2FE') }]}>
+                        <Text style={[ds.statusBadgeText, { color: isHistory ? tc.textMuted : (isDark ? tc.accent : '#0EA5E9') }]}>{t(`medicalData.options.conditionStatuses.${item.status || 'Active'}`, { defaultValue: item.status || 'Active' })}</Text>
                     </View>
                 </View>
-                <Text style={styles.doctorName}>{item.doctor || 'Hamad Alvi'}</Text>
+                <Text style={ds.doctorName}>{item.doctor || 'Hamad Alvi'}</Text>
             </View>
             
-            <View style={styles.medicationBody}>
-                <View style={styles.medicationInfoColumn}>
-                    <Text style={styles.medicationDetail}>{t('medicalData.treatment')}: {item.treatment || 'Needs some rest'}</Text>
-                    <View style={styles.dateRow}>
-                        <Feather name="calendar" size={12} color="#94a3b8" style={{ marginRight: 4 }} />
-                        <Text style={styles.medicationDetail}>{t('medicalData.diagnosed')}: {formatDate(item.date || item.diagnosedDate) || '04/03/2026'}</Text>
+            <View style={ds.medicationBody}>
+                <View style={ds.medicationInfoColumn}>
+                    <Text style={ds.medicationDetail}>{t('medicalData.treatment')}: {item.treatment || 'Needs some rest'}</Text>
+                    <View style={ds.dateRow}>
+                        <Feather name="calendar" size={12} color={tc.textMuted} style={{ marginRight: 4 }} />
+                        <Text style={ds.medicationDetail}>{t('medicalData.diagnosed')}: {formatDate(item.date || item.diagnosedDate) || '04/03/2026'}</Text>
                     </View>
-                    <Text style={styles.medicationDetail}>{t('medicalData.notes')}: {item.notes || 'Eat Fruits regularly'}</Text>
+                    <Text style={ds.medicationDetail}>{t('medicalData.notes')}: {item.notes || 'Eat Fruits regularly'}</Text>
                 </View>
                 
-                <View style={styles.medicationActions}>
+                <View style={ds.medicationActions}>
                     {!isHistory && (
                         <View style={{ position: 'relative', zIndex: 50 }}>
                             <TouchableOpacity 
-                                style={[styles.statusDropdownBtn, openStatusMenu?.type === 'chronic' && openStatusMenu.index === index && { borderColor: '#4DA1C0' }]}
+                                style={[ds.statusDropdownBtn, openStatusMenu?.type === 'chronic' && openStatusMenu.index === index && { borderColor: tc.accent }]}
                                 onPress={() => setOpenStatusMenu(openStatusMenu?.type === 'chronic' && openStatusMenu.index === index ? null : { type: 'chronic', index })}
                             >
-                                <Text style={styles.statusDropdownBtnText}>{t(`medicalData.options.conditionStatuses.${item.status || 'Active'}`, { defaultValue: item.status || 'Active' })}</Text>
-                                <Feather name="chevron-down" size={12} color="#94a3b8" />
+                                <Text style={ds.statusDropdownBtnText}>{t(`medicalData.options.conditionStatuses.${item.status || 'Active'}`, { defaultValue: item.status || 'Active' })}</Text>
+                                <Feather name="chevron-down" size={12} color={tc.textMuted} />
                             </TouchableOpacity>
 
                             {openStatusMenu?.type === 'chronic' && openStatusMenu.index === index && (
-                                <View style={styles.statusMenuPopup}>
+                                <View style={ds.statusMenuPopup}>
                                     {CONDITION_STATUSES.map((status) => (
                                         <TouchableOpacity 
                                             key={status} 
-                                            style={[styles.statusOption, item.status === status && styles.statusOptionActive]}
+                                            style={[ds.statusOption, item.status === status && ds.statusOptionActive]}
                                             onPress={() => updateChronicStatus(index, status)}
                                         >
-                                            <Text style={[styles.statusOptionText, item.status === status && styles.statusOptionTextActive]}>
+                                            <Text style={[ds.statusOptionText, item.status === status && ds.statusOptionTextActive]}>
                                                 {t(`medicalData.options.conditionStatuses.${status}`, { defaultValue: status })}
                                             </Text>
                                         </TouchableOpacity>
@@ -1163,8 +1170,8 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
                             )}
                         </View>
                     )}
-                    <TouchableOpacity style={styles.deleteButton} onPress={() => deleteChronic(index, isHistory)}>
-                        <Feather name="x" size={16} color="#ef4444" />
+                    <TouchableOpacity style={ds.deleteButton} onPress={() => deleteChronic(index, isHistory)}>
+                        <Feather name="x" size={16} color={isDark ? '#ff6b6b' : '#ef4444'} />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -1172,24 +1179,24 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
     );
 
     const renderFamilyItem = (item: any, key: any, index: number, isHistory: boolean = false) => (
-        <View style={[styles.medicationCard, isHistory && { opacity: 0.7 }]} key={key}>
-            <View style={styles.medicationHeader}>
-                <View style={styles.medicationTitleRow}>
-                    <Feather name="users" size={16} color="#4DA1C0" style={{ marginRight: 6 }} />
-                    <Text style={[styles.medicationName, isHistory && { color: '#64748b' }]}>{item.diseaseName || item.disease || item.name}</Text>
+        <View style={[ds.medicationCard, isHistory && { opacity: 0.7 }]} key={key}>
+            <View style={ds.medicationHeader}>
+                <View style={ds.medicationTitleRow}>
+                    <Feather name="users" size={16} color={tc.accent} style={{ marginRight: 6 }} />
+                    <Text style={[ds.medicationName, isHistory && { color: tc.textMuted }]}>{item.diseaseName || item.disease || item.name}</Text>
                 </View>
             </View>
             
-            <View style={styles.medicationBody}>
-                <View style={styles.medicationInfoColumn}>
-                    <Text style={styles.medicationDetail}>{t('medicalData.relationship')}: {item.relationship}</Text>
-                    <Text style={styles.medicationDetail}>{t('medicalData.ageOfOnsetLower')}: {item.ageOfOnset || item.onsetAge || '70'}</Text>
-                    <Text style={styles.medicationDetail}>{t('medicalData.notes')}: {item.notes || 'There is Sugar in the genetics'}</Text>
+            <View style={ds.medicationBody}>
+                <View style={ds.medicationInfoColumn}>
+                    <Text style={ds.medicationDetail}>{t('medicalData.relationship')}: {item.relationship}</Text>
+                    <Text style={ds.medicationDetail}>{t('medicalData.ageOfOnsetLower')}: {item.ageOfOnset || item.onsetAge || '70'}</Text>
+                    <Text style={ds.medicationDetail}>{t('medicalData.notes')}: {item.notes || 'There is Sugar in the genetics'}</Text>
                 </View>
                 
-                <View style={styles.medicationActions}>
-                    <TouchableOpacity style={styles.deleteButton} onPress={() => deleteFamily(index, isHistory)}>
-                        <Feather name="x" size={16} color="#ef4444" />
+                <View style={ds.medicationActions}>
+                    <TouchableOpacity style={ds.deleteButton} onPress={() => deleteFamily(index, isHistory)}>
+                        <Feather name="x" size={16} color={isDark ? '#ff6b6b' : '#ef4444'} />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -1197,26 +1204,26 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
     );
 
     const renderRiskItem = (item: any, key: any, index: number, isHistory: boolean = false) => (
-        <View style={[styles.medicationCard, isHistory && { opacity: 0.7 }]} key={key}>
-            <View style={styles.medicationHeader}>
-                <View style={styles.medicationTitleRow}>
-                    <Feather name="alert-triangle" size={16} color="#4DA1C0" style={{ marginRight: 6 }} />
-                    <Text style={[styles.medicationName, isHistory && { color: '#64748b' }]}>{item.factor}</Text>
-                    <View style={[styles.statusBadge, { backgroundColor: isHistory ? '#f1f5f9' : '#FEF3C7' }]}>
-                        <Text style={[styles.statusBadgeText, { color: isHistory ? '#94a3b8' : '#D97706' }]}>{t(`medicalData.options.severityLevels.${item.level || 'Moderate'}`, { defaultValue: item.level || 'Moderate' })}</Text>
+        <View style={[ds.medicationCard, isHistory && { opacity: 0.7 }]} key={key}>
+            <View style={ds.medicationHeader}>
+                <View style={ds.medicationTitleRow}>
+                    <Feather name="alert-triangle" size={16} color={tc.accent} style={{ marginRight: 6 }} />
+                    <Text style={[ds.medicationName, isHistory && { color: tc.textMuted }]}>{item.factor}</Text>
+                    <View style={[ds.statusBadge, { backgroundColor: isHistory ? (isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9') : (isDark ? 'rgba(217, 119, 6, 0.2)' : '#FEF3C7') }]}>
+                        <Text style={[ds.statusBadgeText, { color: isHistory ? tc.textMuted : (isDark ? '#fbbf24' : '#D97706') }]}>{t(`medicalData.options.severityLevels.${item.level || 'Moderate'}`, { defaultValue: item.level || 'Moderate' })}</Text>
                     </View>
                 </View>
             </View>
             
-            <View style={styles.medicationBody}>
-                <View style={styles.medicationInfoColumn}>
-                    <Text style={styles.medicationDetail}>{t('medicalData.category')}: {item.category || 'Genetic'}</Text>
-                    <Text style={styles.medicationDetail}>{t('medicalData.notes')}: {item.notes || 'A little factor'}</Text>
+            <View style={ds.medicationBody}>
+                <View style={ds.medicationInfoColumn}>
+                    <Text style={ds.medicationDetail}>{t('medicalData.category')}: {item.category || 'Genetic'}</Text>
+                    <Text style={ds.medicationDetail}>{t('medicalData.notes')}: {item.notes || 'A little factor'}</Text>
                 </View>
                 
-                <View style={styles.medicationActions}>
-                    <TouchableOpacity style={styles.deleteButton} onPress={() => deleteRisk(index, isHistory)}>
-                        <Feather name="x" size={16} color="#ef4444" />
+                <View style={ds.medicationActions}>
+                    <TouchableOpacity style={ds.deleteButton} onPress={() => deleteRisk(index, isHistory)}>
+                        <Feather name="x" size={16} color={isDark ? '#ff6b6b' : '#ef4444'} />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -1226,7 +1233,7 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
 
     return (
 
-        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        <ScrollView style={ds.container} showsVerticalScrollIndicator={false}>
             {renderAddMedicationModal()}
             {renderAddDiagnosisModal()}
             {renderAddAllergyModal()}
@@ -1234,145 +1241,145 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
             {renderAddFamilyModal()}
             {renderAddRiskModal()}
 
-            <AccordionItem title={t('medicalData.medicines')} icon="link">
-                <View style={styles.sectionHeaderRow}>
-                    <Text style={styles.subHeader}>{t('medicalData.regularMedications')}</Text>
-                    <ActionOutlineButton title={t('medicalData.addMedication')} icon="plus" onPress={() => setShowMedModal(true)} />
+            <AccordionItem {...commonProps} title={t('medicalData.medicines')} icon="link">
+                <View style={ds.sectionHeaderRow}>
+                    <Text style={ds.subHeader}>{t('medicalData.regularMedications')}</Text>
+                    <ActionOutlineButton {...commonProps} title={t('medicalData.addMedication')} icon="plus" onPress={() => setShowMedModal(true)} />
                 </View>
                 {medicalData?.medications?.length > 0 ? (
                     medicalData.medications.map((m: any, idx: number) => renderMedicationItem(m, `med-${idx}`, idx))
                 ) : (
 
-                    <View style={styles.emptyBox}>
-                        <Text style={styles.emptyBoxText}>{t('medicalData.noRegularMedications')}</Text>
+                    <View style={ds.emptyBox}>
+                        <Text style={ds.emptyBoxText}>{t('medicalData.noRegularMedications')}</Text>
                     </View>
                 )}
                 
-                <Text style={[styles.subHeader, { marginTop: 15 }]}>{t('medicalData.asNeededMedications')}</Text>
+                <Text style={[ds.subHeader, { marginTop: 15 }]}>{t('medicalData.asNeededMedications')}</Text>
                 {renderEmptyBox(t('medicalData.noAsNeededMedications'))}
                 
-                <Text style={[styles.subHeader, { marginTop: 15 }]}>{t('medicalData.medicationHistory')}</Text>
+                <Text style={[ds.subHeader, { marginTop: 15 }]}>{t('medicalData.medicationHistory')}</Text>
                 {medicalData?.medicationHistory?.length > 0 ? (
                     medicalData.medicationHistory.map((m: any, idx: number) => renderMedicationItem(m, `med-hist-${idx}`, idx, true))
                 ) : renderEmptyBox(t('medicalData.noMedicationHistory'))}
  
                 
-                <View style={styles.saveContainer}>
-                    <SubmitButton 
+                <View style={ds.saveContainer}>
+                    <SubmitButton {...commonProps} tc={tc} ds={ds} 
                         title={isSaving ? t('medicalData.saving') : t('medicalData.save')} 
                         onPress={() => handleSave('medications')} 
                     />
                 </View>
             </AccordionItem>
 
-            <AccordionItem title={t('medicalData.diagnosis')} icon="activity">
-                <View style={styles.sectionHeaderRow}>
-                    <Text style={styles.subHeader}>{t('medicalData.activeDiagnoses')}</Text>
-                    <ActionOutlineButton title={t('medicalData.addDiagnosis')} icon="plus" onPress={() => setShowDiagModal(true)} />
+            <AccordionItem {...commonProps} title={t('medicalData.diagnosis')} icon="activity">
+                <View style={ds.sectionHeaderRow}>
+                    <Text style={ds.subHeader}>{t('medicalData.activeDiagnoses')}</Text>
+                    <ActionOutlineButton {...commonProps} title={t('medicalData.addDiagnosis')} icon="plus" onPress={() => setShowDiagModal(true)} />
                 </View>
                 {medicalData?.diagnoses?.length > 0 ? (
                     medicalData.diagnoses.map((d: any, idx: number) => renderDiagnosisItem(d, `diag-${idx}`, idx))
                 ) : (
-                    <View style={styles.emptyBox}>
-                        <Text style={styles.emptyBoxText}>{t('medicalData.noActiveDiagnoses')}</Text>
+                    <View style={ds.emptyBox}>
+                        <Text style={ds.emptyBoxText}>{t('medicalData.noActiveDiagnoses')}</Text>
                     </View>
                 )}
                 
-                <Text style={[styles.subHeader, { marginTop: 15 }]}>{t('medicalData.diagnosisHistory')}</Text>
+                <Text style={[ds.subHeader, { marginTop: 15 }]}>{t('medicalData.diagnosisHistory')}</Text>
                 {medicalData?.diagnosisHistory?.length > 0 ? (
                     medicalData.diagnosisHistory.map((d: any, idx: number) => renderDiagnosisItem(d, `diag-hist-${idx}`, idx, true))
                 ) : renderEmptyBox(t('medicalData.noDiagnosisHistory'))}
                 
-                <View style={styles.saveContainer}>
-                    <SubmitButton 
+                <View style={ds.saveContainer}>
+                    <SubmitButton {...commonProps} tc={tc} ds={ds} 
                         title={isSaving ? t('medicalData.saving') : t('medicalData.save')} 
                         onPress={() => handleSave('diagnoses')} 
                     />
                 </View>
             </AccordionItem>
 
-            <AccordionItem title={t('medicalData.allergiesAndIntolerances')} icon="alert-circle">
-                <View style={styles.sectionHeaderRow}>
-                    <Text style={styles.subHeader}>{t('medicalData.allergiesAndIntolerances')}</Text>
-                    <ActionOutlineButton title={t('medicalData.addAllergy')} icon="plus" onPress={() => setShowAllergyModal(true)} />
+            <AccordionItem {...commonProps} title={t('medicalData.allergiesAndIntolerances')} icon="alert-circle">
+                <View style={ds.sectionHeaderRow}>
+                    <Text style={ds.subHeader}>{t('medicalData.allergiesAndIntolerances')}</Text>
+                    <ActionOutlineButton {...commonProps} title={t('medicalData.addAllergy')} icon="plus" onPress={() => setShowAllergyModal(true)} />
                 </View>
                 {medicalData?.allergies?.length > 0 ? (
                     medicalData.allergies.map((a: any, idx: number) => renderAllergyItem(a, `all-${idx}`, idx))
                 ) : renderEmptyBox(t('medicalData.noRegisteredAllergies'))}
  
-                <Text style={[styles.subHeader, { marginTop: 15 }]}>{t('medicalData.pastAllergies')}</Text>
+                <Text style={[ds.subHeader, { marginTop: 15 }]}>{t('medicalData.pastAllergies')}</Text>
                 {medicalData?.allergyHistory?.length > 0 ? (
                     medicalData.allergyHistory.map((a: any, idx: number) => renderAllergyItem(a, `all-hist-${idx}`, idx, true))
                 ) : renderEmptyBox(t('medicalData.noAllergyHistory'))}
  
-                <View style={styles.saveContainer}>
-                    <SubmitButton 
+                <View style={ds.saveContainer}>
+                    <SubmitButton {...commonProps} tc={tc} ds={ds} 
                         title={isSaving ? t('medicalData.saving') : t('medicalData.save')} 
                         onPress={() => handleSave('allergies')} 
                     />
                 </View>
             </AccordionItem>
 
-            <AccordionItem title={t('medicalData.chronicDiseases')} icon="heart">
-                <View style={styles.sectionHeaderRow}>
-                    <Text style={styles.subHeader}>{t('medicalData.chronicConditions')}</Text>
-                    <ActionOutlineButton title={t('medicalData.addCondition')} icon="plus" onPress={() => setShowChronicModal(true)} />
+            <AccordionItem {...commonProps} title={t('medicalData.chronicDiseases')} icon="heart">
+                <View style={ds.sectionHeaderRow}>
+                    <Text style={ds.subHeader}>{t('medicalData.chronicConditions')}</Text>
+                    <ActionOutlineButton {...commonProps} title={t('medicalData.addCondition')} icon="plus" onPress={() => setShowChronicModal(true)} />
                 </View>
                 {medicalData?.chronicConditions?.length > 0 ? (
                     medicalData.chronicConditions.map((c: any, idx: number) => renderChronicItem(c, `chronic-${idx}`, idx))
                 ) : renderEmptyBox(t('medicalData.noChronicConditions'))}
  
-                <Text style={[styles.subHeader, { marginTop: 15 }]}>{t('medicalData.chronicDiseaseHistory')}</Text>
+                <Text style={[ds.subHeader, { marginTop: 15 }]}>{t('medicalData.chronicDiseaseHistory')}</Text>
                 {medicalData?.chronicHistory?.length > 0 ? (
                     medicalData.chronicHistory.map((c: any, idx: number) => renderChronicItem(c, `chronic-hist-${idx}`, idx, true))
                 ) : renderEmptyBox(t('medicalData.noChronicConditionHistory'))}
  
-                <View style={styles.saveContainer}>
-                    <SubmitButton 
+                <View style={ds.saveContainer}>
+                    <SubmitButton {...commonProps} tc={tc} ds={ds} 
                         title={isSaving ? t('medicalData.saving') : t('medicalData.save')} 
                         onPress={() => handleSave('chronic')} 
                     />
                 </View>
             </AccordionItem>
             
-            <AccordionItem title={t('medicalData.familyInterview')} icon="users">
-                <View style={styles.sectionHeaderRow}>
-                    <Text style={styles.subHeader}>{t('medicalData.familyHistory')}</Text>
-                    <ActionOutlineButton title={t('medicalData.addEntry')} icon="plus" onPress={() => setShowFamilyModal(true)} />
+            <AccordionItem {...commonProps} title={t('medicalData.familyInterview')} icon="users">
+                <View style={ds.sectionHeaderRow}>
+                    <Text style={ds.subHeader}>{t('medicalData.familyHistory')}</Text>
+                    <ActionOutlineButton {...commonProps} title={t('medicalData.addEntry')} icon="plus" onPress={() => setShowFamilyModal(true)} />
                 </View>
                 {medicalData?.familyHistory?.length > 0 ? (
                     medicalData.familyHistory.map((f: any, idx: number) => renderFamilyItem(f, `family-${idx}`, idx))
                 ) : renderEmptyBox(t('medicalData.noFamilyHistoryEntries'))}
  
-                <Text style={[styles.subHeader, { marginTop: 15 }]}>{t('medicalData.pastFamilyHistory')}</Text>
+                <Text style={[ds.subHeader, { marginTop: 15 }]}>{t('medicalData.pastFamilyHistory')}</Text>
                 {medicalData?.familyHistoryPast?.length > 0 ? (
                     medicalData.familyHistoryPast.map((f: any, idx: number) => renderFamilyItem(f, `family-past-${idx}`, idx, true))
                 ) : renderEmptyBox(t('medicalData.noHistoricalEntries'))}
  
-                <View style={styles.saveContainer}>
-                    <SubmitButton 
+                <View style={ds.saveContainer}>
+                    <SubmitButton {...commonProps} tc={tc} ds={ds} 
                         title={isSaving ? t('medicalData.saving') : t('medicalData.save')} 
                         onPress={() => handleSave('family')} 
                     />
                 </View>
             </AccordionItem>
 
-            <AccordionItem title={t('medicalData.riskFactors')} icon="alert-triangle">
-                <View style={styles.sectionHeaderRow}>
-                    <Text style={styles.subHeader}>{t('medicalData.riskFactors')}</Text>
-                    <ActionOutlineButton title={t('medicalData.addRiskFactor')} icon="plus" onPress={() => setShowRiskModal(true)} />
+            <AccordionItem {...commonProps} title={t('medicalData.riskFactors')} icon="alert-triangle">
+                <View style={ds.sectionHeaderRow}>
+                    <Text style={ds.subHeader}>{t('medicalData.riskFactors')}</Text>
+                    <ActionOutlineButton {...commonProps} title={t('medicalData.addRiskFactor')} icon="plus" onPress={() => setShowRiskModal(true)} />
                 </View>
                 {medicalData?.riskFactors?.length > 0 ? (
                     medicalData.riskFactors.map((r: any, idx: number) => renderRiskItem(r, `risk-${idx}`, idx))
                 ) : renderEmptyBox(t('medicalData.noRiskFactorsRecorded'))}
  
-                <Text style={[styles.subHeader, { marginTop: 15 }]}>{t('medicalData.riskFactorHistory')}</Text>
+                <Text style={[ds.subHeader, { marginTop: 15 }]}>{t('medicalData.riskFactorHistory')}</Text>
                 {medicalData?.riskHistory?.length > 0 ? (
                     medicalData.riskHistory.map((r: any, idx: number) => renderRiskItem(r, `risk-hist-${idx}`, idx, true))
                 ) : renderEmptyBox(t('medicalData.noRiskHistory'))}
  
-                <View style={styles.saveContainer}>
-                    <SubmitButton 
+                <View style={ds.saveContainer}>
+                    <SubmitButton {...commonProps} tc={tc} ds={ds} 
                         title={isSaving ? t('medicalData.saving') : t('medicalData.save')} 
                         onPress={() => handleSave('risk')} 
                     />
@@ -1385,23 +1392,66 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
     );
 };
 
-const styles = StyleSheet.create({
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     container: { paddingHorizontal: 16 },
-    accordionContainer: { backgroundColor: '#ffffff', borderRadius: 12, marginBottom: 12, borderWidth: 1, borderColor: '#f1f5f9', overflow: 'hidden' },
+    accordionContainer: { 
+        backgroundColor: tc.cardBackground, 
+        borderRadius: 12, 
+        marginBottom: 12, 
+        borderWidth: 1, 
+        borderColor: tc.borderColor, 
+        overflow: 'hidden',
+        // Elevation/Shadow for premium feel
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: isDark ? 0.3 : 0.05,
+        shadowRadius: 4,
+        elevation: 3,
+    },
     accordionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16 },
-    expandedHeader: { borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
+    expandedHeader: { borderBottomWidth: 1, borderBottomColor: tc.borderColor },
     headerLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-    iconContainer: { width: 32, height: 32, borderRadius: 8, backgroundColor: '#f0f9f8', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
-    accordionTitle: { fontSize: 14, fontWeight: '600', color: '#1e293b' },
-    accordionContent: { padding: 16 },
+    iconContainer: { 
+        width: 32, 
+        height: 32, 
+        borderRadius: 8, 
+        backgroundColor:  tc.accentLight, 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        marginRight: 12 
+    },
+    accordionTitle: { fontSize: 16, fontWeight: '700', color: tc.textPrimary },
+    accordionContent: { padding: 16, backgroundColor: tc.cardBackground },
     sectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-    subHeader: { fontSize: 13, fontWeight: '600', color: '#64748b', marginBottom: 10 },
-    emptyBox: { backgroundColor: '#F8FAFC', borderRadius: 8, padding: 16, alignItems: 'center', borderStyle: 'dashed', borderWidth: 1, borderColor: '#E2E8F0', marginBottom: 16 },
-    emptyBoxText: { color: '#94A3B8', fontSize: 13 },
+    subHeader: { fontSize: 13, fontWeight: '600', color: tc.textSecondary, marginBottom: 10 },
+    emptyBox: { 
+        backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : tc.cardBackgroundAlt || '#F8FAFC', 
+        borderRadius: 10, 
+        padding: 16, 
+        alignItems: 'center', 
+        borderStyle: 'dashed', 
+        borderWidth: 1, 
+        borderColor: tc.borderColor, 
+        marginBottom: 16 
+    },
+    emptyBoxText: { color: tc.textMuted, fontSize: 13 },
     saveContainer: { alignItems: 'flex-end', marginTop: 10 },
-    outlineButton: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#58a6b8', borderRadius: 8, paddingVertical: 6, paddingHorizontal: 12 },
-    outlineButtonText: { fontSize: 12, fontWeight: '600', color: '#58a6b8', marginLeft: 6 },
-    submitButtonContainer: { height: 36, width: 120, borderRadius: 8, overflow: 'hidden' },
+    outlineButton: { 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        borderWidth: 1, 
+        borderColor: tc.accent, 
+        borderRadius: 8, 
+        paddingVertical: 6, 
+        paddingHorizontal: 12 
+    },
+    outlineButtonText: { fontSize: 12, fontWeight: '600', color: tc.accent, marginLeft: 6 },
+    submitButtonContainer: { 
+        height: 44, 
+        width: 130, 
+        borderRadius: 10, 
+        overflow: 'hidden' 
+    },
     gradientButton: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     buttonContent: {
         flexDirection: 'row',
@@ -1409,50 +1459,90 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         width: '100%',
     },
-    submitButtonText: { color: '#ffffff', fontSize: 13, fontWeight: '600' },
-    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 },
-    modalContent: { backgroundColor: '#ffffff', borderRadius: 12, width: '100%', maxHeight: '80%', padding: 20 },
+    submitButtonText: { color: '#ffffff', fontSize: 13, fontWeight: '700' },
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 20 },
+    modalContent: { 
+        backgroundColor: tc.modalBg, 
+        borderRadius: 12, 
+        width: '100%', 
+        maxHeight: '80%', 
+        padding: 20,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: tc.borderColor,
+    },
     modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-    modalTitle: { fontSize: 18, fontWeight: '700', color: '#1e293b' },
+    modalTitle: { fontSize: 18, fontWeight: '700', color: tc.textPrimary },
     modalScroll: { marginBottom: 20 },
     inputGroup: { marginBottom: 15 },
     labelRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
-    requiredStar: { color: '#ef4444', fontSize: 14 },
-    inputLabel: { fontSize: 13, color: '#475569', fontWeight: '500' },
-    inputWrapper: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 8, paddingHorizontal: 12, height: 44 },
-    textInput: { flex: 1, fontSize: 14, color: '#1e293b', padding: 0 },
+    requiredStar: { color: tc.accentRed || '#ef4444', fontSize: 14 },
+    inputLabel: { fontSize: 13, color: tc.textSecondary, fontWeight: '500' },
+    inputWrapper: { 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        borderWidth: 1, 
+        borderColor: tc.borderColor, 
+        borderRadius: 8, 
+        paddingHorizontal: 12, 
+        height: 44,
+        backgroundColor: tc.inputBackground,
+    },
+    textInput: { flex: 1, fontSize: 14, color: tc.textPrimary, padding: 0 },
     textAreaWrapper: { height: 100, alignItems: 'flex-start', paddingTop: 12 },
     textArea: { textAlignVertical: 'top' },
-    unitText: { marginLeft: 8, color: '#94a3b8', fontSize: 14 },
+    unitText: { marginLeft: 8, color: tc.textMuted, fontSize: 14 },
     row: { flexDirection: 'row' },
-    modalFooter: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, borderTopWidth: 1, borderTopColor: '#f1f5f9', paddingTop: 15 },
-    cancelOutlineButton: { height: 36, paddingHorizontal: 15, borderRadius: 8, borderWidth: 1, borderColor: '#58a6b8', justifyContent: 'center', alignItems: 'center' },
-    cancelOutlineText: { color: '#58a6b8', fontSize: 13, fontWeight: '600' },
+    modalFooter: { 
+        flexDirection: 'row', 
+        justifyContent: 'flex-end', 
+        gap: 12, 
+        borderTopWidth: 1, 
+        borderTopColor: tc.borderColor, 
+        paddingTop: 15 
+    },
+    cancelOutlineButton: { 
+        height: 40, 
+        paddingHorizontal: 20, 
+        borderRadius: 8, 
+        borderWidth: 1, 
+        borderColor: tc.borderColor, 
+        backgroundColor: isDark ? tc.buttonMutedBg : tc.canvas,
+        justifyContent: 'center', 
+        alignItems: 'center' 
+    },
+    cancelOutlineText: { color: tc.textSecondary, fontSize: 14, fontWeight: '600' },
     checkboxRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10 },
-    checkboxLabel: { marginLeft: 10, fontSize: 13, color: '#475569' },
+    checkboxLabel: { marginLeft: 10, fontSize: 13, color: tc.textSecondary },
     radioGroup: { marginBottom: 15 },
     radioRow: { flexDirection: 'row', marginTop: 10 },
     radioItem: { flexDirection: 'row', alignItems: 'center', marginRight: 20 },
-    radioOuter: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: '#cbd5e1', justifyContent: 'center', alignItems: 'center' },
-    radioOuterActive: { borderColor: '#3b82f6' },
-    radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#3b82f6' },
-    radioLabel: { marginLeft: 10, fontSize: 13, color: '#475569' },
-    charCount: { alignSelf: 'flex-end', fontSize: 11, color: '#94a3b8', marginTop: -10, marginBottom: 10 },
-    listItem: { backgroundColor: '#ffffff', borderBottomWidth: 1, borderBottomColor: '#f1f5f9', paddingVertical: 12, flexDirection: 'row', alignItems: 'center' },
-    listItemTitle: { fontSize: 14, fontWeight: '700', color: '#1e293b' },
-    listItemSubtitle: { fontSize: 13, color: '#64748b', marginTop: 2 },
-    listItemSubInfo: { fontSize: 12, color: '#94a3b8', marginTop: 2, fontStyle: 'italic' },
+    radioOuter: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: tc.borderColor, justifyContent: 'center', alignItems: 'center' },
+    radioOuterActive: { borderColor: tc.accent },
+    radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: tc.accent },
+    radioLabel: { marginLeft: 10, fontSize: 13, color: tc.textSecondary },
+    charCount: { alignSelf: 'flex-end', fontSize: 11, color: tc.textMuted, marginTop: -10, marginBottom: 10 },
+    listItem: { 
+        backgroundColor: tc.cardBackground, 
+        borderBottomWidth: 1, 
+        borderBottomColor: tc.borderColor, 
+        paddingVertical: 12, 
+        flexDirection: 'row', 
+        alignItems: 'center' 
+    },
+    listItemTitle: { fontSize: 14, fontWeight: '700', color: tc.textPrimary },
+    listItemSubtitle: { fontSize: 13, color: tc.textSecondary, marginTop: 2 },
+    listItemSubInfo: { fontSize: 12, color: tc.textMuted, marginTop: 2, fontStyle: 'italic' },
     statusTag: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 12 },
-    statusTagActive: { backgroundColor: '#f0fdf4' },
-    statusTagHistory: { backgroundColor: '#f1f5f9' },
+    statusTagActive: { backgroundColor: tc.success + '20' || 'rgba(34, 197, 94, 0.2)' },
+    statusTagHistory: { backgroundColor: isDark ? 'rgba(100, 116, 139, 0.2)' : '#f1f5f9' },
     statusTagText: { fontSize: 11, fontWeight: '600' },
-    statusTagTextActive: { color: '#16a34a' },
-    statusTagTextHistory: { color: '#64748b' },
+    statusTagTextActive: { color: tc.success || '#22c55e' },
+    statusTagTextHistory: { color: tc.textSecondary },
     inlineDropdown: {
-        backgroundColor: '#ffffff',
-        borderRadius: 8,
+        backgroundColor: tc.cardBackgroundAlt || (isDark ? tc.modalBg : '#ffffff'),
+        borderRadius: 10,
         borderWidth: 1,
-        borderColor: '#e2e8f0',
+        borderColor: tc.borderColor,
         marginTop: 4,
         marginBottom: 8,
         overflow: 'hidden',
@@ -1466,25 +1556,25 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         paddingHorizontal: 14,
         borderBottomWidth: 1,
-        borderBottomColor: '#f1f5f9',
+        borderBottomColor: tc.borderColor,
     },
     dropdownItemActive: {
-        backgroundColor: '#f0f9f8',
+        backgroundColor: tc.accentLight || (isDark ? 'rgba(255,255,255,0.05)' : '#f0f9f8'),
     },
     dropdownItemText: {
         fontSize: 13,
-        color: '#334155',
+        color: tc.textPrimary,
         fontWeight: '500',
     },
     dropdownItemTextActive: {
-        color: '#58a6b8',
+        color: tc.accent,
         fontWeight: '700',
     },
     datePickerContainer: {
-        backgroundColor: '#f8fafc',
+        backgroundColor: tc.cardBackgroundAlt || (isDark ? tc.inputBackground : '#f8fafc'),
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: '#e2e8f0',
+        borderColor: tc.borderColor,
         marginTop: 4,
         marginBottom: 8,
         overflow: 'hidden',
@@ -1496,21 +1586,27 @@ const styles = StyleSheet.create({
         paddingHorizontal: 14,
         paddingVertical: 10,
         borderBottomWidth: 1,
-        borderBottomColor: '#e2e8f0',
-        backgroundColor: '#ffffff',
+        borderBottomColor: tc.borderColor,
+        backgroundColor: tc.cardBackground,
     },
     datePickerDone: {
         fontSize: 14,
         fontWeight: '700',
-        color: '#58a6b8',
+        color: tc.accent,
     },
     medicationCard: {
-        backgroundColor: '#ffffff',
+        backgroundColor: tc.cardBackgroundAlt || tc.cardBackground,
         borderRadius: 12,
         padding: 16,
         marginBottom: 12,
         borderWidth: 1,
-        borderColor: '#f1f5f9',
+        borderColor: tc.borderColor,
+        // Elevation for depth
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: isDark ? 0.2 : 0.03,
+        shadowRadius: 2,
+        elevation: 2,
     },
     medicationHeader: {
         flexDirection: 'row',
@@ -1525,11 +1621,11 @@ const styles = StyleSheet.create({
     medicationName: {
         fontSize: 15,
         fontWeight: '700',
-        color: '#1e293b',
+        color: tc.textPrimary,
     },
     doctorName: {
         fontSize: 12,
-        color: '#94a3b8',
+        color: tc.textMuted,
     },
     medicationBody: {
         flexDirection: 'row',
@@ -1541,7 +1637,7 @@ const styles = StyleSheet.create({
     },
     medicationDetail: {
         fontSize: 13,
-        color: '#64748b',
+        color: tc.textSecondary,
         lineHeight: 20,
     },
     dateRow: {
@@ -1559,27 +1655,29 @@ const styles = StyleSheet.create({
         paddingVertical: 6,
         borderRadius: 6,
         borderWidth: 1,
-        borderColor: '#58a6b8',
+        borderColor: tc.accent,
     },
     endButtonText: {
         fontSize: 13,
-        color: '#58a6b8',
+        color: tc.accent,
         fontWeight: '600',
     },
     deleteButton: {
         width: 32,
         height: 32,
-        borderRadius: 6,
+        borderRadius: 8,
         borderWidth: 1,
-        borderColor: '#ef4444',
-        justifyContent: 'center',
-        alignItems: 'center',
+        borderColor: tc.accentRed || '#ef4444',
+        justifyContent: 'center', 
+        alignItems: 'center', 
     },
     statusBadge: {
         paddingHorizontal: 8,
         paddingVertical: 2,
         borderRadius: 4,
         marginLeft: 8,
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     statusBadgeText: {
         fontSize: 10,
@@ -1590,14 +1688,15 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 12,
         paddingVertical: 6,
-        borderRadius: 6,
+        borderRadius: 8,
         borderWidth: 1,
-        borderColor: '#cbd5e1',
+        borderColor: tc.borderColor,
         marginRight: 4,
+        backgroundColor: tc.inputBackground,
     },
     statusDropdownBtnText: {
         fontSize: 13,
-        color: '#94a3b8',
+        color: tc.textSecondary,
         marginRight: 6,
         fontWeight: '500',
     },
@@ -1605,10 +1704,10 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: 40,
         right: 0,
-        backgroundColor: '#ffffff',
+        backgroundColor: tc.cardBackgroundAlt || tc.modalBg,
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: '#e2e8f0',
+        borderColor: tc.borderColor,
         width: 120,
         elevation: 5,
         shadowColor: '#000',
@@ -1618,23 +1717,22 @@ const styles = StyleSheet.create({
         zIndex: 100,
         overflow: 'hidden'
     },
-
     statusOption: {
         paddingVertical: 12,
         paddingHorizontal: 14,
         borderBottomWidth: 1,
-        borderBottomColor: '#f1f5f9',
+        borderBottomColor: tc.borderColor,
     },
     statusOptionActive: {
-        backgroundColor: '#f0f9ff',
+        backgroundColor: tc.accentLight || 'rgba(255,255,255,0.05)',
     },
     statusOptionText: {
         fontSize: 13,
-        color: '#1e293b',
+        color: tc.textPrimary,
         fontWeight: '600',
     },
     statusOptionTextActive: {
-        color: '#0369a1',
+        color: tc.accent,
     },
 });
 
