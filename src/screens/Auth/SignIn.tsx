@@ -26,7 +26,7 @@ import { useNavigation } from '@react-navigation/native';
 import CustomAlert from '../../component/customAlert';
 import LanguageSelector from '../../component/LanguageSelector';
 import userStore from '../../store/user';
-import {Login, SocialSignUp} from '../../Services/Auth.Service';
+import {Login, googleMobileLogin} from '../../Services/Auth.Service';
 import { validateInput } from '../../utils/inputValidations';
 import {
   GoogleSignin,
@@ -159,6 +159,9 @@ const SignIn = () => {
     setSpinner(true);
     try {
       let googleEmail = '';
+      let googleUserId = '';
+      let googleName = '';
+      let googlePhoto = '';
       let idToken = '';
 
       try {
@@ -191,6 +194,9 @@ const SignIn = () => {
           if (isSuccessResponse(account)) {
             idToken = account.data.idToken || '';
             googleEmail = account.data.user.email || '';
+            googleUserId = account.data.user.id || '';
+            googleName = account.data.user.name || '';
+            googlePhoto = account.data.user.photo || '';
           }
         } catch (error: any) {
           if (error.code === statusCodes.SIGN_IN_CANCELLED) {
@@ -215,38 +221,51 @@ const SignIn = () => {
         console.warn('Google Sign In setup error:', err);
       }
 
-      // Validate we got a token
-      if (!idToken) {
+      if (!idToken || !googleEmail || !googleUserId) {
         setIsGoogleLoading(false);
-        setAlertConfig({ visible: true, type: 'error', message: t('login.google_signin_error') });
+        setAlertConfig({
+          visible: true,
+          type: 'error',
+          message: t('login.google_signin_error'),
+        });
         return;
       }
 
-      // Prepare the payload for backend (API not ready yet)
-      const loginPayload = {
+      const user = await googleMobileLogin({
         idToken,
         email: googleEmail,
+        socialID: googleUserId,
+        name: googleName,
+        profileImage: googlePhoto,
         isSignup: false,
-      };
+      });
 
-      console.log(
-        '========== GOOGLE SIGN-IN PAYLOAD (Login) ==========',
-      );
-      console.log(JSON.stringify(loginPayload, null, 2));
-      console.log(
-        '====================================================',
-      );
+      if (user?.requires2FA) {
+        navigation.navigate('Otp', {
+          email: googleEmail,
+          type: '2fa',
+        });
+        return;
+      }
 
-      // TODO: Replace with actual API call when backend is ready
-      // const resp = await googleMobileLogin(loginPayload);
-      // const payload = resp?.data?.data || resp?.data;
-      // const token = payload?.token || payload?.accessToken;
+      setAuth(user);
+
+      let successMessage = t('login.login_success');
+      if (typeof user === 'object') {
+        successMessage = user.data || successMessage;
+      } else if (typeof user === 'string') {
+        successMessage = user;
+      }
 
       setAlertConfig({
         visible: true,
         type: 'success',
-        message: t('login.google_signin_success'),
+        message: successMessage,
       });
+
+      setTimeout(() => {
+        navigation.navigate('ModuleSelection');
+      }, 1000);
 
     } catch (error: any) {
       console.error('Google Sign-In FAILED:', error);

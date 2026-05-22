@@ -14,8 +14,13 @@ if linkage != nil
   use_frameworks! :linkage => linkage.to_sym
 end
 
+# Avoid CLI setup_env.sh deadlock (execFileSync + stdio: 'pipe' hangs on some shells).
+def react_native_config_command
+  ['node', File.expand_path('../scripts/react-native-config.js', __dir__)]
+end
+
 target 'Remedey_EHR' do
-  config = use_native_modules!
+  config = use_native_modules!(react_native_config_command)
 
   use_react_native!(
     :path => config[:reactNativePath],

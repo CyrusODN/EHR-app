@@ -47,9 +47,51 @@ export async function SocialSignUp(user) {
 	try {
 		const result = await postRequest(`${MODEL_NAME}/social-signup`, user);
 		console.log("SocialSignUp response:", result);
-		return result;
+		return result?.user || result;
 	} catch (err) {
 		console.log("SocialSignUp error:", err);
+		return throwServerError(err);
+	}
+}
+
+export async function googleMobileLogin({
+	idToken,
+	email,
+	socialID,
+	name,
+	profileImage = '',
+	isSignup = false,
+}) {
+	try {
+		let deviceId = await AsyncStorage.getItem('stable_device_id');
+		if (!deviceId) {
+			deviceId =
+				'mobile_device_' +
+				Math.random().toString(36).substring(2, 15) +
+				'_' +
+				Date.now();
+			await AsyncStorage.setItem('stable_device_id', deviceId);
+		}
+
+		const payload = {
+			user: {
+				username: name || email?.trim().toLowerCase(),
+				email: email?.trim().toLowerCase(),
+				accountType: 'google',
+				socialID,
+				profileImage: profileImage || '',
+			},
+			idToken,
+			deviceId,
+			isSignup,
+		};
+
+		console.log('googleMobileLogin payload:', payload);
+		const result = await postRequest(`${MODEL_NAME}/social-signup`, payload);
+		console.log('googleMobileLogin response:', result);
+		return result?.user || result;
+	} catch (err) {
+		console.log('googleMobileLogin error:', err);
 		return throwServerError(err);
 	}
 }

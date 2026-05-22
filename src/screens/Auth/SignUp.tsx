@@ -24,7 +24,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import Gap from '../../component/gap';
 import {useNavigation} from '@react-navigation/native';
 import CustomAlert from '../../component/customAlert';
-import { RegisterUser } from '../../Services/Auth.Service';
+import { RegisterUser, googleMobileLogin } from '../../Services/Auth.Service';
+import userStore from '../../store/user';
 import { validateInput } from '../../utils/inputValidations';
 import {
   GoogleSignin,
@@ -50,8 +51,8 @@ const SignUp = () => {
     const { colors: tc, isDark } = useThemeColors();
     const ds = createDynamicStyles(tc, isDark);
     const navigation = useNavigation<any>();
+    const { setAuth } = userStore();
 
-  
 const [ body , setBody] = useState(defaultBody);
 
 const [validationErrors, setValidationErrors] = useState(defaultValidationErrors);
@@ -152,6 +153,9 @@ const checkValidation = () => {
         setIsGoogleLoading(true);
         try {
             let googleEmail = '';
+            let googleUserId = '';
+            let googleName = '';
+            let googlePhoto = '';
             let idToken = '';
 
             try {
@@ -182,6 +186,9 @@ const checkValidation = () => {
                     if (isSuccessResponse(account)) {
                         idToken = account.data.idToken || '';
                         googleEmail = account.data.user.email || '';
+                        googleUserId = account.data.user.id || '';
+                        googleName = account.data.user.name || '';
+                        googlePhoto = account.data.user.photo || '';
                     }
                 } catch (error: any) {
                     if (error.code === statusCodes.SIGN_IN_CANCELLED) {
@@ -204,38 +211,51 @@ const checkValidation = () => {
                 console.warn('Google Sign In setup error:', err);
             }
 
-            // Validate we got a token
-            if (!idToken) {
+            if (!idToken || !googleEmail || !googleUserId) {
                 setIsGoogleLoading(false);
-                setAlertConfig({ visible: true, type: 'error', message: t('login.google_signin_error') });
+                setAlertConfig({
+                    visible: true,
+                    type: 'error',
+                    message: t('login.google_signin_error'),
+                });
                 return;
             }
 
-            // Prepare the payload for backend (API not ready yet)
-            const signupPayload = {
+            const user = await googleMobileLogin({
                 idToken,
                 email: googleEmail,
+                socialID: googleUserId,
+                name: googleName,
+                profileImage: googlePhoto,
                 isSignup: true,
-            };
+            });
 
-            console.log(
-                '========== GOOGLE SIGN-UP PAYLOAD ==========',
-            );
-            console.log(JSON.stringify(signupPayload, null, 2));
-            console.log(
-                '=============================================',
-            );
+            if (user?.requires2FA) {
+                navigation.navigate('Otp', {
+                    email: googleEmail,
+                    type: '2fa',
+                });
+                return;
+            }
 
-            // TODO: Replace with actual API call when backend is ready
-            // const resp = await googleMobileLogin(signupPayload);
-            // const payload = resp?.data?.data || resp?.data;
-            // const token = payload?.token || payload?.accessToken;
+            setAuth(user);
+
+            let successMessage = t('signup.google_signup_success');
+            if (typeof user === 'object') {
+                successMessage = user.data || successMessage;
+            } else if (typeof user === 'string') {
+                successMessage = user;
+            }
 
             setAlertConfig({
                 visible: true,
                 type: 'success',
-                message: t('signup.google_signup_success'),
+                message: successMessage,
             });
+
+            setTimeout(() => {
+                navigation.navigate('ModuleSelection');
+            }, 1000);
 
         } catch (error: any) {
             console.error('Google Sign-Up FAILED:', error);
