@@ -54,10 +54,17 @@ const SlidingDrawerModal = ({ visible, onClose }: { visible: boolean, onClose: (
 
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
-    // Profile data from store with fallbacks
-    const userName = loggedInUser?.firstName ? `${loggedInUser.firstName} ${loggedInUser.lastName || ''}` : "Hamad Alvi";
-    const userEmail = loggedInUser?.email || "hamadhrs23@gmail.com";
-    const userRole = loggedInUser?.role || "Director";
+    // Profile data from store — API may use `name` or `firstName`/`lastName`
+    const userName = useMemo(() => {
+        if (!loggedInUser) return t('common.na');
+        const fullName =
+            loggedInUser.name?.trim() ||
+            `${loggedInUser.firstName || ''} ${loggedInUser.lastName || ''}`.trim();
+        return fullName || t('common.na');
+    }, [loggedInUser, t]);
+
+    const userEmail = loggedInUser?.email || loggedInUser?.username || '';
+    const userRole = loggedInUser?.role || loggedInUser?.accountType || '';
 
     const toggleSection = (section: string) => {
         setOpenSections(prev => ({
@@ -366,10 +373,14 @@ const SlidingDrawerModal = ({ visible, onClose }: { visible: boolean, onClose: (
                                                 color={tc.textMuted} 
                                             />
                                         </View>
-                                        <Text style={ds.profileEmail}>{userEmail}</Text>
-                                        <View style={ds.roleTag}>
-                                            <Text style={ds.roleTagText}>{userRole}</Text>
-                                        </View>
+                                        {!!userEmail && (
+                                            <Text style={ds.profileEmail}>{userEmail}</Text>
+                                        )}
+                                        {!!userRole && (
+                                            <View style={ds.roleTag}>
+                                                <Text style={ds.roleTagText}>{userRole}</Text>
+                                            </View>
+                                        )}
                                     </View>
                                 </TouchableOpacity>
                             </View>

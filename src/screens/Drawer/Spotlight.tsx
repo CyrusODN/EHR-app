@@ -108,7 +108,7 @@ const SpotlightScreen = () => {
                                     <Text style={ds.infoText}>{t('spotlight.submissionDate')}: 19/03/2024, 10:00:00</Text>
                                 </View>
                                 <PrimaryButton
-                                    label={"Podglad"}
+                                    label={t('spotlight.view')}
                                     filled={false}
                                     onPress={() => { }}
                                     style={{ width: "35%" }}
