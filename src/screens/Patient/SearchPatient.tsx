@@ -20,8 +20,11 @@ import CustomDropdown from '../../component/customDropDown';
 import PrimaryButton from '../../component/button';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { useNavigation } from '@react-navigation/native';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 const SearchPatientScreen = () => {
+    const { colors: tc, isDark } = useThemeColors();
+    const ds = createDynamicStyles(tc, isDark);
     const { t } = useTranslation();
     const navigation = useNavigation();
 
@@ -107,47 +110,48 @@ const SearchPatientScreen = () => {
     // Render checkbox
     const renderCheckbox = (isChecked: boolean, onToggle: any, label: string) => (
         <TouchableOpacity
-            style={styles.checkboxContainer}
+            style={ds.checkboxContainer}
             onPress={() => onToggle(!isChecked)}
         >
-            <View style={[styles.checkbox, isChecked && styles.checkboxChecked]}>
+            <View style={[ds.checkbox, isChecked && ds.checkboxChecked]}>
                 {isChecked && <Ionicons name="checkmark" size={16} color="#fff" />}
             </View>
-            <Text style={styles.checkboxLabel}>{label}</Text>
+            <Text style={ds.checkboxLabel}>{label}</Text>
         </TouchableOpacity>
     );
 
     return (
-        <View style={styles.safeArea}>
-            <StatusBar barStyle="dark-content" backgroundColor="#F5F5F5" />
-            <View style={styles.container}>
+        <View style={ds.safeArea}>
+            <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={tc.statusBarBg} />
+            <View style={ds.container}>
                 {/* Header */}
                 <View style={{
-                    width: "100%", backgroundColor: "white",
+                    width: "100%", backgroundColor: tc.headerBg,
                     flexDirection: "row", justifyContent: "space-around", paddingTop: hp(7)
                 }}>
-                    <View style={styles.header}>
-                        <Text style={styles.headerTitle}>{t('patientSearch.title')}</Text>
-                        <Text style={styles.headerSubtitle}>{t('patientSearch.subtitle')}</Text>
+                    <View style={ds.header}>
+                        <Text style={ds.headerTitle}>{t('patientSearch.title')}</Text>
+                        <Text style={ds.headerSubtitle}>{t('patientSearch.subtitle')}</Text>
                     </View>
 
                     {/* Back Button */}
                     <TouchableOpacity
-                        style={styles.backButton}
+                        style={ds.backButton}
                         onPress={() => navigation.goBack()}
                     >
-                        <Ionicons name="arrow-back" size={20} color="#4A90B9" />
+                        <Ionicons name="arrow-back" size={20} color={tc.accent} />
                     </TouchableOpacity>
                 </View>
 
-                <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContent}>
-                    <View style={styles.searchContainer}>
+                <ScrollView style={ds.scrollView} contentContainerStyle={ds.scrollViewContent}>
+                    <View style={ds.searchContainer}>
                         {/* Search Input */}
-                        <View style={styles.searchInputContainer}>
-                            <Ionicons name="search" size={20} color="#999" style={styles.searchIcon} />
+                        <View style={ds.searchInputContainer}>
+                            <Ionicons name="search" size={20} color={tc.textMuted} style={ds.searchIcon} />
                             <TextInput
-                                style={styles.searchInput}
+                                style={ds.searchInput}
                                 placeholder={t('patientSearch.placeholders.search')}
+                                placeholderTextColor={tc.textMuted}
                                 value={searchText}
                                 onChangeText={setSearchText}
                             />
@@ -155,47 +159,47 @@ const SearchPatientScreen = () => {
 
                         {/* Filters Button */}
                         <TouchableOpacity
-                            style={styles.filtersButton}
+                            style={ds.filtersButton}
                             onPress={toggleFilters}
                         >
-                            <Ionicons name="options-outline" size={20} color="#4A90B9" />
-                            <Text style={styles.filtersButtonText}>{t('patientSearch.filtersLabel')}</Text>
+                            <Ionicons name="options-outline" size={20} color={tc.accent} />
+                            <Text style={ds.filtersButtonText}>{t('patientSearch.filtersLabel')}</Text>
                             <Ionicons
                                 name={showFilters ? "close" : "chevron-down"}
                                 size={16}
-                                color="#4A90B9"
+                                color={tc.accent}
                             />
                         </TouchableOpacity>
 
                         {/* Filters Section */}
                         {showFilters && (
-                            <View style={styles.filtersContainer}>
+                            <View style={ds.filtersContainer}>
                                 {/* Date of Birth Filter */}
-                                <Text style={styles.filterSectionTitle}>{t('patientSearch.filters.dob')}</Text>
-                                <View style={styles.dateRangeContainer}>
+                                <Text style={ds.filterSectionTitle}>{t('patientSearch.filters.dob')}</Text>
+                                <View style={ds.dateRangeContainer}>
                                     <TouchableOpacity
-                                        style={styles.dateInput}
+                                        style={ds.dateInput}
                                         onPress={() => setActivePicker('dobStart')}
                                     >
-                                        <Text style={styles.dateText}>
+                                        <Text style={ds.dateText}>
                                             {formatDate(dobStartDate)}
                                         </Text>
-                                        <MaterialCommunityIcons name="calendar-blank" size={18} color="grey" />
+                                        <MaterialCommunityIcons name="calendar-blank" size={18} color={tc.accent} />
                                     </TouchableOpacity>
 
                                     <TouchableOpacity
-                                        style={styles.dateInput}
+                                        style={ds.dateInput}
                                         onPress={() => setActivePicker('dobEnd')}
                                     >
-                                        <Text style={styles.dateText}>
+                                        <Text style={ds.dateText}>
                                             {formatDate(dobEndDate)}
                                         </Text>
-                                        <MaterialCommunityIcons name="calendar-blank" size={18} color="grey" />
+                                        <MaterialCommunityIcons name="calendar-blank" size={18} color={tc.accent} />
                                     </TouchableOpacity>
                                 </View>
 
                                 {/* Gender Filter */}
-                                <Text style={styles.filterSectionTitle}>{t('patientSearch.filters.gender.label')}</Text>
+                                <Text style={ds.filterSectionTitle}>{t('patientSearch.filters.gender.label')}</Text>
                                 <CustomDropdown
                                     placeholder={t('patientSearch.filters.placeholders.gender')}
                                     options={genderOptions}
@@ -205,78 +209,78 @@ const SearchPatientScreen = () => {
                                 />
 
                                 {/* Last Visit Filter */}
-                                <Text style={styles.filterSectionTitle}>{t('patientSearch.filters.lastVisit')}</Text>
-                                <View style={styles.dateRangeContainer}>
+                                <Text style={ds.filterSectionTitle}>{t('patientSearch.filters.lastVisit')}</Text>
+                                <View style={ds.dateRangeContainer}>
                                     <TouchableOpacity
-                                        style={styles.dateInput}
+                                        style={ds.dateInput}
                                         onPress={() => setActivePicker('lastVisitStart')}
                                     >
-                                        <Text style={styles.dateText}>
+                                        <Text style={ds.dateText}>
                                             {formatDate(lastVisitStartDate)}
                                         </Text>
-                                        <MaterialCommunityIcons name="calendar-blank" size={18} color="grey" />
+                                        <MaterialCommunityIcons name="calendar-blank" size={18} color={tc.accent} />
                                     </TouchableOpacity>
 
                                     <TouchableOpacity
-                                        style={styles.dateInput}
+                                        style={ds.dateInput}
                                         onPress={() => setActivePicker('lastVisitEnd')}
                                     >
-                                        <Text style={styles.dateText}>
+                                        <Text style={ds.dateText}>
                                             {formatDate(lastVisitEndDate)}
                                         </Text>
-                                        <MaterialCommunityIcons name="calendar-blank" size={18} color="grey" />
+                                        <MaterialCommunityIcons name="calendar-blank" size={18} color={tc.accent} />
                                     </TouchableOpacity>
                                 </View>
 
                                 {/* Next Visit Filter */}
-                                <Text style={styles.filterSectionTitle}>{t('patientSearch.filters.nextVisit')}</Text>
-                                <View style={styles.dateRangeContainer}>
+                                <Text style={ds.filterSectionTitle}>{t('patientSearch.filters.nextVisit')}</Text>
+                                <View style={ds.dateRangeContainer}>
                                     <TouchableOpacity
-                                        style={styles.dateInput}
+                                        style={ds.dateInput}
                                         onPress={() => setActivePicker('nextVisitStart')}
                                     >
-                                        <Text style={styles.dateText}>
+                                        <Text style={ds.dateText}>
                                             {formatDate(nextVisitStartDate)}
                                         </Text>
-                                        <MaterialCommunityIcons name="calendar-blank" size={18} color="grey" />
+                                        <MaterialCommunityIcons name="calendar-blank" size={18} color={tc.accent} />
                                     </TouchableOpacity>
 
                                     <TouchableOpacity
-                                        style={styles.dateInput}
+                                        style={ds.dateInput}
                                         onPress={() => setActivePicker('nextVisitEnd')}
                                     >
-                                        <Text style={styles.dateText}>
+                                        <Text style={ds.dateText}>
                                             {formatDate(nextVisitEndDate)}
                                         </Text>
-                                        <MaterialCommunityIcons name="calendar-blank" size={18} color="grey" />
+                                        <MaterialCommunityIcons name="calendar-blank" size={18} color={tc.accent} />
                                     </TouchableOpacity>
                                 </View>
 
                                 {/* Checkboxes */}
-                                <View style={styles.checkboxesContainer}>
-                                    <View style={styles.checkboxRow}>
+                                <View style={ds.checkboxesContainer}>
+                                    <View style={ds.checkboxRow}>
                                         {renderCheckbox(hasPesel, setHasPesel, t('patientSearch.filters.hasPesel'))}
                                         {renderCheckbox(hasDeclaration, setHasDeclaration, t('patientSearch.filters.hasDeclaration'))}
                                     </View>
 
-                                    <View style={styles.checkboxRow}>
+                                    <View style={ds.checkboxRow}>
                                         {renderCheckbox(isDeceased, setIsDeceased, t('patientSearch.filters.isDeceased'))}
                                         {renderCheckbox(hasDebt, setHasDebt, t('patientSearch.filters.hasDebt'))}
                                     </View>
 
-                                    <View style={styles.checkboxRow}>
+                                    <View style={ds.checkboxRow}>
                                         {renderCheckbox(isActive, setIsActive, t('patientSearch.filters.isActive'))}
                                         {renderCheckbox(isLongAbsent, setIsLongAbsent, t('patientSearch.filters.isLongAbsent'))}
                                     </View>
                                 </View>
 
                                 {/* Filter Buttons */}
-                                <View style={styles.filterButtonsContainer}>
+                                <View style={ds.filterButtonsContainer}>
                                     <PrimaryButton
                                         label={t('patientSearch.buttons.clearFilters')}
                                         onPress={clearFilters}
                                         filled={false}
-                                        icon={<Ionicons name="close" size={16} color="#4A90B9" />}
+                                        icon={<Ionicons name="close" size={16} color={tc.accent} />}
                                         style={{ width: '48%', }}
                                         loading={false}
                                         disabled={false}
@@ -295,15 +299,15 @@ const SearchPatientScreen = () => {
                         )}
 
                         {/* Results Message */}
-                        <View style={styles.resultsMessageContainer}>
-                            <Text style={styles.resultsMessage}>{t('patientSearch.enterCriteria')}</Text>
+                        <View style={ds.resultsMessageContainer}>
+                            <Text style={ds.resultsMessage}>{t('patientSearch.enterCriteria')}</Text>
                         </View>
                     </View>
                 </ScrollView>
 
                 {/* Help Button */}
-                <TouchableOpacity style={styles.helpButtonFloat}>
-                    <Text style={styles.helpText}>?</Text>
+                <TouchableOpacity style={ds.helpButtonFloat}>
+                    <Text style={ds.helpText}>?</Text>
                 </TouchableOpacity>
 
                 {/* Date Picker Modal */}
@@ -316,17 +320,17 @@ const SearchPatientScreen = () => {
                             onRequestClose={() => setActivePicker(null)}
                         >
                             <TouchableOpacity 
-                                style={styles.modalOverlay} 
+                                style={ds.modalOverlay} 
                                 activeOpacity={1} 
                                 onPress={() => setActivePicker(null)}
                             >
-                                <View style={styles.calendarModalContent}>
-                                    <View style={styles.calendarHeader}>
+                                <View style={ds.calendarModalContent}>
+                                    <View style={ds.calendarHeader}>
                                         <TouchableOpacity onPress={() => setActivePicker(null)}>
-                                            <Text style={styles.calendarCancelText}>{t('common.cancel')}</Text>
+                                            <Text style={ds.calendarCancelText}>{t('common.cancel')}</Text>
                                         </TouchableOpacity>
                                         <TouchableOpacity onPress={() => setActivePicker(null)}>
-                                            <Text style={styles.calendarConfirmText}>{t('common.done')}</Text>
+                                            <Text style={ds.calendarConfirmText}>{t('common.done')}</Text>
                                         </TouchableOpacity>
                                     </View>
                                     <DateTimePicker
@@ -341,7 +345,7 @@ const SearchPatientScreen = () => {
                                         mode="date"
                                         display="inline"
                                         onChange={onDateChange}
-                                        style={styles.iosPicker}
+                                        style={ds.iosPicker}
                                     />
                                 </View>
                             </TouchableOpacity>
@@ -367,14 +371,16 @@ const SearchPatientScreen = () => {
     );
 };
 
-const styles = StyleSheet.create({
+export default SearchPatientScreen;
+
+const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.screenBackground,
     },
     container: {
         flex: 1,
-        backgroundColor: '#F5F5F5',
+        backgroundColor: tc.screenBackground,
     },
     header: {
         paddingHorizontal: 10,
@@ -384,22 +390,24 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#333333',
+        color: tc.textPrimary,
     },
     headerSubtitle: {
         fontSize: 16,
-        color: '#666666',
+        color: tc.textSecondary,
         marginTop: 5,
     },
     backButton: {
         marginTop: 10,
         borderWidth: 1,
-        borderColor: '#4A90B9',
+        borderColor: tc.accent,
         borderRadius: 50,
         marginRight: 10,
         height: 50,
         width: 50,
-        alignItems: "center", justifyContent: 'center',
+        alignItems: "center",
+        justifyContent: 'center',
+        backgroundColor: tc.cardBackgroundAlt,
     },
     scrollView: {
         flex: 1,
@@ -408,27 +416,30 @@ const styles = StyleSheet.create({
         paddingBottom: 30,
     },
     searchContainer: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: tc.cardBackground,
         borderRadius: 10,
         margin: 15,
         padding: 15,
-        shadowColor: '#000',
+        shadowColor: tc.shadow,
         shadowOffset: {
             width: 0,
             height: 2,
         },
-        shadowOpacity: 0.1,
+        shadowOpacity: tc.shadowOpacity ?? 0.1,
         shadowRadius: 3,
         elevation: 3,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: tc.borderLight,
     },
     searchInputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#E0E0E0',
+        borderColor: tc.borderColor,
         borderRadius: 5,
         paddingHorizontal: 10,
         marginBottom: 15,
+        backgroundColor: tc.inputBackground,
     },
     searchIcon: {
         marginRight: 10,
@@ -437,19 +448,21 @@ const styles = StyleSheet.create({
         flex: 1,
         height: 45,
         fontSize: 16,
+        color: tc.textPrimary,
     },
     filtersButton: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         borderWidth: 1,
-        borderColor: '#4A90B9',
+        borderColor: tc.accent,
         borderRadius: 5,
         padding: 12,
         marginBottom: 15,
+        backgroundColor: tc.cardBackgroundAlt,
     },
     filtersButtonText: {
-        color: '#4A90B9',
+        color: tc.accent,
         fontWeight: '500',
         flex: 1,
         marginLeft: 10,
@@ -461,6 +474,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '500',
         marginBottom: 10,
+        color: tc.textPrimary,
     },
     dateRangeContainer: {
         flexDirection: 'row',
@@ -472,14 +486,14 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#E0E0E0',
+        borderColor: tc.borderColor,
         borderRadius: 5,
         padding: 12,
-        backgroundColor: 'white',
+        backgroundColor: tc.inputBackground,
         width: '48%',
     },
     dateText: {
-        color: '#333',
+        color: tc.textSecondary,
     },
     checkboxesContainer: {
         marginTop: 10,
@@ -499,19 +513,19 @@ const styles = StyleSheet.create({
         width: 20,
         height: 20,
         borderWidth: 1,
-        borderColor: '#E0E0E0',
+        borderColor: tc.borderColor,
         borderRadius: 4,
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 8,
     },
     checkboxChecked: {
-        backgroundColor: '#4A90B9',
-        borderColor: '#4A90B9',
+        backgroundColor: tc.accent,
+        borderColor: tc.accent,
     },
     checkboxLabel: {
         fontSize: 14,
-        color: '#333',
+        color: tc.textSecondary,
     },
     filterButtonsContainer: {
         flexDirection: 'row',
@@ -524,7 +538,7 @@ const styles = StyleSheet.create({
         padding: 30,
     },
     resultsMessage: {
-        color: '#666',
+        color: tc.textSecondary,
         fontSize: 16,
     },
     helpButtonFloat: {
@@ -534,11 +548,11 @@ const styles = StyleSheet.create({
         width: 50,
         height: 50,
         borderRadius: 25,
-        backgroundColor: '#4A90B9',
+        backgroundColor: tc.accent,
         justifyContent: 'center',
         alignItems: 'center',
         elevation: 5,
-        shadowColor: '#000',
+        shadowColor: tc.shadow,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.3,
         shadowRadius: 3,
@@ -550,16 +564,18 @@ const styles = StyleSheet.create({
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
         justifyContent: 'center',
         alignItems: 'center',
     },
     calendarModalContent: {
-        backgroundColor: 'white',
+        backgroundColor: tc.modalBg,
         borderRadius: 20,
         padding: 10,
         width: '90%',
         maxWidth: 400,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: tc.borderLight,
     },
     calendarHeader: {
         flexDirection: 'row',
@@ -567,17 +583,17 @@ const styles = StyleSheet.create({
         paddingHorizontal: 15,
         paddingVertical: 10,
         borderBottomWidth: 1,
-        borderBottomColor: '#F3F4F6',
+        borderBottomColor: tc.borderSubtle,
         marginBottom: 10,
     },
     calendarCancelText: {
         fontSize: 16,
-        color: '#6B7280',
+        color: tc.textSecondary,
         fontWeight: '500',
     },
     calendarConfirmText: {
         fontSize: 16,
-        color: '#4A90B9',
+        color: tc.accent,
         fontWeight: '600',
     },
     iosPicker: {
@@ -585,5 +601,3 @@ const styles = StyleSheet.create({
         width: '100%',
     },
 });
-
-export default SearchPatientScreen;
