@@ -87,14 +87,70 @@ export async function GetVisitDetails(visitId) {
     }
 }
 
-export async function GetPreviousVisits(visitId) {
-    console.log("GetPreviousVisits VisitId Sent:", visitId);
+export async function GetPreviousVisits(visitId, limit) {
     try {
-        const result = await getRequest(`${MODEL_NAME}/${visitId}/previous`);
-        console.log("GetPreviousVisits API Response:", JSON.stringify(result, null, 4));
+        const params = limit ? { limit } : undefined;
+        const result = await getRequest(`${MODEL_NAME}/${visitId}/previous`, params);
         return result;
     } catch (err) {
-        console.log("GetPreviousVisits API Error:", JSON.stringify(err, null, 4));
+        return throwServerError(err);
+    }
+}
+
+export async function GetClinicalDecisionSupport(visitId, selectedVisitIds = []) {
+    try {
+        const result = await postRequest(`${MODEL_NAME}/clinical-decision-support/${visitId}`, {
+            selectedVisitIds,
+        });
+        return result;
+    } catch (err) {
+        return throwServerError(err);
+    }
+}
+
+export async function GetInterviewAnalysis(visitId) {
+    try {
+        const result = await postRequest(`${MODEL_NAME}/interview-analysis/${visitId}`, {});
+        return result;
+    } catch (err) {
+        return throwServerError(err);
+    }
+}
+
+export async function SearchMedicines(query, limit = 20) {
+    try {
+        const result = await getRequest('/medical-data/medicines/search', { query, limit });
+        return result;
+    } catch (err) {
+        return throwServerError(err);
+    }
+}
+
+export async function GetMedicineDetails(key) {
+    try {
+        const result = await getRequest(`/medical-data/medicines/${key}`);
+        return result;
+    } catch (err) {
+        return throwServerError(err);
+    }
+}
+
+export async function TranscribeAudio(visitId, audioUrl) {
+    try {
+        const result = await postRequest(`/visit-notes/${visitId}/transcribe`, { audioUrl });
+        return result;
+    } catch (err) {
+        return throwServerError(err);
+    }
+}
+
+export async function GenerateVisitNoteStreaming({ visitId, noteType, visitType, specialization, instructions, previousVisits, length = 'large', customPromptId }) {
+    try {
+        const result = await postRequest(`/visit-notes/${visitId}/generate-notes-stream`, {
+            noteType, visitType, specialization, instructions, previousVisits, length, customPromptId,
+        });
+        return result;
+    } catch (err) {
         return throwServerError(err);
     }
 }

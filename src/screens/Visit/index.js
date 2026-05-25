@@ -23,6 +23,11 @@ import VisitExamination from './visitExamination';
 import VisitDiagnosis from './VisitDiagnosis';
 import VisitDocuments from './VisitDocuments';
 import VisitSummary from './VisitSummary';
+import ClinicalDecisionSupport from './ai/ClinicalDecisionSupport';
+import InterviewCoachTool from './ai/InterviewCoachTool';
+import SmartTranscriptionTool from './ai/SmartTranscriptionTool';
+import DrugInteractionChecker from './ai/DrugInteractionChecker';
+import ICD10AssistantTool from './ai/ICD10AssistantTool';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { GetVisitDetails, GetPreviousVisits, UpdateVisit } from '../../Services/Visit.Service';
 import { GetPatientMedicalData } from '../../Services/MedicalData.Service';
@@ -41,8 +46,7 @@ const VisitScreen = () => {
     const [currentStep, setCurrentStep] = useState(1);
     const [activeAiTool, setActiveAiTool] = useState('Decision Support');
     const [showDataModal, setShowDataModal] = useState(false);
-    const [aiContentExpanded, setAiContentExpanded] = useState(false);
-    const [activeInterviewSubTab, setActiveInterviewSubTab] = useState('Question suggestions');
+    
 
     const [visitData, setVisitData] = useState(null);
     const [previousVisits, setPreviousVisits] = useState([]);
@@ -315,232 +319,60 @@ const VisitScreen = () => {
         }
     };
 
+    const handleSuggestionAccept = (suggestion) => {
+        if (suggestion.type === 'diagnosis' && suggestion.diagnosisData) {
+            const currentDiagnoses = visitData?.diagnosis?.icd10 || [];
+            handleVisitUpdate({ diagnosis: { icd10: [...currentDiagnoses, suggestion.diagnosisData] } });
+        }
+    };
+
     const renderAiContent = () => {
         switch (activeAiTool) {
             case 'Decision Support':
                 return (
                     <View style={ds.contentContainer}>
-                        <TouchableOpacity 
-                            style={ds.expandableHeader}
-                            onPress={() => setAiContentExpanded(!aiContentExpanded)}
-                            activeOpacity={0.7}
-                        >
-                            <View style={ds.headerLeft}>
-                                <View style={ds.iconBackground}>
-                                    <MaterialCommunityIcons name="brain" size={24} color={tc.accent} />
-                                </View>
-                                <View>
-                                    <Text style={ds.headerTitle}>{t('visit.ai.tabs.cds')}</Text>
-                                    <Text style={ds.headerSubtitle}>{t('visit.ai.interview.subtitle')}</Text>
-                                </View>
-                            </View>
-                            <Feather name={aiContentExpanded ? "chevron-up" : "chevron-down"} size={24} color={tc.textPrimary} />
-                        </TouchableOpacity>
-                        
-                        {aiContentExpanded && (
-                            <TouchableOpacity style={ds.analysisButton} onPress={() => setShowDataModal(true)}>
-                                <Feather name="file-text" size={18} color="#fff" />
-                                <Text style={ds.analysisButtonText}>{t('visit.ai.medInfo.search')}</Text>
-                            </TouchableOpacity>
-                        )}
+                        <ClinicalDecisionSupport
+                            visitData={visitData}
+                            visitId={visitId}
+                            onSuggestionAccept={handleSuggestionAccept}
+                        />
                     </View>
                 );
             case 'Interview Coach':
                 return (
                     <View style={ds.contentContainer}>
-                        <TouchableOpacity 
-                            style={ds.expandableHeader}
-                            onPress={() => setAiContentExpanded(!aiContentExpanded)}
-                            activeOpacity={0.7}
-                        >
-                            <View style={ds.headerLeft}>
-                                <View style={ds.iconBackground}>
-                                    <MaterialCommunityIcons name="brain" size={24} color={tc.accent} />
-                                </View>
-                                <View>
-                                    <Text style={ds.headerTitle}>{t('visit.ai.interview.title')}</Text>
-                                    <Text style={ds.headerSubtitle}>{t('visit.ai.interview.subtitle')}</Text>
-                                </View>
-                            </View>
-                            <Feather name={aiContentExpanded ? "chevron-up" : "chevron-down"} size={24} color={tc.textPrimary} />
-                        </TouchableOpacity>
-
-                        {aiContentExpanded && (
-                            <>
-                                <View style={ds.alertBox}>
-                                    <Ionicons name="alert-circle-outline" size={20} color={isDark ? '#FBBF24' : '#856404'} />
-                                    <View style={ds.alertTextContainer}>
-                                        <Text style={ds.alertTitle}>{t('visit.ai.interview.noData')}</Text>
-                                        <Text style={ds.alertSubtitle}>{t('visit.ai.interview.noDataDesc')}</Text>
-                                    </View>
-                                </View>
-
-                                <View style={ds.subTabsContainer}>
-                                    <TouchableOpacity 
-                                        style={[ds.subTab, activeInterviewSubTab === 'Question suggestions' && ds.subTabActive]}
-                                        onPress={() => setActiveInterviewSubTab('Question suggestions')}
-                                    >
-                                        <Feather name="message-square" size={14} color={activeInterviewSubTab === 'Question suggestions' ? tc.accent : tc.textMuted} />
-                                        <Text style={[ds.subTabTextSmall, activeInterviewSubTab === 'Question suggestions' && ds.subTabTextActiveSmall]}>{t('visit.ai.interview.tabs.suggestions')}</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity 
-                                        style={[ds.subTab, activeInterviewSubTab === 'Communication analysis' && ds.subTabActive]}
-                                        onPress={() => setActiveInterviewSubTab('Communication analysis')}
-                                    >
-                                        <Feather name="bar-chart-2" size={14} color={activeInterviewSubTab === 'Communication analysis' ? tc.accent : tc.textMuted} />
-                                        <Text style={[ds.subTabTextSmall, activeInterviewSubTab === 'Communication analysis' && ds.subTabTextActiveSmall]}>{t('visit.ai.interview.tabs.analysis')}</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity 
-                                        style={[ds.subTab, activeInterviewSubTab === 'Literature' && ds.subTabActive]}
-                                        onPress={() => setActiveInterviewSubTab('Literature')}
-                                    >
-                                        <Feather name="book-open" size={14} color={activeInterviewSubTab === 'Literature' ? tc.accent : tc.textMuted} />
-                                        <Text style={[ds.subTabTextSmall, activeInterviewSubTab === 'Literature' && ds.subTabTextActiveSmall]}>{t('visit.ai.interview.tabs.literature')}</Text>
-                                    </TouchableOpacity>
-                                </View>
-
-                                <View style={ds.subTabContent}>
-                                    {activeInterviewSubTab === 'Question suggestions' && (
-                                        <Text style={ds.suggestedQuestionsText}>{t('visit.ai.interview.suggestedCount', { count: 0 })}</Text>
-                                    )}
-
-                                    {activeInterviewSubTab === 'Communication analysis' && (
-                                        <View style={ds.analysisContainer}>
-                                            <ScrollView 
-                                                horizontal 
-                                                showsHorizontalScrollIndicator={false}
-                                                contentContainerStyle={ds.analysisCardsRow}
-                                            >
-                                                <View style={ds.analysisCard}>
-                                                    <View style={ds.analysisCardText}>
-                                                        <Text style={ds.cardInfoLabel}>{t('visit.ai.interview.analysis.clusters')}</Text>
-                                                        <Text style={ds.cardInfoValue}>0</Text>
-                                                        <Text style={ds.cardInfoSub}>{t('visit.ai.interview.analysis.identified')}</Text>
-                                                    </View>
-                                                    <MaterialCommunityIcons name="brain" size={32} color={tc.accent} />
-                                                </View>
-                                                <View style={ds.analysisCard}>
-                                                    <View style={ds.analysisCardText}>
-                                                        <Text style={ds.cardInfoLabel}>{t('visit.ai.interview.analysis.potential')}</Text>
-                                                        <Text style={ds.cardInfoValue}>0</Text>
-                                                        <Text style={ds.cardInfoSub}>{t('visit.ai.interview.analysis.toConsider')}</Text>
-                                                    </View>
-                                                    <MaterialCommunityIcons name="target" size={32} color="#10B981" />
-                                                </View>
-                                                <View style={ds.analysisCard}>
-                                                    <View style={ds.analysisCardText}>
-                                                        <Text style={ds.cardInfoLabel}>{t('visit.ai.interview.analysis.gaps')}</Text>
-                                                        <Text style={ds.cardInfoValue}>0</Text>
-                                                        <Text style={ds.cardInfoSub}>{t('visit.ai.interview.analysis.attention')}</Text>
-                                                    </View>
-                                                    <Feather name="alert-triangle" size={32} color="#F59E0B" />
-                                                </View>
-                                            </ScrollView>
-                                            <View style={ds.recommendationHeader}>
-                                                <Text style={ds.recommendationTitle}>{t('visit.ai.interview.analysis.recommendations')}</Text>
-                                            </View>
-                                        </View>
-                                    )}
-
-                                    {activeInterviewSubTab === 'Literature' && (
-                                        <View style={ds.literatureContainer}>
-                                            {[
-                                                { title: 'Structured Interview Guidelines for Depression', source: 'Journal of Clinical Psychiatry, 2023', accuracy: '95%' },
-                                                { title: 'Best Practices in Patient Communication', source: 'Medical Communication Quarterly, 2023', accuracy: '88%' }
-                                            ].map((item, index) => (
-                                                <View key={index} style={ds.literatureItem}>
-                                                    <View style={ds.literatureItemLeft}>
-                                                        <View style={ds.literatureHeaderRow}>
-                                                            <Feather name="book-open" size={14} color={tc.accent} />
-                                                            <Text style={ds.literatureItemTitle}>{item.title}</Text>
-                                                        </View>
-                                                        <Text style={ds.literatureItemSource}>{item.source}</Text>
-                                                        <View style={ds.accuracyRow}>
-                                                            <Feather name="star" size={12} color="#EAB308" />
-                                                            <Text style={ds.accuracyText}>Accuracy: {item.accuracy}</Text>
-                                                        </View>
-                                                    </View>
-                                                    <Feather name="external-link" size={16} color={tc.accent} />
-                                                </View>
-                                            ))}
-                                        </View>
-                                    )}
-                                </View>
-                            </>
-                        )}
+                        <InterviewCoachTool
+                            visitData={visitData}
+                            visitId={visitId}
+                            onQuestionSelect={(question) => {
+                                console.log('Question selected:', question.text);
+                            }}
+                        />
                     </View>
                 );
             case 'Documentation Assistant':
                 return (
                     <View style={ds.contentContainer}>
-                        {[
-                            { id: 'smart', title: t('visit.ai.transcription.smart'), desc: t('visit.ai.transcription.smartDesc') },
-                            { id: 'consult', title: t('visit.ai.transcription.consult'), desc: t('visit.ai.transcription.consultDesc') },
-                            { id: 'pharmacopedia', title: t('visit.ai.transcription.pharmacopedia'), desc: t('visit.ai.transcription.pharmacopediaDesc') }
-                        ].map((tool, index) => (
-                            <View key={index} style={[ds.expandableHeader, { marginBottom: hp(1.5) }]}>
-                                <View style={ds.headerLeft}>
-                                    <View style={ds.iconBackground}>
-                                        <MaterialCommunityIcons 
-                                            name={tool.id === 'smart' ? 'brain' : tool.id === 'consult' ? 'stethoscope' : 'pill'} 
-                                            size={20} 
-                                            color={tc.accent} 
-                                        />
-                                    </View>
-                                    <View>
-                                        <Text style={ds.headerTitle}>{tool.title}</Text>
-                                        <Text style={ds.headerSubtitle}>{tool.desc}</Text>
-                                    </View>
-                                </View>
-                                <Feather name="chevron-down" size={24} color={tc.textPrimary} />
-                            </View>
-                        ))}
+                        <SmartTranscriptionTool
+                            visitData={visitData}
+                            visitId={visitId}
+                            onUpdate={handleVisitUpdate}
+                        />
                     </View>
                 );
             case 'Drug Knowledge':
                 return (
                     <View style={ds.contentContainer}>
-                        <View style={ds.expandableHeader}>
-                            <View style={ds.headerLeft}>
-                                <View style={ds.iconBackground}>
-                                    <Ionicons name="shield-checkmark-outline" size={24} color={tc.accent} />
-                                </View>
-                                <View>
-                                    <Text style={ds.headerTitle}>{t('visit.ai.medInfo.title')}</Text>
-                                </View>
-                            </View>
-                            <Feather name="chevron-up" size={24} color={tc.textPrimary} />
-                        </View>
-                        
-                        <View style={ds.searchSection}>
-                            <Text style={ds.inputLabel}>{t('visit.ai.medInfo.search')}</Text>
-                            <View style={ds.searchContainer}>
-                                <Feather name="search" size={20} color={tc.textMuted} />
-                                <TextInput 
-                                    placeholder={t('visit.ai.medInfo.placeholder')} 
-                                    style={ds.searchInput}
-                                    placeholderTextColor={tc.textMuted}
-                                />
-                            </View>
-                        </View>
-
-                        <View style={ds.emptyState}>
-                            <MaterialCommunityIcons name="pill" size={60} color={isDark ? 'rgba(255,255,255,0.1)' : '#CBD5E1'} />
-                            <Text style={ds.emptyStateText}>{t('visit.ai.medInfo.empty')}</Text>
-                        </View>
+                        <DrugInteractionChecker />
                     </View>
                 );
             case 'ICD-10 Assistant':
                 return (
                     <View style={ds.contentContainer}>
-                        <View style={ds.searchContainer}>
-                            <Feather name="search" size={20} color={tc.textMuted} />
-                            <TextInput 
-                                placeholder={t('visit.diagnosis.searchPlaceholder')} 
-                                style={ds.searchInput}
-                                placeholderTextColor={tc.textMuted}
-                            />
-                        </View>
+                        <ICD10AssistantTool
+                            visitData={visitData}
+                            onUpdate={handleVisitUpdate}
+                        />
                     </View>
                 );
             default:
