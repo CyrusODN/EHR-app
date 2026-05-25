@@ -26,6 +26,7 @@ import { useThemeColors } from '../../hooks/useThemeColors';
 import { GetMyPermissions } from '../../Services/settingServices';
 import { GetVisits } from '../../Services/Visit.Service';
 import CreateVisitModal from '../Home/modals/createVisit';
+import ScheduledVisitsModal from '../Home/modals/ScheduledVisitsModal';
 import CustomAlert from '../../component/customAlert';
 
 const { width } = Dimensions.get('window');
@@ -55,6 +56,8 @@ export const ScheduleVisitsScreen = () => {
     const [patientSearch, setPatientSearch] = useState('');
     const [activePicker, setActivePicker] = useState<{ type: 'date' | 'time', field: string } | null>(null);
     const [isCreateVisitModalVisible, setIsCreateVisitModalVisible] = useState(false);
+    const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
+    const [selectedDayVisits, setSelectedDayVisits] = useState<any[]>([]);
     const [alertConfig, setAlertConfig] = useState<any>({
         visible: false,
         type: 'success',
@@ -291,6 +294,38 @@ export const ScheduleVisitsScreen = () => {
         </TouchableOpacity>
     );
 
+    const getVisitsForDate = (dayFullDate: Date) => {
+        const year = dayFullDate.getFullYear();
+        const month = (dayFullDate.getMonth() + 1).toString().padStart(2, '0');
+        const day = dayFullDate.getDate().toString().padStart(2, '0');
+        const formattedDay = `${year}-${month}-${day}`;
+
+        return appointments.filter(app => {
+            if (!app.fullDate) return false;
+            const appDate = new Date(app.fullDate);
+            const appYear = appDate.getFullYear();
+            const appMonth = (appDate.getMonth() + 1).toString().padStart(2, '0');
+            const appDay = appDate.getDate().toString().padStart(2, '0');
+            return `${appYear}-${appMonth}-${appDay}` === formattedDay;
+        });
+    };
+
+    const showDayDetailModal = (dayFullDate: Date) => {
+        const dayVisits = getVisitsForDate(dayFullDate);
+        if (dayVisits.length > 0) {
+            const mapped = dayVisits.map(app => ({
+                id: app.id,
+                patient: { name: app.patient },
+                startTime: app.time,
+                status: app.status,
+                visitType: app.specialization || '',
+                doctor: app.doctor,
+            }));
+            setSelectedDayVisits(mapped);
+            setIsDetailModalVisible(true);
+        }
+    };
+
     const renderAppointment = (dayFullDate: Date, time: string) => {
         const year = dayFullDate.getFullYear();
         const month = (dayFullDate.getMonth() + 1).toString().padStart(2, '0');
@@ -327,17 +362,23 @@ export const ScheduleVisitsScreen = () => {
             };
             
             return (
-                <View style={[
-                    ds.appointmentContainer, 
-                    { 
-                        backgroundColor: statusColors[appointment.status] || (isDark ? 'rgba(70, 183, 198, 0.1)' : '#E0F2FE'),
-                        borderLeftColor: borderColors[appointment.status] || tc.accent
-                    }
-                ]}>
-                    <Text style={ds.appointmentPatient} numberOfLines={1}>{appointment.patient}</Text>
-                    <Text style={ds.appointmentDoctor} numberOfLines={1}>{appointment.doctor}</Text>
-                    <Text style={ds.appointmentDuration}>{appointment.duration} min</Text>
-                </View>
+                <TouchableOpacity
+                style={[
+                        ds.appointmentContainer, 
+                        { 
+                            backgroundColor: statusColors[appointment.status] || (isDark ? 'rgba(70, 183, 198, 0.1)' : '#E0F2FE'),
+                            borderLeftColor: borderColors[appointment.status] || tc.accent
+                        }
+                    ]}
+                    activeOpacity={0.7}
+                    onPress={() => showDayDetailModal(dayFullDate)}
+                >
+                    <View>
+                        <Text style={ds.appointmentPatient} numberOfLines={1}>{appointment.patient}</Text>
+                        <Text style={ds.appointmentDoctor} numberOfLines={1}>{appointment.doctor}</Text>
+                        <Text style={ds.appointmentDuration}>{appointment.duration} min</Text>
+                    </View>
+                </TouchableOpacity>
             );
         }
         return null;
@@ -550,8 +591,12 @@ export const ScheduleVisitsScreen = () => {
                                                             formattedDay === new Date().toISOString().split('T')[0] && { backgroundColor: isDark ? 'rgba(70, 183, 198, 0.1)' : '#F1F5F9' }
                                                         ]}
                                                         onPress={() => {
-                                                            setCurrentBaseDate(dayInfo.fullDate);
-                                                            setViewMode('Day');
+                                                            if (dayVisits.length > 0) {
+                                                                showDayDetailModal(dayInfo.fullDate);
+                                                            } else {
+                                                                setCurrentBaseDate(dayInfo.fullDate);
+                                                                setViewMode('Day');
+                                                            }
                                                         }}
                                                     >
                                                         <Text style={[
@@ -664,6 +709,14 @@ export const ScheduleVisitsScreen = () => {
                     type={alertConfig.type}
                     message={alertConfig.message}
                     onClose={() => setAlertConfig({ ...alertConfig, visible: false })}
+                />
+                <ScheduledVisitsModal
+                    visible={isDetailModalVisible}
+                    onClose={() => setIsDetailModalVisible(false)}
+                    visits={selectedDayVisits}
+                    onVisitPress={(visit) => {
+                        setIsDetailModalVisible(false);
+                    }}
                 />
             </View>
         </SafeAreaView>

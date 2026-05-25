@@ -23,6 +23,7 @@ import { DashboardStatsCard } from './Stats';
 import ActionModal from './modals/ActionModal';
 import { useTranslation } from 'react-i18next';
 import CreateVisitModal from './modals/createVisit';
+import ScheduledVisitsModal from './modals/ScheduledVisitsModal';
 import userStore from '../../store/user';
 import { GetDashboardVisits } from '../../Services/DashboardServices';
 import { Modal } from 'react-native';
@@ -68,6 +69,7 @@ const Dashboard = () => {
     const [createVisitModalVisible, setCreateVisitModalVisible] = useState(false);
     const [drawerVisible, setDrawerVisible] = useState(false);
     const [showActionModal, setShowActionModal] = useState(false);
+    const [showScheduledVisitsModal, setShowScheduledVisitsModal] = useState(false);
 
     // Visit data from API
     const [visits, setVisits] = useState<any[]>([]);
@@ -349,6 +351,11 @@ const Dashboard = () => {
                     todaysPatients={todaysPatients.length}
                     scheduledVisits={scheduleVisits.length}
                     completedVisits={completedVisits.length}
+                    onScheduledVisitsPress={() => {
+                        if (scheduleVisits.length > 0) {
+                            setShowScheduledVisitsModal(true);
+                        }
+                    }}
                 />
 
                 <Gap height={6} />
@@ -581,6 +588,22 @@ const Dashboard = () => {
                 }}
                 onAddNote={() => { 
                     setShowActionModal(false);
+                }}
+            />
+
+            <ScheduledVisitsModal
+                visible={showScheduledVisitsModal}
+                onClose={() => setShowScheduledVisitsModal(false)}
+                visits={scheduleVisits}
+                onVisitPress={(visit) => {
+                    setShowScheduledVisitsModal(false);
+                    const patientId = visit.patient?.id || visit.patient?._id || visit.patientId;
+                    if (patientId) {
+                        navigation.navigate('PatientProfile', {
+                            patientId,
+                            patientData: visit.patient,
+                        });
+                    }
                 }}
             />
 

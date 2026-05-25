@@ -16,12 +16,14 @@ interface DashboardStatsCardProps {
     todaysPatients?: number;
     scheduledVisits?: number;
     completedVisits?: number;
+    onScheduledVisitsPress?: () => void;
 }
 
 export const DashboardStatsCard = ({
     todaysPatients = 0,
     scheduledVisits = 0,
     completedVisits = 0,
+    onScheduledVisitsPress,
 }: DashboardStatsCardProps) => {
     const { colors } = useTheme();
     const { t } = useTranslation();
@@ -71,10 +73,10 @@ export const DashboardStatsCard = ({
     });
 
     const statItems = [
-        { icon: 'account-multiple', label: t('dashboard.todayPatients'), value: String(todaysPatients), color: '#4A90B9' },
-        { icon: 'file-document-outline', label: t('dashboard.pendingReports'), value: '0', color: '#F59E0B' },
-        { icon: 'calendar-clock', label: t('dashboard.scheduledVisits'), value: String(scheduledVisits), color: '#8B5CF6' },
-        { icon: 'check-circle-outline', label: t('dashboard.completedVisits'), value: String(completedVisits), color: '#10B981' },
+        { icon: 'account-multiple', label: t('dashboard.todayPatients'), value: String(todaysPatients), color: '#4A90B9', onPress: undefined },
+        { icon: 'file-document-outline', label: t('dashboard.pendingReports'), value: '0', color: '#F59E0B', onPress: undefined },
+        { icon: 'calendar-clock', label: t('dashboard.scheduledVisits'), value: String(scheduledVisits), color: '#8B5CF6', onPress: onScheduledVisitsPress },
+        { icon: 'check-circle-outline', label: t('dashboard.completedVisits'), value: String(completedVisits), color: '#10B981', onPress: undefined },
     ];
 
     const ds = useMemo(() => createDynamicStyles(tc, isDark), [tc, isDark]);
@@ -105,7 +107,7 @@ export const DashboardStatsCard = ({
             <Animated.View style={[ds.expandableContent, { height: cardHeight }]}>
                 <View style={ds.statsGrid}>
                     {statItems.map((item, index) => (
-                        <TouchableOpacity key={index} style={ds.statsBox} activeOpacity={0.7}>
+                        <TouchableOpacity key={index} style={ds.statsBox} activeOpacity={0.7} onPress={item.onPress}>
                             <View style={[ds.statIconBg, { backgroundColor: item.color + (isDark ? '25' : '15') }]}>
                                 <Icon name={item.icon} size={20} color={item.color} />
                             </View>
