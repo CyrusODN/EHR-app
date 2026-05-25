@@ -348,8 +348,8 @@ const createStyles = (tc: any, isDark: boolean) =>
             color: tc.textSecondary,
         },
         fullWidthBtn: {
-            borderRadius: 8,
-            paddingVertical: 14,
+            borderRadius: 8,overflow: 'hidden',
+            height: 48,flex:1,
             alignItems: 'center',
         },
         fullWidthBtnText: {

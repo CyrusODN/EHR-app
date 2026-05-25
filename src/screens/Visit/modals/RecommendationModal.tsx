@@ -133,7 +133,7 @@ const RecommendationModal = ({ visible, onClose, onSave, visitData, initialRecom
     const handleMedSearch = (query: string) => {
         setMedSearchQuery(query);
         if (searchTimeout) clearTimeout(searchTimeout);
-        
+
         if (query.length < 2) {
             setMedSearchResults([]);
             setShowMedResults(false);
@@ -216,7 +216,7 @@ const RecommendationModal = ({ visible, onClose, onSave, visitData, initialRecom
     };
 
     const updateScaleFrequency = (scaleId: string, days: number) => {
-        setScales(prev => prev.map(s => 
+        setScales(prev => prev.map(s =>
             s.scale === scaleId ? { ...s, frequencyDays: days } : s
         ));
     };
@@ -228,7 +228,7 @@ const RecommendationModal = ({ visible, onClose, onSave, visitData, initialRecom
     };
 
     const toggleAiTool = (id: string) => {
-        setSelectedAiTools(prev => 
+        setSelectedAiTools(prev =>
             prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id]
         );
     };
@@ -286,7 +286,7 @@ const RecommendationModal = ({ visible, onClose, onSave, visitData, initialRecom
                                             {t('visit.recommendations.days')}
                                         </Text>
                                     </View>
-                                    <TouchableOpacity 
+                                    <TouchableOpacity
                                         style={ds.removeMonitoringBtn}
                                         onPress={() => removeScale(scale.id)}
                                     >
@@ -295,7 +295,7 @@ const RecommendationModal = ({ visible, onClose, onSave, visitData, initialRecom
                                     </TouchableOpacity>
                                 </View>
                             ) : (
-                                <TouchableOpacity 
+                                <TouchableOpacity
                                     style={ds.addMonitoringBtn}
                                     onPress={() => addScale(scale.id)}
                                 >
@@ -313,7 +313,7 @@ const RecommendationModal = ({ visible, onClose, onSave, visitData, initialRecom
     const AiAssistantTool = ({ id, title, description }: any) => {
         const isSelected = selectedAiTools.includes(id);
         return (
-            <TouchableOpacity 
+            <TouchableOpacity
                 style={ds.aiToolCard}
                 onPress={() => toggleAiTool(id)}
                 activeOpacity={0.7}
@@ -372,7 +372,7 @@ const RecommendationModal = ({ visible, onClose, onSave, visitData, initialRecom
                             </View>
                             <View style={ds.medSearchContainer}>
                                 <Feather name="search" size={16} color={tc.textMuted} />
-                                <TextInput 
+                                <TextInput
                                     style={ds.medSearchInput}
                                     placeholder={t('visit.recommendations.search_medication')}
                                     placeholderTextColor={tc.textMuted}
@@ -448,7 +448,7 @@ const RecommendationModal = ({ visible, onClose, onSave, visitData, initialRecom
                         {/* Scale Monitoring */}
                         <View style={ds.section}>
                             <Text style={ds.sectionLabel}>{t('visit.recommendations.scale_monitoring')}</Text>
-                            
+
                             {renderScaleCategory('depression', t('visit.recommendations.assessments.depression'), PSYCH_SCALES.depression)}
                             {renderScaleCategory('anxiety', t('visit.recommendations.assessments.anxiety'), PSYCH_SCALES.anxiety)}
                             {renderScaleCategory('mentalHealth', t('visit.recommendations.assessments.mental_health'), PSYCH_SCALES.mentalHealth)}
@@ -461,7 +461,7 @@ const RecommendationModal = ({ visible, onClose, onSave, visitData, initialRecom
                         <View style={ds.section}>
                             <View style={ds.aiHeader}>
                                 <Text style={ds.sectionLabelBold}>{t('visit.recommendations.ai_assistant.title')}</Text>
-                                <TouchableOpacity 
+                                <TouchableOpacity
                                     style={ds.checkboxRow}
                                     onPress={() => setAiEnabled(!aiEnabled)}
                                 >
@@ -474,22 +474,22 @@ const RecommendationModal = ({ visible, onClose, onSave, visitData, initialRecom
 
                             {aiEnabled && (
                                 <View style={ds.aiToolList}>
-                                    <AiAssistantTool 
+                                    <AiAssistantTool
                                         id="mood"
                                         title={t('visit.recommendations.ai_assistant.tools.mood.title')}
                                         description={t('visit.recommendations.ai_assistant.tools.mood.description')}
                                     />
-                                    <AiAssistantTool 
+                                    <AiAssistantTool
                                         id="meds"
                                         title={t('visit.recommendations.ai_assistant.tools.meds.title')}
                                         description={t('visit.recommendations.ai_assistant.tools.meds.description')}
                                     />
-                                    <AiAssistantTool 
+                                    <AiAssistantTool
                                         id="crisis"
                                         title={t('visit.recommendations.ai_assistant.tools.crisis.title')}
                                         description={t('visit.recommendations.ai_assistant.tools.crisis.description')}
                                     />
-                                    <AiAssistantTool 
+                                    <AiAssistantTool
                                         id="coping"
                                         title={t('visit.recommendations.ai_assistant.tools.coping.title')}
                                         description={t('visit.recommendations.ai_assistant.tools.coping.description')}
@@ -498,7 +498,7 @@ const RecommendationModal = ({ visible, onClose, onSave, visitData, initialRecom
                             )}
                         </View>
 
-                        <TouchableOpacity 
+                        <TouchableOpacity
                             style={ds.emergencyRow}
                             onPress={() => setShareEmergency(!shareEmergency)}
                         >
@@ -905,8 +905,8 @@ const createDynamicStyles = (tc: any, isDark: boolean) =>
             color: '#58A7B3',
         },
         saveBtn: {
-            paddingHorizontal: 20,
-            paddingVertical: 12,
+            overflow: 'hidden',
+            height: 48, flex: 1,
             borderRadius: 8,
         },
         saveText: {

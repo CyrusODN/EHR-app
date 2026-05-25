@@ -539,6 +539,7 @@ const PatientListScreen = () => {
                                 alignItems: "center",
                                 justifyContent: "center",
                                 width: wp(38),
+                                overflow: 'hidden',
                                 marginLeft: wp(4)
                             }}>
                             <Feather name="filter" size={20} color="white" />

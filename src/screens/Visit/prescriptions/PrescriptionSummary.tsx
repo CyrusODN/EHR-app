@@ -275,8 +275,8 @@ const createStyles = (tc: any, isDark: boolean) =>
             flexDirection: 'row',
             alignItems: 'center',
             borderRadius: 6,
-            paddingHorizontal: 12,
-            paddingVertical: 7,
+            overflow: 'hidden',
+            height: 48,flex:1,
             gap: 4,
         },
         gradientBtnText: {

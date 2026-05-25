@@ -352,8 +352,8 @@ const createDynamicStyles = (tc: any, isDark: boolean) =>
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: 8,
-            paddingVertical: 10,
-            paddingHorizontal: wp(6),
+            overflow: 'hidden',
+            height: 48, flex: 1,
             gap: 6,
         },
         addButtonText: {

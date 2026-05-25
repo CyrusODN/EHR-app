@@ -236,7 +236,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     submitButtonDisabled: { opacity: 0.5 },
     submitGradient: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-        paddingVertical: 14, paddingHorizontal: 20,
+        overflow: 'hidden', height: 48, flex: 1,
     },
     submitText: { color: '#fff', fontSize: 15, fontWeight: '600', marginLeft: 8 },
 });

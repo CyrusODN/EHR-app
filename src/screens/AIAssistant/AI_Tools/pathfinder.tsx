@@ -535,6 +535,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     uploadIconCircle: {
         width: 48,
         height: 48,
+        overflow: 'hidden',
         borderRadius: 12,
         justifyContent: 'center',
         alignItems: 'center',

@@ -970,9 +970,10 @@ const createDynamicStyles = (tc: any, isDark: boolean) =>
             flexDirection: 'row',
             alignItems: 'center',
             width: wp(45),
-            height: hp(5),
+            height: 48,
             justifyContent: 'center',
             borderRadius: 8,
+            overflow: 'hidden',
         },
         smallAddButtonText: {
             color: '#fff',
@@ -1402,10 +1403,10 @@ const createDynamicStyles = (tc: any, isDark: boolean) =>
         },
         issueSubmitButton: {
             flexDirection: 'row',
-            alignItems: 'center',
-            paddingHorizontal: 20,
-            height: 44,
+            alignItems: 'center',            height: 48,
+            overflow: 'hidden',
             borderRadius: 8,
+            flex: 1,
         },
         issueButtonText: {
             color: '#fff',

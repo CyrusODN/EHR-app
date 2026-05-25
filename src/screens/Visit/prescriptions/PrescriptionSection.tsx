@@ -279,11 +279,9 @@ const createStyles = (tc: any, isDark: boolean) =>
             marginBottom: 16,
         },
         addBtn: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: 8,
-            paddingVertical: 12,
+            flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+            borderRadius: 8,overflow: 'hidden',
+            height: 48,flex:1,
         },
         addBtnText: {
             color: '#fff',
@@ -322,8 +320,8 @@ const createStyles = (tc: any, isDark: boolean) =>
             flexDirection: 'row',
             alignItems: 'center',
             borderRadius: 8,
-            paddingHorizontal: 18,
-            paddingVertical: 11,
+            overflow: 'hidden',
+            height: 48, flex: 1,
             gap: 6,
         },
         submitBtnText: {
@@ -350,8 +348,8 @@ const createStyles = (tc: any, isDark: boolean) =>
             flexDirection: 'row',
             alignItems: 'center',
             borderRadius: 6,
-            paddingHorizontal: 12,
-            paddingVertical: 8,
+            overflow: 'hidden',
+            height: 48, flex: 1,
             gap: 6,
         },
         signAllBtnText: {

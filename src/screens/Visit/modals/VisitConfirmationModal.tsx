@@ -270,9 +270,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) =>
             marginBottom: 20,
         },
         iconGradient: {
-            width: 64,
-            height: 64,
-            borderRadius: 32,
+            width: 64,height: 64,borderRadius: 32,overflow: 'hidden',
             justifyContent: 'center',
             alignItems: 'center',
         },
@@ -372,7 +370,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) =>
             justifyContent: 'center',
             alignItems: 'center',
             minWidth: wp(38),
-            paddingHorizontal: 16,
+            overflow: 'hidden',
         },
         confirmButtonText: {
             fontSize: 15,

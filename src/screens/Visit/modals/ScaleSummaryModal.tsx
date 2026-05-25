@@ -233,6 +233,6 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     },
     closeBtnText: { fontSize: 14, fontWeight: '600', color: tc.textSecondary },
     addBtn: { borderRadius: 8, overflow: 'hidden' },
-    addBtnGradient: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16, paddingVertical: 10 },
+    addBtnGradient: { flexDirection: 'row', alignItems: 'center', gap: 6, overflow: 'hidden',height: 48,flex:1, },
     addBtnText: { color: '#fff', fontSize: 14, fontWeight: '600' },
 });

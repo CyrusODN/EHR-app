@@ -1265,7 +1265,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) =>
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
-            height: hp(5),
+            height: 48,
             width: wp(43),
             borderRadius: 8,
         },

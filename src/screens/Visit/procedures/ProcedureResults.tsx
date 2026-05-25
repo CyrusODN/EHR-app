@@ -162,7 +162,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     cancelText: { fontSize: 14, fontWeight: '600', color: tc.textSecondary },
     submitBtn: { borderRadius: 8, overflow: 'hidden' },
     submitGradient: {
-        flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16, paddingVertical: 10,
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'center',height: 48,flex:1, gap: 6,
     },
     submitText: { color: '#fff', fontSize: 14, fontWeight: '600' },
 });

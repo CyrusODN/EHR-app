@@ -633,7 +633,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) =>
             alignItems: 'center',
             borderRadius: 8,
             width: wp(43),
-            height: 50,
+            height: 48,
             justifyContent: 'center',
         },
         nextButtonText: {
