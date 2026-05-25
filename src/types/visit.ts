@@ -45,3 +45,26 @@ export interface Prescription {
   signedAt?: string;
   signatureMethod?: string;
 }
+
+export interface SickLeaveEmployer {
+  id: string;
+  name: string;
+  nip: string;
+  hasPue: boolean;
+}
+
+export interface SickLeave {
+  startDate: string;
+  endDate: string;
+  reason: string;
+  recommendations: string;
+  icdCode: string;
+  statisticalNumber: string;
+  literalCodes: string[];
+  isHospitalization: boolean;
+  hospitalizationStart?: string;
+  hospitalizationEnd?: string;
+  employers?: SickLeaveEmployer[];
+  status?: 'draft' | 'signed';
+  signedAt?: string;
+}

@@ -6,17 +6,20 @@ import {
     TouchableOpacity,
     ScrollView,
     TextInput,
-    Switch,
+    Platform,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import LinearGradient from 'react-native-linear-gradient';
-import { GetPreviousVisits, UpdateVisit, GetVisitDetails } from '../../Services/Visit.Service';
+import { UpdateVisit, GetVisitDetails } from '../../Services/Visit.Service';
 import { useTranslation } from 'react-i18next';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import PrescriptionSection from './prescriptions/PrescriptionSection';
-import type { Prescription } from '../../types/visit';
+import { useICD10Search } from '../../hooks/useICD10Search';
+import type { ICD10SearchResult } from '../../hooks/useICD10Search';
+import type { Prescription, SickLeave, SickLeaveEmployer } from '../../types/visit';
 
 interface Referral {
     id: number;
@@ -25,6 +28,44 @@ interface Referral {
     reason: string;
     notes: string;
 }
+
+const LITERAL_CODE_OPTIONS = ['', 'A', 'B', 'C', 'D'];
+
+const MOCK_EMPLOYERS: SickLeaveEmployer[] = [
+    { id: '1', name: 'Sp Zoz Msw W Gdańsku', nip: '5832580921', hasPue: true },
+    { id: '2', name: 'Jbs Klinika Sp. Z O.O.', nip: '9571154646', hasPue: true },
+];
+
+const formatDisplayDate = (dateStr: string): string => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+};
+
+const toISODateString = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
+const createEmptySickLeave = (): SickLeave => ({
+    startDate: toISODateString(new Date()),
+    endDate: toISODateString(new Date()),
+    reason: '',
+    recommendations: '',
+    icdCode: '',
+    statisticalNumber: '',
+    literalCodes: ['', '', '', ''],
+    isHospitalization: false,
+    hospitalizationStart: '',
+    hospitalizationEnd: '',
+    employers: [],
+});
 
 interface VisitDocumentsProps {
     onNext: () => void;
@@ -38,6 +79,8 @@ const VisitDocuments = ({ onNext, onBack, visitId, visitData, onUpdate }: VisitD
     const { t } = useTranslation();
     const { colors: tc, isDark } = useThemeColors();
     const ds = createDynamicStyles(tc, isDark);
+    const { searchQuery: icdSearchQuery, setSearchQuery: setIcdSearchQuery, clearSearch: clearIcdSearch, searchResults: icdResults, isSearching: isIcdSearching } = useICD10Search();
+
     const [expandedSections, setExpandedSections] = useState({
         prescriptions: true,
         sickLeave: true,
@@ -45,9 +88,15 @@ const VisitDocuments = ({ onNext, onBack, visitId, visitData, onUpdate }: VisitD
     });
     const [showSickLeaveForm, setShowSickLeaveForm] = useState(false);
     const [showPayerSearch, setShowPayerSearch] = useState(false);
-    const [isHospitalStay, setIsHospitalStay] = useState(false);
+    const [sickLeaveData, setSickLeaveData] = useState<SickLeave>(createEmptySickLeave());
+    const [showIcdResults, setShowIcdResults] = useState(false);
+    const [employerSearchQuery, setEmployerSearchQuery] = useState('');
+    const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+    const [activeDatePicker, setActiveDatePicker] = useState<string | null>(null);
+    const [activeCodeDropdown, setActiveCodeDropdown] = useState<number | null>(null);
+
     const [referrals, setReferrals] = useState<Referral[]>(visitData?.patient?.referrals || []);
-    const [sickLeaveNotes, setSickLeaveNotes] = useState(visitData?.sickLeaveNotes || '');
     const [prescriptions, setPrescriptions] = useState<Prescription[]>(visitData?.prescriptions || []);
 
     const debounceTimeoutRef = useRef<any>(null);
@@ -107,8 +156,9 @@ const VisitDocuments = ({ onNext, onBack, visitId, visitData, onUpdate }: VisitD
     };
 
     useEffect(() => {
-        if (visitData?.sickLeaveNotes) {
-            setSickLeaveNotes(visitData.sickLeaveNotes);
+        if (visitData?.sickLeave) {
+            setSickLeaveData(visitData.sickLeave);
+            setShowSickLeaveForm(true);
         }
         if (visitData?.patient?.referrals) {
             setReferrals(visitData.patient.referrals);
@@ -128,6 +178,109 @@ const VisitDocuments = ({ onNext, onBack, visitId, visitData, onUpdate }: VisitD
             ...prev,
             [section]: !prev[section],
         }));
+    };
+
+    const updateSickLeaveField = <K extends keyof SickLeave>(field: K, value: SickLeave[K]) => {
+        setSickLeaveData(prev => ({ ...prev, [field]: value }));
+        if (validationErrors[field]) {
+            setValidationErrors(prev => { const n = { ...prev }; delete n[field]; return n; });
+        }
+    };
+
+    const handleDateChange = (field: 'startDate' | 'endDate' | 'hospitalizationStart' | 'hospitalizationEnd', event: any, selectedDate?: Date) => {
+        if (Platform.OS === 'android') {
+            setActiveDatePicker(null);
+        }
+        if (event.type === 'dismissed') return;
+        if (selectedDate) {
+            updateSickLeaveField(field, toISODateString(selectedDate));
+        }
+    };
+
+    const handleIcdSearch = (query: string) => {
+        setIcdSearchQuery(query);
+        setShowIcdResults(query.length >= 2);
+    };
+
+    const handleSelectIcd = (result: ICD10SearchResult) => {
+        const code = (result.ICD10Code || result.ICD11CODE || '') as string;
+        const title = (result.ICD10Title || result.ICD11Title || '') as string;
+        setSickLeaveData(prev => ({
+            ...prev,
+            icdCode: code,
+            statisticalNumber: `${code} - ${title}`,
+        }));
+        clearIcdSearch();
+        setShowIcdResults(false);
+        if (validationErrors.icdCode) {
+            setValidationErrors(prev => { const n = { ...prev }; delete n.icdCode; return n; });
+        }
+    };
+
+    const handleLiteralCodeChange = (index: number, value: string) => {
+        const newCodes = [...sickLeaveData.literalCodes];
+        newCodes[index] = value;
+        updateSickLeaveField('literalCodes', newCodes);
+        setActiveCodeDropdown(null);
+    };
+
+    const handleAddEmployer = (employer: SickLeaveEmployer) => {
+        if (sickLeaveData.employers?.some(e => e.id === employer.id)) return;
+        const updated = [...(sickLeaveData.employers || []), employer];
+        updateSickLeaveField('employers', updated);
+        setShowPayerSearch(false);
+        setEmployerSearchQuery('');
+    };
+
+    const handleRemoveEmployer = (employerId: string) => {
+        const updated = (sickLeaveData.employers || []).filter(e => e.id !== employerId);
+        updateSickLeaveField('employers', updated);
+    };
+
+    const filteredEmployers = MOCK_EMPLOYERS.filter(emp => {
+        if (!employerSearchQuery) return false;
+        const q = employerSearchQuery.toLowerCase();
+        return emp.name.toLowerCase().includes(q) || emp.nip.includes(employerSearchQuery);
+    });
+
+    const validateSickLeave = (): boolean => {
+        const errors: Record<string, string> = {};
+        if (!sickLeaveData.startDate) errors.startDate = t('visit.documents.sickLeave.validation.start_date_required');
+        if (!sickLeaveData.endDate) errors.endDate = t('visit.documents.sickLeave.validation.end_date_required');
+        if (sickLeaveData.startDate && sickLeaveData.endDate && sickLeaveData.endDate < sickLeaveData.startDate) {
+            errors.endDate = t('visit.documents.sickLeave.validation.end_before_start');
+        }
+        if (!sickLeaveData.icdCode) errors.icdCode = t('visit.documents.sickLeave.validation.icd_required');
+        if (!sickLeaveData.employers || sickLeaveData.employers.length === 0) {
+            errors.employers = t('visit.documents.sickLeave.validation.employer_required');
+        }
+        if (sickLeaveData.isHospitalization) {
+            if (!sickLeaveData.hospitalizationStart || !sickLeaveData.hospitalizationEnd) {
+                errors.hospitalization = t('visit.documents.sickLeave.validation.hospital_dates_required');
+            } else if (sickLeaveData.hospitalizationEnd < sickLeaveData.hospitalizationStart) {
+                errors.hospitalization = t('visit.documents.sickLeave.validation.hospital_end_before_start');
+            }
+        }
+        setValidationErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+
+    const handleSubmitSickLeave = () => {
+        if (!validateSickLeave()) return;
+        const submittedData: SickLeave = { ...sickLeaveData, status: 'draft' };
+        debouncedSync({ sickLeave: submittedData });
+        setShowSickLeaveForm(false);
+    };
+
+    const handleRemoveSickLeave = () => {
+        setSickLeaveData(createEmptySickLeave());
+        clearIcdSearch();
+        setShowIcdResults(false);
+        setEmployerSearchQuery('');
+        setShowPayerSearch(false);
+        setValidationErrors({});
+        setShowSickLeaveForm(false);
+        debouncedSync({ sickLeave: null });
     };
 
     const addReferral = () => {
@@ -212,16 +365,11 @@ const VisitDocuments = ({ onNext, onBack, visitId, visitData, onUpdate }: VisitD
                             <View style={ds.sickLeaveForm}>
                                 <View style={ds.formSectionHeader}>
                                     <Text style={ds.formMainTitle}>{t('visit.documents.sickLeave.ezla')}</Text>
-                                    <TouchableOpacity onPress={() => setShowSickLeaveForm(false)}>
-                                        <LinearGradient
-                                            colors={['#58A7B3', '#8ED1CC']}
-                                            start={{ x: 0, y: 0 }}
-                                            end={{ x: 1, y: 0 }}
-                                            style={ds.smallAddButton}
-                                        >
-                                            <Feather name="plus" size={18} color="#fff" />
-                                            <Text style={ds.smallAddButtonText}>{t('visit.documents.sickLeave.new')}</Text>
-                                        </LinearGradient>
+                                    <TouchableOpacity onPress={handleRemoveSickLeave}>
+                                        <View style={ds.removeButton}>
+                                            <Feather name="x" size={18} color="#EF4444" />
+                                            <Text style={ds.removeButtonText}>{t('visit.documents.sickLeave.remove')}</Text>
+                                        </View>
                                     </TouchableOpacity>
                                 </View>
 
@@ -235,64 +383,247 @@ const VisitDocuments = ({ onNext, onBack, visitId, visitData, onUpdate }: VisitD
                                     </View>
                                 </View>
 
+                                {/* Sick Leave Period with Date Pickers */}
                                 <View style={ds.formGroup}>
                                     <Text style={ds.sectionHeading}>{t('visit.documents.sickLeave.period')}</Text>
                                     <View style={ds.dateRow}>
                                         <View style={ds.dateInputWrapper}>
                                             <Text style={ds.inputLabel}>{t('visit.documents.sickLeave.from')}</Text>
-                                            <View style={ds.dateInputContainer}>
+                                            <TouchableOpacity
+                                                style={[ds.dateInputContainer, validationErrors.startDate && ds.inputError]}
+                                                onPress={() => setActiveDatePicker('startDate')}
+                                                activeOpacity={0.7}
+                                            >
                                                 <Feather name="calendar" size={18} color={tc.textMuted} />
-                                                <TextInput style={ds.dateInput} value="10/03/2026" editable={false} />
-                                                <Feather name="calendar" size={18} color={tc.textPrimary} />
-                                            </View>
+                                                <Text style={ds.dateInputText}>
+                                                    {formatDisplayDate(sickLeaveData.startDate)}
+                                                </Text>
+                                                <Feather name="chevron-down" size={16} color={tc.textPrimary} />
+                                            </TouchableOpacity>
+                                            {validationErrors.startDate && (
+                                                <Text style={ds.errorText}>{validationErrors.startDate}</Text>
+                                            )}
                                         </View>
                                         <View style={ds.dateInputWrapper}>
                                             <Text style={ds.inputLabel}>{t('visit.documents.sickLeave.to')}</Text>
-                                            <View style={ds.dateInputContainer}>
+                                            <TouchableOpacity
+                                                style={[ds.dateInputContainer, validationErrors.endDate && ds.inputError]}
+                                                onPress={() => setActiveDatePicker('endDate')}
+                                                activeOpacity={0.7}
+                                            >
                                                 <Feather name="calendar" size={18} color={tc.textMuted} />
-                                                <TextInput style={ds.dateInput} value="10/03/2026" editable={false} />
-                                                <Feather name="calendar" size={18} color={tc.textPrimary} />
-                                            </View>
+                                                <Text style={ds.dateInputText}>
+                                                    {formatDisplayDate(sickLeaveData.endDate)}
+                                                </Text>
+                                                <Feather name="chevron-down" size={16} color={tc.textPrimary} />
+                                            </TouchableOpacity>
+                                            {validationErrors.endDate && (
+                                                <Text style={ds.errorText}>{validationErrors.endDate}</Text>
+                                            )}
                                         </View>
                                     </View>
+                                    {(activeDatePicker === 'startDate' || activeDatePicker === 'endDate') && (
+                                        <View style={ds.datePickerContainer}>
+                                            <DateTimePicker
+                                                value={new Date(activeDatePicker === 'startDate' ? sickLeaveData.startDate : sickLeaveData.endDate)}
+                                                mode="date"
+                                                display={Platform.OS === 'ios' ? 'inline' : 'calendar'}
+                                                onChange={(event, date) => handleDateChange(activeDatePicker as 'startDate' | 'endDate', event, date)}
+                                                themeVariant={isDark ? 'dark' : 'light'}
+                                            />
+                                            {Platform.OS === 'ios' && (
+                                                <TouchableOpacity
+                                                    style={ds.datePickerDoneButton}
+                                                    onPress={() => setActiveDatePicker(null)}
+                                                >
+                                                    <Text style={ds.datePickerDoneText}>{t('common.done', 'Done')}</Text>
+                                                </TouchableOpacity>
+                                            )}
+                                        </View>
+                                    )}
                                 </View>
 
+                                {/* Hospitalization Toggle */}
                                 <TouchableOpacity 
                                     style={ds.checkboxRow} 
-                                    onPress={() => setIsHospitalStay(!isHospitalStay)}
+                                    onPress={() => updateSickLeaveField('isHospitalization', !sickLeaveData.isHospitalization)}
                                     activeOpacity={0.7}
                                 >
-                                    <View style={[ds.checkbox, isHospitalStay && ds.checkboxChecked]}>
-                                        {isHospitalStay && <Feather name="check" size={14} color="#fff" />}
+                                    <View style={[ds.checkbox, sickLeaveData.isHospitalization && ds.checkboxChecked]}>
+                                        {sickLeaveData.isHospitalization && <Feather name="check" size={14} color="#fff" />}
                                     </View>
                                     <Text style={ds.checkboxLabel}>{t('visit.documents.sickLeave.hospital')}</Text>
                                 </TouchableOpacity>
 
+                                {/* Hospitalization Dates */}
+                                {sickLeaveData.isHospitalization && (
+                                    <View style={[ds.formGroup, ds.hospitalizationDates]}>
+                                        <View style={ds.dateRow}>
+                                            <View style={ds.dateInputWrapper}>
+                                                <Text style={ds.inputLabel}>{t('visit.documents.sickLeave.hospital_from')}</Text>
+                                                <TouchableOpacity
+                                                    style={[ds.dateInputContainer, validationErrors.hospitalization && ds.inputError]}
+                                                    onPress={() => setActiveDatePicker('hospitalizationStart')}
+                                                    activeOpacity={0.7}
+                                                >
+                                                    <Feather name="calendar" size={18} color={tc.textMuted} />
+                                                    <Text style={ds.dateInputText}>
+                                                        {sickLeaveData.hospitalizationStart ? formatDisplayDate(sickLeaveData.hospitalizationStart) : '--/--/----'}
+                                                    </Text>
+                                                    <Feather name="chevron-down" size={16} color={tc.textPrimary} />
+                                                </TouchableOpacity>
+                                            </View>
+                                            <View style={ds.dateInputWrapper}>
+                                                <Text style={ds.inputLabel}>{t('visit.documents.sickLeave.hospital_to')}</Text>
+                                                <TouchableOpacity
+                                                    style={[ds.dateInputContainer, validationErrors.hospitalization && ds.inputError]}
+                                                    onPress={() => setActiveDatePicker('hospitalizationEnd')}
+                                                    activeOpacity={0.7}
+                                                >
+                                                    <Feather name="calendar" size={18} color={tc.textMuted} />
+                                                    <Text style={ds.dateInputText}>
+                                                        {sickLeaveData.hospitalizationEnd ? formatDisplayDate(sickLeaveData.hospitalizationEnd) : '--/--/----'}
+                                                    </Text>
+                                                    <Feather name="chevron-down" size={16} color={tc.textPrimary} />
+                                                </TouchableOpacity>
+                                            </View>
+                                        </View>
+                                        {validationErrors.hospitalization && (
+                                            <Text style={ds.errorText}>{validationErrors.hospitalization}</Text>
+                                        )}
+                                        {(activeDatePicker === 'hospitalizationStart' || activeDatePicker === 'hospitalizationEnd') && (
+                                            <View style={ds.datePickerContainer}>
+                                                <DateTimePicker
+                                                    value={new Date(
+                                                        activeDatePicker === 'hospitalizationStart'
+                                                            ? (sickLeaveData.hospitalizationStart || sickLeaveData.startDate)
+                                                            : (sickLeaveData.hospitalizationEnd || sickLeaveData.endDate)
+                                                    )}
+                                                    mode="date"
+                                                    display={Platform.OS === 'ios' ? 'inline' : 'calendar'}
+                                                    onChange={(event, date) => handleDateChange(activeDatePicker as 'hospitalizationStart' | 'hospitalizationEnd', event, date)}
+                                                    themeVariant={isDark ? 'dark' : 'light'}
+                                                />
+                                                {Platform.OS === 'ios' && (
+                                                    <TouchableOpacity
+                                                        style={ds.datePickerDoneButton}
+                                                        onPress={() => setActiveDatePicker(null)}
+                                                    >
+                                                        <Text style={ds.datePickerDoneText}>{t('common.done', 'Done')}</Text>
+                                                    </TouchableOpacity>
+                                                )}
+                                            </View>
+                                        )}
+                                    </View>
+                                )}
+
+                                {/* Medical Data - ICD-10 Search */}
                                 <View style={ds.formGroup}>
                                     <Text style={ds.sectionHeading}>{t('visit.documents.sickLeave.medical_data')}</Text>
                                     <Text style={ds.inputLabel}>{t('visit.documents.sickLeave.icd10_label')}</Text>
-                                    <View style={ds.searchInputWrapper}>
+                                    <View style={[ds.searchInputWrapper, validationErrors.icdCode && ds.inputError]}>
                                         <Feather name="search" size={18} color={tc.textMuted} style={ds.searchIcon} />
                                         <TextInput 
                                             style={ds.searchField} 
                                             placeholder={t('visit.documents.sickLeave.icd10_search')} 
                                             placeholderTextColor={tc.textMuted}
+                                            value={sickLeaveData.icdCode ? sickLeaveData.statisticalNumber : icdSearchQuery}
+                                            onChangeText={(text) => {
+                                                if (sickLeaveData.icdCode) {
+                                                    setSickLeaveData(prev => ({ ...prev, icdCode: '', statisticalNumber: '' }));
+                                                }
+                                                handleIcdSearch(text);
+                                            }}
+                                            onFocus={() => {
+                                                if (icdSearchQuery.length >= 2) setShowIcdResults(true);
+                                            }}
                                         />
+                                        {sickLeaveData.icdCode ? (
+                                            <TouchableOpacity onPress={() => {
+                                                setSickLeaveData(prev => ({ ...prev, icdCode: '', statisticalNumber: '' }));
+                                                clearIcdSearch();
+                                            }}>
+                                                <Feather name="x" size={18} color={tc.textMuted} />
+                                            </TouchableOpacity>
+                                        ) : null}
                                     </View>
+                                    {validationErrors.icdCode && (
+                                        <Text style={ds.errorText}>{validationErrors.icdCode}</Text>
+                                    )}
+                                    {showIcdResults && icdResults.length > 0 && (
+                                        <View style={ds.icdResultsContainer}>
+                                            {icdResults.slice(0, 8).map((result, index) => (
+                                                <TouchableOpacity
+                                                    key={`${result.ICD10Code || result.ICD11CODE}-${index}`}
+                                                    style={ds.icdResultItem}
+                                                    onPress={() => handleSelectIcd(result)}
+                                                    activeOpacity={0.7}
+                                                >
+                                                    <View style={ds.icdCodeBadge}>
+                                                        <Text style={ds.icdCodeText}>
+                                                            {result.ICD10Code || result.ICD11CODE}
+                                                        </Text>
+                                                    </View>
+                                                    <Text style={ds.icdTitleText} numberOfLines={2}>
+                                                        {result.ICD10Title || result.ICD11Title}
+                                                    </Text>
+                                                </TouchableOpacity>
+                                            ))}
+                                        </View>
+                                    )}
                                 </View>
 
+                                {/* Statistical Number (read-only, populated from ICD selection) */}
+                                {sickLeaveData.statisticalNumber ? (
+                                    <View style={ds.formGroup}>
+                                        <Text style={ds.inputLabel}>{t('visit.documents.sickLeave.statistical_number')}</Text>
+                                        <View style={ds.readOnlyField}>
+                                            <Text style={ds.readOnlyFieldText}>{sickLeaveData.statisticalNumber}</Text>
+                                        </View>
+                                    </View>
+                                ) : null}
+
+                                {/* Literal Codes Dropdowns */}
                                 <View style={ds.formGroup}>
                                     <Text style={ds.inputLabel}>{t('visit.documents.sickLeave.literal_codes')}</Text>
                                     <View style={ds.literalCodesRow}>
-                                        {[1, 2, 3, 4].map((_, i) => (
-                                            <View key={i} style={ds.literalDropdown}>
-                                                <Text style={ds.dropdownValue}>--</Text>
-                                                <Feather name="chevron-down" size={16} color={tc.textSecondary} />
+                                        {sickLeaveData.literalCodes.map((code, i) => (
+                                            <View key={i} style={{ width: '23%' }}>
+                                                <TouchableOpacity
+                                                    style={ds.literalDropdown}
+                                                    onPress={() => setActiveCodeDropdown(activeCodeDropdown === i ? null : i)}
+                                                    activeOpacity={0.7}
+                                                >
+                                                    <Text style={ds.dropdownValue}>{code || '--'}</Text>
+                                                    <Feather name="chevron-down" size={16} color={tc.textSecondary} />
+                                                </TouchableOpacity>
+                                                {activeCodeDropdown === i && (
+                                                    <View style={ds.codeDropdownList}>
+                                                        {LITERAL_CODE_OPTIONS.map((option) => (
+                                                            <TouchableOpacity
+                                                                key={option || 'empty'}
+                                                                style={[
+                                                                    ds.codeDropdownItem,
+                                                                    code === option && ds.codeDropdownItemActive,
+                                                                ]}
+                                                                onPress={() => handleLiteralCodeChange(i, option)}
+                                                            >
+                                                                <Text style={[
+                                                                    ds.codeDropdownItemText,
+                                                                    code === option && ds.codeDropdownItemTextActive,
+                                                                ]}>
+                                                                    {option || '--'}
+                                                                </Text>
+                                                            </TouchableOpacity>
+                                                        ))}
+                                                    </View>
+                                                )}
                                             </View>
                                         ))}
                                     </View>
                                 </View>
 
+                                {/* Recommendations */}
                                 <View style={ds.formGroup}>
                                     <Text style={ds.inputLabel}>{t('visit.documents.sickLeave.recommendations')}</Text>
                                     <TextInput
@@ -302,26 +633,27 @@ const VisitDocuments = ({ onNext, onBack, visitId, visitData, onUpdate }: VisitD
                                         multiline
                                         numberOfLines={4}
                                         textAlignVertical="top"
-                                        value={sickLeaveNotes}
-                                        onChangeText={(text) => {
-                                            setSickLeaveNotes(text);
-                                            debouncedSync({ sickLeaveNotes: text });
-                                        }}
+                                        value={sickLeaveData.recommendations}
+                                        onChangeText={(text) => updateSickLeaveField('recommendations', text)}
                                     />
                                 </View>
 
+                                {/* Payers / Employers Section */}
                                 <View style={ds.payerHeader}>
                                     <Text style={ds.sectionHeading}>{t('visit.documents.sickLeave.payers')}</Text>
                                     <TouchableOpacity 
                                         style={ds.addPayerButton}
-                                        onPress={() => setShowPayerSearch(true)}
+                                        onPress={() => setShowPayerSearch(!showPayerSearch)}
                                     >
                                         <Feather name="plus" size={18} color="#58A7B3" />
                                         <Text style={ds.addPayerButtonText}>{t('visit.documents.sickLeave.add_payer')}</Text>
                                     </TouchableOpacity>
                                 </View>
+                                {validationErrors.employers && (
+                                    <Text style={[ds.errorText, { marginBottom: 12 }]}>{validationErrors.employers}</Text>
+                                )}
 
-                                {showPayerSearch ? (
+                                {showPayerSearch && (
                                     <View style={ds.payerSearchContainer}>
                                         <View style={ds.payerSearchWrapper}>
                                             <Feather name="search" size={18} color={tc.textPrimary} style={ds.searchIcon} />
@@ -329,15 +661,78 @@ const VisitDocuments = ({ onNext, onBack, visitId, visitData, onUpdate }: VisitD
                                                 style={ds.payerSearchInput}
                                                 placeholder={t('visit.documents.sickLeave.payer_search')}
                                                 placeholderTextColor={tc.textMuted}
+                                                value={employerSearchQuery}
+                                                onChangeText={setEmployerSearchQuery}
+                                                autoFocus
                                             />
+                                            {employerSearchQuery ? (
+                                                <TouchableOpacity onPress={() => setEmployerSearchQuery('')}>
+                                                    <Feather name="x" size={18} color={tc.textMuted} />
+                                                </TouchableOpacity>
+                                            ) : null}
                                         </View>
-                                    </View>
-                                ) : (
-                                    <View style={ds.emptyPayers}>
-                                        <Text style={ds.emptyPayersText}>{t('visit.documents.sickLeave.no_payers')}</Text>
+                                        {filteredEmployers.length > 0 && (
+                                            <View style={ds.employerResultsList}>
+                                                {filteredEmployers.map(employer => (
+                                                    <TouchableOpacity
+                                                        key={employer.id}
+                                                        style={ds.employerResultItem}
+                                                        onPress={() => handleAddEmployer(employer)}
+                                                        activeOpacity={0.7}
+                                                    >
+                                                        <View style={{ flex: 1 }}>
+                                                            <Text style={ds.employerName}>{employer.name}</Text>
+                                                            <Text style={ds.employerNip}>NIP: {employer.nip}</Text>
+                                                        </View>
+                                                        {employer.hasPue && (
+                                                            <View style={ds.pueBadge}>
+                                                                <Text style={ds.pueBadgeText}>{t('visit.documents.sickLeave.pue_badge')}</Text>
+                                                            </View>
+                                                        )}
+                                                    </TouchableOpacity>
+                                                ))}
+                                            </View>
+                                        )}
                                     </View>
                                 )}
 
+                                {/* Selected Employers List */}
+                                {(sickLeaveData.employers && sickLeaveData.employers.length > 0) ? (
+                                    <View style={ds.selectedEmployersList}>
+                                        {sickLeaveData.employers.map(employer => (
+                                            <View key={employer.id} style={ds.selectedEmployerItem}>
+                                                <View style={ds.employerItemLeft}>
+                                                    <MaterialCommunityIcons name="office-building-outline" size={20} color={tc.textMuted} />
+                                                    <View style={ds.employerItemInfo}>
+                                                        <Text style={ds.employerName}>{employer.name}</Text>
+                                                        <Text style={ds.employerNip}>NIP: {employer.nip}</Text>
+                                                    </View>
+                                                </View>
+                                                <View style={ds.employerItemRight}>
+                                                    {employer.hasPue && (
+                                                        <View style={ds.pueBadge}>
+                                                            <Text style={ds.pueBadgeText}>{t('visit.documents.sickLeave.pue_badge')}</Text>
+                                                        </View>
+                                                    )}
+                                                    <TouchableOpacity
+                                                        onPress={() => handleRemoveEmployer(employer.id)}
+                                                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                                                    >
+                                                        <Feather name="x" size={18} color="#EF4444" />
+                                                    </TouchableOpacity>
+                                                </View>
+                                            </View>
+                                        ))}
+                                    </View>
+                                ) : (
+                                    !showPayerSearch && (
+                                        <View style={ds.emptyPayers}>
+                                            <Text style={ds.emptyPayersText}>{t('visit.documents.sickLeave.no_payers')}</Text>
+                                        </View>
+                                    )
+                                )}
+
+                                {/* Action Buttons */}
                                 <View style={ds.formActions}>
                                     <TouchableOpacity 
                                         style={ds.cancelButton}
@@ -345,7 +740,7 @@ const VisitDocuments = ({ onNext, onBack, visitId, visitData, onUpdate }: VisitD
                                     >
                                         <Text style={ds.cancelButtonText}>{t('common.cancel')}</Text>
                                     </TouchableOpacity>
-                                    <TouchableOpacity style={ds.issueButtonContainer}>
+                                    <TouchableOpacity onPress={handleSubmitSickLeave}>
                                         <LinearGradient
                                             colors={['#58A7B3', '#8ED1CC']}
                                             start={{ x: 0, y: 0 }}
@@ -353,7 +748,7 @@ const VisitDocuments = ({ onNext, onBack, visitId, visitData, onUpdate }: VisitD
                                             style={ds.issueSubmitButton}
                                         >
                                             <MaterialCommunityIcons name="file-document-outline" size={18} color="#fff" />
-                                            <Text style={ds.issueButtonText}>{t('visit.documents.sickLeave.new')}</Text>
+                                            <Text style={ds.issueButtonText}>{t('visit.documents.sickLeave.issue_ezla')}</Text>
                                         </LinearGradient>
                                     </TouchableOpacity>
                                 </View>
@@ -659,6 +1054,199 @@ const createDynamicStyles = (tc: any, isDark: boolean) =>
             fontSize: 14,
             color: tc.textPrimary,
             marginHorizontal: 8,
+        },
+        dateInputText: {
+            flex: 1,
+            fontSize: 14,
+            color: tc.textPrimary,
+            marginHorizontal: 8,
+        },
+        datePickerContainer: {
+            marginTop: 12,
+            backgroundColor: tc.cardBackgroundAlt,
+            borderRadius: 8,
+            borderWidth: 1,
+            borderColor: tc.borderColor,
+            padding: 8,
+            alignItems: 'center',
+        },
+        datePickerDoneButton: {
+            alignSelf: 'flex-end',
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            marginTop: 8,
+        },
+        datePickerDoneText: {
+            fontSize: 15,
+            fontWeight: '700',
+            color: '#58A7B3',
+        },
+        inputError: {
+            borderColor: '#EF4444',
+        },
+        errorText: {
+            fontSize: 12,
+            color: '#EF4444',
+            marginTop: 4,
+        },
+        hospitalizationDates: {
+            paddingLeft: 28,
+        },
+        removeButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderWidth: 1.5,
+            borderColor: '#EF4444',
+            paddingHorizontal: 14,
+            paddingVertical: 8,
+            borderRadius: 8,
+        },
+        removeButtonText: {
+            color: '#EF4444',
+            fontSize: 14,
+            fontWeight: '700',
+            marginLeft: 6,
+        },
+        icdResultsContainer: {
+            marginTop: 8,
+            borderWidth: 1,
+            borderColor: tc.borderColor,
+            borderRadius: 8,
+            backgroundColor: tc.cardBackground,
+            maxHeight: 250,
+            overflow: 'hidden',
+        },
+        icdResultItem: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: 12,
+            paddingVertical: 10,
+            borderBottomWidth: 1,
+            borderBottomColor: tc.borderColor,
+        },
+        icdCodeBadge: {
+            backgroundColor: isDark ? 'rgba(88, 167, 179, 0.2)' : '#E2F2F4',
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            borderRadius: 6,
+            marginRight: 10,
+        },
+        icdCodeText: {
+            fontSize: 13,
+            fontWeight: '700',
+            color: '#58A7B3',
+        },
+        icdTitleText: {
+            flex: 1,
+            fontSize: 13,
+            color: tc.textPrimary,
+        },
+        readOnlyField: {
+            borderWidth: 1,
+            borderColor: tc.borderColor,
+            borderRadius: 8,
+            paddingHorizontal: 12,
+            paddingVertical: 12,
+            backgroundColor: isDark ? 'rgba(88, 167, 179, 0.05)' : '#F9FAFB',
+        },
+        readOnlyFieldText: {
+            fontSize: 14,
+            color: tc.textSecondary,
+        },
+        codeDropdownList: {
+            position: 'absolute',
+            top: 44,
+            left: 0,
+            right: 0,
+            backgroundColor: tc.cardBackground,
+            borderWidth: 1,
+            borderColor: tc.borderColor,
+            borderRadius: 8,
+            zIndex: 100,
+            elevation: 5,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.15,
+            shadowRadius: 4,
+        },
+        codeDropdownItem: {
+            paddingHorizontal: 12,
+            paddingVertical: 10,
+            borderBottomWidth: 1,
+            borderBottomColor: tc.borderColor,
+        },
+        codeDropdownItemActive: {
+            backgroundColor: isDark ? 'rgba(88, 167, 179, 0.2)' : '#E2F2F4',
+        },
+        codeDropdownItemText: {
+            fontSize: 14,
+            color: tc.textPrimary,
+            textAlign: 'center',
+        },
+        codeDropdownItemTextActive: {
+            color: '#58A7B3',
+            fontWeight: '700',
+        },
+        employerResultsList: {
+            marginTop: 12,
+        },
+        employerResultItem: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: 12,
+            paddingVertical: 12,
+            backgroundColor: isDark ? tc.cardBackground : '#F9FAFB',
+            borderRadius: 8,
+            marginBottom: 8,
+        },
+        employerName: {
+            fontSize: 14,
+            fontWeight: '600',
+            color: tc.textPrimary,
+        },
+        employerNip: {
+            fontSize: 13,
+            color: tc.textSecondary,
+            marginTop: 2,
+        },
+        pueBadge: {
+            backgroundColor: isDark ? 'rgba(34, 197, 94, 0.15)' : '#DCFCE7',
+            paddingHorizontal: 10,
+            paddingVertical: 3,
+            borderRadius: 12,
+        },
+        pueBadgeText: {
+            fontSize: 11,
+            fontWeight: '700',
+            color: isDark ? '#4ADE80' : '#166534',
+        },
+        selectedEmployersList: {
+            marginBottom: 16,
+        },
+        selectedEmployerItem: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: 12,
+            paddingVertical: 12,
+            backgroundColor: isDark ? tc.cardBackgroundAlt : '#F9FAFB',
+            borderRadius: 8,
+            marginBottom: 8,
+        },
+        employerItemLeft: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            flex: 1,
+        },
+        employerItemInfo: {
+            marginLeft: 12,
+            flex: 1,
+        },
+        employerItemRight: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 10,
         },
         checkboxRow: {
             flexDirection: 'row',
