@@ -137,6 +137,20 @@ export interface ScaleResult {
   details: string;
 }
 
+export interface VisitLabOrder {
+  orderId: string;
+  status: string;
+  orderedAt: string;
+  testsCount: number;
+}
+
+export interface VisitProcedure {
+  procedureId: string;
+  name: string;
+  status: string;
+  scheduledDate: string;
+}
+
 export interface ClinicalAssessment {
   resourceType: 'Observation';
   id: string;

@@ -29,6 +29,11 @@ import InterviewCoachTool from './ai/InterviewCoachTool';
 import SmartTranscriptionTool from './ai/SmartTranscriptionTool';
 import DrugInteractionChecker from './ai/DrugInteractionChecker';
 import ICD10AssistantTool from './ai/ICD10AssistantTool';
+import VoiceTranscriptionTool from './ai/VoiceTranscriptionTool';
+import DiagnosticAssistantTool from './ai/DiagnosticAssistantTool';
+import MedicationAssistantTool from './ai/MedicationAssistantTool';
+import LaboratoryContainer from './laboratory/LaboratoryContainer';
+import ProceduresContainer from './procedures/ProceduresContainer';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { GetVisitDetails, GetPreviousVisits, UpdateVisit } from '../../Services/Visit.Service';
 import { GetPatientMedicalData } from '../../Services/MedicalData.Service';
@@ -233,8 +238,10 @@ const VisitScreen = () => {
         { id: 2, label: t('visit.steps.interview') },
         { id: 3, label: t('visit.steps.examination') },
         { id: 4, label: t('visit.steps.diagnosis') },
-        { id: 5, label: t('visit.steps.documents') },
-        { id: 6, label: t('visit.steps.summary') },
+        { id: 5, label: t('visit.steps.laboratory') },
+        { id: 6, label: t('visit.steps.procedures') },
+        { id: 7, label: t('visit.steps.documents') },
+        { id: 8, label: t('visit.steps.summary') },
     ];
 
     const aiTools = [
@@ -243,6 +250,9 @@ const VisitScreen = () => {
         { id: 'Documentation Assistant', label: t('visit.ai.tabs.transcription'), icon: 'mic', type: 'feather' },
         { id: 'Drug Knowledge', label: t('visit.ai.tabs.interactions'), icon: 'pill', type: 'material-community' },
         { id: 'ICD-10 Assistant', label: t('visit.ai.tabs.icd10'), icon: 'file-text', type: 'feather' },
+        { id: 'Voice Transcription', label: t('visit.ai.tabs.voice'), icon: 'microphone', type: 'material-community' },
+        { id: 'Diagnostic Assistant', label: t('visit.ai.tabs.diagnostic'), icon: 'cpu', type: 'feather' },
+        { id: 'Medication Assistant', label: t('visit.ai.tabs.medication'), icon: 'thermometer', type: 'feather' },
     ];
 
     const renderStep = (step, index) => {
@@ -353,9 +363,9 @@ const VisitScreen = () => {
                 );
             case 5:
                 return (
-                    <VisitDocuments 
-                        onNext={() => animateStepTransition(6)} 
-                        onBack={() => animateStepTransition(4)} 
+                    <LaboratoryContainer
+                        onNext={() => animateStepTransition(6)}
+                        onBack={() => animateStepTransition(4)}
                         visitId={visitId}
                         visitData={visitData}
                         onUpdate={handleVisitUpdate}
@@ -363,9 +373,30 @@ const VisitScreen = () => {
                 );
             case 6:
                 return (
+                    <ProceduresContainer
+                        onNext={() => animateStepTransition(7)}
+                        onBack={() => animateStepTransition(5)}
+                        visitId={visitId}
+                        patientId={visitData?.patient?.id || visitData?.patient?._id || visitData?.patientId}
+                        visitData={visitData}
+                        onUpdate={handleVisitUpdate}
+                    />
+                );
+            case 7:
+                return (
+                    <VisitDocuments 
+                        onNext={() => animateStepTransition(8)} 
+                        onBack={() => animateStepTransition(6)} 
+                        visitId={visitId}
+                        visitData={visitData}
+                        onUpdate={handleVisitUpdate}
+                    />
+                );
+            case 8:
+                return (
                     <VisitSummary 
                         onFinish={() => setShowConfirmModal(true)} 
-                        onBack={() => animateStepTransition(5)} 
+                        onBack={() => animateStepTransition(7)} 
                         visitId={visitId}
                         visitData={visitData}
                         onUpdate={handleVisitUpdate}
@@ -433,6 +464,35 @@ const VisitScreen = () => {
                         <ICD10AssistantTool
                             visitData={visitData}
                             onUpdate={handleVisitUpdate}
+                        />
+                    </View>
+                );
+            case 'Voice Transcription':
+                return (
+                    <View style={ds.contentContainer}>
+                        <VoiceTranscriptionTool
+                            visitData={visitData}
+                            visitId={visitId}
+                            onUpdate={handleVisitUpdate}
+                        />
+                    </View>
+                );
+            case 'Diagnostic Assistant':
+                return (
+                    <View style={ds.contentContainer}>
+                        <DiagnosticAssistantTool
+                            visitData={visitData}
+                            visitId={visitId}
+                            onUpdate={handleVisitUpdate}
+                        />
+                    </View>
+                );
+            case 'Medication Assistant':
+                return (
+                    <View style={ds.contentContainer}>
+                        <MedicationAssistantTool
+                            visitData={visitData}
+                            visitId={visitId}
                         />
                     </View>
                 );
@@ -568,7 +628,7 @@ const createDynamicStyles = (tc, isDark) => StyleSheet.create({
     },
     stepItem: {
         alignItems: 'center',
-        width: wp(22),
+        width: wp(18),
     },
     stepHeader: {
         flexDirection: 'row',

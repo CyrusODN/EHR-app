@@ -154,3 +154,134 @@ export async function GenerateVisitNoteStreaming({ visitId, noteType, visitType,
         return throwServerError(err);
     }
 }
+
+// Laboratory Services
+export async function CreateLabOrder(visitId, payload) {
+    try {
+        const result = await postRequest(`${MODEL_NAME}/${visitId}/lab-orders`, payload);
+        return result;
+    } catch (err) {
+        return throwServerError(err);
+    }
+}
+
+export async function GetLabOrders(visitId) {
+    try {
+        const result = await getRequest(`${MODEL_NAME}/${visitId}/lab-orders`);
+        return result;
+    } catch (err) {
+        return throwServerError(err);
+    }
+}
+
+export async function UpdateLabOrderStatus(visitId, orderId, status) {
+    try {
+        const result = await putRequest(`${MODEL_NAME}/${visitId}/lab-orders/${orderId}/status`, { status });
+        return result;
+    } catch (err) {
+        return throwServerError(err);
+    }
+}
+
+export async function AddLabResults(visitId, orderId, results) {
+    try {
+        const result = await postRequest(`${MODEL_NAME}/${visitId}/lab-orders/${orderId}/results`, results);
+        return result;
+    } catch (err) {
+        return throwServerError(err);
+    }
+}
+
+export async function GetAvailableLabTests() {
+    try {
+        const result = await getRequest('/medical-data/lab-tests');
+        return result;
+    } catch (err) {
+        return throwServerError(err);
+    }
+}
+
+// Procedures Services
+export async function CreateProcedure(visitId, payload) {
+    try {
+        const result = await postRequest(`${MODEL_NAME}/${visitId}/procedures`, payload);
+        return result;
+    } catch (err) {
+        return throwServerError(err);
+    }
+}
+
+export async function GetProcedures(visitId) {
+    try {
+        const result = await getRequest(`${MODEL_NAME}/${visitId}/procedures`);
+        return result;
+    } catch (err) {
+        return throwServerError(err);
+    }
+}
+
+export async function UpdateProcedureStatus(visitId, procedureId, status) {
+    try {
+        const result = await putRequest(`${MODEL_NAME}/${visitId}/procedures/${procedureId}/status`, { status });
+        return result;
+    } catch (err) {
+        return throwServerError(err);
+    }
+}
+
+export async function AddProcedureResults(visitId, procedureId, results) {
+    try {
+        const result = await postRequest(`${MODEL_NAME}/${visitId}/procedures/${procedureId}/results`, results);
+        return result;
+    } catch (err) {
+        return throwServerError(err);
+    }
+}
+
+export async function GetAvailableProcedures() {
+    try {
+        const result = await getRequest('/medical-data/procedures');
+        return result;
+    } catch (err) {
+        return throwServerError(err);
+    }
+}
+
+// Voice Transcription Services
+export async function UploadAudioFile(formData) {
+    try {
+        const result = await postRequest('/upload', formData);
+        return result;
+    } catch (err) {
+        return throwServerError(err);
+    }
+}
+
+// Diagnostic Assistant
+export async function GetDiagnosticSuggestions(visitId, symptoms) {
+    try {
+        const result = await postRequest(`${MODEL_NAME}/${visitId}/diagnostic-assistant`, { symptoms });
+        return result;
+    } catch (err) {
+        return throwServerError(err);
+    }
+}
+
+// Medication Assistant
+export async function GetMedicationKnowledgeGraph(medicationName) {
+    try {
+        const result = await getRequest('/medical-data/medication-graph', { query: medicationName });
+        return result;
+    } catch (err) {
+        return throwServerError(err);
+    }
+}
+
+export async function GetNearbyPharmacies(medicationName, location) {
+    try {
+        const result = await getRequest('/medical-data/pharmacies', { medication: medicationName, ...location });
+        return result;
+    } catch (err) {
+        return throwServerError(err);
+    }
+}
