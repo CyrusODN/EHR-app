@@ -200,6 +200,9 @@ export const pl = {
             notes: 'Notatki',
             interview: 'Wywiad lekarski',
             mainSymptoms: 'Główne objawy',
+            currentMedications: 'Aktualne leki',
+            additionalNotes: 'Dodatkowe notatki',
+            additionalFindings: 'Dodatkowe ustalenia',
             scales: 'Skale psychiatryczne',
             examination: 'Badanie przedmiotowe',
             bloodPressure: 'Ciśnienie krwi',
@@ -910,6 +913,9 @@ export const pl = {
         noNotes: "Brak notatek",
         medicalInterview: "Wywiad medyczny",
         mainSymptoms: "Główne objawy",
+        currentMedications: "Aktualne leki",
+        additionalNotes: "Dodatkowe notatki",
+        additionalFindings: "Dodatkowe ustalenia",
         psychiatricScales: "Skale psychiatryczne",
         examination: "Badanie",
         bloodPressure: "Ciśnienie krwi",
@@ -922,7 +928,14 @@ export const pl = {
         scheduled: "zaplanowana",
         completed: "zakończona",
         cancelled: "odwołana",
-        inprogress: "w toku"
+        inprogress: "w toku",
+        searchPlaceholder: "Szukaj wizyt...",
+        sortNewest: "Od najnowszych",
+        sortOldest: "Od najstarszych",
+        filterAll: "Wszystkie",
+        filterCompleted: "Zakończone",
+        filterScheduled: "Zaplanowane",
+        filterCancelled: "Odwołane"
     },
     newPatient: {
         newPatient: "Nowy pacjent",
@@ -1658,7 +1671,8 @@ export const pl = {
         "documents": "Dokumenty",
         "visits_list": "Lista wizyt",
         "insurance": "Ubezpieczenie",
-        "history": "Historia zwolnień/SMS"
+        "history": "Historia zwolnień/SMS",
+        "audit_trail": "Ścieżka audytu"
     },
 
     "basic_info": {
@@ -3322,34 +3336,45 @@ export const pl = {
             "create": "Utworzenie dokumentu",
             "modify": "Modyfikacja dokumentu",
             "view": "Wyświetlenie dokumentu",
-            "sign": "Podpisanie dokumentu"
+            "sign": "Podpisanie dokumentu",
+            "print": "Wydruk dokumentu",
+            "export": "Eksport dokumentu"
         },
         "changes": {
             "title": "Wprowadzone zmiany:",
             "system": "System:"
-        }
+        },
+        "loading": "Ładowanie ścieżki audytu...",
+        "noEntries": "Nie znaleziono wpisów audytu"
     },
 
     "clinicalTrends": {
         "header": {
-            "title": "Analiza trendów klinicznych",
-            "subtitle": "AI-powered clinical trends analysis"
+            "title": "Analiza Trendów Klinicznych",
+            "subtitle": "Analiza zmian w czasie wyników skal psychiatrycznych"
         },
+        "scaleLabel": "Skala",
         "charts": {
-            "hamdScale": "Skala HAM-D",
-            "bdiScale": "Skala BDI"
+            "hamdScale": "Skala HAM-D (Depresja)",
+            "madrsScale": "Skala MADRS (Depresja)",
+            "noData": "Brak danych do wyświetlenia"
         },
         "insights": {
-            "title": "Wnioski kliniczne"
+            "title": "Spostrzeżenia AI",
+            "improvement": "Znacząca poprawa ({{previous}} → {{current}}, {{change}}% spadek). Wykryto odpowiedź kliniczną.",
+            "worsening": "Niepokojący wzrost ({{previous}} → {{current}}, {{change}}% wzrost). Rozważ dostosowanie leczenia.",
+            "stable": "Stabilne wyniki ({{score}}). Leczenie podtrzymujące wydaje się skuteczne.",
+            "multiImprovement": "Poprawa wielodomenowa wykryta w {{scales}}. Leczenie wykazuje szeroką skuteczność.",
+            "noDataAvailable": "Brak wystarczających danych do analizy trendów. Zaleca się przeprowadzenie skal psychiatrycznych."
         },
         "metrics": {
-            "sleepTime": {
-                "title": "Średni czas snu",
-                "belowNorm": "od normy"
+            "totalVisits": {
+                "title": "Łączna liczba wizyt",
+                "description": "Historia wizyt pacjenta"
             },
-            "activity": {
-                "title": "Aktywność",
-                "monthChange": "m/m"
+            "scalesCompleted": {
+                "title": "Wykonane skale",
+                "description": "Wszystkie skale łącznie"
             }
         }
     },

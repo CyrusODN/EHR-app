@@ -200,6 +200,9 @@ export const en = {
             notes: 'Notes',
             interview: 'Medical Interview',
             mainSymptoms: 'Main Symptoms',
+            currentMedications: 'Current Medications',
+            additionalNotes: 'Additional Notes',
+            additionalFindings: 'Additional Findings',
             scales: 'Psychiatric Scales',
             examination: 'Examination',
             bloodPressure: 'Blood Pressure',
@@ -1246,6 +1249,9 @@ export const en = {
         noNotes: "No notes",
         medicalInterview: "Medical interview",
         mainSymptoms: "Main symptoms",
+        currentMedications: "Current Medications",
+        additionalNotes: "Additional Notes",
+        additionalFindings: "Additional Findings",
         psychiatricScales: "Psychiatric scales",
         examination: "Examination",
         bloodPressure: "Blood pressure",
@@ -1258,7 +1264,14 @@ export const en = {
         scheduled: "scheduled",
         completed: "completed",
         cancelled: "cancelled",
-        inprogress: "in progress"
+        inprogress: "in progress",
+        searchPlaceholder: "Search visits...",
+        sortNewest: "Newest first",
+        sortOldest: "Oldest first",
+        filterAll: "All",
+        filterCompleted: "Completed",
+        filterScheduled: "Scheduled",
+        filterCancelled: "Cancelled"
     },
     newPatient: {
         newPatient: 'New Patient',
@@ -1656,7 +1669,8 @@ export const en = {
         "documents": "Documents",
         "visits_list": "Visits List",
         "insurance": "Insurance",
-        "history": "Leave/SMS History"
+        "history": "Leave/SMS History",
+        "audit_trail": "Audit Trail"
     },
     "basic_info": {
         "save_error": "Failed to save data",
@@ -3326,33 +3340,44 @@ export const en = {
             "create": "Document Creation",
             "modify": "Document Modification",
             "view": "Document View",
-            "sign": "Document Signing"
+            "sign": "Document Signing",
+            "print": "Document Print",
+            "export": "Document Export"
         },
         "changes": {
             "title": "Changes made:",
             "system": "System:"
-        }
+        },
+        "loading": "Loading audit trail...",
+        "noEntries": "No audit trail entries found"
     },
     "clinicalTrends": {
         "header": {
             "title": "Clinical Trends Analysis",
-            "subtitle": "AI-powered clinical trends analysis"
+            "subtitle": "Analysis of psychiatric scale changes over time"
         },
+        "scaleLabel": "Scale",
         "charts": {
-            "hamdScale": "HAM-D Scale",
-            "bdiScale": "BDI Scale"
+            "hamdScale": "HAM-D Scale (Depression)",
+            "madrsScale": "MADRS Scale (Depression)",
+            "noData": "No scale data available"
         },
         "insights": {
-            "title": "Clinical Insights"
+            "title": "AI Insights",
+            "improvement": "Significant improvement ({{previous}} → {{current}}, {{change}}% decrease). Clinical response detected.",
+            "worsening": "Concerning increase ({{previous}} → {{current}}, {{change}}% rise). Consider treatment adjustment.",
+            "stable": "Stable scores ({{score}}). Treatment maintenance appears effective.",
+            "multiImprovement": "Multi-domain improvement detected across {{scales}}. Treatment showing broad efficacy.",
+            "noDataAvailable": "Insufficient scale data for trend analysis. Consider completing psychiatric assessments in future visits."
         },
         "metrics": {
-            "sleepTime": {
-                "title": "Average Sleep Time",
-                "belowNorm": "below norm"
+            "totalVisits": {
+                "title": "Total Visits",
+                "description": "Patient visit history"
             },
-            "activity": {
-                "title": "Activity",
-                "monthChange": "m/m"
+            "scalesCompleted": {
+                "title": "Scales Completed",
+                "description": "All scales combined"
             }
         }
     },

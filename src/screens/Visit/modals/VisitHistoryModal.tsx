@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
     View,
     Text,
@@ -7,6 +7,7 @@ import {
     Modal,
     ScrollView,
     ActivityIndicator,
+    TextInput,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -14,6 +15,8 @@ import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-nat
 
 import { useTranslation } from 'react-i18next';
 import { useThemeColors } from '../../../hooks/useThemeColors';
+
+type SortOrder = 'newest' | 'oldest';
 
 interface VisitHistoryModalProps {
     visible: boolean;
@@ -28,6 +31,8 @@ const VisitHistoryModal = ({ visible, onClose, visits = [], total = 0, loading =
     const { colors: tc, isDark } = useThemeColors();
     const ds = createDynamicStyles(tc, isDark);
     const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+    const [searchText, setSearchText] = useState('');
+    const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
 
     const toggleExpand = useCallback((index: number) => {
         setExpandedIndex(prev => prev === index ? null : index);
@@ -36,21 +41,42 @@ const VisitHistoryModal = ({ visible, onClose, visits = [], total = 0, loading =
     const formatVisitDate = useCallback((dateStr: string) => {
         if (!dateStr) return t('visit.history_labels.noData');
         const date = new Date(dateStr);
-        const day = date.getDate();
-        const month = date.toLocaleString(i18n.language || 'en', { month: 'long' });
-        const year = date.getFullYear();
-        return `${day} ${month} ${year}`;
+        return date.toLocaleDateString(i18n.language === 'pl' ? 'pl-PL' : 'en-US', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+        });
     }, [t, i18n.language]);
 
     const formatTime = useCallback((timeStr: string) => {
         if (!timeStr) return '';
-        // If it's already a plain time string like "13:00", return as-is
         if (/^\d{1,2}:\d{2}$/.test(timeStr)) return timeStr;
-        // Otherwise try to parse as a date
         const date = new Date(timeStr);
         if (isNaN(date.getTime())) return timeStr;
         return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
     }, []);
+
+    const filteredAndSortedVisits = useMemo(() => {
+        let filtered = [...visits];
+
+        if (searchText.trim()) {
+            const query = searchText.toLowerCase();
+            filtered = filtered.filter(v => {
+                const date = formatVisitDate(v.date).toLowerCase();
+                const doctor = (v.doctor?.name || v.doctorName || v.doctor || '').toLowerCase();
+                const notes = (v.notes || '').toLowerCase();
+                return date.includes(query) || doctor.includes(query) || notes.includes(query);
+            });
+        }
+
+        filtered.sort((a, b) => {
+            const dateA = new Date(a.date).getTime();
+            const dateB = new Date(b.date).getTime();
+            return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+        });
+
+        return filtered;
+    }, [visits, searchText, sortOrder, formatVisitDate]);
 
     return (
         <Modal
@@ -69,11 +95,42 @@ const VisitHistoryModal = ({ visible, onClose, visits = [], total = 0, loading =
                         </TouchableOpacity>
                     </View>
 
+                    {/* Search & Sort */}
+                    <View style={ds.filterBar}>
+                        <View style={ds.searchBar}>
+                            <Feather name="search" size={16} color={tc.textMuted} />
+                            <TextInput
+                                style={ds.searchInput}
+                                placeholder={t('visitList.searchPlaceholder')}
+                                value={searchText}
+                                onChangeText={setSearchText}
+                                placeholderTextColor={tc.textMuted}
+                            />
+                            {searchText.length > 0 && (
+                                <TouchableOpacity onPress={() => setSearchText('')}>
+                                    <Feather name="x" size={14} color={tc.textMuted} />
+                                </TouchableOpacity>
+                            )}
+                        </View>
+                        <TouchableOpacity
+                            style={ds.sortButton}
+                            onPress={() => setSortOrder(prev => prev === 'newest' ? 'oldest' : 'newest')}
+                        >
+                            <Feather
+                                name={sortOrder === 'newest' ? 'arrow-down' : 'arrow-up'}
+                                size={14}
+                                color={tc.accent}
+                            />
+                        </TouchableOpacity>
+                    </View>
+
                     {/* Sub Header */}
                     <View style={ds.subHeader}>
                         <Text style={ds.activeLabel}>{t('visit.profile.history')}</Text>
                         <View style={ds.totalContainer}>
-                            <Text style={ds.totalText}>{t('visit.profile.history_total', { total })}</Text>
+                            <Text style={ds.totalText}>
+                                {t('visit.profile.history_total', { total: filteredAndSortedVisits.length })}
+                            </Text>
                         </View>
                     </View>
 
@@ -83,9 +140,9 @@ const VisitHistoryModal = ({ visible, onClose, visits = [], total = 0, loading =
                             <View style={ds.loadingContainer}>
                                 <ActivityIndicator size="large" color="#58A7B3" />
                             </View>
-                        ) : visits.length > 0 ? (
+                        ) : filteredAndSortedVisits.length > 0 ? (
                             <ScrollView style={ds.scrollView} showsVerticalScrollIndicator={false}>
-                                {visits.map((visit, index) => {
+                                {filteredAndSortedVisits.map((visit, index) => {
                                     const isExpanded = expandedIndex === index;
                                     const startTime = visit.startTime;
                                     const endTime = visit.endTime;
@@ -100,7 +157,6 @@ const VisitHistoryModal = ({ visible, onClose, visits = [], total = 0, loading =
                                             ds.visitCard,
                                             isExpanded && ds.visitCardExpanded,
                                         ]}>
-                                            {/* Visit Header - always visible */}
                                             <TouchableOpacity
                                                 style={[
                                                     ds.visitCardHeader,
@@ -121,9 +177,7 @@ const VisitHistoryModal = ({ visible, onClose, visits = [], total = 0, loading =
                                                             {visit.visitType ? t(`visit.type.${visit.visitType}`) : t('visit.type.followUp')}
                                                         </Text>
                                                         {timeRange ? (
-                                                            <Text style={ds.visitCardTime}>
-                                                                {timeRange}
-                                                            </Text>
+                                                            <Text style={ds.visitCardTime}>{timeRange}</Text>
                                                         ) : null}
                                                     </View>
                                                 </View>
@@ -142,7 +196,6 @@ const VisitHistoryModal = ({ visible, onClose, visits = [], total = 0, loading =
                                                 </View>
                                             </TouchableOpacity>
 
-                                            {/* Expanded Details */}
                                             {isExpanded && (
                                                 <View style={ds.visitExpandedContent}>
                                                     {/* Doctor */}
@@ -157,15 +210,17 @@ const VisitHistoryModal = ({ visible, onClose, visits = [], total = 0, loading =
                                                     </View>
 
                                                     {/* Notes */}
-                                                    <View style={ds.expandedSection}>
-                                                        <View style={ds.expandedSectionHeader}>
-                                                            <Feather name="file-text" size={16} color={tc.textSecondary} />
-                                                            <Text style={ds.expandedSectionTitle}>{t('visit.history_labels.notes')}</Text>
+                                                    {(visit.notes || visit.note) && (
+                                                        <View style={ds.expandedSection}>
+                                                            <View style={ds.expandedSectionHeader}>
+                                                                <Feather name="file-text" size={16} color={tc.textSecondary} />
+                                                                <Text style={ds.expandedSectionTitle}>{t('visit.history_labels.notes')}</Text>
+                                                            </View>
+                                                            <Text style={ds.expandedSectionValue}>
+                                                                {visit.notes || visit.note}
+                                                            </Text>
                                                         </View>
-                                                        <Text style={ds.expandedSectionValue}>
-                                                            {visit.notes || t('visit.history_labels.defaultNote')}
-                                                        </Text>
-                                                    </View>
+                                                    )}
 
                                                     {/* Medical Interview */}
                                                     <View style={ds.expandedSection}>
@@ -176,13 +231,53 @@ const VisitHistoryModal = ({ visible, onClose, visits = [], total = 0, loading =
 
                                                         <Text style={ds.expandedSubLabel}>{t('visit.history_labels.mainSymptoms')}</Text>
                                                         <Text style={ds.expandedSubValue}>
-                                                            {visit.mainSymptoms || visit.recommendations?.mainSymptoms || t('visit.history_labels.noData')}
+                                                            {visit.interview?.mainSymptoms || visit.mainSymptoms || visit.recommendations?.mainSymptoms || t('visit.history_labels.noData')}
                                                         </Text>
 
-                                                        <View style={[ds.expandedSectionHeader, { marginTop: 12 }]}>
-                                                            <MaterialCommunityIcons name="brain" size={16} color={tc.textSecondary} />
-                                                            <Text style={ds.expandedSectionTitle}>{t('visit.history_labels.scales')}</Text>
-                                                        </View>
+                                                        {/* Current Medications */}
+                                                        {visit.interview?.currentMedications && visit.interview.currentMedications.length > 0 && (
+                                                            <>
+                                                                <Text style={[ds.expandedSubLabel, { marginTop: 10 }]}>
+                                                                    {t('visit.history_labels.currentMedications')}
+                                                                </Text>
+                                                                {visit.interview.currentMedications.map((med: string, idx: number) => (
+                                                                    <View key={idx} style={ds.medicationRow}>
+                                                                        <View style={ds.bulletDot} />
+                                                                        <Text style={ds.expandedSubValue}>{med}</Text>
+                                                                    </View>
+                                                                ))}
+                                                            </>
+                                                        )}
+
+                                                        {/* Additional Notes */}
+                                                        {visit.interview?.additionalNotes && (
+                                                            <>
+                                                                <Text style={[ds.expandedSubLabel, { marginTop: 10 }]}>
+                                                                    {t('visit.history_labels.additionalNotes')}
+                                                                </Text>
+                                                                <Text style={ds.expandedSubValue}>{visit.interview.additionalNotes}</Text>
+                                                            </>
+                                                        )}
+
+                                                        {/* Psychiatric Scales */}
+                                                        {visit.interview?.psychiatricScales && (
+                                                            <>
+                                                                <View style={[ds.expandedSectionHeader, { marginTop: 12 }]}>
+                                                                    <MaterialCommunityIcons name="brain" size={16} color={tc.textSecondary} />
+                                                                    <Text style={ds.expandedSectionTitle}>{t('visit.history_labels.scales')}</Text>
+                                                                </View>
+                                                                <View style={ds.scalesGrid}>
+                                                                    {Object.entries(visit.interview.psychiatricScales).map(([scale, value]) =>
+                                                                        value !== null && value !== undefined ? (
+                                                                            <View key={scale} style={ds.scaleItem}>
+                                                                                <Text style={ds.scaleLabel}>{scale.toUpperCase()}</Text>
+                                                                                <Text style={ds.scaleValue}>{String(value)}</Text>
+                                                                            </View>
+                                                                        ) : null
+                                                                    )}
+                                                                </View>
+                                                            </>
+                                                        )}
                                                     </View>
 
                                                     {/* Examination */}
@@ -220,6 +315,14 @@ const VisitHistoryModal = ({ visible, onClose, visits = [], total = 0, loading =
                                                                 </Text>
                                                             </View>
                                                         </View>
+                                                        {visit.examination?.additionalFindings && (
+                                                            <View style={[ds.examGrid, { marginTop: 4 }]}>
+                                                                <View style={[ds.examGridItem, { flex: 1 }]}>
+                                                                    <Text style={ds.examLabel}>{t('visit.history_labels.additionalFindings')}:</Text>
+                                                                    <Text style={ds.examValue}>{visit.examination.additionalFindings}</Text>
+                                                                </View>
+                                                            </View>
+                                                        )}
                                                     </View>
                                                 </View>
                                             )}
@@ -273,12 +376,47 @@ const createDynamicStyles = (tc: any, isDark: boolean) =>
         closeBtn: {
             padding: 4,
         },
+        filterBar: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: 16,
+            paddingVertical: 10,
+            gap: 8,
+        },
+        searchBar: {
+            flex: 1,
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: tc.inputBackground || (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc'),
+            borderWidth: 1,
+            borderColor: tc.borderColor,
+            borderRadius: 8,
+            paddingHorizontal: 10,
+            height: 36,
+        },
+        searchInput: {
+            flex: 1,
+            marginLeft: 6,
+            fontSize: 12,
+            color: tc.textPrimary,
+            padding: 0,
+        },
+        sortButton: {
+            width: 36,
+            height: 36,
+            borderRadius: 8,
+            borderWidth: 1,
+            borderColor: tc.borderColor,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: tc.cardBackground,
+        },
         subHeader: {
             flexDirection: 'row',
             justifyContent: 'space-between',
             alignItems: 'center',
             paddingHorizontal: 20,
-            paddingVertical: 15,
+            paddingVertical: 12,
             borderBottomWidth: 1,
             borderBottomColor: tc.borderColor,
             backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : tc.cardBackgroundAlt,
@@ -417,6 +555,48 @@ const createDynamicStyles = (tc: any, isDark: boolean) =>
             color: tc.textSecondary,
             marginTop: 2,
             paddingLeft: 24,
+            lineHeight: 18,
+        },
+        medicationRow: {
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            marginTop: 4,
+            paddingLeft: 28,
+        },
+        bulletDot: {
+            width: 5,
+            height: 5,
+            borderRadius: 3,
+            backgroundColor: tc.textMuted,
+            marginTop: 6,
+            marginRight: 8,
+        },
+        scalesGrid: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            marginTop: 8,
+            paddingLeft: 24,
+            gap: 8,
+        },
+        scaleItem: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc',
+            paddingHorizontal: 10,
+            paddingVertical: 5,
+            borderRadius: 8,
+            borderWidth: 1,
+            borderColor: tc.borderColor,
+        },
+        scaleLabel: {
+            fontSize: 12,
+            fontWeight: '700',
+            color: tc.textPrimary,
+            marginRight: 6,
+        },
+        scaleValue: {
+            fontSize: 12,
+            color: tc.textSecondary,
         },
         examGrid: {
             flexDirection: 'row',

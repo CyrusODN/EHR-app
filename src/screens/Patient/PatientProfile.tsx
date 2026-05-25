@@ -24,6 +24,7 @@ import Documents from './profileOptions/Documents';
 import VisitList from './profileOptions/VisitList';
 import Insurance from './profileOptions/Insurance';
 import PatientLogs from './profileOptions/PatientLogs';
+import AuditTrail from './profileOptions/AuditTrail';
 
 const PatientProfile = () => {
     const { t } = useTranslation();
@@ -45,6 +46,7 @@ const PatientProfile = () => {
         { id: 'Visits List', label: t('patient_tabs.visits_list') },
         { id: 'Insurance', label: t('patient_tabs.insurance') },
         { id: 'Patient Logs', label: t('patient_tabs.history') },
+        { id: 'Audit Trail', label: t('patient_tabs.audit_trail') },
     ];
 
     const handleAlert = (type: string, message: string) => {
@@ -148,6 +150,7 @@ const PatientProfile = () => {
             case 'Visits List': return <VisitList {...props} />;
             case 'Insurance': return <Insurance {...props} />;
             case 'Patient Logs': return <PatientLogs {...props} />;
+            case 'Audit Trail': return <AuditTrail {...props} />;
             default: return <PersonalData {...props} />;
         }
     };

@@ -14,3 +14,12 @@ export async function GetPatientLogs(patientId) {
         return throwServerError(err);
     }
 }
+
+export async function GetPatientAuditTrail(patientId) {
+    try {
+        const result = await getRequest(`${MODEL_NAME}/${patientId}/audit-trail`);
+        return result;
+    } catch (err) {
+        return throwServerError(err);
+    }
+}

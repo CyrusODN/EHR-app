@@ -356,6 +356,7 @@ const VisitProfile = ({
             <TrendAnalysisModal 
                 visible={showTrendModal} 
                 onClose={() => setShowTrendModal(false)}
+                patientId={patientData?.id || patientData?._id}
                 totalVisits={trendData?.total}
                 scalesCompleted={trendData?.scalesCount}
                 loading={loadingTrends}
