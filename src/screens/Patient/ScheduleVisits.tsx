@@ -58,6 +58,7 @@ export const ScheduleVisitsScreen = () => {
     const [isCreateVisitModalVisible, setIsCreateVisitModalVisible] = useState(false);
     const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
     const [selectedDayVisits, setSelectedDayVisits] = useState<any[]>([]);
+    const [selectedSingleVisit, setSelectedSingleVisit] = useState<any>(null);
     const [alertConfig, setAlertConfig] = useState<any>({
         visible: false,
         type: 'success',
@@ -212,11 +213,18 @@ export const ScheduleVisitsScreen = () => {
                     id: v.id || v._id,
                     fullDate: v.date,
                     time: startTime,
+                    endTime: endTime,
                     patient: v.patient?.name || t('patientDetailsModal.empty.na'),
+                    patientObj: v.patient || null,
                     doctor: v.doctor?.name || t('common.na'),
+                    doctorObj: v.doctor || null,
                     duration: durationMinutes > 0 ? durationMinutes : 30,
                     status: v.status,
-                    specialization: v.specialization || ''
+                    specialization: v.specialization || '',
+                    visitType: v.visitType || '',
+                    notes: v.notes || '',
+                    office: v.office || '',
+                    appointmentType: v.appointmentType || '',
                 };
             });
             setAppointments(mappedAppointments);
@@ -310,20 +318,35 @@ export const ScheduleVisitsScreen = () => {
         });
     };
 
+    const mapAppToVisit = (app: any) => ({
+        id: app.id,
+        patient: app.patientObj || { name: app.patient },
+        startTime: app.time,
+        endTime: app.endTime || '',
+        date: app.fullDate,
+        status: app.status,
+        visitType: app.visitType || '',
+        specialization: app.specialization || '',
+        doctor: app.doctorObj || { name: app.doctor },
+        notes: app.notes || '',
+        office: app.office || '',
+        appointmentType: app.appointmentType || '',
+    });
+
     const showDayDetailModal = (dayFullDate: Date) => {
         const dayVisits = getVisitsForDate(dayFullDate);
         if (dayVisits.length > 0) {
-            const mapped = dayVisits.map(app => ({
-                id: app.id,
-                patient: { name: app.patient },
-                startTime: app.time,
-                status: app.status,
-                visitType: app.specialization || '',
-                doctor: app.doctor,
-            }));
+            const mapped = dayVisits.map(mapAppToVisit);
             setSelectedDayVisits(mapped);
+            setSelectedSingleVisit(null);
             setIsDetailModalVisible(true);
         }
+    };
+
+    const showVisitDetail = (app: any) => {
+        setSelectedSingleVisit(mapAppToVisit(app));
+        setSelectedDayVisits([]);
+        setIsDetailModalVisible(true);
     };
 
     const renderAppointment = (dayFullDate: Date, time: string) => {
@@ -371,7 +394,7 @@ export const ScheduleVisitsScreen = () => {
                         }
                     ]}
                     activeOpacity={0.7}
-                    onPress={() => showDayDetailModal(dayFullDate)}
+                    onPress={() => showVisitDetail(appointment)}
                 >
                     <View>
                         <Text style={ds.appointmentPatient} numberOfLines={1}>{appointment.patient}</Text>
@@ -712,8 +735,12 @@ export const ScheduleVisitsScreen = () => {
                 />
                 <ScheduledVisitsModal
                     visible={isDetailModalVisible}
-                    onClose={() => setIsDetailModalVisible(false)}
+                    onClose={() => {
+                        setIsDetailModalVisible(false);
+                        setSelectedSingleVisit(null);
+                    }}
                     visits={selectedDayVisits}
+                    initialVisit={selectedSingleVisit}
                     onVisitPress={(visit) => {
                         setIsDetailModalVisible(false);
                     }}

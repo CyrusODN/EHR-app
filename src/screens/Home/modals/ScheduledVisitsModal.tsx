@@ -6,6 +6,7 @@ import {
     TouchableOpacity,
     TouchableWithoutFeedback,
     FlatList,
+    ScrollView,
     Animated,
     Dimensions,
     Platform,
@@ -24,19 +25,27 @@ interface ScheduledVisitsModalProps {
     onClose: () => void;
     visits: any[];
     onVisitPress?: (visit: any) => void;
+    /** When provided, the modal opens directly in detail view for this visit */
+    initialVisit?: any;
 }
 
-const ScheduledVisitsModal = ({ visible, onClose, visits = [], onVisitPress }: ScheduledVisitsModalProps) => {
+const ScheduledVisitsModal = ({ visible, onClose, visits = [], onVisitPress, initialVisit }: ScheduledVisitsModalProps) => {
     const { t } = useTranslation();
     const { colors: tc, isDark } = useThemeColors();
     const ds = createDynamicStyles(tc, isDark);
     const insets = useSafeAreaInsets();
     const [isMounted, setIsMounted] = useState(false);
+    const [selectedVisit, setSelectedVisit] = useState<any>(null);
     const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
     const backdropOpacity = useRef(new Animated.Value(0)).current;
 
+    const isDirectDetail = !!initialVisit;
+
     useEffect(() => {
         if (visible) {
+            if (initialVisit) {
+                setSelectedVisit(initialVisit);
+            }
             setIsMounted(true);
             Animated.parallel([
                 Animated.spring(slideAnim, {
@@ -66,9 +75,18 @@ const ScheduledVisitsModal = ({ visible, onClose, visits = [], onVisitPress }: S
                 }),
             ]).start(() => {
                 setIsMounted(false);
+                setSelectedVisit(null);
             });
         }
     }, [visible]);
+
+    const handleClose = () => {
+        if (selectedVisit && !isDirectDetail) {
+            setSelectedVisit(null);
+        } else {
+            onClose();
+        }
+    };
 
     const getInitials = (name: string) => {
         if (!name) return '?';
@@ -92,6 +110,151 @@ const ScheduledVisitsModal = ({ visible, onClose, visits = [], onVisitPress }: S
         return { bg: isDark ? 'rgba(107,114,128,0.15)' : '#F3F4F6', text: isDark ? '#9CA3AF' : '#6B7280', icon: 'circle' };
     };
 
+    const formatVisitDate = (dateStr: string) => {
+        if (!dateStr) return '';
+        try {
+            const date = new Date(dateStr);
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            return `${days[date.getDay()]}, ${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+        } catch {
+            return dateStr;
+        }
+    };
+
+    const renderVisitDetail = () => {
+        if (!selectedVisit) return null;
+
+        const patientName = selectedVisit.patient?.name || selectedVisit.patientName || t('common.na');
+        const visitType = selectedVisit.visitType || selectedVisit.type || '';
+        const specialization = selectedVisit.specialization || '';
+        const startTime = selectedVisit.startTime || selectedVisit.time || '--:--';
+        const endTime = selectedVisit.endTime || '';
+        const status = selectedVisit.status || 'scheduled';
+        const statusStyle = getStatusStyle(status);
+        const doctorName = selectedVisit.doctor?.name || selectedVisit.doctor || '';
+        const doctorSpec = selectedVisit.doctor?.specialization || '';
+        const notes = selectedVisit.notes || '';
+        const visitDate = selectedVisit.date || selectedVisit.fullDate || '';
+        const office = selectedVisit.office || '';
+        const patientEmail = selectedVisit.patient?.email || '';
+        const patientPhone = selectedVisit.patient?.phone || '';
+
+        return (
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 16 }}>
+                {/* Date/Time gradient header */}
+                <LinearGradient
+                    colors={['#4A90B9', '#68BFB3']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={ds.detailHeader}
+                >
+                    <View style={[ds.detailHeaderRow,{marginBottom:0}]}>
+                        <Feather name="calendar" size={16} color="white" />
+                        <Text style={ds.detailHeaderDate}>{formatVisitDate(visitDate)}</Text>
+                    </View>
+                    <View style={ds.detailHeaderRow}>
+                        <Feather name="clock" size={14} color="rgba(255,255,255,0.85)" />
+                        <Text style={ds.detailHeaderTime}>
+                            {startTime}{endTime ? ` - ${endTime}` : ''}
+                        </Text>
+                    </View>
+                </LinearGradient>
+
+                {/* Patient section */}
+                <View style={ds.detailSection}>
+                    <View style={ds.detailSectionHeader}>
+                        <Feather name="user" size={16} color={tc.textPrimary} />
+                        <Text style={ds.detailSectionTitle}>{t('eventDetail.patient')}</Text>
+                    </View>
+                    <View style={ds.detailSectionContent}>
+                        <Text style={ds.detailValue}>{patientName}</Text>
+                        {patientEmail ? <Text style={ds.detailSubValue}>{patientEmail}</Text> : null}
+                        {patientPhone ? (
+                            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                                <Feather name="phone" size={12} color={tc.textMuted} style={{ marginRight: 4 }} />
+                                <Text style={ds.detailSubValue}>{patientPhone}</Text>
+                            </View>
+                        ) : null}
+                    </View>
+                </View>
+
+                {/* Visit Details section */}
+                <View style={ds.detailSection}>
+                    <View style={ds.detailSectionHeader}>
+                        <Feather name="file-text" size={16} color={tc.textPrimary} />
+                        <Text style={ds.detailSectionTitle}>{t('eventDetail.visitDetails')}</Text>
+                    </View>
+                    <View style={ds.detailGrid}>
+                        {visitType ? (
+                            <View style={ds.detailGridItem}>
+                                <Text style={ds.detailLabel}>{t('eventDetail.visitType')}</Text>
+                                <Text style={ds.detailValue}>{visitType}</Text>
+                            </View>
+                        ) : null}
+                        {specialization ? (
+                            <View style={ds.detailGridItem}>
+                                <Text style={ds.detailLabel}>{t('eventDetail.specialization')}</Text>
+                                <Text style={ds.detailValue}>{specialization}</Text>
+                            </View>
+                        ) : null}
+                        {status ? (
+                            <View style={ds.detailGridItem}>
+                                <Text style={ds.detailLabel}>{t('eventDetail.status')}</Text>
+                                <View style={[ds.detailStatusBadge, { backgroundColor: statusStyle.bg }]}>
+                                    <Feather name={statusStyle.icon} size={12} color={statusStyle.text} />
+                                    <Text style={[ds.detailStatusText, { color: statusStyle.text }]}>
+                                        {t(`eventDetail.statuses.${status}`) || status}
+                                    </Text>
+                                </View>
+                            </View>
+                        ) : null}
+                    </View>
+                </View>
+
+                {/* Office/Location */}
+                {office ? (
+                    <View style={ds.detailSection}>
+                        <View style={ds.detailSectionHeader}>
+                            <Feather name="map-pin" size={16} color={tc.textPrimary} />
+                            <Text style={ds.detailSectionTitle}>{t('eventDetail.location')}</Text>
+                        </View>
+                        <View style={ds.detailSectionContent}>
+                            <Text style={ds.detailValue}>{office}</Text>
+                        </View>
+                    </View>
+                ) : null}
+
+                {/* Doctor section */}
+                {doctorName ? (
+                    <View style={ds.detailSection}>
+                        <View style={ds.detailSectionHeader}>
+                            <Feather name="briefcase" size={16} color={tc.textPrimary} />
+                            <Text style={ds.detailSectionTitle}>{t('eventDetail.doctor')}</Text>
+                        </View>
+                        <View style={ds.detailSectionContent}>
+                            <Text style={ds.detailValue}>{doctorName}</Text>
+                            {doctorSpec ? <Text style={ds.detailSubValue}>{doctorSpec}</Text> : null}
+                        </View>
+                    </View>
+                ) : null}
+
+                {/* Notes section */}
+                {notes ? (
+                    <View style={ds.detailSection}>
+                        <View style={ds.detailSectionHeader}>
+                            <Feather name="tag" size={16} color={tc.textPrimary} />
+                            <Text style={ds.detailSectionTitle}>{t('eventDetail.notes')}</Text>
+                        </View>
+                        <View style={ds.detailNotesBox}>
+                            <Text style={ds.detailNotesText}>{notes}</Text>
+                        </View>
+                    </View>
+                ) : null}
+            </ScrollView>
+        );
+    };
+
     const renderVisitItem = ({ item }: { item: any }) => {
         const patientName = item.patient?.name || item.patientName || t('common.na');
         const visitType = item.visitType || item.type || '';
@@ -104,7 +267,7 @@ const ScheduledVisitsModal = ({ visible, onClose, visits = [], onVisitPress }: S
             <TouchableOpacity
                 style={ds.visitCard}
                 activeOpacity={0.7}
-                onPress={() => onVisitPress?.(item)}
+                onPress={() => setSelectedVisit(item)}
             >
                 <View style={ds.visitCardContent}>
                     <View style={ds.visitTopRow}>
@@ -153,7 +316,7 @@ const ScheduledVisitsModal = ({ visible, onClose, visits = [], onVisitPress }: S
     return (
         <View style={[StyleSheet.absoluteFill, { zIndex: 999, elevation: 999 }]}>
             <Animated.View style={[ds.backdrop, { opacity: backdropOpacity }]}>
-                <TouchableWithoutFeedback onPress={onClose}>
+                <TouchableWithoutFeedback onPress={handleClose}>
                     <View style={{ flex: 1 }} />
                 </TouchableWithoutFeedback>
             </Animated.View>
@@ -164,7 +327,7 @@ const ScheduledVisitsModal = ({ visible, onClose, visits = [], onVisitPress }: S
                     {
                         paddingBottom: insets.bottom + 10,
                         transform: [{ translateY: slideAnim }],
-                        maxHeight: SCREEN_HEIGHT * 0.75,
+                        maxHeight: SCREEN_HEIGHT * 0.85,
                     },
                 ]}
             >
@@ -174,22 +337,34 @@ const ScheduledVisitsModal = ({ visible, onClose, visits = [], onVisitPress }: S
 
                 <View style={ds.header}>
                     <View style={ds.headerLeft}>
-                        <View style={ds.headerIconBg}>
-                            <Feather name="calendar" size={18} color="#4A90B9" />
-                        </View>
+                        {selectedVisit && !isDirectDetail ? (
+                            <TouchableOpacity onPress={() => setSelectedVisit(null)} style={ds.backBtn}>
+                                <Feather name="arrow-left" size={18} color={tc.textPrimary} />
+                            </TouchableOpacity>
+                        ) : (
+                            <View style={ds.headerIconBg}>
+                                <Feather name={selectedVisit ? 'file-text' : 'calendar'} size={18} color="#4A90B9" />
+                            </View>
+                        )}
                         <View>
-                            <Text style={ds.headerTitle}>{t('scheduledVisits.title')}</Text>
-                            <Text style={ds.headerSubtitle}>
-                                {visits.length} {t('dashboard.calendar.visitsCount')}
+                            <Text style={ds.headerTitle}>
+                                {selectedVisit ? t('eventDetail.title') : t('scheduledVisits.title')}
                             </Text>
+                            {!selectedVisit && (
+                                <Text style={ds.headerSubtitle}>
+                                    {visits.length} {t('dashboard.calendar.visitsCount')}
+                                </Text>
+                            )}
                         </View>
                     </View>
-                    <TouchableOpacity onPress={onClose} style={ds.closeBtn}>
+                    <TouchableOpacity onPress={handleClose} style={ds.closeBtn}>
                         <Feather name="x" size={18} color={tc.textMuted} />
                     </TouchableOpacity>
                 </View>
 
-                {visits.length === 0 ? (
+                {selectedVisit ? (
+                    renderVisitDetail()
+                ) : visits.length === 0 ? (
                     <View style={ds.emptyContainer}>
                         <Icon name="calendar-blank-outline" size={48} color={tc.textMuted} />
                         <Text style={ds.emptyTitle}>{t('dashboard.calendar.noVisitsFound')}</Text>
@@ -281,6 +456,15 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
         backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#F3F4F6',
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    backBtn: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#F3F4F6',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
     },
     listContent: {
         padding: 16,
@@ -395,6 +579,101 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
         color: tc.textMuted,
         marginTop: 4,
         textAlign: 'center',
+    },
+    // Detail view styles
+    detailHeader: {
+        marginHorizontal: 16,
+        marginTop: 16,
+        borderRadius: 16,
+        width: "90%", alignSelf: "center",
+        // height:50,
+        justifyContent: "center",
+    },
+    detailHeaderRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8, marginTop: 10,
+        marginLeft: 10,
+        marginBottom: 10,
+    },
+    detailHeaderDate: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: 'white',
+  
+    },
+    detailHeaderTime: {
+        fontSize: 14,
+        color: 'rgba(255,255,255,0.85)',
+    },
+    detailSection: {
+        paddingHorizontal: 20,
+        paddingTop: 18,
+    },
+    detailSectionHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        marginBottom: 8,
+    },
+    detailSectionTitle: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: tc.textPrimary,
+    },
+    detailSectionContent: {
+        marginLeft: 24,
+    },
+    detailGrid: {
+        marginLeft: 24,
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 12,
+    },
+    detailGridItem: {
+        width: '45%' as any,
+    },
+    detailLabel: {
+        fontSize: 12,
+        color: tc.textMuted,
+        marginBottom: 2,
+    },
+    detailValue: {
+        fontSize: 14,
+        fontWeight: '500',
+        color: tc.textPrimary,
+    },
+    detailSubValue: {
+        fontSize: 13,
+        color: tc.textMuted,
+        marginTop: 2,
+    },
+    detailStatusBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        alignSelf: 'flex-start',
+        paddingVertical: 4,
+        paddingHorizontal: 10,
+        borderRadius: 20,
+        gap: 5,
+        marginTop: 2,
+    },
+    detailStatusText: {
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    detailNotesBox: {
+        marginLeft: 24,
+        padding: 12,
+        borderRadius: 10,
+        backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#F9FAFB',
+        borderWidth: 1,
+        borderColor: tc.borderSubtle,
+    },
+    detailNotesText: {
+        fontSize: 14,
+        color: tc.textSecondary,
+        lineHeight: 20,
     },
 });
 
