@@ -17,6 +17,7 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import LinearGradient from 'react-native-linear-gradient';
 import SelectDataModal from './modals/SelectDataModal';
+import VisitConfirmationModal from './modals/VisitConfirmationModal';
 import VisitProfile from './VisitProfile';
 import VisitInterview from './VisitInterview';
 import VisitExamination from './visitExamination';
@@ -46,7 +47,13 @@ const VisitScreen = () => {
     const [currentStep, setCurrentStep] = useState(1);
     const [activeAiTool, setActiveAiTool] = useState('Decision Support');
     const [showDataModal, setShowDataModal] = useState(false);
-    
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [finishLoading, setFinishLoading] = useState(false);
+
+    // Step transition animation refs
+    const stepFadeAnim = useRef(new Animated.Value(1)).current;
+    const stepSlideAnim = useRef(new Animated.Value(0)).current;
+    const prevStepRef = useRef(1);
 
     const [visitData, setVisitData] = useState(null);
     const [previousVisits, setPreviousVisits] = useState([]);
@@ -109,6 +116,60 @@ const VisitScreen = () => {
             setLoading(false);
         }
     };
+
+    const animateStepTransition = useCallback((newStep) => {
+        const direction = newStep > prevStepRef.current ? 1 : -1;
+        
+        Animated.parallel([
+            Animated.timing(stepFadeAnim, {
+                toValue: 0,
+                duration: 150,
+                useNativeDriver: true,
+            }),
+            Animated.timing(stepSlideAnim, {
+                toValue: direction * -30,
+                duration: 150,
+                useNativeDriver: true,
+            }),
+        ]).start(() => {
+            prevStepRef.current = newStep;
+            setCurrentStep(newStep);
+            stepSlideAnim.setValue(direction * 30);
+
+            Animated.parallel([
+                Animated.timing(stepFadeAnim, {
+                    toValue: 1,
+                    duration: 250,
+                    useNativeDriver: true,
+                }),
+                Animated.spring(stepSlideAnim, {
+                    toValue: 0,
+                    useNativeDriver: true,
+                    damping: 20,
+                    stiffness: 200,
+                }),
+            ]).start();
+        });
+    }, [stepFadeAnim, stepSlideAnim]);
+
+    const handleFinishVisit = useCallback(async () => {
+        setFinishLoading(true);
+        try {
+            await UpdateVisit({
+                ...visitData,
+                visitId,
+                id: visitId,
+                _id: visitId,
+                status: 'completed',
+            });
+            setShowConfirmModal(false);
+            navigation.navigate('Dashboard');
+        } catch (error) {
+            console.error("Error completing visit:", error);
+        } finally {
+            setFinishLoading(false);
+        }
+    }, [visitId, visitData, navigation]);
 
     const debounceTimeoutRef = useRef(null);
     const pendingUpdatesRef = useRef({});
@@ -200,7 +261,7 @@ const VisitScreen = () => {
                             isActive && ds.stepCircleActive,
                             isCompleted && ds.stepCircleCompleted
                         ]}
-                        onPress={() => setCurrentStep(step.id)}
+                        onPress={() => animateStepTransition(step.id)}
                         activeOpacity={0.7}
                     >
                         {isCompleted ? (
@@ -251,8 +312,8 @@ const VisitScreen = () => {
             case 1:
                 return (
                     <VisitProfile 
-                        onNext={() => setCurrentStep(2)} 
-                        onBack={() => {/* Navigation back handled by parent if needed */}} 
+                        onNext={() => animateStepTransition(2)} 
+                        onBack={() => {}} 
                         patientData={visitData?.patient || visitData?.patientId}
                         medicalData={medicalData}
                         previousVisits={previousVisits}
@@ -263,8 +324,8 @@ const VisitScreen = () => {
             case 2:
                 return (
                     <VisitInterview 
-                        onNext={() => setCurrentStep(3)} 
-                        onBack={() => setCurrentStep(1)} 
+                        onNext={() => animateStepTransition(3)} 
+                        onBack={() => animateStepTransition(1)} 
                         visitId={visitId}
                         patientId={visitData?.patient?.id || visitData?.patient?._id || visitData?.patientId}
                         visitData={visitData}
@@ -274,8 +335,8 @@ const VisitScreen = () => {
             case 3:
                 return (
                     <VisitExamination 
-                        onNext={() => setCurrentStep(4)} 
-                        onBack={() => setCurrentStep(2)} 
+                        onNext={() => animateStepTransition(4)} 
+                        onBack={() => animateStepTransition(2)} 
                         visitId={visitId}
                         visitData={visitData}
                         onUpdate={handleVisitUpdate}
@@ -284,8 +345,8 @@ const VisitScreen = () => {
             case 4:
                 return (
                     <VisitDiagnosis 
-                        onNext={() => setCurrentStep(5)} 
-                        onBack={() => setCurrentStep(3)} 
+                        onNext={() => animateStepTransition(5)} 
+                        onBack={() => animateStepTransition(3)} 
                         visitData={visitData}
                         onUpdate={handleVisitUpdate}
                     />
@@ -293,8 +354,8 @@ const VisitScreen = () => {
             case 5:
                 return (
                     <VisitDocuments 
-                        onNext={() => setCurrentStep(6)} 
-                        onBack={() => setCurrentStep(4)} 
+                        onNext={() => animateStepTransition(6)} 
+                        onBack={() => animateStepTransition(4)} 
                         visitId={visitId}
                         visitData={visitData}
                         onUpdate={handleVisitUpdate}
@@ -303,8 +364,8 @@ const VisitScreen = () => {
             case 6:
                 return (
                     <VisitSummary 
-                        onFinish={() => {/* Final action */}} 
-                        onBack={() => setCurrentStep(5)} 
+                        onFinish={() => setShowConfirmModal(true)} 
+                        onBack={() => animateStepTransition(5)} 
                         visitId={visitId}
                         visitData={visitData}
                         onUpdate={handleVisitUpdate}
@@ -441,13 +502,26 @@ const VisitScreen = () => {
                 </View>
 
                 {/* Step Content Area (comes after AI tools) */}
-                {renderStepContent()}
+                <Animated.View style={{
+                    opacity: stepFadeAnim,
+                    transform: [{ translateX: stepSlideAnim }],
+                }}>
+                    {renderStepContent()}
+                </Animated.View>
             </ScrollView>
 
             <SelectDataModal
                 visible={showDataModal}
                 onClose={() => setShowDataModal(false)}
                 previousVisits={previousVisits}
+            />
+
+            <VisitConfirmationModal
+                visible={showConfirmModal}
+                onClose={() => setShowConfirmModal(false)}
+                onConfirm={handleFinishVisit}
+                loading={finishLoading}
+                visitData={visitData}
             />
         </SafeAreaView>
     );

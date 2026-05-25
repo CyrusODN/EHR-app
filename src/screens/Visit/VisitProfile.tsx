@@ -5,7 +5,14 @@ import {
     StyleSheet,
     TouchableOpacity,
     ScrollView,
+    LayoutAnimation,
+    UIManager,
+    Platform,
 } from 'react-native';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
@@ -42,6 +49,15 @@ const VisitProfile = ({
     const [trendData, setTrendData] = useState<any>(null);
     const [loadingTrends, setLoadingTrends] = useState(false);
     const [expandedVisitIndex, setExpandedVisitIndex] = useState<number | null>(null);
+
+    const handleTabSwitch = useCallback((tab: string) => {
+        LayoutAnimation.configureNext({
+            duration: 250,
+            create: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
+            update: { type: LayoutAnimation.Types.easeInEaseOut },
+        });
+        setActiveTab(tab);
+    }, []);
 
     const formatVisitDate = useCallback((dateStr: string) => {
         if (!dateStr) return t('visit.history_labels.noData');
@@ -137,6 +153,12 @@ const VisitProfile = ({
     );
 
     const toggleVisitExpand = useCallback((index: number) => {
+        LayoutAnimation.configureNext({
+            duration: 300,
+            create: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
+            update: { type: LayoutAnimation.Types.easeInEaseOut },
+            delete: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
+        });
         setExpandedVisitIndex(prev => prev === index ? null : index);
     }, []);
 
@@ -305,7 +327,7 @@ const VisitProfile = ({
                     <View style={ds.tabContainer}>
                         <TouchableOpacity 
                             style={[ds.tab, activeTab === 'Basic Information' && ds.tabActive]}
-                            onPress={() => setActiveTab('Basic Information')}
+                            onPress={() => handleTabSwitch('Basic Information')}
                         >
                             <Text style={[ds.tabText, activeTab === 'Basic Information' && ds.tabTextActive]}>
                                 {t('visit.profile.tabs.basic')}
@@ -313,7 +335,7 @@ const VisitProfile = ({
                         </TouchableOpacity>
                         <TouchableOpacity 
                             style={[ds.tab, activeTab === 'Visit History' && ds.tabActive]}
-                            onPress={() => setActiveTab('Visit History')}
+                            onPress={() => handleTabSwitch('Visit History')}
                         >
                             <Text style={[ds.tabText, activeTab === 'Visit History' && ds.tabTextActive]}>
                                 {t('visit.profile.tabs.history')}

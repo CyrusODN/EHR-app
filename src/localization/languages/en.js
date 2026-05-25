@@ -353,6 +353,16 @@ export const en = {
                 recommendations: 'Enter general Recommendations'
             }
         },
+        confirmation: {
+            title: 'Complete Visit',
+            subtitle: 'Are you sure you want to mark this visit as completed? This action cannot be undone.',
+            diagnoses: 'Diagnoses',
+            documents: 'Documents',
+            issued: 'Issued',
+            none: 'None',
+            warning: 'Once completed, the visit status will be changed to "completed" and you will be redirected to the dashboard.',
+            confirm: 'Complete Visit',
+        },
         ai: {
             title: 'AI Assistants',
             tabs: {

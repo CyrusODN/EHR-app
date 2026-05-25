@@ -353,6 +353,16 @@ export const pl = {
                 recommendations: 'Wpisz ogólne zalecenia'
             }
         },
+        confirmation: {
+            title: 'Zakończ wizytę',
+            subtitle: 'Czy na pewno chcesz oznaczyć tę wizytę jako zakończoną? Tej akcji nie można cofnąć.',
+            diagnoses: 'Diagnozy',
+            documents: 'Dokumenty',
+            issued: 'Wystawione',
+            none: 'Brak',
+            warning: 'Po zakończeniu status wizyty zostanie zmieniony na „zakończona" i nastąpi przekierowanie do pulpitu.',
+            confirm: 'Zakończ wizytę',
+        },
         ai: {
             title: 'Asystenci AI',
             tabs: {

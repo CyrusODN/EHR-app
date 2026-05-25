@@ -7,7 +7,14 @@ import {
     ScrollView,
     TextInput,
     Platform,
+    Animated,
+    LayoutAnimation,
+    UIManager,
 } from 'react-native';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -138,6 +145,12 @@ const VisitSummary = ({ onBack, onFinish, visitId, visitData, onUpdate }: VisitS
     };
 
     const toggleSection = (section: keyof typeof expandedSections) => {
+        LayoutAnimation.configureNext({
+            duration: 300,
+            create: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
+            update: { type: LayoutAnimation.Types.easeInEaseOut },
+            delete: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
+        });
         setExpandedSections(prev => ({
             ...prev,
             [section]: !prev[section],
