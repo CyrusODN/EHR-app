@@ -68,3 +68,60 @@ export interface SickLeave {
   status?: 'draft' | 'signed';
   signedAt?: string;
 }
+
+export interface Referral {
+  specialization: string;
+  reason: string;
+  urgency?: 'normal' | 'urgent' | 'immediate';
+  additionalNotes?: string;
+}
+
+export interface MedicationScheduleEntry {
+  medication: {
+    id: string;
+    name: string;
+    commonDosage?: string;
+  };
+  instructions: string;
+  duration?: string;
+  reminders?: {
+    enabled: boolean;
+    times: string[];
+  };
+}
+
+export interface ScaleSchedule {
+  scale: string;
+  frequencyDays: number;
+  startDate: string;
+  endDate?: string;
+  reminderEnabled: boolean;
+}
+
+export interface AIAssistanceFeatures {
+  moodTracking: boolean;
+  medicationReminders: boolean;
+  crisisIntervention: boolean;
+  copingStrategies: boolean;
+}
+
+export interface PortalRecommendation {
+  medications: MedicationScheduleEntry[];
+  scales: ScaleSchedule[];
+  aiAssistance: {
+    enabled: boolean;
+    features: AIAssistanceFeatures;
+  };
+  emergencyContacts: boolean;
+  specialization?: string;
+}
+
+export interface NextVisit {
+  date: string;
+  startTime: string;
+  endTime: string;
+  visitId?: string;
+  status?: string;
+  doctor?: any;
+  patient?: any;
+}

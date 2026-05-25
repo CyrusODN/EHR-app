@@ -84,8 +84,23 @@ const VisitConfirmationModal = ({
     }, [visible]);
 
     const diagnosesCount = visitData?.diagnosis?.icd10?.length || 0;
-    const hasDocuments = visitData?.isPrescription || visitData?.isReferral;
     const patientName = visitData?.patient?.name || visitData?.patient?.firstName || '';
+
+    const getDocumentCount = () => {
+        let count = 0;
+        if (visitData?.prescriptions?.length) count += visitData.prescriptions.length;
+        else if (visitData?.isPrescription) count += 1;
+        if (visitData?.referrals?.length) count += visitData.referrals.length;
+        else if (visitData?.isReferral) count += 1;
+        if (visitData?.sickLeave) count += 1;
+        return count;
+    };
+
+    const docCount = getDocumentCount();
+    const hasRecommendations = !!(visitData?.recommendations?.medications?.length ||
+        visitData?.recommendations?.scales?.length ||
+        visitData?.recommendations?.aiAssistance?.features);
+    const hasNextVisit = !!visitData?.nextVisit;
 
     return (
         <Modal
@@ -143,9 +158,53 @@ const VisitConfirmationModal = ({
                             <Feather name="file-text" size={16} color={tc.textMuted} />
                             <Text style={ds.summaryLabel}>{t('visit.confirmation.documents')}:</Text>
                             <Text style={ds.summaryValue}>
-                                {hasDocuments ? t('visit.confirmation.issued') : t('visit.confirmation.none')}
+                                {docCount > 0 ? `${docCount} ${t('visit.confirmation.issued').toLowerCase()}` : t('visit.confirmation.none')}
                             </Text>
                         </View>
+
+                        {/* Detailed document breakdown */}
+                        {visitData?.prescriptions?.length > 0 && (
+                            <View style={ds.detailRow}>
+                                <MaterialCommunityIcons name="pill" size={14} color="#58A7B3" />
+                                <Text style={ds.detailText}>
+                                    {visitData.prescriptions.length} {visitData.prescriptions.length === 1 ? t('visit.summary.documentTypes.prescription') : t('visit.summary.documentTypes.prescription') + 's'}
+                                </Text>
+                            </View>
+                        )}
+                        {visitData?.referrals?.length > 0 && (
+                            <View style={ds.detailRow}>
+                                <Feather name="send" size={14} color="#58A7B3" />
+                                <Text style={ds.detailText}>
+                                    {visitData.referrals.length} {visitData.referrals.length === 1 ? t('visit.summary.documentTypes.referral') : t('visit.summary.documentTypes.referral') + 's'}
+                                </Text>
+                            </View>
+                        )}
+                        {visitData?.sickLeave && (
+                            <View style={ds.detailRow}>
+                                <Feather name="calendar" size={14} color="#58A7B3" />
+                                <Text style={ds.detailText}>
+                                    {t('visit.summary.documentTypes.sickLeave')}: {visitData.sickLeave.startDate} - {visitData.sickLeave.endDate}
+                                </Text>
+                            </View>
+                        )}
+
+                        {hasRecommendations && (
+                            <View style={ds.summaryRow}>
+                                <MaterialCommunityIcons name="brain" size={16} color={tc.textMuted} />
+                                <Text style={ds.summaryLabel}>{t('visit.summary.sections.recommendations')}:</Text>
+                                <Text style={ds.summaryValue}>{t('visit.confirmation.issued')}</Text>
+                            </View>
+                        )}
+
+                        {hasNextVisit && (
+                            <View style={ds.summaryRow}>
+                                <Feather name="calendar" size={16} color={tc.textMuted} />
+                                <Text style={ds.summaryLabel}>{t('visit.summary.sections.nextVisit')}:</Text>
+                                <Text style={ds.summaryValue}>
+                                    {visitData.nextVisit.date} {visitData.nextVisit.startTime}
+                                </Text>
+                            </View>
+                        )}
                     </View>
 
                     {/* Warning */}
@@ -254,6 +313,18 @@ const createDynamicStyles = (tc: any, isDark: boolean) =>
             color: tc.textPrimary,
             fontWeight: '700',
             marginLeft: 8,
+        },
+        detailRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingVertical: 4,
+            paddingLeft: 26,
+        },
+        detailText: {
+            fontSize: 12,
+            color: '#58A7B3',
+            fontWeight: '600',
+            marginLeft: 6,
         },
         warningBox: {
             flexDirection: 'row',
