@@ -575,6 +575,7 @@ export const en = {
             }
         },
         scales: {
+            assessment: 'Assessment',
             question_progress: 'Question {{current}} of {{total}}',
             buttons: {
                 cancel: 'Cancel',
@@ -3495,6 +3496,112 @@ export const en = {
                 "details": "Result indicates very severe depression. Immediate psychiatric intervention required. High suicide risk - special attention and monitoring required."
             },
             "result": "HAM-D Scale: {{score}} points - {{interpretation}}"
+        }
+    },
+
+    "madrsScale": {
+        "interpretation": {
+            "none": {
+                "title": "No depression",
+                "details": "Score indicates no clinically significant depressive symptoms. Continue routine monitoring."
+            },
+            "mild": {
+                "title": "Mild depression",
+                "details": "Score indicates mild depressive symptoms. Regular monitoring and supportive therapy recommended."
+            },
+            "moderate": {
+                "title": "Moderate depression",
+                "details": "Score indicates moderate depression. Psychotherapy and consideration of pharmacotherapy recommended."
+            },
+            "severe": {
+                "title": "Severe depression",
+                "details": "Score indicates severe depression. Intensive treatment with combined pharmacotherapy and psychotherapy required. Suicide risk assessment essential."
+            },
+            "result": "MADRS Scale: {{score}} points - {{interpretation}}"
+        }
+    },
+
+    "asrsScale": {
+        "interpretation": {
+            "unlikely": {
+                "title": "ADHD unlikely",
+                "details": "Screening results suggest ADHD is unlikely. If clinical suspicion remains, consider comprehensive neuropsychological evaluation."
+            },
+            "possible": {
+                "title": "ADHD possible",
+                "details": "Screening results suggest possible ADHD. Further clinical evaluation and detailed symptom history recommended."
+            },
+            "highlyLikely": {
+                "title": "ADHD highly likely",
+                "details": "Screening results are highly consistent with ADHD. Comprehensive diagnostic evaluation strongly recommended, including developmental history and functional impairment assessment."
+            },
+            "result": "ASRS Scale: {{criticalSymptoms}} critical symptoms (Part B: {{totalScore}}) - {{interpretation}}"
+        }
+    },
+
+    "hamaScale": {
+        "interpretation": {
+            "mild": {
+                "title": "Mild anxiety",
+                "details": "Score indicates mild anxiety severity. Monitor symptoms and consider psychoeducation and relaxation techniques."
+            },
+            "moderate": {
+                "title": "Moderate anxiety",
+                "details": "Score indicates mild to moderate anxiety. Psychotherapy (CBT) and consideration of pharmacotherapy recommended."
+            },
+            "severe": {
+                "title": "Severe anxiety",
+                "details": "Score indicates moderate to severe anxiety. Combined pharmacotherapy and psychotherapy recommended. Regular monitoring required."
+            },
+            "verySevere": {
+                "title": "Very severe anxiety",
+                "details": "Score indicates very severe anxiety. Urgent psychiatric intervention required. Intensive treatment and close monitoring needed."
+            },
+            "result": "HAM-A Scale: {{score}} points - {{interpretation}}"
+        }
+    },
+
+    "isiScale": {
+        "interpretation": {
+            "noInsomnia": {
+                "title": "No clinically significant insomnia",
+                "details": "Score indicates no clinically significant insomnia. Sleep hygiene education recommended for prevention."
+            },
+            "subthreshold": {
+                "title": "Subthreshold insomnia",
+                "details": "Score indicates subthreshold insomnia. Sleep hygiene optimization and behavioral interventions recommended."
+            },
+            "moderate": {
+                "title": "Moderate clinical insomnia",
+                "details": "Score indicates moderate clinical insomnia. Cognitive Behavioral Therapy for Insomnia (CBT-I) recommended. Consider pharmacotherapy if symptoms persist."
+            },
+            "severe": {
+                "title": "Severe clinical insomnia",
+                "details": "Score indicates severe clinical insomnia. Urgent intervention with CBT-I and pharmacotherapy recommended. Assess for comorbid conditions."
+            },
+            "result": "ISI Scale: {{score}} points - {{interpretation}}"
+        }
+    },
+
+    "cars2Scale": {
+        "interpretation": {
+            "noAutism": {
+                "title": "No autism spectrum symptoms",
+                "details": "Score indicates no clinically significant autism spectrum symptoms. Standard developmental monitoring recommended."
+            },
+            "mildToModerate": {
+                "title": "Mild to moderate autism",
+                "details": "Score indicates mild to moderate autism spectrum symptoms. Comprehensive developmental assessment and early intervention recommended."
+            },
+            "moderate": {
+                "title": "Moderate autism",
+                "details": "Score indicates moderate autism spectrum symptoms. Structured behavioral intervention and specialized therapy recommended."
+            },
+            "severe": {
+                "title": "Severe autism",
+                "details": "Score indicates severe autism spectrum symptoms. Intensive multidisciplinary intervention required with individualized treatment plan."
+            },
+            "result": "CARS-2 Scale: {{score}} points - {{interpretation}}"
         }
     },
 

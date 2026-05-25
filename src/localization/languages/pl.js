@@ -575,6 +575,7 @@ export const pl = {
             }
         },
         scales: {
+            assessment: 'Ocena',
             question_progress: 'Pytanie {{current}} z {{total}}',
             buttons: {
                 cancel: 'Anuluj',
@@ -3492,6 +3493,112 @@ export const pl = {
                 "details": "Wynik wskazuje na bardzo ciężką depresję. Konieczna natychmiastowa interwencja psychiatryczna. Wysokie ryzyko samobójcze - wymagana szczególna uwaga i monitoring."
             },
             "result": "Skala HAM-D: {{score}} punktów - {{interpretation}}"
+        }
+    },
+
+    "madrsScale": {
+        "interpretation": {
+            "none": {
+                "title": "Brak depresji",
+                "details": "Wynik wskazuje na brak klinicznie istotnych objawów depresyjnych. Zalecana kontynuacja rutynowego monitoringu."
+            },
+            "mild": {
+                "title": "Łagodna depresja",
+                "details": "Wynik wskazuje na łagodne objawy depresyjne. Zalecany regularny monitoring i terapia wspierająca."
+            },
+            "moderate": {
+                "title": "Umiarkowana depresja",
+                "details": "Wynik wskazuje na umiarkowaną depresję. Zalecana psychoterapia i rozważenie farmakoterapii."
+            },
+            "severe": {
+                "title": "Ciężka depresja",
+                "details": "Wynik wskazuje na ciężką depresję. Wymagane intensywne leczenie łączące farmakoterapię i psychoterapię. Niezbędna ocena ryzyka samobójczego."
+            },
+            "result": "Skala MADRS: {{score}} punktów - {{interpretation}}"
+        }
+    },
+
+    "asrsScale": {
+        "interpretation": {
+            "unlikely": {
+                "title": "ADHD mało prawdopodobne",
+                "details": "Wyniki przesiewowe sugerują, że ADHD jest mało prawdopodobne. W przypadku utrzymujących się podejrzeń klinicznych rozważ kompleksową ocenę neuropsychologiczną."
+            },
+            "possible": {
+                "title": "ADHD możliwe",
+                "details": "Wyniki przesiewowe sugerują możliwe ADHD. Zalecana dalsza ocena kliniczna i szczegółowy wywiad objawowy."
+            },
+            "highlyLikely": {
+                "title": "ADHD wysoce prawdopodobne",
+                "details": "Wyniki przesiewowe są wysoce zgodne z ADHD. Zdecydowanie zalecana kompleksowa ocena diagnostyczna, w tym wywiad rozwojowy i ocena upośledzenia funkcjonowania."
+            },
+            "result": "Skala ASRS: {{criticalSymptoms}} objawów krytycznych (Część B: {{totalScore}}) - {{interpretation}}"
+        }
+    },
+
+    "hamaScale": {
+        "interpretation": {
+            "mild": {
+                "title": "Łagodny lęk",
+                "details": "Wynik wskazuje na łagodne nasilenie lęku. Zalecany monitoring objawów oraz psychoedukacja i techniki relaksacyjne."
+            },
+            "moderate": {
+                "title": "Umiarkowany lęk",
+                "details": "Wynik wskazuje na łagodne do umiarkowanego nasilenie lęku. Zalecana psychoterapia (CBT) i rozważenie farmakoterapii."
+            },
+            "severe": {
+                "title": "Ciężki lęk",
+                "details": "Wynik wskazuje na umiarkowane do ciężkiego nasilenie lęku. Zalecana łączona farmakoterapia i psychoterapia. Wymagany regularny monitoring."
+            },
+            "verySevere": {
+                "title": "Bardzo ciężki lęk",
+                "details": "Wynik wskazuje na bardzo ciężkie nasilenie lęku. Wymagana pilna interwencja psychiatryczna. Konieczne intensywne leczenie i ścisły monitoring."
+            },
+            "result": "Skala HAM-A: {{score}} punktów - {{interpretation}}"
+        }
+    },
+
+    "isiScale": {
+        "interpretation": {
+            "noInsomnia": {
+                "title": "Brak klinicznie istotnej bezsenności",
+                "details": "Wynik wskazuje na brak klinicznie istotnej bezsenności. Zalecana edukacja w zakresie higieny snu w celach profilaktycznych."
+            },
+            "subthreshold": {
+                "title": "Bezsenność podprogowa",
+                "details": "Wynik wskazuje na bezsenność podprogową. Zalecana optymalizacja higieny snu i interwencje behawioralne."
+            },
+            "moderate": {
+                "title": "Umiarkowana bezsenność kliniczna",
+                "details": "Wynik wskazuje na umiarkowaną bezsenność kliniczną. Zalecana terapia poznawczo-behawioralna bezsenności (CBT-I). Rozważ farmakoterapię w przypadku utrzymywania się objawów."
+            },
+            "severe": {
+                "title": "Ciężka bezsenność kliniczna",
+                "details": "Wynik wskazuje na ciężką bezsenność kliniczną. Zalecana pilna interwencja z zastosowaniem CBT-I i farmakoterapii. Ocena chorób współistniejących."
+            },
+            "result": "Skala ISI: {{score}} punktów - {{interpretation}}"
+        }
+    },
+
+    "cars2Scale": {
+        "interpretation": {
+            "noAutism": {
+                "title": "Brak objawów spektrum autyzmu",
+                "details": "Wynik wskazuje na brak klinicznie istotnych objawów spektrum autyzmu. Zalecany standardowy monitoring rozwojowy."
+            },
+            "mildToModerate": {
+                "title": "Łagodny do umiarkowanego autyzm",
+                "details": "Wynik wskazuje na łagodne do umiarkowanego objawy spektrum autyzmu. Zalecana kompleksowa ocena rozwojowa i wczesna interwencja."
+            },
+            "moderate": {
+                "title": "Umiarkowany autyzm",
+                "details": "Wynik wskazuje na umiarkowane objawy spektrum autyzmu. Zalecana strukturalna interwencja behawioralna i specjalistyczna terapia."
+            },
+            "severe": {
+                "title": "Ciężki autyzm",
+                "details": "Wynik wskazuje na ciężkie objawy spektrum autyzmu. Wymagana intensywna interwencja multidyscyplinarna z indywidualnym planem leczenia."
+            },
+            "result": "Skala CARS-2: {{score}} punktów - {{interpretation}}"
         }
     },
 

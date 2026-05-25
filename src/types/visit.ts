@@ -125,3 +125,52 @@ export interface NextVisit {
   doctor?: any;
   patient?: any;
 }
+
+export type PsychiatricScaleType = 'HAM-D' | 'MADRS' | 'ASRS' | 'HAM-A' | 'ISI' | 'CARS-2';
+
+export interface ScaleResult {
+  type: PsychiatricScaleType;
+  score: number;
+  interpretation: string;
+  severityKey: string;
+  date: string;
+  details: string;
+}
+
+export interface ClinicalAssessment {
+  resourceType: 'Observation';
+  id: string;
+  status: 'final' | 'preliminary';
+  category: {
+    coding: {
+      system: string;
+      code: string;
+      display: string;
+    }[];
+  }[];
+  code: {
+    coding: {
+      system: string;
+      code: string;
+      display: string;
+    }[];
+  };
+  subject: { reference: string };
+  effectiveDateTime: string;
+  performer: { reference: string }[];
+  valueQuantity: {
+    value: number;
+    unit: string;
+    system: string;
+    code: string;
+  };
+  interpretation: {
+    coding: {
+      system: string;
+      code: string;
+      display: string;
+    }[];
+    text: string;
+  }[];
+  note: { text: string }[];
+}

@@ -12,11 +12,14 @@ import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-nat
 import LinearGradient from 'react-native-linear-gradient';
 import PsychiatricScalesModal from './modals/PsychiatricScalesModal';
 import ScaleQuestionnaireModal from './modals/ScaleQuestionnaireModal';
+import ScaleResultModal from './modals/ScaleResultModal';
 import VisitHistoryModal from './modals/VisitHistoryModal';
 import { GetPreviousVisits, UpdateVisit, GetVisitDetails } from '../../Services/Visit.Service';
 import { useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useThemeColors } from '../../hooks/useThemeColors';
+import { getScaleFieldKey, buildFHIRAssessment, getSeverityColor } from '../../utils/psychiatricScaleScoring';
+import type { ScaleResult } from '../../types/visit';
 
 interface VisitInterviewProps {
     onNext: () => void;
@@ -41,6 +44,8 @@ const VisitInterview = ({ onNext, onBack, visitId, patientId, visitData, onUpdat
     const [totalVisits, setTotalVisits] = useState(0);
     const [loading, setLoading] = useState(false);
     const [completedScales, setCompletedScales] = useState<Record<string, number>>(visitData?.interview?.psychiatricScales || {});
+    const [showResultModal, setShowResultModal] = useState(false);
+    const [pendingResult, setPendingResult] = useState<ScaleResult | null>(null);
     const debounceTimeoutRef = useRef<any>(null);
     const pendingUpdatesRef = useRef<any>({});
 
@@ -201,12 +206,20 @@ const VisitInterview = ({ onNext, onBack, visitId, patientId, visitData, onUpdat
                     <View style={ds.fieldContainer}>
                         <Text style={ds.sectionLabel}>{t('visit.history_labels.scales')}</Text>
                         <View style={ds.scalesCard}>
-                            {Object.entries(completedScales).map(([scaleName, score]) => (
-                                <View key={scaleName} style={ds.scaleRow}>
-                                    <Text style={ds.scaleName}>{scaleName.toUpperCase()}:</Text>
-                                    <Text style={ds.scaleScore}>{score}</Text>
-                                </View>
-                            ))}
+                            {Object.entries(completedScales).map(([scaleName, score]) => {
+                                const scaleTypeMap: Record<string, string> = {
+                                    hamd: 'HAM-D', madrs: 'MADRS', asrs: 'ASRS',
+                                    hama: 'HAM-A', isi: 'ISI', cars2: 'CARS-2',
+                                };
+                                const scaleType = scaleTypeMap[scaleName] || scaleName;
+                                const color = getSeverityColor(scaleType as any, score as number);
+                                return (
+                                    <View key={scaleName} style={ds.scaleRow}>
+                                        <Text style={ds.scaleName}>{scaleName.toUpperCase()}:</Text>
+                                        <Text style={[ds.scaleScore, { color }]}>{score}</Text>
+                                    </View>
+                                );
+                            })}
                         </View>
                     </View>
                 )}
@@ -275,12 +288,37 @@ const VisitInterview = ({ onNext, onBack, visitId, patientId, visitData, onUpdat
                     visible={showQuestionnaire}
                     onClose={() => setShowQuestionnaire(false)}
                     scaleId={selectedScale}
-                    onFinish={(score) => {
-                        const newScales = { ...completedScales, [selectedScale.toLowerCase()]: score };
+                    onFinish={(result: ScaleResult) => {
+                        setPendingResult(result);
+                        setShowQuestionnaire(false);
+                        setShowResultModal(true);
+                    }}
+                />
+
+                <ScaleResultModal
+                    visible={showResultModal}
+                    result={pendingResult}
+                    onClose={() => {
+                        setShowResultModal(false);
+                        setPendingResult(null);
+                    }}
+                    onAddToInterview={() => {
+                        if (!pendingResult) return;
+
+                        const fieldKey = getScaleFieldKey(pendingResult.type);
+                        const newScales = { ...completedScales, [fieldKey]: pendingResult.score };
                         setCompletedScales(newScales);
-                        
-                        // Use debouncedSync logic (accumulate updates) for consistency
-                        const updates = { interview: { psychiatricScales: newScales } };
+
+                        const assessment = buildFHIRAssessment(pendingResult);
+                        const existingAssessments = visitData?.interview?.clinicalAssessments || [];
+
+                        const updates = {
+                            interview: {
+                                psychiatricScales: newScales,
+                                clinicalAssessments: [...existingAssessments, assessment],
+                            },
+                        };
+
                         const accumulate = (target: any, source: any) => {
                             Object.keys(source).forEach(key => {
                                 if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
@@ -292,7 +330,9 @@ const VisitInterview = ({ onNext, onBack, visitId, patientId, visitData, onUpdat
                             });
                         };
                         accumulate(pendingUpdatesRef.current, updates);
-                        handleSync(); // But trigger sync immediately
+                        handleSync();
+
+                        setPendingResult(null);
                     }}
                 />
 

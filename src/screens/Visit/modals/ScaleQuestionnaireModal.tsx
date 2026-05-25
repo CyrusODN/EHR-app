@@ -8,7 +8,6 @@ import {
     ScrollView,
     Modal,
     StatusBar,
-    Platform,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -16,12 +15,14 @@ import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-nat
 import LinearGradient from 'react-native-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { useThemeColors } from '../../../hooks/useThemeColors';
+import { buildScaleResult } from '../../../utils/psychiatricScaleScoring';
+import type { PsychiatricScaleType, ScaleResult } from '../../../types/visit';
 
 interface ScaleQuestionnaireModalProps {
     visible: boolean;
     onClose: () => void;
     scaleId: string;
-    onFinish: (score: number) => void;
+    onFinish: (result: ScaleResult) => void;
 }
 
 interface Option {
@@ -128,9 +129,11 @@ const ScaleQuestionnaireModal = ({ visible, onClose, scaleId, onFinish }: ScaleQ
     };
 
     const handleFinish = () => {
-        const totalScore = Object.values(answers).reduce((acc, current) => acc + current, 0);
-        onFinish(totalScore);
-        handleCancel();
+        const result = buildScaleResult(scaleId as PsychiatricScaleType, answers, t);
+        setCurrentQuestion(0);
+        setAnswers({});
+        onFinish(result);
+        onClose();
     };
 
     const insets = useSafeAreaInsets();
@@ -152,7 +155,7 @@ const ScaleQuestionnaireModal = ({ visible, onClose, scaleId, onFinish }: ScaleQ
                         <TouchableOpacity onPress={handleCancel} style={ds.headerCloseButton}>
                             <Ionicons name="chevron-back" size={28} color={tc.textPrimary} />
                         </TouchableOpacity>
-                        <Text style={ds.headerTitle}>{scaleId} Assessment</Text>
+                        <Text style={ds.headerTitle}>{scaleId} {t('visit.scales.assessment')}</Text>
                         <View style={{ width: 40 }} />
                     </View>
 
@@ -172,7 +175,7 @@ const ScaleQuestionnaireModal = ({ visible, onClose, scaleId, onFinish }: ScaleQ
                             <View style={ds.questionHeader}>
                                 <View>
                                     <Text style={ds.questionNumber}>
-                                        Question {currentQuestion + 1} z {totalQuestions}
+                                        {t('visit.scales.question_progress', { current: currentQuestion + 1, total: totalQuestions })}
                                     </Text>
                                     {question.subtitle && (
                                         <Text style={ds.questionSubtitle}>{question.subtitle}</Text>
@@ -227,7 +230,7 @@ const ScaleQuestionnaireModal = ({ visible, onClose, scaleId, onFinish }: ScaleQ
                         <TouchableOpacity style={ds.backButton} onPress={handleBack}>
                             <Feather name="arrow-left" size={16} color={tc.accent} />
                             <Text style={ds.backButtonText}>
-                                {currentQuestion === 0 ? 'Cancel' : 'Back'}
+                                {currentQuestion === 0 ? t('visit.scales.buttons.cancel') : t('visit.scales.buttons.back')}
                             </Text>
                         </TouchableOpacity>
 
@@ -239,7 +242,7 @@ const ScaleQuestionnaireModal = ({ visible, onClose, scaleId, onFinish }: ScaleQ
                                     end={{ x: 1, y: 0 }}
                                     style={ds.finishButton}
                                 >
-                                    <Text style={ds.finishButtonText}>Finish</Text>
+                                    <Text style={ds.finishButtonText}>{t('visit.scales.buttons.finish')}</Text>
                                     <Feather name="arrow-right" size={16} color={tc.textOnPrimary} />
                                 </LinearGradient>
                             </TouchableOpacity>
