@@ -8,3 +8,40 @@ export interface ICD10Diagnosis {
 export interface VisitDiagnosis {
   icd10: ICD10Diagnosis[];
 }
+
+export interface Medication {
+  id: string;
+  name: string;
+  commonName: string;
+  form: string;
+  dose: string;
+  package: string;
+  ean: string;
+  commonDosage: string;
+  refundationCategories: string[];
+  selectedRefundation?: string;
+}
+
+export interface PrescriptionMedication {
+  name: string;
+  commonName: string;
+  form: string;
+  dose: string;
+  package: string;
+  ean: string;
+  dosage: string;
+  quantity: number;
+  refundation: string;
+  instructions: string;
+}
+
+export interface Prescription {
+  id: string;
+  medications: PrescriptionMedication[];
+  status: 'draft' | 'signed';
+  type: string;
+  additionalRights: string[];
+  refillCount: number;
+  signedAt?: string;
+  signatureMethod?: string;
+}

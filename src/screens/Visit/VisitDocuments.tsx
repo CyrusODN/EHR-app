@@ -15,6 +15,8 @@ import LinearGradient from 'react-native-linear-gradient';
 import { GetPreviousVisits, UpdateVisit, GetVisitDetails } from '../../Services/Visit.Service';
 import { useTranslation } from 'react-i18next';
 import { useThemeColors } from '../../hooks/useThemeColors';
+import PrescriptionSection from './prescriptions/PrescriptionSection';
+import type { Prescription } from '../../types/visit';
 
 interface Referral {
     id: number;
@@ -46,6 +48,7 @@ const VisitDocuments = ({ onNext, onBack, visitId, visitData, onUpdate }: VisitD
     const [isHospitalStay, setIsHospitalStay] = useState(false);
     const [referrals, setReferrals] = useState<Referral[]>(visitData?.patient?.referrals || []);
     const [sickLeaveNotes, setSickLeaveNotes] = useState(visitData?.sickLeaveNotes || '');
+    const [prescriptions, setPrescriptions] = useState<Prescription[]>(visitData?.prescriptions || []);
 
     const debounceTimeoutRef = useRef<any>(null);
     const pendingUpdatesRef = useRef<any>({});
@@ -110,7 +113,15 @@ const VisitDocuments = ({ onNext, onBack, visitId, visitData, onUpdate }: VisitD
         if (visitData?.patient?.referrals) {
             setReferrals(visitData.patient.referrals);
         }
+        if (visitData?.prescriptions) {
+            setPrescriptions(visitData.prescriptions);
+        }
     }, [visitData]);
+
+    const handlePrescriptionsUpdate = (updated: Prescription[]) => {
+        setPrescriptions(updated);
+        debouncedSync({ prescriptions: updated });
+    };
 
     const toggleSection = (section: keyof typeof expandedSections) => {
         setExpandedSections(prev => ({
@@ -157,27 +168,10 @@ const VisitDocuments = ({ onNext, onBack, visitId, visitData, onUpdate }: VisitD
                 
                 {expandedSections.prescriptions && (
                     <View style={ds.cardContent}>
-                        <View style={ds.infoBox}>
-                            <Feather name="info" size={18} color="#3B82F6" style={ds.infoIcon} />
-                            <View>
-                                <Text style={ds.infoTitle}>{t('visit.documents.prescriptions.ezla') || 'e-Prescription'}</Text>
-                                <Text style={ds.infoText}>
-                                    {t('visit.documents.prescriptions.description')}
-                                </Text>
-                            </View>
-                        </View>
-                        
-                        <TouchableOpacity style={ds.addButtonContainer}>
-                            <LinearGradient
-                                colors={['#58A7B3', '#8ED1CC']}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 0 }}
-                                style={ds.smallAddButton}
-                            >
-                                <Feather name="plus" size={18} color="#fff" />
-                                <Text style={ds.smallAddButtonText}>{t('visit.documents.prescriptions.add_med')}</Text>
-                            </LinearGradient>
-                        </TouchableOpacity>
+                        <PrescriptionSection
+                            prescriptions={prescriptions}
+                            onUpdate={handlePrescriptionsUpdate}
+                        />
                     </View>
                 )}
             </View>

@@ -5594,5 +5594,137 @@ export const en = {
                 }
             }
         }
+    },
+
+    prescriptionForm: {
+        info: {
+            title: 'e-Prescription',
+            description: 'Issue electronic prescriptions compatible with the P1 system. You can save the prescription as a draft and sign it later.'
+        },
+        buttons: {
+            addMedication: 'Add medication',
+            cancel: 'Cancel',
+            addToPrescription: 'Add to prescription',
+            signPrescriptions: 'Sign prescriptions'
+        },
+        sections: {
+            draftPrescriptions: 'Draft prescriptions',
+            signedPrescriptions: 'Signed prescriptions'
+        }
+    },
+
+    medicationSearch: {
+        input: {
+            placeholder: 'Search medication...'
+        },
+        results: {
+            package: 'Package:',
+            noResults: 'No medications found. You can add a compounded medication.'
+        }
+    },
+
+    dosageForm: {
+        labels: {
+            dosage: 'Dosage',
+            packageCount: 'Number of packages',
+            refills: 'Number of refills',
+            instructions: 'Additional instructions'
+        },
+        placeholders: {
+            dosage: 'e.g. 1x1, 2x1 morning and evening',
+            instructions: 'e.g. take after meal'
+        },
+        suggestions: {
+            title: 'Suggested patterns:'
+        },
+        refillOptions: {
+            none: 'No refills',
+            one: '1 refill',
+            multiple: ' refills'
+        }
+    },
+
+    refundationSelect: {
+        label: 'Refundation',
+        options: {
+            fullPrice: 'Full price',
+            free: 'Free',
+            lump: 'Lump sum',
+            freeLimit: 'Free up to limit',
+            senior: 'Senior 75+',
+            payment: 'Payment '
+        }
+    },
+
+    additionalRights: {
+        label: 'Additional Rights',
+        info: 'Select appropriate additional patient rights. These affect the level of medication reimbursement.',
+        rights: {
+            IB: { name: 'War Invalid', description: 'War invalids and repressed persons' },
+            IW: { name: 'Military Invalid', description: 'Military invalids' },
+            ZK: { name: 'Honorary Blood Donor', description: 'Distinguished honorary blood donors' },
+            C: { name: 'Pregnancy', description: 'Pregnant women' },
+            DN: { name: 'Children and Youth', description: 'Children and youth under 18 years old' },
+            AZ: { name: 'Academic Healthcare', description: 'Students and academics including adjuncts, assistants and PhD candidates' }
+        }
+    },
+
+    prescriptionSummary: {
+        title: 'Prescription',
+        status: {
+            label: 'Status:',
+            draft: 'Draft',
+            issued: 'Issued'
+        },
+        buttons: {
+            edit: 'Edit',
+            cancel: 'Cancel',
+            save: 'Save',
+            sign: 'Sign',
+            print: 'Print',
+            reissue: 'Reissue'
+        },
+        medication: {
+            dosage: { label: 'Dosage', prefix: 'Dosage: ' },
+            quantity: { label: 'Package quantity', display: 'Qty: ' },
+            instructions: { label: 'Additional instructions', prefix: 'Instructions: ' }
+        },
+        additionalRights: {
+            title: 'Additional rights'
+        }
+    },
+
+    signingModal: {
+        title: 'Signing e-prescription',
+        methods: {
+            zus: { title: 'ZUS Certificate', description: 'Sign using ZUS certificate' },
+            qualified: { title: 'Qualified Signature', description: 'Sign using qualified certificate' },
+            trusted: { title: 'Trusted Profile', description: 'Sign using Trusted Profile' }
+        },
+        buttons: {
+            startSigning: 'Start signing',
+            signPrescription: 'Sign prescription',
+            verifyAndSign: 'Verify and sign',
+            complete: 'Complete'
+        },
+        password: {
+            info: 'Enter password for certificate.',
+            label: 'Certificate password',
+            placeholder: 'Enter password',
+            remember: 'Remember password until end of session'
+        },
+        verification: {
+            info: 'Enter verification code sent to your phone.',
+            label: 'Verification code',
+            placeholder: 'Enter code'
+        },
+        processing: {
+            title: 'Signing prescription...',
+            subtitle: 'Please do not close the window'
+        },
+        complete: {
+            title: 'Prescription has been signed',
+            description: 'Prescription has been successfully signed and sent to the P1 system. You can now print patient information.'
+        }
     }
 }

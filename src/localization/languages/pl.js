@@ -5387,6 +5387,138 @@ export const pl = {
                 }
             }
         }
+    },
+
+    prescriptionForm: {
+        info: {
+            title: 'e-Recepta',
+            description: 'Wystawiaj recepty elektroniczne zgodne z systemem P1. Możesz zapisać receptę jako wersję roboczą i podpisać ją później.'
+        },
+        buttons: {
+            addMedication: 'Dodaj lek',
+            cancel: 'Anuluj',
+            addToPrescription: 'Dodaj do recepty',
+            signPrescriptions: 'Podpisz recepty'
+        },
+        sections: {
+            draftPrescriptions: 'Recepty robocze',
+            signedPrescriptions: 'Podpisane recepty'
+        }
+    },
+
+    medicationSearch: {
+        input: {
+            placeholder: 'Wyszukaj lek...'
+        },
+        results: {
+            package: 'Opakowanie:',
+            noResults: 'Nie znaleziono leków. Możesz dodać lek recepturowy.'
+        }
+    },
+
+    dosageForm: {
+        labels: {
+            dosage: 'Dawkowanie',
+            packageCount: 'Ilość opakowań',
+            refills: 'Liczba powtórzeń',
+            instructions: 'Dodatkowe instrukcje'
+        },
+        placeholders: {
+            dosage: 'np. 1x1, 2x1 rano i wieczorem',
+            instructions: 'np. przyjmować po posiłku'
+        },
+        suggestions: {
+            title: 'Sugerowane schematy:'
+        },
+        refillOptions: {
+            none: 'Bez powtórzeń',
+            one: '1 powtórzenie',
+            multiple: ' powtórzenia'
+        }
+    },
+
+    refundationSelect: {
+        label: 'Refundacja',
+        options: {
+            fullPrice: 'Pełnopłatny',
+            free: 'Bezpłatny',
+            lump: 'Ryczałt',
+            freeLimit: 'Bezpłatny do limitu',
+            senior: 'Senior 75+',
+            payment: 'Odpłatność '
+        }
+    },
+
+    additionalRights: {
+        label: 'Uprawnienia dodatkowe',
+        info: 'Zaznacz odpowiednie uprawnienia dodatkowe pacjenta. Wpływają one na poziom refundacji leków.',
+        rights: {
+            IB: { name: 'Inwalida wojenny', description: 'Inwalidzi wojenni oraz osoby represjonowane' },
+            IW: { name: 'Inwalida wojskowy', description: 'Inwalidzi wojskowi' },
+            ZK: { name: 'Zasłużony honorowy dawca krwi', description: 'Zasłużeni honorowi dawcy krwi' },
+            C: { name: 'Ciąża', description: 'Kobiety w ciąży' },
+            DN: { name: 'Dzieci i młodzież', description: 'Dzieci i młodzież do 18 roku życia' },
+            AZ: { name: 'Akademicki ZOZ', description: 'Studenci i uczniowie oraz adiunkci, asystenci i doktoranci' }
+        }
+    },
+
+    prescriptionSummary: {
+        title: 'Recepta',
+        status: {
+            label: 'Status:',
+            draft: 'Robocza',
+            issued: 'Wystawiona'
+        },
+        buttons: {
+            edit: 'Edytuj',
+            cancel: 'Anuluj',
+            save: 'Zapisz',
+            sign: 'Podpisz',
+            print: 'Drukuj',
+            reissue: 'Wystaw ponownie'
+        },
+        medication: {
+            dosage: { label: 'Dawkowanie', prefix: 'Dawkowanie: ' },
+            quantity: { label: 'Ilość opakowań', display: 'Ilość: ' },
+            instructions: { label: 'Dodatkowe instrukcje', prefix: 'Dodatkowe instrukcje: ' }
+        },
+        additionalRights: {
+            title: 'Uprawnienia dodatkowe'
+        }
+    },
+
+    signingModal: {
+        title: 'Podpisywanie e-recepty',
+        methods: {
+            zus: { title: 'Certyfikat ZUS', description: 'Podpis przy użyciu certyfikatu ZUS' },
+            qualified: { title: 'Podpis kwalifikowany', description: 'Podpis przy użyciu certyfikatu kwalifikowanego' },
+            trusted: { title: 'Profil Zaufany', description: 'Podpis przy użyciu Profilu Zaufanego' }
+        },
+        buttons: {
+            startSigning: 'Rozpocznij podpisywanie',
+            signPrescription: 'Podpisz receptę',
+            verifyAndSign: 'Weryfikuj i podpisz',
+            complete: 'Zakończ'
+        },
+        password: {
+            info: 'Wprowadź hasło do certyfikatu.',
+            label: 'Hasło do certyfikatu',
+            placeholder: 'Wprowadź hasło',
+            remember: 'Zapamiętaj hasło do końca sesji'
+        },
+        verification: {
+            info: 'Wprowadź kod weryfikacyjny, który został wysłany na Twój telefon.',
+            label: 'Kod weryfikacyjny',
+            placeholder: 'Wprowadź kod'
+        },
+        processing: {
+            title: 'Podpisywanie recepty...',
+            subtitle: 'Proszę nie zamykać okna'
+        },
+        complete: {
+            title: 'Recepta została podpisana',
+            description: 'Recepta została pomyślnie podpisana i wysłana do systemu P1. Możesz teraz wydrukować informację dla pacjenta.'
+        }
     }
 }
 ;
