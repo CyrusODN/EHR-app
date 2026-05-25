@@ -336,7 +336,7 @@ const createStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     errorText: { fontSize: 13, color: '#EF4444', flex: 1 },
     loadingContainer: { alignItems: 'center', padding: 32 },
     loadingText: { fontSize: 14, color: tc.textMuted, marginTop: 12 },
-    analyzeButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 14, borderRadius: 8, gap: 8 },
+    analyzeButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center',height: 48, borderRadius: 8, gap: 8 },
     analyzeButtonText: { fontSize: 15, fontWeight: '600', color: '#fff' },
     resultsContainer: { gap: 12 },
     resultsHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
