@@ -3524,7 +3524,13 @@ export const pl = {
             "view": "Wyświetlenie dokumentu",
             "sign": "Podpisanie dokumentu",
             "print": "Wydruk dokumentu",
-            "export": "Eksport dokumentu"
+            "export": "Eksport dokumentu",
+            "delete": "Usunięcie dokumentu",
+            "update": "Modyfikacja dokumentu",
+            "read": "Wyświetlenie dokumentu",
+            "null": "Nieznana operacja",
+            "undefined": "Nieznana operacja",
+            "unknown": "Nieznana operacja"
         },
         "changes": {
             "title": "Wprowadzone zmiany:",

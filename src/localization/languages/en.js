@@ -3528,7 +3528,13 @@ export const en = {
             "view": "Document View",
             "sign": "Document Signing",
             "print": "Document Print",
-            "export": "Document Export"
+            "export": "Document Export",
+            "delete": "Document Deletion",
+            "update": "Document Modification",
+            "read": "Document View",
+            "null": "Unknown action",
+            "undefined": "Unknown action",
+            "unknown": "Unknown action"
         },
         "changes": {
             "title": "Changes made:",

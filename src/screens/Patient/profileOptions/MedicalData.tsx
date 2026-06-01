@@ -1,17 +1,18 @@
 import React, { useState, useMemo } from 'react';
-import { 
-    View, 
-    Text, 
-    StyleSheet, 
-    TouchableOpacity, 
+import {
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
     ScrollView,
     TextInput,
     Modal,
-    LayoutAnimation, 
+    LayoutAnimation,
     Platform,
     UIManager,
     Switch,
-    ActivityIndicator
+    ActivityIndicator,
+    Alert,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
@@ -19,11 +20,69 @@ import { GetPatientMedicalData, UpdateMedicalData, MEDICATION_FORMS, SEVERITY_LE
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTranslation } from 'react-i18next';
 import { useThemeColors } from '../../../hooks/useThemeColors';
+import userStore from '../../../store/user';
 
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
 }
+
+const normalizeRecordId = (value: any): string | undefined => {
+    if (value == null) return undefined;
+    if (typeof value === 'string') {
+        const trimmed = value.trim();
+        return trimmed || undefined;
+    }
+    if (typeof value === 'number') return String(value);
+    if (typeof value === 'object') {
+        if (typeof value.$oid === 'string') return value.$oid;
+        if (typeof value.toString === 'function') {
+            const asString = value.toString();
+            if (asString && asString !== '[object Object]') return asString;
+        }
+    }
+    return undefined;
+};
+
+const getRecordId = (item: any) =>
+    normalizeRecordId(item?.tempId) ||
+    normalizeRecordId(item?._id) ||
+    normalizeRecordId(item?.id);
+
+const isSameRecord = (a: any, b: any) => {
+    if (!a || !b) return false;
+    const aIds = [normalizeRecordId(a.tempId), normalizeRecordId(a._id), normalizeRecordId(a.id)].filter(Boolean) as string[];
+    const bIds = [normalizeRecordId(b.tempId), normalizeRecordId(b._id), normalizeRecordId(b.id)].filter(Boolean) as string[];
+    if (aIds.length && bIds.length) {
+        return aIds.some((id) => bIds.includes(id));
+    }
+    return a === b;
+};
+
+const normalizeMedicationRecord = (med: any) => {
+    const id = normalizeRecordId(med?._id) || normalizeRecordId(med?.id);
+    return id ? { ...med, id, _id: med._id ?? id } : med;
+};
+
+const processMedicalDataResponse = (response: any) => ({
+    ...response,
+    medications: (response.medications || [])
+        .filter((i: any) => i.isActive !== false)
+        .map(normalizeMedicationRecord),
+    medicationHistory: (response.medications || [])
+        .filter((i: any) => i.isActive === false)
+        .map(normalizeMedicationRecord),
+    diagnoses: (response.diagnoses || []).filter((i: any) => i.isActive !== false),
+    diagnosisHistory: (response.diagnoses || []).filter((i: any) => i.isActive === false),
+    allergies: (response.allergies || []).filter((i: any) => i.isActive !== false),
+    allergyHistory: (response.allergies || []).filter((i: any) => i.isActive === false),
+    chronicConditions: (response.chronicConditions || []).filter((i: any) => i.isActive !== false),
+    chronicHistory: (response.chronicConditions || []).filter((i: any) => i.isActive === false),
+    familyHistory: (response.familyHistory || []).filter((i: any) => i.isActive !== false),
+    familyHistoryPast: (response.familyHistory || []).filter((i: any) => i.isActive === false),
+    riskFactors: (response.riskFactors || []).filter((i: any) => i.isActive !== false),
+    riskHistory: (response.riskFactors || []).filter((i: any) => i.isActive === false),
+});
 
 const FormInput = ({ label, placeholder, required = false, isDropdown = false, isDate = false, unit = '', hasInfo = false, multiline = false, value, onChangeText, onPress, ds, tc }: any) => (
     <View style={ds.inputGroup}>
@@ -32,12 +91,12 @@ const FormInput = ({ label, placeholder, required = false, isDropdown = false, i
             <Text style={ds.inputLabel}>{label}</Text>
             {hasInfo && <Feather name="help-circle" size={14} color={tc.textMuted} style={{ marginLeft: 4 }} />}
         </View>
-        <TouchableOpacity 
+        <TouchableOpacity
             activeOpacity={isDropdown || isDate ? 0.7 : 1}
             onPress={(isDropdown || isDate) ? onPress : undefined}
             style={[ds.inputWrapper, multiline && ds.textAreaWrapper]}
         >
-            <TextInput 
+            <TextInput
                 style={[ds.textInput, multiline && ds.textArea]}
                 placeholder={placeholder}
                 placeholderTextColor={tc.textMuted}
@@ -55,19 +114,21 @@ const FormInput = ({ label, placeholder, required = false, isDropdown = false, i
 );
 
 
-const SubmitButton = ({ title, onPress, color, loading = false, ds, tc }: any) => (
-    <TouchableOpacity 
-        style={[ds.submitButtonContainer, loading && { opacity: 0.7 }]} 
-        onPress={loading ? undefined : onPress}
+const SubmitButton = ({ title, onPress, color, loading = false, disabled = false, ds, tc }: any) => (
+    <TouchableOpacity
+        style={[(loading || disabled) && { opacity: 0.5 }]}
+        onPress={(loading || disabled) ? undefined : onPress}
         activeOpacity={0.7}
     >
         <LinearGradient
             colors={color || [tc.accentGradientStart || '#68BFB4', tc.accentGradientEnd || '#4DA1C0']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            style={{ width: 100, height: '100%', justifyContent: 'center', alignItems: 'center' }}
+            style={{ width: 100,
+                height: 40, overflow: 'hidden', justifyContent: 'center', alignItems: 'center', borderRadius: 8
+            }}
         >
-            <View style={{ }}>
+            <View style={{}}>
                 {loading ? (
                     <ActivityIndicator size="small" color="#ffffff" />
                 ) : (
@@ -95,8 +156,8 @@ const AccordionItem = ({ title, icon, children, ds, tc }: { title: string, icon:
 
     return (
         <View style={ds.accordionContainer}>
-            <TouchableOpacity 
-                style={[ds.accordionHeader, expanded && ds.expandedHeader]} 
+            <TouchableOpacity
+                style={[ds.accordionHeader, expanded && ds.expandedHeader]}
                 onPress={toggleExpand}
                 activeOpacity={0.7}
             >
@@ -131,9 +192,14 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
     const [showChronicModal, setShowChronicModal] = useState(false);
     const [showFamilyModal, setShowFamilyModal] = useState(false);
     const [showRiskModal, setShowRiskModal] = useState(false);
-    
+
     const [isRegularMed, setIsRegularMed] = useState(true);
     const [diagType, setDiagType] = useState('primary');
+    const [newDiagnosis, setNewDiagnosis] = useState({
+        description: '',
+        code: '',
+        notes: '',
+    });
 
     const [newMedication, setNewMedication] = useState({
         name: '',
@@ -157,10 +223,10 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
     const [showAllergyTypeDropdown, setShowAllergyTypeDropdown] = useState(false);
     const [showAllergySeverityDropdown, setShowAllergySeverityDropdown] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    
+
     // Tracking which item status dropdown Is open: { type: 'diag' | 'chronic', index: number } | null
 
-    const [openStatusMenu, setOpenStatusMenu] = useState<{type: string, index: number} | null>(null);
+    const [openStatusMenu, setOpenStatusMenu] = useState<{ type: string; id: string } | null>(null);
 
     const [newCondition, setNewCondition] = useState({
 
@@ -216,7 +282,7 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
         try {
             const date = new Date(dateVal);
             if (isNaN(date.getTime())) return dateVal;
-            
+
             const d = date.getDate().toString().padStart(2, '0');
             const m = (date.getMonth() + 1).toString().padStart(2, '0');
             const y = date.getFullYear();
@@ -238,87 +304,481 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
         }
     };
 
-    const deleteMedication = (index: number, isHistory: boolean = false) => {
+    const getPrescribedByName = () => {
+        const loggedInUser: any = userStore.getState().loggedInUser;
+        return (
+            loggedInUser?.name?.trim() ||
+            `${loggedInUser?.firstName || ''} ${loggedInUser?.lastName || ''}`.trim() ||
+            ''
+        );
+    };
+
+    const cleanRecordForSave = (item: any) => {
+        const { tempId, ...clean } = item;
+        if (tempId) {
+            delete clean._id;
+        }
+        return clean;
+    };
+
+    const sectionHasData = (section: string) => {
+        if (!medicalData) return false;
+        switch (section) {
+            case 'medications':
+                return ((medicalData.medications?.length || 0) + (medicalData.medicationHistory?.length || 0)) > 0;
+            case 'diagnoses':
+                return ((medicalData.diagnoses?.length || 0) + (medicalData.diagnosisHistory?.length || 0)) > 0;
+            case 'allergies':
+                return ((medicalData.allergies?.length || 0) + (medicalData.allergyHistory?.length || 0)) > 0;
+            case 'chronic':
+                return ((medicalData.chronicConditions?.length || 0) + (medicalData.chronicHistory?.length || 0)) > 0;
+            case 'family':
+                return ((medicalData.familyHistory?.length || 0) + (medicalData.familyHistoryPast?.length || 0)) > 0;
+            case 'risk':
+                return ((medicalData.riskFactors?.length || 0) + (medicalData.riskHistory?.length || 0)) > 0;
+            default:
+                return false;
+        }
+    };
+
+    const resetMedicationForm = () => {
+        setNewMedication({
+            name: '',
+            genericName: '',
+            form: 'Tablet',
+            dose: '',
+            instructions: '',
+            startDate: new Date(),
+            notes: ''
+        });
+        setIsRegularMed(true);
+        setShowFormDropdown(false);
+        setShowStartDatePicker(false);
+    };
+
+    const closeMedicationModal = () => {
+        resetMedicationForm();
+        setShowMedModal(false);
+    };
+
+    const handleAddMedication = () => {
+        const name = newMedication.name.trim();
+        const instructions = newMedication.instructions.trim();
+
+        if (!name) {
+            if (onAlert) onAlert('warning', t('medicalData.medicationNameRequired', { defaultValue: 'Medication name is required' }));
+            return;
+        }
+        if (!instructions) {
+            if (onAlert) onAlert('warning', t('medicalData.dosageInstructionsRequired', { defaultValue: 'Dosage instructions are required' }));
+            return;
+        }
+
+        const medicationEntry = {
+            name,
+            commonName: newMedication.genericName.trim() || name,
+            form: newMedication.form,
+            dose: newMedication.dose,
+            dosage: instructions,
+            instructions,
+            notes: newMedication.notes,
+            isRegular: isRegularMed,
+            startDate: newMedication.startDate,
+            prescribedBy: getPrescribedByName(),
+            isActive: true,
+            endDate: null,
+            tempId: `temp_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+        };
+
+        setMedicalData((prev: any) => ({
+            ...prev,
+            medications: [...(prev?.medications || []), medicationEntry],
+        }));
+
+        closeMedicationModal();
+    };
+
+    const removeMedication = (medToRemove: any, isHistory: boolean, listIndex?: number) => {
         setMedicalData((prev: any) => {
+            if (!prev) return prev;
             const field = isHistory ? 'medicationHistory' : 'medications';
-            const updatedList = [...(prev[field] || [])];
-            updatedList.splice(index, 1);
-            return { ...prev, [field]: updatedList };
+            const list = [...(prev[field] || [])];
+            let nextList = list.filter((med: any) => !isSameRecord(med, medToRemove));
+
+            // Fallback when records have no stable ids (match web: _id || tempId checks)
+            if (nextList.length === list.length && listIndex != null && listIndex >= 0 && listIndex < list.length) {
+                nextList = list.filter((_, i) => i !== listIndex);
+            }
+
+            return { ...prev, [field]: nextList };
         });
     };
 
-    const endMedication = (index: number) => {
+    const endMedication = (medToEnd: any, listIndex?: number) => {
         setMedicalData((prev: any) => {
+            if (!prev) return prev;
             const currentMeds = [...(prev.medications || [])];
-            const medicationToEnd = currentMeds.splice(index, 1)[0];
-            const history = [...(prev.medicationHistory || []), medicationToEnd];
+            let index = currentMeds.findIndex((med: any) => isSameRecord(med, medToEnd));
+            if (index === -1 && listIndex != null && listIndex >= 0 && listIndex < currentMeds.length) {
+                index = listIndex;
+            }
+            if (index === -1) return prev;
+
+            const endedMedication = {
+                ...currentMeds[index],
+                isActive: false,
+                endDate: new Date(),
+            };
+            currentMeds.splice(index, 1);
+
             return {
                 ...prev,
                 medications: currentMeds,
-                medicationHistory: history
+                medicationHistory: [...(prev.medicationHistory || []), endedMedication],
             };
         });
     };
 
-    const deleteDiagnosis = (index: number, isHistory: boolean = false) => {
-        setMedicalData((prev: any) => {
-            const field = isHistory ? 'diagnosisHistory' : 'diagnoses';
-            const updatedList = [...(prev[field] || [])];
-            updatedList.splice(index, 1);
-            return { ...prev, [field]: updatedList };
-        });
-        if (!isHistory && openStatusMenu?.type === 'diag' && openStatusMenu.index === index) setOpenStatusMenu(null);
+    const confirmEndMedication = (med: any, listIndex?: number) => {
+        Alert.alert(
+            t('medications_form.confirmEnd'),
+            t('medications_form.confirmEndMessage'),
+            [
+                { text: t('medicalData.cancel'), style: 'cancel' },
+                {
+                    text: t('medicalData.end'),
+                    onPress: () => endMedication(med, listIndex),
+                },
+            ]
+        );
     };
 
-    const deleteAllergy = (index: number, isHistory: boolean = false) => {
-        setMedicalData((prev: any) => {
-            const field = isHistory ? 'allergyHistory' : 'allergies';
-            const updatedList = [...(prev[field] || [])];
-            updatedList.splice(index, 1);
-            return { ...prev, [field]: updatedList };
-        });
+    const confirmDeleteMedication = (med: any, isHistory: boolean = false, listIndex?: number) => {
+        Alert.alert(
+            t('medications_form.confirmDelete'),
+            t('medications_form.confirmDeleteMessage'),
+            [
+                { text: t('medicalData.cancel'), style: 'cancel' },
+                {
+                    text: t('medications_form.buttons.delete'),
+                    style: 'destructive',
+                    onPress: () => removeMedication(med, isHistory, listIndex),
+                },
+            ],
+            { cancelable: true }
+        );
     };
 
-    const deleteChronic = (index: number, isHistory: boolean = false) => {
-        setMedicalData((prev: any) => {
-            const field = isHistory ? 'chronicHistory' : 'chronicConditions';
-            const updatedList = [...(prev[field] || [])];
-            updatedList.splice(index, 1);
-            return { ...prev, [field]: updatedList };
-        });
+    const handleDiagnosisChange = (field: string, value: any) => {
+        setNewDiagnosis((prev) => ({ ...prev, [field]: value }));
     };
 
-    const deleteFamily = (index: number, isHistory: boolean = false) => {
-        setMedicalData((prev: any) => {
-            const field = isHistory ? 'familyHistoryPast' : 'familyHistory';
-            const updatedList = [...(prev[field] || [])];
-            updatedList.splice(index, 1);
-            return { ...prev, [field]: updatedList };
-        });
+    const resetDiagnosisForm = () => {
+        setNewDiagnosis({ description: '', code: '', notes: '' });
+        setDiagType('primary');
     };
 
-    const deleteRisk = (index: number, isHistory: boolean = false) => {
-        setMedicalData((prev: any) => {
-            const field = isHistory ? 'riskHistory' : 'riskFactors';
-            const updatedList = [...(prev[field] || [])];
-            updatedList.splice(index, 1);
-            return { ...prev, [field]: updatedList };
-        });
+    const closeDiagnosisModal = () => {
+        resetDiagnosisForm();
+        setShowDiagModal(false);
     };
-    const updateDiagnosisStatus = (index: number, newStatus: string) => {
+
+    const handleAddDiagnosis = () => {
+        const description = newDiagnosis.description.trim();
+        if (!description) {
+            if (onAlert) onAlert('warning', t('medicalData.diagnosisDescriptionRequired', { defaultValue: 'Description is required' }));
+            return;
+        }
+
+        const entry = {
+            description,
+            code: newDiagnosis.code.trim(),
+            type: diagType === 'primary' ? 'Primary' : 'Secondary',
+            status: 'Active',
+            notes: newDiagnosis.notes,
+            diagnosedDate: new Date().toISOString().split('T')[0],
+            diagnosedBy: getPrescribedByName(),
+            isActive: true,
+            tempId: `temp_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+        };
+
+        setMedicalData((prev: any) => ({
+            ...prev,
+            diagnoses: [...(prev?.diagnoses || []), entry],
+        }));
+        closeDiagnosisModal();
+    };
+
+    const resetAllergyForm = () => {
+        setNewAllergy({ type: 'Drug', allergen: '', reaction: '', severity: 'Moderate', notes: '' });
+        setShowAllergyTypeDropdown(false);
+        setShowAllergySeverityDropdown(false);
+    };
+
+    const closeAllergyModal = () => {
+        resetAllergyForm();
+        setShowAllergyModal(false);
+    };
+
+    const handleAddAllergy = () => {
+        const name = newAllergy.allergen.trim();
+        const reaction = newAllergy.reaction.trim();
+        if (!name) {
+            if (onAlert) onAlert('warning', t('medicalData.allergenNameRequired', { defaultValue: 'Allergen name is required' }));
+            return;
+        }
+        if (!reaction) {
+            if (onAlert) onAlert('warning', t('medicalData.reactionRequired', { defaultValue: 'Allergic reaction is required' }));
+            return;
+        }
+
+        const entry = {
+            name,
+            allergen: name,
+            type: newAllergy.type,
+            severity: newAllergy.severity,
+            reaction,
+            notes: newAllergy.notes,
+            diagnosedDate: new Date().toISOString().split('T')[0],
+            diagnosedBy: getPrescribedByName(),
+            isActive: true,
+            tempId: `temp_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+        };
+
+        setMedicalData((prev: any) => ({
+            ...prev,
+            allergies: [...(prev?.allergies || []), entry],
+        }));
+        closeAllergyModal();
+    };
+
+    const resetConditionForm = () => {
+        setNewCondition({ name: '', status: 'Active', severity: 'Moderate', treatment: '', notes: '' });
+        setShowConditionStatusDropdown(false);
+        setShowConditionSeverityDropdown(false);
+    };
+
+    const closeChronicModal = () => {
+        resetConditionForm();
+        setShowChronicModal(false);
+    };
+
+    const handleAddCondition = () => {
+        const name = newCondition.name.trim();
+        if (!name) {
+            if (onAlert) onAlert('warning', t('medicalData.conditionNameRequired', { defaultValue: 'Condition name is required' }));
+            return;
+        }
+
+        const entry = {
+            name,
+            status: newCondition.status,
+            severity: newCondition.severity,
+            treatment: newCondition.treatment,
+            notes: newCondition.notes,
+            diagnosedDate: new Date().toISOString().split('T')[0],
+            diagnosedBy: getPrescribedByName(),
+            isActive: newCondition.status === 'Active',
+            tempId: `temp_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+        };
+
         setMedicalData((prev: any) => {
-            const updatedDiagnoses = [...(prev.diagnoses || [])];
-            updatedDiagnoses[index] = { ...updatedDiagnoses[index], status: newStatus };
-            return { ...prev, diagnoses: updatedDiagnoses };
+            if (entry.isActive) {
+                return { ...prev, chronicConditions: [...(prev?.chronicConditions || []), entry] };
+            }
+            return { ...prev, chronicHistory: [...(prev?.chronicHistory || []), entry] };
+        });
+        closeChronicModal();
+    };
+
+    const resetFamilyForm = () => {
+        setNewFamilyHistory({ diseaseName: '', relationship: 'Mother', ageOfOnset: '', notes: '' });
+        setShowRelationshipDropdown(false);
+    };
+
+    const closeFamilyModal = () => {
+        resetFamilyForm();
+        setShowFamilyModal(false);
+    };
+
+    const handleAddFamilyHistory = () => {
+        const diseaseName = newFamilyHistory.diseaseName.trim();
+        if (!diseaseName) {
+            if (onAlert) onAlert('warning', t('medicalData.diseaseNameRequired', { defaultValue: 'Disease name is required' }));
+            return;
+        }
+
+        const entry = {
+            diseaseName,
+            name: diseaseName,
+            relationship: newFamilyHistory.relationship,
+            ageOfOnset: newFamilyHistory.ageOfOnset,
+            notes: newFamilyHistory.notes,
+            isActive: true,
+            tempId: `temp_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+        };
+
+        setMedicalData((prev: any) => ({
+            ...prev,
+            familyHistory: [...(prev?.familyHistory || []), entry],
+        }));
+        closeFamilyModal();
+    };
+
+    const resetRiskForm = () => {
+        setNewRiskFactor({ category: 'Lifestyle', factor: '', level: 'Moderate', notes: '' });
+        setShowRiskCategoryDropdown(false);
+        setShowRiskLevelDropdown(false);
+    };
+
+    const closeRiskModal = () => {
+        resetRiskForm();
+        setShowRiskModal(false);
+    };
+
+    const handleAddRiskFactor = () => {
+        const factor = newRiskFactor.factor.trim();
+        if (!factor) {
+            if (onAlert) onAlert('warning', t('medicalData.riskFactorRequired', { defaultValue: 'Risk factor is required' }));
+            return;
+        }
+
+        const entry = {
+            category: newRiskFactor.category,
+            factor,
+            level: newRiskFactor.level,
+            notes: newRiskFactor.notes,
+            isActive: true,
+            tempId: `temp_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+        };
+
+        setMedicalData((prev: any) => ({
+            ...prev,
+            riskFactors: [...(prev?.riskFactors || []), entry],
+        }));
+        closeRiskModal();
+    };
+
+    const deleteFromListById = (field: string, recordId: string) => {
+        setMedicalData((prev: any) => ({
+            ...prev,
+            [field]: (prev[field] || []).filter((item: any) => getRecordId(item) !== recordId),
+        }));
+    };
+
+    const confirmDeleteRecord = (
+        title: string,
+        message: string,
+        onConfirm: () => void
+    ) => {
+        Alert.alert(title, message, [
+            { text: t('medicalData.cancel'), style: 'cancel' },
+            {
+                text: t('medications_form.buttons.delete'),
+                style: 'destructive',
+                onPress: onConfirm,
+            },
+        ]);
+    };
+
+    const confirmDeleteDiagnosis = (diag: any, isHistory: boolean) => {
+        const recordId = getRecordId(diag);
+        if (!recordId) return;
+        confirmDeleteRecord(
+            t('diagnoses_form.confirmDelete'),
+            t('diagnoses_form.confirmDeleteMessage'),
+            () => {
+                deleteFromListById(isHistory ? 'diagnosisHistory' : 'diagnoses', recordId);
+                if (openStatusMenu?.id === recordId) setOpenStatusMenu(null);
+            }
+        );
+    };
+
+    const confirmDeleteAllergy = (allergy: any, isHistory: boolean) => {
+        const recordId = getRecordId(allergy);
+        if (!recordId) return;
+        confirmDeleteRecord(
+            t('allergies.confirmDelete', { defaultValue: 'Delete allergy?' }),
+            t('medications_form.confirmDeleteMessage'),
+            () => deleteFromListById(isHistory ? 'allergyHistory' : 'allergies', recordId)
+        );
+    };
+
+    const confirmDeleteChronic = (item: any, isHistory: boolean) => {
+        const recordId = getRecordId(item);
+        if (!recordId) return;
+        confirmDeleteRecord(
+            t('chronicConditions.confirmDelete', { defaultValue: 'Delete condition?' }),
+            `${t('chronicConditions.confirmDeleteMessage', { defaultValue: 'Are you sure you want to delete this condition?' })} "${item.name}"?`,
+            () => {
+                deleteFromListById(isHistory ? 'chronicHistory' : 'chronicConditions', recordId);
+                if (openStatusMenu?.id === recordId) setOpenStatusMenu(null);
+            }
+        );
+    };
+
+    const confirmDeleteFamily = (item: any, isHistory: boolean) => {
+        const recordId = getRecordId(item);
+        if (!recordId) return;
+        confirmDeleteRecord(
+            t('familyHistory.confirmDelete', { defaultValue: 'Delete entry?' }),
+            t('medications_form.confirmDeleteMessage'),
+            () => deleteFromListById(isHistory ? 'familyHistoryPast' : 'familyHistory', recordId)
+        );
+    };
+
+    const confirmDeleteRisk = (item: any, isHistory: boolean) => {
+        const recordId = getRecordId(item);
+        if (!recordId) return;
+        confirmDeleteRecord(
+            t('riskFactors_form.title', { defaultValue: 'Delete risk factor?' }),
+            t('riskFactors_form.confirmDelete', { defaultValue: 'Are you sure you want to delete this risk factor?' }),
+            () => deleteFromListById(isHistory ? 'riskHistory' : 'riskFactors', recordId)
+        );
+    };
+
+    const updateDiagnosisStatusById = (recordId: string, newStatus: string) => {
+        setMedicalData((prev: any) => {
+            const activeList = [...(prev.diagnoses || [])];
+            const index = activeList.findIndex((d: any) => getRecordId(d) === recordId);
+            if (index === -1) return prev;
+
+            const updated = { ...activeList[index], status: newStatus };
+
+            if (newStatus === 'Active') {
+                activeList[index] = { ...updated, isActive: true };
+                return { ...prev, diagnoses: activeList };
+            }
+
+            activeList.splice(index, 1);
+            return {
+                ...prev,
+                diagnoses: activeList,
+                diagnosisHistory: [...(prev.diagnosisHistory || []), { ...updated, isActive: false }],
+            };
         });
         setOpenStatusMenu(null);
     };
 
-    const updateChronicStatus = (index: number, newStatus: string) => {
+    const updateChronicStatusById = (recordId: string, newStatus: string) => {
         setMedicalData((prev: any) => {
-            const updatedConditions = [...(prev.chronicConditions || [])];
-            updatedConditions[index] = { ...updatedConditions[index], status: newStatus };
-            return { ...prev, chronicConditions: updatedConditions };
+            const activeList = [...(prev.chronicConditions || [])];
+            const index = activeList.findIndex((c: any) => getRecordId(c) === recordId);
+            if (index === -1) return prev;
+
+            const updated = { ...activeList[index], status: newStatus };
+
+            if (newStatus === 'Active') {
+                activeList[index] = { ...updated, isActive: true };
+                return { ...prev, chronicConditions: activeList };
+            }
+
+            activeList.splice(index, 1);
+            return {
+                ...prev,
+                chronicConditions: activeList,
+                chronicHistory: [...(prev.chronicHistory || []), { ...updated, isActive: false }],
+            };
         });
         setOpenStatusMenu(null);
     };
@@ -332,38 +792,78 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
         switch (section) {
             case 'medications':
                 payload.medications = [
-                    ...(medicalData.medications || []).map((m: any) => ({ ...m, prescribedBy: m.prescribedBy || 'Hamad Alvi', isActive: true })),
-                    ...(medicalData.medicationHistory || []).map((m: any) => ({ ...m, prescribedBy: m.prescribedBy || 'Hamad Alvi', isActive: false }))
+                    ...(medicalData.medications || []).map((m: any) => ({
+                        ...cleanRecordForSave(m),
+                        prescribedBy: m.prescribedBy || getPrescribedByName(),
+                        isActive: true,
+                    })),
+                    ...(medicalData.medicationHistory || []).map((m: any) => ({
+                        ...cleanRecordForSave(m),
+                        prescribedBy: m.prescribedBy || getPrescribedByName(),
+                        isActive: false,
+                    })),
                 ];
                 break;
             case 'diagnoses':
                 payload.diagnoses = [
-                    ...(medicalData.diagnoses || []).map((d: any) => ({ ...d, diagnosedBy: d.diagnosedBy || 'Hamad Alvi', isActive: true })),
-                    ...(medicalData.diagnosisHistory || []).map((d: any) => ({ ...d, diagnosedBy: d.diagnosedBy || 'Hamad Alvi', isActive: false }))
+                    ...(medicalData.diagnoses || []).map((d: any) => ({
+                        ...cleanRecordForSave(d),
+                        diagnosedBy: d.diagnosedBy || getPrescribedByName(),
+                        isActive: true,
+                    })),
+                    ...(medicalData.diagnosisHistory || []).map((d: any) => ({
+                        ...cleanRecordForSave(d),
+                        diagnosedBy: d.diagnosedBy || getPrescribedByName(),
+                        isActive: false,
+                    })),
                 ];
                 break;
             case 'allergies':
                 payload.allergies = [
-                    ...(medicalData.allergies || []).map((a: any) => ({ ...a, diagnosedBy: a.diagnosedBy || 'Hamad Alvi', isActive: true })),
-                    ...(medicalData.allergyHistory || []).map((a: any) => ({ ...a, diagnosedBy: a.diagnosedBy || 'Hamad Alvi', isActive: false }))
+                    ...(medicalData.allergies || []).map((a: any) => ({
+                        ...cleanRecordForSave(a),
+                        diagnosedBy: a.diagnosedBy || getPrescribedByName(),
+                        isActive: true,
+                    })),
+                    ...(medicalData.allergyHistory || []).map((a: any) => ({
+                        ...cleanRecordForSave(a),
+                        diagnosedBy: a.diagnosedBy || getPrescribedByName(),
+                        isActive: false,
+                    })),
                 ];
                 break;
             case 'chronic':
                 payload.chronicConditions = [
-                    ...(medicalData.chronicConditions || []).map((c: any) => ({ ...c, diagnosedBy: c.diagnosedBy || 'Hamad Alvi', isActive: true })),
-                    ...(medicalData.chronicHistory || []).map((c: any) => ({ ...c, diagnosedBy: c.diagnosedBy || 'Hamad Alvi', isActive: false }))
+                    ...(medicalData.chronicConditions || []).map((c: any) => ({
+                        ...cleanRecordForSave(c),
+                        diagnosedBy: c.diagnosedBy || getPrescribedByName(),
+                        isActive: true,
+                    })),
+                    ...(medicalData.chronicHistory || []).map((c: any) => ({
+                        ...cleanRecordForSave(c),
+                        diagnosedBy: c.diagnosedBy || getPrescribedByName(),
+                        isActive: false,
+                    })),
                 ];
                 break;
             case 'family':
                 payload.familyHistory = [
-                    ...(medicalData.familyHistory || []).map((f: any) => ({ ...f, name: f.name || f.diseaseName, isActive: true })),
-                    ...(medicalData.familyHistoryPast || []).map((f: any) => ({ ...f, name: f.name || f.diseaseName, isActive: false }))
+                    ...(medicalData.familyHistory || []).map((f: any) => ({
+                        ...cleanRecordForSave(f),
+                        name: f.name || f.diseaseName,
+                        isActive: true,
+                    })),
+                    ...(medicalData.familyHistoryPast || []).map((f: any) => ({
+                        ...cleanRecordForSave(f),
+                        name: f.name || f.diseaseName,
+                        isActive: false,
+                    })),
                 ];
                 break;
             case 'risk':
                 payload.riskFactors = [
-                    ...(medicalData.riskFactors || []).map((r: any) => ({ ...r, isActive: true })),
-                    ...(medicalData.riskHistory || []).map((r: any) => ({ ...r, isActive: false }))
+                    ...(medicalData.riskFactors || []).map((r: any) => ({ ...cleanRecordForSave(r), isActive: true })),
+                    ...(medicalData.riskHistory || []).map((r: any) => ({ ...cleanRecordForSave(r), isActive: false })),
                 ];
                 break;
         }
@@ -375,26 +875,11 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
             console.log(`${section} update response:`, res);
             if (res && (res.status === 200 || res.status === 201 || res.data)) {
                 if (onAlert) onAlert('success', t('medicalData.saveSuccess', { section: section.charAt(0).toUpperCase() + section.slice(1) }));
-                
+
                 // Refresh data to ensure UI sync
                 const response: any = await GetPatientMedicalData(patientId);
                 if (response) {
-                    const processed = {
-                        ...response,
-                        medications: (response.medications || []).filter((i: any) => i.isActive !== false),
-                        medicationHistory: (response.medications || []).filter((i: any) => i.isActive === false),
-                        diagnoses: (response.diagnoses || []).filter((i: any) => i.isActive !== false),
-                        diagnosisHistory: (response.diagnoses || []).filter((i: any) => i.isActive === false),
-                        allergies: (response.allergies || []).filter((i: any) => i.isActive !== false),
-                        allergyHistory: (response.allergies || []).filter((i: any) => i.isActive === false),
-                        chronicConditions: (response.chronicConditions || []).filter((i: any) => i.isActive !== false),
-                        chronicHistory: (response.chronicConditions || []).filter((i: any) => i.isActive === false),
-                        familyHistory: (response.familyHistory || []).filter((i: any) => i.isActive !== false),
-                        familyHistoryPast: (response.familyHistory || []).filter((i: any) => i.isActive === false),
-                        riskFactors: (response.riskFactors || []).filter((i: any) => i.isActive !== false),
-                        riskHistory: (response.riskFactors || []).filter((i: any) => i.isActive === false),
-                    };
-                    setMedicalData(processed);
+                    setMedicalData(processMedicalDataResponse(response));
                 }
             }
         } catch (error) {
@@ -416,27 +901,7 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
                 }
                 const response: any = await GetPatientMedicalData(patientId);
                 if (response) {
-                    const processed = {
-                        ...response,
-                        medications: (response.medications || []).filter((i: any) => i.isActive !== false),
-                        medicationHistory: (response.medications || []).filter((i: any) => i.isActive === false),
-                        
-                        diagnoses: (response.diagnoses || []).filter((i: any) => i.isActive !== false),
-                        diagnosisHistory: (response.diagnoses || []).filter((i: any) => i.isActive === false),
-                        
-                        allergies: (response.allergies || []).filter((i: any) => i.isActive !== false),
-                        allergyHistory: (response.allergies || []).filter((i: any) => i.isActive === false),
-                        
-                        chronicConditions: (response.chronicConditions || []).filter((i: any) => i.isActive !== false),
-                        chronicHistory: (response.chronicConditions || []).filter((i: any) => i.isActive === false),
-                        
-                        familyHistory: (response.familyHistory || []).filter((i: any) => i.isActive !== false),
-                        familyHistoryPast: (response.familyHistory || []).filter((i: any) => i.isActive === false),
-                        
-                        riskFactors: (response.riskFactors || []).filter((i: any) => i.isActive !== false),
-                        riskHistory: (response.riskFactors || []).filter((i: any) => i.isActive === false),
-                    };
-                    setMedicalData(processed);
+                    setMedicalData(processMedicalDataResponse(response));
                 }
             } catch (error) {
                 console.log("Fetch medical data error:", error);
@@ -457,36 +922,36 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
     }
 
     const renderAddMedicationModal = () => (
-        <Modal visible={showMedModal} transparent animationType="fade" onRequestClose={() => setShowMedModal(false)}>
+        <Modal visible={showMedModal} transparent animationType="fade" onRequestClose={closeMedicationModal}>
             <View style={ds.modalOverlay}>
                 <View style={ds.modalContent}>
                     <View style={ds.modalHeader}>
                         <Text style={ds.modalTitle}>{t('medicalData.addMedication')}</Text>
-                        <TouchableOpacity onPress={() => setShowMedModal(false)}><Feather name="x" size={20} color="#94a3b8" /></TouchableOpacity>
+                        <TouchableOpacity onPress={closeMedicationModal}><Feather name="x" size={20} color="#94a3b8" /></TouchableOpacity>
                     </View>
                     <ScrollView style={ds.modalScroll} showsVerticalScrollIndicator={false}>
-                        <FormInput {...commonProps} 
-                            label={t('medicalData.medicationName')} required placeholder={t('medicalData.placeholderMedName')} 
+                        <FormInput {...commonProps}
+                            label={t('medicalData.medicationName')} required placeholder={t('medicalData.placeholderMedName')}
                             value={newMedication.name}
                             onChangeText={(val: string) => handleMedicationChange('name', val)}
                         />
-                        <FormInput {...commonProps} 
-                            label={t('medicalData.commonName')} placeholder={t('medicalData.placeholderGenericName')} 
+                        <FormInput {...commonProps}
+                            label={t('medicalData.commonName')} placeholder={t('medicalData.placeholderGenericName')}
                             value={newMedication.genericName}
                             onChangeText={(val: string) => handleMedicationChange('genericName', val)}
                         />
                         <View style={[ds.row, { zIndex: 10 }]}>
                             <View style={{ flex: 1, marginRight: 8 }}>
-                                <FormInput {...commonProps} 
-                                    label={t('medicalData.form')} placeholder={t('medicalData.placeholderForm')} isDropdown 
+                                <FormInput {...commonProps}
+                                    label={t('medicalData.form')} placeholder={t('medicalData.placeholderForm')} isDropdown
                                     value={newMedication.form}
                                     onPress={() => setShowFormDropdown(!showFormDropdown)}
                                 />
                                 {showFormDropdown && (
                                     <View style={ds.inlineDropdown}>
                                         {MEDICATION_FORMS.map((option) => (
-                                            <TouchableOpacity 
-                                                key={option} 
+                                            <TouchableOpacity
+                                                key={option}
                                                 style={[ds.dropdownItem, newMedication.form === option && ds.dropdownItemActive]}
                                                 onPress={() => {
                                                     handleMedicationChange('form', option);
@@ -502,24 +967,24 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
                                 )}
                             </View>
                             <View style={{ flex: 1 }}>
-                                <FormInput {...commonProps} 
-                                    label={t('medicalData.dose')} placeholder={t('medicalData.placeholderDose')} unit="mg" 
+                                <FormInput {...commonProps}
+                                    label={t('medicalData.dose')} placeholder={t('medicalData.placeholderDose')} unit="mg"
                                     value={newMedication.dose}
                                     onChangeText={(val: string) => handleMedicationChange('dose', val)}
                                 />
                             </View>
                         </View>
-                        <FormInput {...commonProps} 
-                            label={t('medicalData.dosageInstructions')} required placeholder={t('medicalData.placeholderInstructions')} 
+                        <FormInput {...commonProps}
+                            label={t('medicalData.dosageInstructions')} required placeholder={t('medicalData.placeholderInstructions')}
                             value={newMedication.instructions}
                             onChangeText={(val: string) => handleMedicationChange('instructions', val)}
                         />
-                        <FormInput {...commonProps} 
-                            label={t('medicalData.startDate')} placeholder={t('medicalData.placeholderSelectDate')} isDate 
+                        <FormInput {...commonProps}
+                            label={t('medicalData.startDate')} placeholder={t('medicalData.placeholderSelectDate')} isDate
                             value={newMedication.startDate.toISOString().split('T')[0].replace(/-/g, '/')}
                             onPress={() => setShowStartDatePicker(!showStartDatePicker)}
                         />
-                        
+
                         {showStartDatePicker && (
                             <View style={ds.datePickerContainer}>
                                 {Platform.OS === 'ios' && (
@@ -538,15 +1003,15 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
                             </View>
                         )}
 
-                        <FormInput {...commonProps} 
-                            label={t('medicalData.notes')} multiline placeholder={t('medicalData.notesPlaceholder')} 
+                        <FormInput {...commonProps}
+                            label={t('medicalData.notes')} multiline placeholder={t('medicalData.notesPlaceholder')}
                             value={newMedication.notes}
                             onChangeText={(val: string) => handleMedicationChange('notes', val)}
                         />
-                        
+
                         <View style={ds.checkboxRow}>
-                            <Switch 
-                                value={isRegularMed} 
+                            <Switch
+                                value={isRegularMed}
                                 onValueChange={setIsRegularMed}
                                 trackColor={{ false: tc.borderColor || '#e2e8f0', true: tc.accent || '#58a6b8' }}
                             />
@@ -554,14 +1019,10 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
                         </View>
                     </ScrollView>
                     <View style={ds.modalFooter}>
-                        <TouchableOpacity style={ds.cancelOutlineButton} onPress={() => setShowMedModal(false)}>
+                        <TouchableOpacity style={ds.cancelOutlineButton} onPress={closeMedicationModal}>
                             <Text style={ds.cancelOutlineText}>{t('medicalData.cancel')}</Text>
                         </TouchableOpacity>
-                        <SubmitButton {...commonProps} tc={tc} ds={ds} title={t('medicalData.addEntry')} onPress={() => {
-                            // Add logic here if needed, or just close for now
-                            console.log("Adding medication:", newMedication);
-                            setShowMedModal(false);
-                        }} />
+                        <SubmitButton {...commonProps} tc={tc} ds={ds} title={t('medicalData.addEntry')} onPress={handleAddMedication} />
                     </View>
                 </View>
             </View>
@@ -570,17 +1031,25 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
 
 
     const renderAddDiagnosisModal = () => (
-        <Modal visible={showDiagModal} transparent animationType="fade" onRequestClose={() => setShowDiagModal(false)}>
+        <Modal visible={showDiagModal} transparent animationType="fade" onRequestClose={closeDiagnosisModal}>
             <View style={ds.modalOverlay}>
                 <View style={ds.modalContent}>
                     <View style={ds.modalHeader}>
                         <Text style={ds.modalTitle}>{t('medicalData.addDiagnosis')}</Text>
-                        <TouchableOpacity onPress={() => setShowDiagModal(false)}><Feather name="x" size={20} color="#94a3b8" /></TouchableOpacity>
+                        <TouchableOpacity onPress={closeDiagnosisModal}><Feather name="x" size={20} color="#94a3b8" /></TouchableOpacity>
                     </View>
                     <ScrollView style={ds.modalScroll}>
-                        <FormInput {...commonProps} label={t('medicalData.description')} hasInfo placeholder="" />
-                        <FormInput {...commonProps} label={t('medicalData.code')} required hasInfo placeholder={t('medicalData.placeholderDiagnosisCode')} />
-                        
+                        <FormInput {...commonProps}
+                            label={t('medicalData.description')} required hasInfo placeholder={t('medicalData.placeholderConditionName')}
+                            value={newDiagnosis.description}
+                            onChangeText={(val: string) => handleDiagnosisChange('description', val)}
+                        />
+                        <FormInput {...commonProps}
+                            label={t('medicalData.code')} hasInfo placeholder={t('medicalData.placeholderDiagnosisCode')}
+                            value={newDiagnosis.code}
+                            onChangeText={(val: string) => handleDiagnosisChange('code', val)}
+                        />
+
                         <View style={ds.radioGroup}>
                             <View style={ds.labelRow}>
                                 <Text style={ds.requiredStar}>* </Text>
@@ -588,8 +1057,8 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
                                 <Feather name="help-circle" size={14} color="#94a3b8" style={{ marginLeft: 4 }} />
                             </View>
                             <View style={ds.radioRow}>
-                                <TouchableOpacity 
-                                    style={ds.radioItem} 
+                                <TouchableOpacity
+                                    style={ds.radioItem}
                                     onPress={() => setDiagType('primary')}
                                 >
                                     <View style={[ds.radioOuter, diagType === 'primary' && ds.radioOuterActive]}>
@@ -597,8 +1066,8 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
                                     </View>
                                     <Text style={ds.radioLabel}>{t('medicalData.options.diagnosisTypes.Primary')}</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity 
-                                    style={ds.radioItem} 
+                                <TouchableOpacity
+                                    style={ds.radioItem}
                                     onPress={() => setDiagType('secondary')}
                                 >
                                     <View style={[ds.radioOuter, diagType === 'secondary' && ds.radioOuterActive]}>
@@ -609,14 +1078,18 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
                             </View>
                         </View>
 
-                        <FormInput {...commonProps} label={t('medicalData.notes')} hasInfo multiline placeholder={t('medicalData.diagnosisNotesPlaceholder')} />
-                        <Text style={ds.charCount}>0 / 500</Text>
+                        <FormInput {...commonProps}
+                            label={t('medicalData.notes')} hasInfo multiline placeholder={t('medicalData.diagnosisNotesPlaceholder')}
+                            value={newDiagnosis.notes}
+                            onChangeText={(val: string) => handleDiagnosisChange('notes', val)}
+                        />
+                        <Text style={ds.charCount}>{newDiagnosis.notes.length} / 500</Text>
                     </ScrollView>
                     <View style={ds.modalFooter}>
-                        <TouchableOpacity style={ds.cancelOutlineButton} onPress={() => setShowDiagModal(false)}>
+                        <TouchableOpacity style={ds.cancelOutlineButton} onPress={closeDiagnosisModal}>
                             <Text style={ds.cancelOutlineText}>{t('medicalData.cancel')}</Text>
                         </TouchableOpacity>
-                        <SubmitButton {...commonProps} tc={tc} ds={ds} title={t('medicalData.addEntry')} />
+                        <SubmitButton {...commonProps} tc={tc} ds={ds} title={t('medicalData.addEntry')} onPress={handleAddDiagnosis} />
                     </View>
                 </View>
             </View>
@@ -624,25 +1097,25 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
     );
 
     const renderAddAllergyModal = () => (
-        <Modal visible={showAllergyModal} transparent animationType="fade" onRequestClose={() => setShowAllergyModal(false)}>
+        <Modal visible={showAllergyModal} transparent animationType="fade" onRequestClose={closeAllergyModal}>
             <View style={ds.modalOverlay}>
                 <View style={ds.modalContent}>
                     <View style={ds.modalHeader}>
                         <Text style={ds.modalTitle}>{t('medicalData.addAllergy')}</Text>
-                        <TouchableOpacity onPress={() => setShowAllergyModal(false)}><Feather name="x" size={20} color="#94a3b8" /></TouchableOpacity>
+                        <TouchableOpacity onPress={closeAllergyModal}><Feather name="x" size={20} color="#94a3b8" /></TouchableOpacity>
                     </View>
                     <ScrollView style={ds.modalScroll} showsVerticalScrollIndicator={false}>
                         <View style={{ zIndex: 20 }}>
-                            <FormInput {...commonProps} 
-                                label={t('medicalData.allergyType')} required placeholder={t('medicalData.placeholderSelectType')} isDropdown 
+                            <FormInput {...commonProps}
+                                label={t('medicalData.allergyType')} required placeholder={t('medicalData.placeholderSelectType')} isDropdown
                                 value={newAllergy.type}
                                 onPress={() => setShowAllergyTypeDropdown(!showAllergyTypeDropdown)}
                             />
                             {showAllergyTypeDropdown && (
                                 <View style={ds.inlineDropdown}>
                                     {ALLERGY_TYPES.map((option) => (
-                                        <TouchableOpacity 
-                                            key={option} 
+                                        <TouchableOpacity
+                                            key={option}
                                             style={[ds.dropdownItem, newAllergy.type === option && ds.dropdownItemActive]}
                                             onPress={() => {
                                                 handleAllergyChange('type', option);
@@ -658,28 +1131,28 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
                             )}
                         </View>
 
-                        <FormInput {...commonProps} 
-                            label={t('medicalData.allergenName')} placeholder={t('medicalData.placeholderAllergenName')} 
+                        <FormInput {...commonProps}
+                            label={t('medicalData.allergenName')} placeholder={t('medicalData.placeholderAllergenName')}
                             value={newAllergy.allergen}
                             onChangeText={(val: string) => handleAllergyChange('allergen', val)}
                         />
-                        <FormInput {...commonProps} 
-                            label={t('medicalData.allergicReaction')} multiline placeholder={t('medicalData.placeholderAllergicReaction')} 
+                        <FormInput {...commonProps}
+                            label={t('medicalData.allergicReaction')} multiline placeholder={t('medicalData.placeholderAllergicReaction')}
                             value={newAllergy.reaction}
                             onChangeText={(val: string) => handleAllergyChange('reaction', val)}
                         />
 
                         <View style={{ zIndex: 10 }}>
-                            <FormInput {...commonProps} 
-                                label={t('medicalData.severity')} required placeholder={t('medicalData.placeholderSelectSeverity')} isDropdown 
+                            <FormInput {...commonProps}
+                                label={t('medicalData.severity')} required placeholder={t('medicalData.placeholderSelectSeverity')} isDropdown
                                 value={newAllergy.severity}
                                 onPress={() => setShowAllergySeverityDropdown(!showAllergySeverityDropdown)}
                             />
                             {showAllergySeverityDropdown && (
                                 <View style={ds.inlineDropdown}>
                                     {SEVERITY_LEVELS.map((option) => (
-                                        <TouchableOpacity 
-                                            key={option} 
+                                        <TouchableOpacity
+                                            key={option}
                                             style={[ds.dropdownItem, newAllergy.severity === option && ds.dropdownItemActive]}
                                             onPress={() => {
                                                 handleAllergyChange('severity', option);
@@ -696,21 +1169,18 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
                             )}
                         </View>
 
-                        <FormInput {...commonProps} 
-                            label={t('medicalData.notes')} multiline placeholder={t('medicalData.notesPlaceholder')} 
+                        <FormInput {...commonProps}
+                            label={t('medicalData.notes')} multiline placeholder={t('medicalData.notesPlaceholder')}
                             value={newAllergy.notes}
                             onChangeText={(val: string) => handleAllergyChange('notes', val)}
                         />
                         <Text style={ds.charCount}>{newAllergy.notes.length} / 500</Text>
                     </ScrollView>
                     <View style={ds.modalFooter}>
-                        <TouchableOpacity style={ds.cancelOutlineButton} onPress={() => setShowAllergyModal(false)}>
+                        <TouchableOpacity style={ds.cancelOutlineButton} onPress={closeAllergyModal}>
                             <Text style={ds.cancelOutlineText}>{t('medicalData.cancel')}</Text>
                         </TouchableOpacity>
-                        <SubmitButton {...commonProps} tc={tc} ds={ds} title={t('medicalData.addAllergy')} onPress={() => {
-                            console.log("Adding allergy:", newAllergy);
-                            setShowAllergyModal(false);
-                        }} />
+                        <SubmitButton {...commonProps} tc={tc} ds={ds} title={t('medicalData.addAllergy')} onPress={handleAddAllergy} />
                     </View>
                 </View>
             </View>
@@ -719,31 +1189,31 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
 
 
     const renderAddChronicModal = () => (
-        <Modal visible={showChronicModal} transparent animationType="fade" onRequestClose={() => setShowChronicModal(false)}>
+        <Modal visible={showChronicModal} transparent animationType="fade" onRequestClose={closeChronicModal}>
             <View style={ds.modalOverlay}>
                 <View style={ds.modalContent}>
                     <View style={ds.modalHeader}>
                         <Text style={ds.modalTitle}>{t('medicalData.addCondition')}</Text>
-                        <TouchableOpacity onPress={() => setShowChronicModal(false)}><Feather name="x" size={20} color="#94a3b8" /></TouchableOpacity>
+                        <TouchableOpacity onPress={closeChronicModal}><Feather name="x" size={20} color="#94a3b8" /></TouchableOpacity>
                     </View>
                     <ScrollView style={ds.modalScroll} showsVerticalScrollIndicator={false}>
-                        <FormInput {...commonProps} 
-                            label={t('medicalData.conditionName')} placeholder={t('medicalData.placeholderConditionName')} 
+                        <FormInput {...commonProps}
+                            label={t('medicalData.conditionName')} placeholder={t('medicalData.placeholderConditionName')}
                             value={newCondition.name}
                             onChangeText={(val: string) => handleConditionChange('name', val)}
                         />
-                        
+
                         <View style={{ zIndex: 20 }}>
-                            <FormInput {...commonProps} 
-                                label={t('medicalData.status')} required placeholder={t('medicalData.placeholderSelectStatus')} isDropdown 
+                            <FormInput {...commonProps}
+                                label={t('medicalData.status')} required placeholder={t('medicalData.placeholderSelectStatus')} isDropdown
                                 value={newCondition.status}
                                 onPress={() => setShowConditionStatusDropdown(!showConditionStatusDropdown)}
                             />
                             {showConditionStatusDropdown && (
                                 <View style={ds.inlineDropdown}>
                                     {CONDITION_STATUSES.map((option) => (
-                                        <TouchableOpacity 
-                                            key={option} 
+                                        <TouchableOpacity
+                                            key={option}
                                             style={[ds.dropdownItem, newCondition.status === option && ds.dropdownItemActive]}
                                             onPress={() => {
                                                 handleConditionChange('status', option);
@@ -760,16 +1230,16 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
                         </View>
 
                         <View style={{ zIndex: 10 }}>
-                            <FormInput {...commonProps} 
-                                label={t('medicalData.severity')} required placeholder={t('medicalData.placeholderSelectSeverity')} isDropdown 
+                            <FormInput {...commonProps}
+                                label={t('medicalData.severity')} required placeholder={t('medicalData.placeholderSelectSeverity')} isDropdown
                                 value={newCondition.severity}
                                 onPress={() => setShowConditionSeverityDropdown(!showConditionSeverityDropdown)}
                             />
                             {showConditionSeverityDropdown && (
                                 <View style={ds.inlineDropdown}>
                                     {SEVERITY_LEVELS.map((option) => (
-                                        <TouchableOpacity 
-                                            key={option} 
+                                        <TouchableOpacity
+                                            key={option}
                                             style={[ds.dropdownItem, newCondition.severity === option && ds.dropdownItemActive]}
                                             onPress={() => {
                                                 handleConditionChange('severity', option);
@@ -785,26 +1255,23 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
                             )}
                         </View>
 
-                        <FormInput {...commonProps} 
-                            label={t('medicalData.currentTreatment')} multiline placeholder={t('medicalData.placeholderTreatmentPlan')} 
+                        <FormInput {...commonProps}
+                            label={t('medicalData.currentTreatment')} multiline placeholder={t('medicalData.placeholderTreatmentPlan')}
                             value={newCondition.treatment}
                             onChangeText={(val: string) => handleConditionChange('treatment', val)}
                         />
-                        <FormInput {...commonProps} 
-                            label={t('medicalData.notes')} multiline placeholder={t('medicalData.notesPlaceholder')} 
+                        <FormInput {...commonProps}
+                            label={t('medicalData.notes')} multiline placeholder={t('medicalData.notesPlaceholder')}
                             value={newCondition.notes}
                             onChangeText={(val: string) => handleConditionChange('notes', val)}
                         />
                         <Text style={ds.charCount}>{newCondition.notes.length} / 500</Text>
                     </ScrollView>
                     <View style={ds.modalFooter}>
-                        <TouchableOpacity style={ds.cancelOutlineButton} onPress={() => setShowChronicModal(false)}>
+                        <TouchableOpacity style={ds.cancelOutlineButton} onPress={closeChronicModal}>
                             <Text style={ds.cancelOutlineText}>{t('medicalData.cancel')}</Text>
                         </TouchableOpacity>
-                        <SubmitButton {...commonProps} tc={tc} ds={ds} title={t('medicalData.addEntry')} onPress={() => {
-                            console.log("Adding condition:", newCondition);
-                            setShowChronicModal(false);
-                        }} />
+                        <SubmitButton {...commonProps} tc={tc} ds={ds} title={t('medicalData.addEntry')} onPress={handleAddCondition} />
                     </View>
                 </View>
             </View>
@@ -813,23 +1280,23 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
 
 
     const renderAddFamilyModal = () => (
-        <Modal visible={showFamilyModal} transparent animationType="fade" onRequestClose={() => setShowFamilyModal(false)}>
+        <Modal visible={showFamilyModal} transparent animationType="fade" onRequestClose={closeFamilyModal}>
             <View style={ds.modalOverlay}>
                 <View style={ds.modalContent}>
                     <View style={ds.modalHeader}>
                         <Text style={ds.modalTitle}>{t('medicalData.addEntry')}</Text>
-                        <TouchableOpacity onPress={() => setShowFamilyModal(false)}><Feather name="x" size={20} color="#94a3b8" /></TouchableOpacity>
+                        <TouchableOpacity onPress={closeFamilyModal}><Feather name="x" size={20} color="#94a3b8" /></TouchableOpacity>
                     </View>
                     <ScrollView style={ds.modalScroll} showsVerticalScrollIndicator={false}>
-                        <FormInput {...commonProps} 
-                            label={t('medicalData.diseaseName')} required placeholder={t('medicalData.placeholderDiseaseName')} 
+                        <FormInput {...commonProps}
+                            label={t('medicalData.diseaseName')} required placeholder={t('medicalData.placeholderDiseaseName')}
                             value={newFamilyHistory.diseaseName}
                             onChangeText={(val: string) => handleFamilyHistoryChange('diseaseName', val)}
                         />
-                        
+
                         <View style={{ zIndex: 10 }}>
-                            <FormInput {...commonProps} 
-                                label={t('medicalData.relationship')} required placeholder={t('medicalData.placeholderSelectRelationship')} isDropdown 
+                            <FormInput {...commonProps}
+                                label={t('medicalData.relationship')} required placeholder={t('medicalData.placeholderSelectRelationship')} isDropdown
                                 value={newFamilyHistory.relationship}
                                 onPress={() => setShowRelationshipDropdown(!showRelationshipDropdown)}
                             />
@@ -837,8 +1304,8 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
                                 <View style={ds.inlineDropdown}>
                                     <ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled={true}>
                                         {RELATIONSHIP_OPTIONS.map((option) => (
-                                            <TouchableOpacity 
-                                                key={option} 
+                                            <TouchableOpacity
+                                                key={option}
                                                 style={[ds.dropdownItem, newFamilyHistory.relationship === option && ds.dropdownItemActive]}
                                                 onPress={() => {
                                                     handleFamilyHistoryChange('relationship', option);
@@ -854,27 +1321,24 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
                                 </View>
                             )}
                         </View>
- 
-                        <FormInput {...commonProps} 
-                            label={t('medicalData.ageOfOnset')} placeholder={t('medicalData.placeholderAgeOfOnset')} 
+
+                        <FormInput {...commonProps}
+                            label={t('medicalData.ageOfOnset')} placeholder={t('medicalData.placeholderAgeOfOnset')}
                             value={newFamilyHistory.ageOfOnset}
                             onChangeText={(val: string) => handleFamilyHistoryChange('ageOfOnset', val)}
                         />
-                        <FormInput {...commonProps} 
-                            label={t('medicalData.notes')} multiline placeholder={t('medicalData.notesPlaceholder')} 
+                        <FormInput {...commonProps}
+                            label={t('medicalData.notes')} multiline placeholder={t('medicalData.notesPlaceholder')}
                             value={newFamilyHistory.notes}
                             onChangeText={(val: string) => handleFamilyHistoryChange('notes', val)}
                         />
                         <Text style={ds.charCount}>{newFamilyHistory.notes.length} / 500</Text>
                     </ScrollView>
                     <View style={ds.modalFooter}>
-                        <TouchableOpacity style={ds.cancelOutlineButton} onPress={() => setShowFamilyModal(false)}>
+                        <TouchableOpacity style={ds.cancelOutlineButton} onPress={closeFamilyModal}>
                             <Text style={ds.cancelOutlineText}>{t('medicalData.cancel')}</Text>
                         </TouchableOpacity>
-                        <SubmitButton {...commonProps} tc={tc} ds={ds} title={t('medicalData.addEntry')} onPress={() => {
-                            console.log("Adding family history:", newFamilyHistory);
-                            setShowFamilyModal(false);
-                        }} />
+                        <SubmitButton {...commonProps} tc={tc} ds={ds} title={t('medicalData.addEntry')} onPress={handleAddFamilyHistory} />
                     </View>
                 </View>
             </View>
@@ -883,25 +1347,25 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
 
 
     const renderAddRiskModal = () => (
-        <Modal visible={showRiskModal} transparent animationType="fade" onRequestClose={() => setShowRiskModal(false)}>
+        <Modal visible={showRiskModal} transparent animationType="fade" onRequestClose={closeRiskModal}>
             <View style={ds.modalOverlay}>
                 <View style={ds.modalContent}>
                     <View style={ds.modalHeader}>
                         <Text style={ds.modalTitle}>{t('medicalData.addRiskFactor')}</Text>
-                        <TouchableOpacity onPress={() => setShowRiskModal(false)}><Feather name="x" size={20} color="#94a3b8" /></TouchableOpacity>
+                        <TouchableOpacity onPress={closeRiskModal}><Feather name="x" size={20} color="#94a3b8" /></TouchableOpacity>
                     </View>
                     <ScrollView style={ds.modalScroll} showsVerticalScrollIndicator={false}>
                         <View style={{ zIndex: 20 }}>
-                            <FormInput {...commonProps} 
-                                label={t('medicalData.riskCategory')} required placeholder={t('medicalData.placeholderSelectCategory')} isDropdown 
+                            <FormInput {...commonProps}
+                                label={t('medicalData.riskCategory')} required placeholder={t('medicalData.placeholderSelectCategory')} isDropdown
                                 value={newRiskFactor.category}
                                 onPress={() => setShowRiskCategoryDropdown(!showRiskCategoryDropdown)}
                             />
                             {showRiskCategoryDropdown && (
                                 <View style={ds.inlineDropdown}>
                                     {RISK_CATEGORIES.map((option) => (
-                                        <TouchableOpacity 
-                                            key={option} 
+                                        <TouchableOpacity
+                                            key={option}
                                             style={[ds.dropdownItem, newRiskFactor.category === option && ds.dropdownItemActive]}
                                             onPress={() => {
                                                 handleRiskFactorChange('category', option);
@@ -916,24 +1380,24 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
                                 </View>
                             )}
                         </View>
- 
-                        <FormInput {...commonProps} 
-                            label={t('medicalData.riskFactor')} required placeholder={t('medicalData.placeholderEnterRiskFactor')} 
+
+                        <FormInput {...commonProps}
+                            label={t('medicalData.riskFactor')} required placeholder={t('medicalData.placeholderEnterRiskFactor')}
                             value={newRiskFactor.factor}
                             onChangeText={(val: string) => handleRiskFactorChange('factor', val)}
                         />
- 
+
                         <View style={{ zIndex: 10 }}>
-                            <FormInput {...commonProps} 
-                                label={t('medicalData.riskLevel')} required placeholder={t('medicalData.placeholderSelectSeverity')} isDropdown 
+                            <FormInput {...commonProps}
+                                label={t('medicalData.riskLevel')} required placeholder={t('medicalData.placeholderSelectSeverity')} isDropdown
                                 value={newRiskFactor.level}
                                 onPress={() => setShowRiskLevelDropdown(!showRiskLevelDropdown)}
                             />
                             {showRiskLevelDropdown && (
                                 <View style={ds.inlineDropdown}>
                                     {RISK_LEVELS.map((option) => (
-                                        <TouchableOpacity 
-                                            key={option} 
+                                        <TouchableOpacity
+                                            key={option}
                                             style={[ds.dropdownItem, newRiskFactor.level === option && ds.dropdownItemActive]}
                                             onPress={() => {
                                                 handleRiskFactorChange('level', option);
@@ -948,22 +1412,19 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
                                 </View>
                             )}
                         </View>
- 
-                        <FormInput {...commonProps} 
-                            label={t('medicalData.notes')} multiline placeholder={t('medicalData.notesPlaceholder')} 
+
+                        <FormInput {...commonProps}
+                            label={t('medicalData.notes')} multiline placeholder={t('medicalData.notesPlaceholder')}
                             value={newRiskFactor.notes}
                             onChangeText={(val: string) => handleRiskFactorChange('notes', val)}
                         />
                         <Text style={ds.charCount}>{newRiskFactor.notes.length} / 500</Text>
                     </ScrollView>
                     <View style={ds.modalFooter}>
-                        <TouchableOpacity style={ds.cancelOutlineButton} onPress={() => setShowRiskModal(false)}>
+                        <TouchableOpacity style={ds.cancelOutlineButton} onPress={closeRiskModal}>
                             <Text style={ds.cancelOutlineText}>{t('medicalData.cancel')}</Text>
                         </TouchableOpacity>
-                        <SubmitButton {...commonProps} tc={tc} ds={ds} title={t('medicalData.add')} onPress={() => {
-                            console.log("Adding risk factor:", newRiskFactor);
-                            setShowRiskModal(false);
-                        }} />
+                        <SubmitButton {...commonProps} tc={tc} ds={ds} title={t('medicalData.add')} onPress={handleAddRiskFactor} />
                     </View>
                 </View>
             </View>
@@ -992,33 +1453,56 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
         </View>
     );
 
-    const renderMedicationItem = (med: any, key: any, index: number, isHistory: boolean = false) => (
-        <View style={ds.medicationCard} key={key}>
+    const renderMedicationItem = (med: any, key: any, isHistory: boolean = false, listIndex?: number) => (
+        <View style={[ds.medicationCard, isHistory && { opacity: 0.75 }]} key={key}>
             <View style={ds.medicationHeader}>
                 <View style={ds.medicationTitleRow}>
-                    <Feather name="link" size={16} color={tc.accent} style={{ marginRight: 6, transform: [{ rotate: '45deg' }] }} />
-                    <Text style={ds.medicationName}>{med.name}</Text>
+                    <Feather
+                        name="link"
+                        size={16}
+                        color={isHistory ? tc.textMuted : tc.accent}
+                        style={{ marginRight: 6, transform: [{ rotate: '45deg' }] }}
+                    />
+                    <Text style={[ds.medicationName, isHistory && { color: tc.textMuted }]}>{med.name}</Text>
                 </View>
-                <Text style={ds.doctorName}>{med.doctor || 'Hamad Alvi'}</Text>
+                <Text style={ds.doctorName}>{med.prescribedBy || med.doctor || '-'}</Text>
             </View>
-            
+
             <View style={ds.medicationBody}>
                 <View style={ds.medicationInfoColumn}>
-                    <Text style={ds.medicationDetail}>{t('medicalData.dosage')}: {med.dosage || '1 tablet daily'}</Text>
+                    <Text style={ds.medicationDetail}>{t('medicalData.dosage')}: {med.dosage || med.instructions || '-'}</Text>
                     <View style={ds.dateRow}>
                         <Feather name="clock" size={12} color={tc.textMuted} style={{ marginRight: 4 }} />
-                        <Text style={ds.medicationDetail}>{t('medicalData.from')} {formatDate(med.startDate) || '04/03/2026'}</Text>
+                        <Text style={ds.medicationDetail}>
+                            {isHistory ? (
+                                <>
+                                    {formatDate(med.startDate) || '-'}
+                                    {' - '}
+                                    {med.endDate
+                                        ? formatDate(med.endDate)
+                                        : t('medications_form.medicationCard.currently', { defaultValue: 'Currently' })}
+                                </>
+                            ) : (
+                                <>{t('medicalData.from')} {formatDate(med.startDate) || '-'}</>
+                            )}
+                        </Text>
                     </View>
-                    <Text style={ds.medicationDetail}>{t('medicalData.notes')}: {med.instructions || med.notes || 'It is for headache'}</Text>
+                    {med.notes ? (
+                        <Text style={ds.medicationDetail}>{t('medicalData.notes')}: {med.notes}</Text>
+                    ) : null}
                 </View>
 
                 <View style={ds.medicationActions}>
                     {!isHistory && (
-                        <TouchableOpacity style={ds.endButton} onPress={() => endMedication(index)}>
+                        <TouchableOpacity style={ds.endButton} onPress={() => confirmEndMedication(med, listIndex)}>
                             <Text style={ds.endButtonText}>{t('medicalData.end')}</Text>
                         </TouchableOpacity>
                     )}
-                    <TouchableOpacity style={ds.deleteButton} onPress={() => deleteMedication(index, isHistory)}>
+                    <TouchableOpacity
+                        style={ds.deleteButton}
+                        activeOpacity={0.7}
+                        onPress={() => confirmDeleteMedication(med, isHistory, listIndex)}
+                    >
                         <Feather name="x" size={16} color={tc.accentRed || (isDark ? '#ff6b6b' : '#ef4444')} />
                     </TouchableOpacity>
                 </View>
@@ -1026,67 +1510,70 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
         </View>
     );
 
-    const renderDiagnosisItem = (diag: any, key: any, index: number, isHistory: boolean = false) => (
-        <View style={ds.medicationCard} key={key}>
+    const renderDiagnosisItem = (diag: any, key: any, isHistory: boolean = false) => {
+        const recordId = getRecordId(diag);
+        return (
+        <View style={[ds.medicationCard, isHistory && { opacity: 0.75 }]} key={key}>
             <View style={ds.medicationHeader}>
                 <View style={ds.medicationTitleRow}>
-                    <Feather name="activity" size={16} color={tc.accent} style={{ marginRight: 6 }} />
-                    <Text style={ds.medicationName}>{diag.description || diag.code} - </Text>
+                    <Feather name="activity" size={16} color={isHistory ? tc.textMuted : tc.accent} style={{ marginRight: 6 }} />
+                    <Text style={[ds.medicationName, isHistory && { color: tc.textMuted }]}>{diag.description || diag.code}</Text>
                     <View style={[ds.statusBadge, { backgroundColor: isDark ? (tc.accent + '25') : '#E0F2FE' }]}>
                         <Text style={[ds.statusBadgeText, { color: isDark ? tc.accent : '#0EA5E9' }]}>{t(`medicalData.options.diagnosisTypes.${diag.type || 'Primary'}`, { defaultValue: diag.type || 'Primary' })}</Text>
                     </View>
                 </View>
-                <Text style={ds.doctorName}>{diag.doctor || 'Hamad Alvi'}</Text>
+                <Text style={ds.doctorName}>{diag.diagnosedBy || diag.doctor || '-'}</Text>
             </View>
-            
+
             <View style={ds.medicationBody}>
                 <View style={ds.medicationInfoColumn}>
                     <View style={ds.dateRow}>
                         <Feather name="calendar" size={12} color={tc.textMuted} style={{ marginRight: 4 }} />
-                        <Text style={ds.medicationDetail}>{t('medicalData.from')} {formatDate(diag.date || diag.onsetDate) || '04/03/2026'}</Text>
+                        <Text style={ds.medicationDetail}>{t('medicalData.from')} {formatDate(diag.diagnosedDate || diag.date || diag.onsetDate) || '-'}</Text>
                     </View>
-                    <Text style={ds.medicationDetail}>{t('medicalData.notes')}: {diag.notes || 'Health is fine'}</Text>
+                    {diag.notes ? (
+                        <Text style={ds.medicationDetail}>{t('medicalData.notes')}: {diag.notes}</Text>
+                    ) : null}
                 </View>
-                
+
                 <View style={ds.medicationActions}>
-                    {!isHistory && (
+                    {!isHistory && recordId && (
                         <View style={{ position: 'relative', zIndex: 50 }}>
-                            <TouchableOpacity 
-                                style={[ds.statusDropdownBtn, openStatusMenu?.type === 'diag' && openStatusMenu.index === index && { borderColor: tc.accent }]}
-                                onPress={() => setOpenStatusMenu(openStatusMenu?.type === 'diag' && openStatusMenu.index === index ? null : { type: 'diag', index })}
+                            <TouchableOpacity
+                                style={[ds.statusDropdownBtn, openStatusMenu?.type === 'diag' && openStatusMenu.id === recordId && { borderColor: tc.accent }]}
+                                onPress={() => setOpenStatusMenu(openStatusMenu?.type === 'diag' && openStatusMenu.id === recordId ? null : { type: 'diag', id: recordId })}
                             >
                                 <Text style={ds.statusDropdownBtnText}>{t(`medicalData.options.conditionStatuses.${diag.status || 'Active'}`, { defaultValue: diag.status || 'Active' })}</Text>
                                 <Feather name="chevron-down" size={12} color={tc.textMuted} />
                             </TouchableOpacity>
-                            
-                            {openStatusMenu?.type === 'diag' && openStatusMenu.index === index && (
+
+                            {openStatusMenu?.type === 'diag' && openStatusMenu.id === recordId && (
                                 <View style={ds.statusMenuPopup}>
                                     {CONDITION_STATUSES.map((status) => (
-                                        <TouchableOpacity 
-                                            key={status} 
+                                        <TouchableOpacity
+                                            key={status}
                                             style={[ds.statusOption, diag.status === status && ds.statusOptionActive]}
-                                            onPress={() => updateDiagnosisStatus(index, status)}
+                                            onPress={() => updateDiagnosisStatusById(recordId, status)}
                                         >
                                             <Text style={[ds.statusOptionText, diag.status === status && ds.statusOptionTextActive]}>
                                                 {t(`medicalData.options.conditionStatuses.${status}`, { defaultValue: status })}
                                             </Text>
                                         </TouchableOpacity>
-
                                     ))}
                                 </View>
                             )}
                         </View>
                     )}
-                    <TouchableOpacity style={ds.deleteButton} onPress={() => deleteDiagnosis(index, isHistory)}>
+                    <TouchableOpacity style={ds.deleteButton} onPress={() => confirmDeleteDiagnosis(diag, isHistory)}>
                         <Feather name="x" size={16} color={isDark ? '#ff6b6b' : '#ef4444'} />
                     </TouchableOpacity>
                 </View>
-
             </View>
         </View>
-    );
+        );
+    };
 
-    const renderAllergyItem = (allergy: any, key: any, index: number, isHistory: boolean = false) => (
+    const renderAllergyItem = (allergy: any, key: any, isHistory: boolean = false) => (
         <View style={[ds.medicationCard, isHistory && { opacity: 0.7 }]} key={key}>
             <View style={ds.medicationHeader}>
                 <View style={ds.medicationTitleRow}>
@@ -1096,21 +1583,23 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
                         <Text style={[ds.statusBadgeText, { color: isHistory ? tc.textMuted : (isDark ? '#fbbf24' : '#D97706') }]}>{t(`medicalData.options.severityLevels.${allergy.severity || 'Moderate'}`, { defaultValue: allergy.severity || 'Moderate' })}</Text>
                     </View>
                 </View>
-                <Text style={ds.doctorName}>{allergy.doctor || 'Hamad Alvi'}</Text>
+                <Text style={ds.doctorName}>{allergy.diagnosedBy || allergy.doctor || '-'}</Text>
             </View>
-            
+
             <View style={ds.medicationBody}>
                 <View style={ds.medicationInfoColumn}>
-                    <Text style={ds.medicationDetail}>{t('medicalData.reaction')}: {allergy.reaction || 'Allergic to skin'}</Text>
+                    <Text style={ds.medicationDetail}>{t('medicalData.reaction')}: {allergy.reaction || '-'}</Text>
                     <View style={ds.dateRow}>
                         <Feather name="calendar" size={12} color={tc.textMuted} style={{ marginRight: 4 }} />
-                        <Text style={ds.medicationDetail}>{t('medicalData.diagnosed')}: {formatDate(allergy.date || allergy.diagnosedDate) || '04/03/2026'}</Text>
+                        <Text style={ds.medicationDetail}>{t('medicalData.diagnosed')}: {formatDate(allergy.diagnosedDate || allergy.date) || '-'}</Text>
                     </View>
-                    <Text style={ds.medicationDetail}>{t('medicalData.notes')}: {allergy.notes || 'Not too risky'}</Text>
+                    {allergy.notes ? (
+                        <Text style={ds.medicationDetail}>{t('medicalData.notes')}: {allergy.notes}</Text>
+                    ) : null}
                 </View>
-                
+
                 <View style={ds.medicationActions}>
-                    <TouchableOpacity style={ds.deleteButton} onPress={() => deleteAllergy(index, isHistory)}>
+                    <TouchableOpacity style={ds.deleteButton} onPress={() => confirmDeleteAllergy(allergy, isHistory)}>
                         <Feather name="x" size={16} color={isDark ? '#ff6b6b' : '#ef4444'} />
                     </TouchableOpacity>
                 </View>
@@ -1118,7 +1607,9 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
         </View>
     );
 
-    const renderChronicItem = (item: any, key: any, index: number, isHistory: boolean = false) => (
+    const renderChronicItem = (item: any, key: any, isHistory: boolean = false) => {
+        const recordId = getRecordId(item);
+        return (
         <View style={[ds.medicationCard, isHistory && { opacity: 0.7 }]} key={key}>
             <View style={ds.medicationHeader}>
                 <View style={ds.medicationTitleRow}>
@@ -1128,57 +1619,61 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
                         <Text style={[ds.statusBadgeText, { color: isHistory ? tc.textMuted : (isDark ? tc.accent : '#0EA5E9') }]}>{t(`medicalData.options.conditionStatuses.${item.status || 'Active'}`, { defaultValue: item.status || 'Active' })}</Text>
                     </View>
                 </View>
-                <Text style={ds.doctorName}>{item.doctor || 'Hamad Alvi'}</Text>
+                <Text style={ds.doctorName}>{item.diagnosedBy || item.doctor || '-'}</Text>
             </View>
-            
+
             <View style={ds.medicationBody}>
                 <View style={ds.medicationInfoColumn}>
-                    <Text style={ds.medicationDetail}>{t('medicalData.treatment')}: {item.treatment || 'Needs some rest'}</Text>
+                    {item.treatment ? (
+                        <Text style={ds.medicationDetail}>{t('medicalData.treatment')}: {item.treatment}</Text>
+                    ) : null}
                     <View style={ds.dateRow}>
                         <Feather name="calendar" size={12} color={tc.textMuted} style={{ marginRight: 4 }} />
-                        <Text style={ds.medicationDetail}>{t('medicalData.diagnosed')}: {formatDate(item.date || item.diagnosedDate) || '04/03/2026'}</Text>
+                        <Text style={ds.medicationDetail}>{t('medicalData.diagnosed')}: {formatDate(item.diagnosedDate || item.date) || '-'}</Text>
                     </View>
-                    <Text style={ds.medicationDetail}>{t('medicalData.notes')}: {item.notes || 'Eat Fruits regularly'}</Text>
+                    {item.notes ? (
+                        <Text style={ds.medicationDetail}>{t('medicalData.notes')}: {item.notes}</Text>
+                    ) : null}
                 </View>
-                
+
                 <View style={ds.medicationActions}>
-                    {!isHistory && (
+                    {!isHistory && recordId && (
                         <View style={{ position: 'relative', zIndex: 50 }}>
-                            <TouchableOpacity 
-                                style={[ds.statusDropdownBtn, openStatusMenu?.type === 'chronic' && openStatusMenu.index === index && { borderColor: tc.accent }]}
-                                onPress={() => setOpenStatusMenu(openStatusMenu?.type === 'chronic' && openStatusMenu.index === index ? null : { type: 'chronic', index })}
+                            <TouchableOpacity
+                                style={[ds.statusDropdownBtn, openStatusMenu?.type === 'chronic' && openStatusMenu.id === recordId && { borderColor: tc.accent }]}
+                                onPress={() => setOpenStatusMenu(openStatusMenu?.type === 'chronic' && openStatusMenu.id === recordId ? null : { type: 'chronic', id: recordId })}
                             >
                                 <Text style={ds.statusDropdownBtnText}>{t(`medicalData.options.conditionStatuses.${item.status || 'Active'}`, { defaultValue: item.status || 'Active' })}</Text>
                                 <Feather name="chevron-down" size={12} color={tc.textMuted} />
                             </TouchableOpacity>
 
-                            {openStatusMenu?.type === 'chronic' && openStatusMenu.index === index && (
+                            {openStatusMenu?.type === 'chronic' && openStatusMenu.id === recordId && (
                                 <View style={ds.statusMenuPopup}>
                                     {CONDITION_STATUSES.map((status) => (
-                                        <TouchableOpacity 
-                                            key={status} 
+                                        <TouchableOpacity
+                                            key={status}
                                             style={[ds.statusOption, item.status === status && ds.statusOptionActive]}
-                                            onPress={() => updateChronicStatus(index, status)}
+                                            onPress={() => updateChronicStatusById(recordId, status)}
                                         >
                                             <Text style={[ds.statusOptionText, item.status === status && ds.statusOptionTextActive]}>
                                                 {t(`medicalData.options.conditionStatuses.${status}`, { defaultValue: status })}
                                             </Text>
                                         </TouchableOpacity>
-
                                     ))}
                                 </View>
                             )}
                         </View>
                     )}
-                    <TouchableOpacity style={ds.deleteButton} onPress={() => deleteChronic(index, isHistory)}>
+                    <TouchableOpacity style={ds.deleteButton} onPress={() => confirmDeleteChronic(item, isHistory)}>
                         <Feather name="x" size={16} color={isDark ? '#ff6b6b' : '#ef4444'} />
                     </TouchableOpacity>
                 </View>
             </View>
         </View>
-    );
+        );
+    };
 
-    const renderFamilyItem = (item: any, key: any, index: number, isHistory: boolean = false) => (
+    const renderFamilyItem = (item: any, key: any, isHistory: boolean = false) => (
         <View style={[ds.medicationCard, isHistory && { opacity: 0.7 }]} key={key}>
             <View style={ds.medicationHeader}>
                 <View style={ds.medicationTitleRow}>
@@ -1186,16 +1681,20 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
                     <Text style={[ds.medicationName, isHistory && { color: tc.textMuted }]}>{item.diseaseName || item.disease || item.name}</Text>
                 </View>
             </View>
-            
+
             <View style={ds.medicationBody}>
                 <View style={ds.medicationInfoColumn}>
-                    <Text style={ds.medicationDetail}>{t('medicalData.relationship')}: {item.relationship}</Text>
-                    <Text style={ds.medicationDetail}>{t('medicalData.ageOfOnsetLower')}: {item.ageOfOnset || item.onsetAge || '70'}</Text>
-                    <Text style={ds.medicationDetail}>{t('medicalData.notes')}: {item.notes || 'There is Sugar in the genetics'}</Text>
+                    <Text style={ds.medicationDetail}>{t('medicalData.relationship')}: {item.relationship || '-'}</Text>
+                    {(item.ageOfOnset || item.onsetAge) ? (
+                        <Text style={ds.medicationDetail}>{t('medicalData.ageOfOnsetLower')}: {item.ageOfOnset || item.onsetAge}</Text>
+                    ) : null}
+                    {item.notes ? (
+                        <Text style={ds.medicationDetail}>{t('medicalData.notes')}: {item.notes}</Text>
+                    ) : null}
                 </View>
-                
+
                 <View style={ds.medicationActions}>
-                    <TouchableOpacity style={ds.deleteButton} onPress={() => deleteFamily(index, isHistory)}>
+                    <TouchableOpacity style={ds.deleteButton} onPress={() => confirmDeleteFamily(item, isHistory)}>
                         <Feather name="x" size={16} color={isDark ? '#ff6b6b' : '#ef4444'} />
                     </TouchableOpacity>
                 </View>
@@ -1203,7 +1702,7 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
         </View>
     );
 
-    const renderRiskItem = (item: any, key: any, index: number, isHistory: boolean = false) => (
+    const renderRiskItem = (item: any, key: any, isHistory: boolean = false) => (
         <View style={[ds.medicationCard, isHistory && { opacity: 0.7 }]} key={key}>
             <View style={ds.medicationHeader}>
                 <View style={ds.medicationTitleRow}>
@@ -1214,15 +1713,17 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
                     </View>
                 </View>
             </View>
-            
+
             <View style={ds.medicationBody}>
                 <View style={ds.medicationInfoColumn}>
-                    <Text style={ds.medicationDetail}>{t('medicalData.category')}: {item.category || 'Genetic'}</Text>
-                    <Text style={ds.medicationDetail}>{t('medicalData.notes')}: {item.notes || 'A little factor'}</Text>
+                    <Text style={ds.medicationDetail}>{t('medicalData.category')}: {item.category || '-'}</Text>
+                    {item.notes ? (
+                        <Text style={ds.medicationDetail}>{t('medicalData.notes')}: {item.notes}</Text>
+                    ) : null}
                 </View>
-                
+
                 <View style={ds.medicationActions}>
-                    <TouchableOpacity style={ds.deleteButton} onPress={() => deleteRisk(index, isHistory)}>
+                    <TouchableOpacity style={ds.deleteButton} onPress={() => confirmDeleteRisk(item, isHistory)}>
                         <Feather name="x" size={16} color={isDark ? '#ff6b6b' : '#ef4444'} />
                     </TouchableOpacity>
                 </View>
@@ -1244,30 +1745,52 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
             <AccordionItem {...commonProps} title={t('medicalData.medicines')} icon="link">
                 <View style={ds.sectionHeaderRow}>
                     <Text style={ds.subHeader}>{t('medicalData.regularMedications')}</Text>
-                    <ActionOutlineButton {...commonProps} title={t('medicalData.addMedication')} icon="plus" onPress={() => setShowMedModal(true)} />
+                    <ActionOutlineButton {...commonProps} title={t('medicalData.addMedication')} icon="plus" onPress={() => { resetMedicationForm(); setShowMedModal(true); }} />
                 </View>
-                {medicalData?.medications?.length > 0 ? (
-                    medicalData.medications.map((m: any, idx: number) => renderMedicationItem(m, `med-${idx}`, idx))
-                ) : (
+                {(() => {
+                    const activeMeds = medicalData?.medications || [];
+                    const regularMeds = activeMeds.filter((m: any) => m.isRegular !== false);
+                    const prnMeds = activeMeds.filter((m: any) => m.isRegular === false);
 
-                    <View style={ds.emptyBox}>
-                        <Text style={ds.emptyBoxText}>{t('medicalData.noRegularMedications')}</Text>
-                    </View>
-                )}
-                
-                <Text style={[ds.subHeader, { marginTop: 15 }]}>{t('medicalData.asNeededMedications')}</Text>
-                {renderEmptyBox(t('medicalData.noAsNeededMedications'))}
-                
+                    return (
+                        <>
+                            {regularMeds.length > 0 ? (
+                                regularMeds.map((m: any) => {
+                                    const idx = activeMeds.indexOf(m);
+                                    return renderMedicationItem(m, `med-${getRecordId(m) || idx}`, false, idx);
+                                })
+                            ) : (
+                                <View style={ds.emptyBox}>
+                                    <Text style={ds.emptyBoxText}>{t('medicalData.noRegularMedications')}</Text>
+                                </View>
+                            )}
+
+                            <Text style={[ds.subHeader, { marginTop: 15 }]}>{t('medicalData.asNeededMedications')}</Text>
+                            {prnMeds.length > 0 ? (
+                                prnMeds.map((m: any) => {
+                                    const idx = activeMeds.indexOf(m);
+                                    return renderMedicationItem(m, `med-prn-${getRecordId(m) || idx}`, false, idx);
+                                })
+                            ) : (
+                                renderEmptyBox(t('medicalData.noAsNeededMedications'))
+                            )}
+                        </>
+                    );
+                })()}
+
                 <Text style={[ds.subHeader, { marginTop: 15 }]}>{t('medicalData.medicationHistory')}</Text>
                 {medicalData?.medicationHistory?.length > 0 ? (
-                    medicalData.medicationHistory.map((m: any, idx: number) => renderMedicationItem(m, `med-hist-${idx}`, idx, true))
+                    medicalData.medicationHistory.map((m: any, idx: number) =>
+                        renderMedicationItem(m, `med-hist-${getRecordId(m) || idx}`, true, idx)
+                    )
                 ) : renderEmptyBox(t('medicalData.noMedicationHistory'))}
- 
-                
+
+
                 <View style={ds.saveContainer}>
-                    <SubmitButton {...commonProps} tc={tc} ds={ds} 
-                        title={isSaving ? t('medicalData.saving') : t('medicalData.save')} 
-                        onPress={() => handleSave('medications')} 
+                    <SubmitButton {...commonProps} tc={tc} ds={ds}
+                        title={isSaving ? t('medicalData.saving') : t('medicalData.save')}
+                        disabled={!sectionHasData('medications')}
+                        onPress={() => handleSave('medications')}
                     />
                 </View>
             </AccordionItem>
@@ -1275,25 +1798,26 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
             <AccordionItem {...commonProps} title={t('medicalData.diagnosis')} icon="activity">
                 <View style={ds.sectionHeaderRow}>
                     <Text style={ds.subHeader}>{t('medicalData.activeDiagnoses')}</Text>
-                    <ActionOutlineButton {...commonProps} title={t('medicalData.addDiagnosis')} icon="plus" onPress={() => setShowDiagModal(true)} />
+                    <ActionOutlineButton {...commonProps} title={t('medicalData.addDiagnosis')} icon="plus" onPress={() => { resetDiagnosisForm(); setShowDiagModal(true); }} />
                 </View>
                 {medicalData?.diagnoses?.length > 0 ? (
-                    medicalData.diagnoses.map((d: any, idx: number) => renderDiagnosisItem(d, `diag-${idx}`, idx))
+                    medicalData.diagnoses.map((d: any, idx: number) => renderDiagnosisItem(d, `diag-${getRecordId(d) || idx}`))
                 ) : (
                     <View style={ds.emptyBox}>
                         <Text style={ds.emptyBoxText}>{t('medicalData.noActiveDiagnoses')}</Text>
                     </View>
                 )}
-                
+
                 <Text style={[ds.subHeader, { marginTop: 15 }]}>{t('medicalData.diagnosisHistory')}</Text>
                 {medicalData?.diagnosisHistory?.length > 0 ? (
-                    medicalData.diagnosisHistory.map((d: any, idx: number) => renderDiagnosisItem(d, `diag-hist-${idx}`, idx, true))
+                    medicalData.diagnosisHistory.map((d: any, idx: number) => renderDiagnosisItem(d, `diag-hist-${getRecordId(d) || idx}`, true))
                 ) : renderEmptyBox(t('medicalData.noDiagnosisHistory'))}
-                
+
                 <View style={ds.saveContainer}>
-                    <SubmitButton {...commonProps} tc={tc} ds={ds} 
-                        title={isSaving ? t('medicalData.saving') : t('medicalData.save')} 
-                        onPress={() => handleSave('diagnoses')} 
+                    <SubmitButton {...commonProps} tc={tc} ds={ds}
+                        title={isSaving ? t('medicalData.saving') : t('medicalData.save')}
+                        disabled={!sectionHasData('diagnoses')}
+                        onPress={() => handleSave('diagnoses')}
                     />
                 </View>
             </AccordionItem>
@@ -1301,21 +1825,22 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
             <AccordionItem {...commonProps} title={t('medicalData.allergiesAndIntolerances')} icon="alert-circle">
                 <View style={ds.sectionHeaderRow}>
                     <Text style={ds.subHeader}>{t('medicalData.allergiesAndIntolerances')}</Text>
-                    <ActionOutlineButton {...commonProps} title={t('medicalData.addAllergy')} icon="plus" onPress={() => setShowAllergyModal(true)} />
+                    <ActionOutlineButton {...commonProps} title={t('medicalData.addAllergy')} icon="plus" onPress={() => { resetAllergyForm(); setShowAllergyModal(true); }} />
                 </View>
                 {medicalData?.allergies?.length > 0 ? (
-                    medicalData.allergies.map((a: any, idx: number) => renderAllergyItem(a, `all-${idx}`, idx))
+                    medicalData.allergies.map((a: any, idx: number) => renderAllergyItem(a, `all-${getRecordId(a) || idx}`))
                 ) : renderEmptyBox(t('medicalData.noRegisteredAllergies'))}
- 
+
                 <Text style={[ds.subHeader, { marginTop: 15 }]}>{t('medicalData.pastAllergies')}</Text>
                 {medicalData?.allergyHistory?.length > 0 ? (
-                    medicalData.allergyHistory.map((a: any, idx: number) => renderAllergyItem(a, `all-hist-${idx}`, idx, true))
+                    medicalData.allergyHistory.map((a: any, idx: number) => renderAllergyItem(a, `all-hist-${getRecordId(a) || idx}`, true))
                 ) : renderEmptyBox(t('medicalData.noAllergyHistory'))}
- 
+
                 <View style={ds.saveContainer}>
-                    <SubmitButton {...commonProps} tc={tc} ds={ds} 
-                        title={isSaving ? t('medicalData.saving') : t('medicalData.save')} 
-                        onPress={() => handleSave('allergies')} 
+                    <SubmitButton {...commonProps} tc={tc} ds={ds}
+                        title={isSaving ? t('medicalData.saving') : t('medicalData.save')}
+                        disabled={!sectionHasData('allergies')}
+                        onPress={() => handleSave('allergies')}
                     />
                 </View>
             </AccordionItem>
@@ -1323,43 +1848,45 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
             <AccordionItem {...commonProps} title={t('medicalData.chronicDiseases')} icon="heart">
                 <View style={ds.sectionHeaderRow}>
                     <Text style={ds.subHeader}>{t('medicalData.chronicConditions')}</Text>
-                    <ActionOutlineButton {...commonProps} title={t('medicalData.addCondition')} icon="plus" onPress={() => setShowChronicModal(true)} />
+                    <ActionOutlineButton {...commonProps} title={t('medicalData.addCondition')} icon="plus" onPress={() => { resetConditionForm(); setShowChronicModal(true); }} />
                 </View>
                 {medicalData?.chronicConditions?.length > 0 ? (
-                    medicalData.chronicConditions.map((c: any, idx: number) => renderChronicItem(c, `chronic-${idx}`, idx))
+                    medicalData.chronicConditions.map((c: any, idx: number) => renderChronicItem(c, `chronic-${getRecordId(c) || idx}`))
                 ) : renderEmptyBox(t('medicalData.noChronicConditions'))}
- 
+
                 <Text style={[ds.subHeader, { marginTop: 15 }]}>{t('medicalData.chronicDiseaseHistory')}</Text>
                 {medicalData?.chronicHistory?.length > 0 ? (
-                    medicalData.chronicHistory.map((c: any, idx: number) => renderChronicItem(c, `chronic-hist-${idx}`, idx, true))
+                    medicalData.chronicHistory.map((c: any, idx: number) => renderChronicItem(c, `chronic-hist-${getRecordId(c) || idx}`, true))
                 ) : renderEmptyBox(t('medicalData.noChronicConditionHistory'))}
- 
+
                 <View style={ds.saveContainer}>
-                    <SubmitButton {...commonProps} tc={tc} ds={ds} 
-                        title={isSaving ? t('medicalData.saving') : t('medicalData.save')} 
-                        onPress={() => handleSave('chronic')} 
+                    <SubmitButton {...commonProps} tc={tc} ds={ds}
+                        title={isSaving ? t('medicalData.saving') : t('medicalData.save')}
+                        disabled={!sectionHasData('chronic')}
+                        onPress={() => handleSave('chronic')}
                     />
                 </View>
             </AccordionItem>
-            
+
             <AccordionItem {...commonProps} title={t('medicalData.familyInterview')} icon="users">
                 <View style={ds.sectionHeaderRow}>
                     <Text style={ds.subHeader}>{t('medicalData.familyHistory')}</Text>
-                    <ActionOutlineButton {...commonProps} title={t('medicalData.addEntry')} icon="plus" onPress={() => setShowFamilyModal(true)} />
+                    <ActionOutlineButton {...commonProps} title={t('medicalData.addEntry')} icon="plus" onPress={() => { resetFamilyForm(); setShowFamilyModal(true); }} />
                 </View>
                 {medicalData?.familyHistory?.length > 0 ? (
-                    medicalData.familyHistory.map((f: any, idx: number) => renderFamilyItem(f, `family-${idx}`, idx))
+                    medicalData.familyHistory.map((f: any, idx: number) => renderFamilyItem(f, `family-${getRecordId(f) || idx}`))
                 ) : renderEmptyBox(t('medicalData.noFamilyHistoryEntries'))}
- 
+
                 <Text style={[ds.subHeader, { marginTop: 15 }]}>{t('medicalData.pastFamilyHistory')}</Text>
                 {medicalData?.familyHistoryPast?.length > 0 ? (
-                    medicalData.familyHistoryPast.map((f: any, idx: number) => renderFamilyItem(f, `family-past-${idx}`, idx, true))
+                    medicalData.familyHistoryPast.map((f: any, idx: number) => renderFamilyItem(f, `family-past-${getRecordId(f) || idx}`, true))
                 ) : renderEmptyBox(t('medicalData.noHistoricalEntries'))}
- 
+
                 <View style={ds.saveContainer}>
-                    <SubmitButton {...commonProps} tc={tc} ds={ds} 
-                        title={isSaving ? t('medicalData.saving') : t('medicalData.save')} 
-                        onPress={() => handleSave('family')} 
+                    <SubmitButton {...commonProps} tc={tc} ds={ds}
+                        title={isSaving ? t('medicalData.saving') : t('medicalData.save')}
+                        disabled={!sectionHasData('family')}
+                        onPress={() => handleSave('family')}
                     />
                 </View>
             </AccordionItem>
@@ -1367,21 +1894,22 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
             <AccordionItem {...commonProps} title={t('medicalData.riskFactors')} icon="alert-triangle">
                 <View style={ds.sectionHeaderRow}>
                     <Text style={ds.subHeader}>{t('medicalData.riskFactors')}</Text>
-                    <ActionOutlineButton {...commonProps} title={t('medicalData.addRiskFactor')} icon="plus" onPress={() => setShowRiskModal(true)} />
+                    <ActionOutlineButton {...commonProps} title={t('medicalData.addRiskFactor')} icon="plus" onPress={() => { resetRiskForm(); setShowRiskModal(true); }} />
                 </View>
                 {medicalData?.riskFactors?.length > 0 ? (
-                    medicalData.riskFactors.map((r: any, idx: number) => renderRiskItem(r, `risk-${idx}`, idx))
+                    medicalData.riskFactors.map((r: any, idx: number) => renderRiskItem(r, `risk-${getRecordId(r) || idx}`))
                 ) : renderEmptyBox(t('medicalData.noRiskFactorsRecorded'))}
- 
+
                 <Text style={[ds.subHeader, { marginTop: 15 }]}>{t('medicalData.riskFactorHistory')}</Text>
                 {medicalData?.riskHistory?.length > 0 ? (
-                    medicalData.riskHistory.map((r: any, idx: number) => renderRiskItem(r, `risk-hist-${idx}`, idx, true))
+                    medicalData.riskHistory.map((r: any, idx: number) => renderRiskItem(r, `risk-hist-${getRecordId(r) || idx}`, true))
                 ) : renderEmptyBox(t('medicalData.noRiskHistory'))}
- 
+
                 <View style={ds.saveContainer}>
-                    <SubmitButton {...commonProps} tc={tc} ds={ds} 
-                        title={isSaving ? t('medicalData.saving') : t('medicalData.save')} 
-                        onPress={() => handleSave('risk')} 
+                    <SubmitButton {...commonProps} tc={tc} ds={ds}
+                        title={isSaving ? t('medicalData.saving') : t('medicalData.save')}
+                        disabled={!sectionHasData('risk')}
+                        onPress={() => handleSave('risk')}
                     />
                 </View>
             </AccordionItem>
@@ -1394,12 +1922,12 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
 
 const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     container: { paddingHorizontal: 16 },
-    accordionContainer: { 
-        backgroundColor: tc.cardBackground, 
-        borderRadius: 12, 
-        marginBottom: 12, 
-        borderWidth: 1, 
-        borderColor: tc.borderColor, 
+    accordionContainer: {
+        backgroundColor: tc.cardBackground,
+        borderRadius: 12,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: tc.borderColor,
         overflow: 'hidden',
         // Elevation/Shadow for premium feel
         shadowColor: "#000",
@@ -1411,46 +1939,46 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     accordionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16 },
     expandedHeader: { borderBottomWidth: 1, borderBottomColor: tc.borderColor },
     headerLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-    iconContainer: { 
-        width: 32, 
-        height: 32, 
-        borderRadius: 8, 
-        backgroundColor:  tc.accentLight, 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        marginRight: 12 
+    iconContainer: {
+        width: 32,
+        height: 32,
+        borderRadius: 8,
+        backgroundColor: tc.accentLight,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12
     },
     accordionTitle: { fontSize: 16, fontWeight: '700', color: tc.textPrimary },
     accordionContent: { padding: 16, backgroundColor: tc.cardBackground },
     sectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
     subHeader: { fontSize: 13, fontWeight: '600', color: tc.textSecondary, marginBottom: 10 },
-    emptyBox: { 
-        backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : tc.cardBackgroundAlt || '#F8FAFC', 
-        borderRadius: 10, 
-        padding: 16, 
-        alignItems: 'center', 
-        borderStyle: 'dashed', 
-        borderWidth: 1, 
-        borderColor: tc.borderColor, 
-        marginBottom: 16 
+    emptyBox: {
+        backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : tc.cardBackgroundAlt || '#F8FAFC',
+        borderRadius: 10,
+        padding: 16,
+        alignItems: 'center',
+        borderStyle: 'dashed',
+        borderWidth: 1,
+        borderColor: tc.borderColor,
+        marginBottom: 16
     },
     emptyBoxText: { color: tc.textMuted, fontSize: 13 },
     saveContainer: { alignItems: 'flex-end', marginTop: 10 },
-    outlineButton: { 
-        flexDirection: 'row', 
-        alignItems: 'center', 
-        borderWidth: 1, 
-        borderColor: tc.accent, 
-        borderRadius: 8, 
-        paddingVertical: 6, 
-        paddingHorizontal: 12 
+    outlineButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: tc.accent,
+        borderRadius: 8,
+        paddingVertical: 6,
+        paddingHorizontal: 12
     },
     outlineButtonText: { fontSize: 12, fontWeight: '600', color: tc.accent, marginLeft: 6 },
-    submitButtonContainer: { 
-        height: 44, 
-        width: 130, 
-        borderRadius: 10, 
-        overflow: 'hidden' 
+    submitButtonContainer: {
+        height: 44,
+        width: 130,
+        borderRadius: 10,
+        overflow: 'hidden'
     },
     gradientButton: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     buttonContent: {
@@ -1461,11 +1989,11 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     },
     submitButtonText: { color: '#ffffff', fontSize: 13, fontWeight: '700' },
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 20 },
-    modalContent: { 
-        backgroundColor: tc.modalBg, 
-        borderRadius: 12, 
-        width: '100%', 
-        maxHeight: '80%', 
+    modalContent: {
+        backgroundColor: tc.modalBg,
+        borderRadius: 12,
+        width: '100%',
+        maxHeight: '80%',
         padding: 20,
         borderWidth: isDark ? 1 : 0,
         borderColor: tc.borderColor,
@@ -1477,13 +2005,13 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     labelRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
     requiredStar: { color: tc.accentRed || '#ef4444', fontSize: 14 },
     inputLabel: { fontSize: 13, color: tc.textSecondary, fontWeight: '500' },
-    inputWrapper: { 
-        flexDirection: 'row', 
-        alignItems: 'center', 
-        borderWidth: 1, 
-        borderColor: tc.borderColor, 
-        borderRadius: 8, 
-        paddingHorizontal: 12, 
+    inputWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: tc.borderColor,
+        borderRadius: 8,
+        paddingHorizontal: 12,
         height: 44,
         backgroundColor: tc.inputBackground,
     },
@@ -1492,23 +2020,24 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     textArea: { textAlignVertical: 'top' },
     unitText: { marginLeft: 8, color: tc.textMuted, fontSize: 14 },
     row: { flexDirection: 'row' },
-    modalFooter: { 
-        flexDirection: 'row', 
-        justifyContent: 'flex-end', 
-        gap: 12, 
-        borderTopWidth: 1, 
-        borderTopColor: tc.borderColor, 
-        paddingTop: 15 
+    modalFooter: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 12,
+        borderTopWidth: 1,
+        borderTopColor: tc.borderColor,
+        paddingTop: 15
     },
-    cancelOutlineButton: { 
-        height: 40, 
-        paddingHorizontal: 20, 
-        borderRadius: 8, 
-        borderWidth: 1, 
-        borderColor: tc.borderColor, 
+    cancelOutlineButton: {
+        height: 40,
+        paddingHorizontal: 20,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: tc.borderColor,
         backgroundColor: isDark ? tc.buttonMutedBg : tc.canvas,
-        justifyContent: 'center', 
-        alignItems: 'center' 
+        justifyContent: 'center',
+        alignItems: 'center'
     },
     cancelOutlineText: { color: tc.textSecondary, fontSize: 14, fontWeight: '600' },
     checkboxRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10 },
@@ -1521,13 +2050,13 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: tc.accent },
     radioLabel: { marginLeft: 10, fontSize: 13, color: tc.textSecondary },
     charCount: { alignSelf: 'flex-end', fontSize: 11, color: tc.textMuted, marginTop: -10, marginBottom: 10 },
-    listItem: { 
-        backgroundColor: tc.cardBackground, 
-        borderBottomWidth: 1, 
-        borderBottomColor: tc.borderColor, 
-        paddingVertical: 12, 
-        flexDirection: 'row', 
-        alignItems: 'center' 
+    listItem: {
+        backgroundColor: tc.cardBackground,
+        borderBottomWidth: 1,
+        borderBottomColor: tc.borderColor,
+        paddingVertical: 12,
+        flexDirection: 'row',
+        alignItems: 'center'
     },
     listItemTitle: { fontSize: 14, fontWeight: '700', color: tc.textPrimary },
     listItemSubtitle: { fontSize: 13, color: tc.textSecondary, marginTop: 2 },
@@ -1668,8 +2197,8 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
         borderRadius: 8,
         borderWidth: 1,
         borderColor: tc.accentRed || '#ef4444',
-        justifyContent: 'center', 
-        alignItems: 'center', 
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     statusBadge: {
         paddingHorizontal: 8,
