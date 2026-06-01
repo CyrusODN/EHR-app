@@ -173,8 +173,6 @@ export const en = {
             interview: 'Interview',
             examination: 'Examination',
             diagnosis: 'Diagnosis',
-            laboratory: 'Laboratory',
-            procedures: 'Procedures',
             documents: 'Documents',
             summary: 'Summary'
         },
@@ -1856,6 +1854,7 @@ export const en = {
         "visits_list": "Visits List",
         "insurance": "Insurance",
         "history": "Leave/SMS History",
+        "logs": "Patient Logs",
         "audit_trail": "Audit Trail"
     },
     "basic_info": {

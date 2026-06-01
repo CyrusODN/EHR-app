@@ -29,11 +29,6 @@ import InterviewCoachTool from './ai/InterviewCoachTool';
 import SmartTranscriptionTool from './ai/SmartTranscriptionTool';
 import DrugInteractionChecker from './ai/DrugInteractionChecker';
 import ICD10AssistantTool from './ai/ICD10AssistantTool';
-import VoiceTranscriptionTool from './ai/VoiceTranscriptionTool';
-import DiagnosticAssistantTool from './ai/DiagnosticAssistantTool';
-import MedicationAssistantTool from './ai/MedicationAssistantTool';
-import LaboratoryContainer from './laboratory/LaboratoryContainer';
-import ProceduresContainer from './procedures/ProceduresContainer';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { GetVisitDetails, GetPreviousVisits, UpdateVisit } from '../../Services/Visit.Service';
 import { GetPatientMedicalData } from '../../Services/MedicalData.Service';
@@ -50,7 +45,7 @@ const VisitScreen = () => {
     const { visitId } = route.params || {};
 
     const [currentStep, setCurrentStep] = useState(1);
-    const [activeAiTool, setActiveAiTool] = useState('Decision Support');
+    const [activeAiTool, setActiveAiTool] = useState('cds');
     const [showDataModal, setShowDataModal] = useState(false);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [finishLoading, setFinishLoading] = useState(false);
@@ -238,21 +233,16 @@ const VisitScreen = () => {
         { id: 2, label: t('visit.steps.interview') },
         { id: 3, label: t('visit.steps.examination') },
         { id: 4, label: t('visit.steps.diagnosis') },
-        { id: 5, label: t('visit.steps.laboratory') },
-        { id: 6, label: t('visit.steps.procedures') },
-        { id: 7, label: t('visit.steps.documents') },
-        { id: 8, label: t('visit.steps.summary') },
+        { id: 5, label: t('visit.steps.documents') },
+        { id: 6, label: t('visit.steps.summary') },
     ];
 
     const aiTools = [
-        { id: 'Decision Support', label: t('visit.ai.tabs.cds'), icon: 'brain', type: 'material-community' },
-        { id: 'Interview Coach', label: t('visit.ai.tabs.interview'), icon: 'message-square', type: 'feather' },
-        { id: 'Documentation Assistant', label: t('visit.ai.tabs.transcription'), icon: 'mic', type: 'feather' },
-        { id: 'Drug Knowledge', label: t('visit.ai.tabs.interactions'), icon: 'pill', type: 'material-community' },
-        { id: 'ICD-10 Assistant', label: t('visit.ai.tabs.icd10'), icon: 'file-text', type: 'feather' },
-        { id: 'Voice Transcription', label: t('visit.ai.tabs.voice'), icon: 'microphone', type: 'material-community' },
-        { id: 'Diagnostic Assistant', label: t('visit.ai.tabs.diagnostic'), icon: 'cpu', type: 'feather' },
-        { id: 'Medication Assistant', label: t('visit.ai.tabs.medication'), icon: 'thermometer', type: 'feather' },
+        { id: 'cds', label: t('visit.ai.tabs.cds'), icon: 'brain', type: 'material-community' },
+        { id: 'interview', label: t('visit.ai.tabs.interview'), icon: 'message-square', type: 'feather' },
+        { id: 'transcription', label: t('visit.ai.tabs.transcription'), icon: 'mic', type: 'feather' },
+        { id: 'interactions', label: t('visit.ai.tabs.interactions'), icon: 'pill', type: 'material-community' },
+        { id: 'icd10', label: t('visit.ai.tabs.icd10'), icon: 'file-text', type: 'feather' },
     ];
 
     const renderStep = (step, index) => {
@@ -363,9 +353,9 @@ const VisitScreen = () => {
                 );
             case 5:
                 return (
-                    <LaboratoryContainer
-                        onNext={() => animateStepTransition(6)}
-                        onBack={() => animateStepTransition(4)}
+                    <VisitDocuments 
+                        onNext={() => animateStepTransition(6)} 
+                        onBack={() => animateStepTransition(4)} 
                         visitId={visitId}
                         visitData={visitData}
                         onUpdate={handleVisitUpdate}
@@ -373,30 +363,9 @@ const VisitScreen = () => {
                 );
             case 6:
                 return (
-                    <ProceduresContainer
-                        onNext={() => animateStepTransition(7)}
-                        onBack={() => animateStepTransition(5)}
-                        visitId={visitId}
-                        patientId={visitData?.patient?.id || visitData?.patient?._id || visitData?.patientId}
-                        visitData={visitData}
-                        onUpdate={handleVisitUpdate}
-                    />
-                );
-            case 7:
-                return (
-                    <VisitDocuments 
-                        onNext={() => animateStepTransition(8)} 
-                        onBack={() => animateStepTransition(6)} 
-                        visitId={visitId}
-                        visitData={visitData}
-                        onUpdate={handleVisitUpdate}
-                    />
-                );
-            case 8:
-                return (
                     <VisitSummary 
                         onFinish={() => setShowConfirmModal(true)} 
-                        onBack={() => animateStepTransition(7)} 
+                        onBack={() => animateStepTransition(5)} 
                         visitId={visitId}
                         visitData={visitData}
                         onUpdate={handleVisitUpdate}
@@ -411,16 +380,58 @@ const VisitScreen = () => {
         }
     };
 
-    const handleSuggestionAccept = (suggestion) => {
-        if (suggestion.type === 'diagnosis' && suggestion.diagnosisData) {
-            const currentDiagnoses = visitData?.diagnosis?.icd10 || [];
-            handleVisitUpdate({ diagnosis: { icd10: [...currentDiagnoses, suggestion.diagnosisData] } });
+    const handleSuggestionAccept = useCallback((suggestion) => {
+        if (suggestion?.type === 'interview' && suggestion.suggestion) {
+            handleVisitUpdate({
+                interview: {
+                    ...visitData?.interview,
+                    mainSymptoms: suggestion.suggestion,
+                },
+            });
+            return;
         }
-    };
+        if (suggestion?.type === 'diagnosis' && suggestion.diagnosisData) {
+            const currentDiagnoses = visitData?.diagnosis?.icd10 || [];
+            const hasPrimary = currentDiagnoses.some((d) => d.classification === 'Primary');
+            const diagnosisWithClassification = {
+                ...suggestion.diagnosisData,
+                classification: hasPrimary ? 'Secondary' : 'Primary',
+            };
+            if (!currentDiagnoses.some((d) => d.code === diagnosisWithClassification.code)) {
+                handleVisitUpdate({
+                    diagnosis: {
+                        ...visitData?.diagnosis,
+                        icd10: [...currentDiagnoses, diagnosisWithClassification],
+                    },
+                });
+            }
+        }
+    }, [visitData, handleVisitUpdate]);
+
+    const handleTranscriptionComplete = useCallback((text) => {
+        handleVisitUpdate({
+            interview: {
+                ...visitData?.interview,
+                mainSymptoms: text,
+            },
+        });
+    }, [visitData, handleVisitUpdate]);
+
+    const handleQuestionSelect = useCallback((question) => {
+        const currentSymptoms = visitData?.interview?.mainSymptoms || '';
+        handleVisitUpdate({
+            interview: {
+                ...visitData?.interview,
+                mainSymptoms: currentSymptoms
+                    ? `${currentSymptoms}\n\n${question.text}`
+                    : question.text,
+            },
+        });
+    }, [visitData, handleVisitUpdate]);
 
     const renderAiContent = () => {
         switch (activeAiTool) {
-            case 'Decision Support':
+            case 'cds':
                 return (
                     <View style={ds.contentContainer}>
                         <ClinicalDecisionSupport
@@ -430,69 +441,39 @@ const VisitScreen = () => {
                         />
                     </View>
                 );
-            case 'Interview Coach':
+            case 'interview':
                 return (
                     <View style={ds.contentContainer}>
                         <InterviewCoachTool
                             visitData={visitData}
                             visitId={visitId}
-                            onQuestionSelect={(question) => {
-                                console.log('Question selected:', question.text);
-                            }}
+                            onQuestionSelect={handleQuestionSelect}
                         />
                     </View>
                 );
-            case 'Documentation Assistant':
+            case 'transcription':
                 return (
                     <View style={ds.contentContainer}>
                         <SmartTranscriptionTool
                             visitData={visitData}
                             visitId={visitId}
+                            onTranscriptionComplete={handleTranscriptionComplete}
                             onUpdate={handleVisitUpdate}
                         />
                     </View>
                 );
-            case 'Drug Knowledge':
+            case 'interactions':
                 return (
                     <View style={ds.contentContainer}>
                         <DrugInteractionChecker />
                     </View>
                 );
-            case 'ICD-10 Assistant':
+            case 'icd10':
                 return (
                     <View style={ds.contentContainer}>
                         <ICD10AssistantTool
                             visitData={visitData}
                             onUpdate={handleVisitUpdate}
-                        />
-                    </View>
-                );
-            case 'Voice Transcription':
-                return (
-                    <View style={ds.contentContainer}>
-                        <VoiceTranscriptionTool
-                            visitData={visitData}
-                            visitId={visitId}
-                            onUpdate={handleVisitUpdate}
-                        />
-                    </View>
-                );
-            case 'Diagnostic Assistant':
-                return (
-                    <View style={ds.contentContainer}>
-                        <DiagnosticAssistantTool
-                            visitData={visitData}
-                            visitId={visitId}
-                            onUpdate={handleVisitUpdate}
-                        />
-                    </View>
-                );
-            case 'Medication Assistant':
-                return (
-                    <View style={ds.contentContainer}>
-                        <MedicationAssistantTool
-                            visitData={visitData}
-                            visitId={visitId}
                         />
                     </View>
                 );

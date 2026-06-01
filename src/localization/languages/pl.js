@@ -173,8 +173,6 @@ export const pl = {
             interview: 'Wywiad',
             examination: 'Badanie',
             diagnosis: 'Diagnoza',
-            laboratory: 'Laboratorium',
-            procedures: 'Procedury',
             documents: 'Dokumenty',
             summary: 'Podsumowanie'
         },
@@ -1858,6 +1856,7 @@ export const pl = {
         "visits_list": "Lista wizyt",
         "insurance": "Ubezpieczenie",
         "history": "Historia zwolnień/SMS",
+        "logs": "Dziennik pacjenta",
         "audit_trail": "Ścieżka audytu"
     },
 

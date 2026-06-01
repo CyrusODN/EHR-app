@@ -29,13 +29,6 @@ const AIAnalysis = ({ }) => {
     const { colors: tc, isDark } = useThemeColors();
     const ds = createDynamicStyles(tc, isDark);
     
-    const tabs = [
-        t('aiAnalysis.tabs.analysis'),
-        t('aiAnalysis.tabs.summary'),
-        t('aiAnalysis.tabs.recommendations')
-    ];
-    const [activeTab, setActiveTab] = useState(tabs[0]);
-
     return (
         <View style={ds.safeArea}>
             <KeyboardAvoidingView
