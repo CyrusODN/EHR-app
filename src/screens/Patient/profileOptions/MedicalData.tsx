@@ -65,9 +65,9 @@ const SubmitButton = ({ title, onPress, color, loading = false, ds, tc }: any) =
             colors={color || [tc.accentGradientStart || '#68BFB4', tc.accentGradientEnd || '#4DA1C0']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            style={ds.gradientButton}
+            style={{ width: 100, height: '100%', justifyContent: 'center', alignItems: 'center' }}
         >
-            <View style={ds.buttonContent}>
+            <View style={{ }}>
                 {loading ? (
                     <ActivityIndicator size="small" color="#ffffff" />
                 ) : (
