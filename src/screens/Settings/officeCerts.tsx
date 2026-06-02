@@ -308,9 +308,19 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
                 <Text style={ds.headerTitle}>{t('settings.office_certs.title')}</Text>
             </View>
 
-            <ScrollView style={ds.container}>
-                {/* Offices Section */}
-                <View style={ds.section}>
+            <KeyboardAvoidingView
+                style={ds.keyboardAvoidingContainer}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+            >
+                <ScrollView
+                    style={ds.container}
+                    contentContainerStyle={ds.scrollContent}
+                    keyboardShouldPersistTaps="handled"
+                    keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+                >
+                    {/* Offices Section */}
+                    <View style={ds.section}>
                     <View style={ds.sectionHeader}>
                         <View style={ds.sectionTitleContainer}>
                             <View style={ds.iconContainer}>
@@ -429,8 +439,8 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
                     </View>
                 </View>
 
-                {/* Certificates Section */}
-                <View style={ds.section}>
+                    {/* Certificates Section */}
+                    <View style={ds.section}>
                     <View style={ds.sectionHeader}>
                         <View style={ds.sectionTitleContainer}>
                             <View style={ds.iconContainer}>
@@ -488,8 +498,9 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
                             loading={loading}
                         />
                     </View>
-                </View>
-            </ScrollView>
+                    </View>
+                </ScrollView>
+            </KeyboardAvoidingView>
         </View>
     );
 };
@@ -498,6 +509,12 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: tc.screenBackground,
+    },
+    keyboardAvoidingContainer: {
+        flex: 1,
+    },
+    scrollContent: {
+        paddingBottom: 20,
     },
     header: {
         flexDirection: 'row',
@@ -689,7 +706,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
         padding: 8,
     },
     buttonContainer: {
-        marginHorizontal: 0,
+        marginHorizontal: '5%',
         marginTop: 10,
         paddingBottom: 20,
     },

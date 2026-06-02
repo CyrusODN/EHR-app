@@ -114,9 +114,12 @@ const ScheduledVisitsModal = ({ visible, onClose, visits = [], onVisitPress, ini
         if (!dateStr) return '';
         try {
             const date = new Date(dateStr);
-            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-            const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-            return `${days[date.getDay()]}, ${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+            return date.toLocaleDateString(t('common.dateLocale') || 'en-GB', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+            });
         } catch {
             return dateStr;
         }

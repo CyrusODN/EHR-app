@@ -8,7 +8,9 @@ import {
     TextInput,
     Switch,
     ScrollView,
-    Modal
+    Modal,
+    KeyboardAvoidingView,
+    Platform
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -204,7 +206,17 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
     return (
         <SafeAreaView style={ds.safeArea} edges={['bottom']}>
             <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={tc.cardBackground} />
-            <ScrollView style={ds.container} contentContainerStyle={{ paddingBottom: 30 }}>
+            <KeyboardAvoidingView
+                style={ds.keyboardAvoidingContainer}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+            >
+            <ScrollView
+                style={ds.container}
+                contentContainerStyle={{ paddingBottom: 30 }}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+            >
 
                 {/* Header */}
                 <View style={ds.header}>
@@ -463,6 +475,7 @@ const Employees: React.FC<EmployeesProps> = ({ onAlert }) => {
                 </View>
 
             </ScrollView>
+            </KeyboardAvoidingView>
 
             <AddDoctorModal
                 visible={showAddDoctorModal}
@@ -577,6 +590,9 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: tc.screenBackground,
+    },
+    keyboardAvoidingContainer: {
+        flex: 1,
     },
     header: {
         flexDirection: 'row',

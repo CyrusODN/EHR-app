@@ -285,8 +285,18 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
             </View>
 
             {/* Content */}
-            <ScrollView style={ds.scrollView} contentContainerStyle={ds.scrollViewContent}>
-                <View style={ds.formCard}>
+            <KeyboardAvoidingView
+                style={ds.keyboardAvoidingContainer}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+            >
+                <ScrollView
+                    style={ds.scrollView}
+                    contentContainerStyle={ds.scrollViewContent}
+                    keyboardShouldPersistTaps="handled"
+                    keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+                >
+                    <View style={ds.formCard}>
                     {/* Basic Information Section */}
                     <View style={ds.formSection}>
                         <View style={ds.sectionHeader}>
@@ -647,8 +657,9 @@ const FacilityData = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                         />
                     </View>
                     <View style={{ height: 20 }} />
-                </View>
-            </ScrollView>
+                    </View>
+                </ScrollView>
+            </KeyboardAvoidingView>
             <CustomAlert
                 visible={alertConfig.visible}
                 type={alertConfig.type}
@@ -665,6 +676,9 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
         backgroundColor: tc.screenBackground,
     },
     scrollView: {
+        flex: 1,
+    },
+    keyboardAvoidingContainer: {
         flex: 1,
     },
     scrollViewContent: {

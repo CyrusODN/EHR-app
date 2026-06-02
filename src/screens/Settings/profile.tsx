@@ -5,7 +5,9 @@ import {
     StyleSheet,
     StatusBar,
     TouchableOpacity,
-    Switch
+    Switch,
+    KeyboardAvoidingView,
+    Platform
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -178,7 +180,12 @@ const Profile = ({ onAlert }: { onAlert?: (config: any) => void }) => {
     return (
         <View style={ds.container}>
             <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={tc.cardBackground} />
-            <View style={ds.container}>
+            <KeyboardAvoidingView
+                style={ds.keyboardAvoidingContainer}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+            >
+                <View style={ds.container}>
                 {/* Header */}
                 <View style={ds.header}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={{ paddingRight: 10 }}>
@@ -373,7 +380,8 @@ const Profile = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                     </ScrollView>
                 )}
 
-            </View>
+                </View>
+            </KeyboardAvoidingView>
         </View>
     );
 };
@@ -382,6 +390,9 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: tc.screenBackground,
+    },
+    keyboardAvoidingContainer: {
+        flex: 1,
     },
     header: {
         flexDirection: "row",

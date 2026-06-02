@@ -11,7 +11,9 @@ import {
     Platform,
     UIManager,
     Modal,
-    ActivityIndicator
+    ActivityIndicator,
+    KeyboardAvoidingView,
+    Keyboard
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
@@ -203,6 +205,17 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
     const [consentFileName, setConsentFileName] = useState<string | null>(null);
     const [consentFile, setConsentFile] = useState<any>(null);
     const [uploadingConsent, setUploadingConsent] = useState(false);
+    const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+    React.useEffect(() => {
+        const showSub = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
+        const hideSub = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+
+        return () => {
+            showSub.remove();
+            hideSub.remove();
+        };
+    }, []);
     
     const fetchPersonalData = async () => {
         try {
@@ -239,8 +252,11 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
             const date = new Date(dateVal);
             if (isNaN(date.getTime())) return null;
 
-            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-            return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+            return date.toLocaleDateString(t('common.dateLocale') || 'en-GB', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+            });
         } catch (e) {
             return null;
         }
@@ -422,7 +438,7 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
             }
         } catch (err: any) {
             if (!DocumentPicker.isCancel(err)) {
-                onAlert?.('error', 'Failed to select file.');
+                onAlert?.('error', t('personalData.fileSelectError'));
             }
         }
     };
@@ -437,18 +453,20 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
             const documentUrl = fileUrl;
             const documentName = consentFileName || 'consent_form.pdf';
             
-            // Format current date as "4 March 2026" for UI
-            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
             const now = new Date();
-            const grantedDate = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+            const grantedDate = now.toLocaleDateString(t('common.dateLocale') || 'en-GB', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+            });
             const isoDate = now.toISOString();
 
             // Update the consent item to granted
             setPatientData((prev: any) => {
                 const updatedConsents = (prev?.consents || [
-                    { id: 'personal-data', title: 'Processing of Personal Data', description: 'I consent to the processing of my personal data for the purpose of providing medical services in accordance with GDPR.' },
-                    { id: 'medical-docs', title: 'Access to Medical Documentation', description: 'I consent to providing access to my medical documentation to authorized persons and other medical facilities for the purpose of continuing treatment.' },
-                    { id: 'electronic-comm', title: 'Electronic Communication', description: 'I consent to receiving medical and organizational information via electronic means (email, SMS).' }
+                    { id: 'personal-data', title: t('personalData.consentPersonalDataTitle'), description: t('personalData.consentPersonalDataDescription') },
+                    { id: 'medical-docs', title: t('personalData.consentMedicalDocsTitle'), description: t('personalData.consentMedicalDocsDescription') },
+                    { id: 'electronic-comm', title: t('personalData.consentElectronicCommTitle'), description: t('personalData.consentElectronicCommDescription') }
                 ]).map((c: any) =>
                     c.id === activeConsentId ? { ...c, granted: true, grantedDate, date: isoDate, fileUrl, documentUrl, documentName, withDraw: false } : c
                 );
@@ -459,10 +477,10 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
             setConsentFileName(null);
             setConsentFile(null);
             setActiveConsentId(null);
-            onAlert?.('success', 'Consent document uploaded and consent granted successfully!');
+            onAlert?.('success', t('personalData.consentUploadSuccess'));
         } catch (error) {
             console.error('Upload error:', error);
-            onAlert?.('error', 'Failed to upload consent document. Please try again.');
+            onAlert?.('error', t('personalData.consentUploadError'));
         } finally {
             setUploadingConsent(false);
         }
@@ -475,7 +493,7 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
             );
             return { ...prev, consents: updatedConsents };
         });
-        onAlert?.('success', 'Consent has been withdrawn successfully.');
+        onAlert?.('success', t('personalData.consentWithdrawSuccess'));
     };
 
     const handleSave = async (section: string) => {
@@ -607,7 +625,12 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
             animationType="fade"
             onRequestClose={() => setShowInsurerModal(false)}
         >
-            <View style={ds.modalOverlay}>
+            <View style={[ds.modalOverlay, keyboardVisible && ds.modalOverlayKeyboardVisible]}>
+                <KeyboardAvoidingView
+                    style={ds.modalKeyboardContainer}
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
+                >
                 <View style={ds.modalContent}>
                     <View style={ds.modalHeader}>
                         <Text style={ds.modalTitle}>{t('personalData.addNewInsurer')}</Text>
@@ -616,7 +639,11 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
                         </TouchableOpacity>
                     </View>
                     
-                    <ScrollView style={ds.modalScroll}>
+                    <ScrollView
+                        style={ds.modalScroll}
+                        keyboardShouldPersistTaps="handled"
+                        keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+                    >
                         <FormInput {...commonProps} 
                             label={t('personalData.insurerName')} required placeholder={t('personalData.insurerName')} 
                             value={newInsurerData.name}
@@ -671,6 +698,7 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
                         </TouchableOpacity>
                     </View>
                 </View>
+                </KeyboardAvoidingView>
             </View>
         </Modal>
     );
@@ -682,7 +710,12 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
             animationType="fade"
             onRequestClose={() => setShowAuthorizedModal(false)}
         >
-            <View style={ds.modalOverlay}>
+            <View style={[ds.modalOverlay, keyboardVisible && ds.modalOverlayKeyboardVisible]}>
+                <KeyboardAvoidingView
+                    style={ds.modalKeyboardContainer}
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
+                >
                 <View style={ds.modalContent}>
                     <View style={ds.modalHeader}>
                         <Text style={ds.modalTitle}>{editingAuthPersonId ? t('personalData.editAuthorizedPerson') : t('personalData.addAuthorizedPerson')}</Text>
@@ -699,7 +732,12 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
                         </TouchableOpacity>
                     </View>
                     
-                    <ScrollView style={ds.modalScroll} showsVerticalScrollIndicator={false}>
+                    <ScrollView
+                        style={ds.modalScroll}
+                        showsVerticalScrollIndicator={false}
+                        keyboardShouldPersistTaps="handled"
+                        keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+                    >
                         <View style={ds.row}>
                             <View style={{ flex: 1, marginRight: 8 }}>
                                 <FormInput {...commonProps} 
@@ -872,6 +910,7 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
                         </TouchableOpacity>
                     </View>
                 </View>
+                </KeyboardAvoidingView>
             </View>
         </Modal>
     );
@@ -883,7 +922,12 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
             animationType="fade"
             onRequestClose={() => setShowConsentModal(false)}
         >
-            <View style={ds.modalOverlay}>
+            <View style={[ds.modalOverlay, keyboardVisible && ds.modalOverlayKeyboardVisible]}>
+                <KeyboardAvoidingView
+                    style={ds.modalKeyboardContainer}
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
+                >
                 <View style={ds.modalContent}>
                     <View style={ds.modalHeader}>
                         <Text style={ds.modalTitle}>{t('personalData.uploadConsentTitle')}</Text>
@@ -941,6 +985,7 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
                         />
                     </View>
                 </View>
+                </KeyboardAvoidingView>
             </View>
         </Modal>
     );
@@ -993,26 +1038,26 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
             
             <AccordionItem {...commonProps} title={t('personalData.basicInformation')} icon="user">
                 <FormInput {...commonProps} 
-                    label={t('personalData.firstName')} required placeholder="Enter first name" 
+                    label={t('personalData.firstName')} required placeholder={t('personalData.placeholderFirstName')}
                     value={patientData?.name} 
                     onChangeText={(text: string) => handleInputChange('name', text)}
                 />
                 <FormInput {...commonProps} 
-                    label={t('personalData.lastName')} required placeholder="Enter last name" 
+                    label={t('personalData.lastName')} required placeholder={t('personalData.placeholderLastName')}
                     value={patientData?.lastName} 
                     onChangeText={(text: string) => handleInputChange('lastName', text)}
                 />
                 <FormInput {...commonProps} 
-                    label={t('personalData.pesel')} required placeholder="Enter PESEL" 
+                    label={t('personalData.pesel')} required placeholder={t('personalData.placeholderPesel')}
                     value={patientData?.pesel} 
                     onChangeText={(text: string) => handleInputChange('pesel', text)}
                 />
                 <FormInput {...commonProps} 
-                    label={t('personalData.dob')} required placeholder="Select date" isDropdown 
+                    label={t('personalData.dob')} required placeholder={t('personalData.selectDate')} isDropdown
                     value={patientData?.dob ? new Date(patientData.dob).toLocaleDateString() : ''} 
                 />
                 <FormInput {...commonProps} 
-                    label={t('personalData.gender')} required placeholder="Select gender" isDropdown 
+                    label={t('personalData.gender')} required placeholder={t('personalData.placeholderSelectGender')} isDropdown
                     value={patientData?.gender} 
                 />
                 <View style={{ alignItems: 'flex-end', marginTop: 10 }}>
@@ -1021,27 +1066,27 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
             </AccordionItem>
             <AccordionItem {...commonProps} title={t('personalData.moreInformation')} icon="info">
                 <FormInput {...commonProps} 
-                    label={t('personalData.middleName')} placeholder="Enter middle name" 
+                    label={t('personalData.middleName')} placeholder={t('personalData.placeholderMiddleName')}
                     value={patientData?.middleName} 
                     onChangeText={(text: string) => handleInputChange('middleName', text)}
                 />
                 <FormInput {...commonProps} 
-                    label={t('personalData.maidenName')} placeholder="Enter maiden name" 
+                    label={t('personalData.maidenName')} placeholder={t('personalData.placeholderMaidenName')}
                     value={patientData?.maidenName} 
                     onChangeText={(text: string) => handleInputChange('maidenName', text)}
                 />
                 <FormInput {...commonProps} 
-                    label={t('personalData.birthPlace')} placeholder="Enter birth place" 
+                    label={t('personalData.birthPlace')} placeholder={t('personalData.placeholderBirthPlace')}
                     value={patientData?.birthPlace} 
                     onChangeText={(text: string) => handleInputChange('birthPlace', text)}
                 />
                 <FormInput {...commonProps} 
-                    label={t('personalData.bloodType')} placeholder="A+, O-, etc." 
+                    label={t('personalData.bloodType')} placeholder={t('personalData.placeholderBloodType')}
                     value={patientData?.bloodType} 
                     onChangeText={(text: string) => handleInputChange('bloodType', text)}
                 />
                 <FormInput {...commonProps} 
-                    label={t('personalData.internalCardNumber')} placeholder="No." 
+                    label={t('personalData.internalCardNumber')} placeholder={t('personalData.placeholderNumber')}
                     value={patientData?.internalCardNumber} 
                     onChangeText={(text: string) => handleInputChange('internalCardNumber', text)}
                 />
@@ -1052,47 +1097,47 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
 
             <AccordionItem {...commonProps} title={t('personalData.address')} icon="map-pin">
                 <FormInput {...commonProps} 
-                    label={t('personalData.city')} required placeholder="Enter city" 
+                    label={t('personalData.city')} required placeholder={t('personalData.placeholderCity')}
                     value={patientData?.city} 
                     onChangeText={(text: string) => handleInputChange('city', text)}
                 />
                 <FormInput {...commonProps} 
-                    label={t('personalData.street')} required placeholder="Enter street" 
+                    label={t('personalData.street')} required placeholder={t('personalData.placeholderStreet')}
                     value={patientData?.street} 
                     onChangeText={(text: string) => handleInputChange('street', text)}
                 />
                 <View style={ds.row}>
                     <View style={{ flex: 1, marginRight: 8 }}>
                         <FormInput {...commonProps} 
-                            label={t('personalData.house')} required placeholder="No." 
+                            label={t('personalData.house')} required placeholder={t('personalData.placeholderNumber')}
                             value={patientData?.houseNumber} 
                             onChangeText={(text: string) => handleInputChange('houseNumber', text)}
                         />
                     </View>
                     <View style={{ flex: 1 }}>
                         <FormInput {...commonProps} 
-                            label={t('personalData.apartment')} placeholder="No." 
+                            label={t('personalData.apartment')} placeholder={t('personalData.placeholderNumber')}
                             value={patientData?.apartmentNumber} 
                             onChangeText={(text: string) => handleInputChange('apartmentNumber', text)}
                         />
                     </View>
                 </View>
                 <FormInput {...commonProps} 
-                    label={t('personalData.postalCode')} required placeholder="Enter code" 
+                    label={t('personalData.postalCode')} required placeholder={t('personalData.placeholderPostalCode')}
                     value={patientData?.postalCode} 
                     onChangeText={(text: string) => handleInputChange('postalCode', text)}
                 />
                 <View style={ds.row}>
                     <View style={{ flex: 1, marginRight: 8 }}>
                         <FormInput {...commonProps} 
-                            label={t('personalData.voivodeship')} required placeholder="Select voivodeship" isDropdown 
+                            label={t('personalData.voivodeship')} required placeholder={t('personalData.placeholderSelectVoivodeship')} isDropdown
                             value={patientData?.voivodeship}
                             onPress={() => setShowVoivodeshipPicker(true)}
                         />
                     </View>
                     <View style={{ flex: 1 }}>
                         <FormInput {...commonProps} 
-                            label={t('personalData.country')} required placeholder="Select country" isDropdown 
+                            label={t('personalData.country')} required placeholder={t('personalData.placeholderSelectCountry')} isDropdown
                             value={patientData?.country}
                             onPress={() => setShowCountryPicker(true)}
                         />
@@ -1104,18 +1149,18 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
             </AccordionItem>
 
             <AccordionItem {...commonProps} title={t('personalData.insurance')} icon="shield">
-                <SectionHeader {...commonProps} title="Insured in NFZ:" />
+                <SectionHeader {...commonProps} title={t('personalData.insuredInNfz')} />
                 <View style={ds.row}>
                     <View style={{ flex: 1, marginRight: 8 }}>
                         <FormInput {...commonProps} 
-                            label={t('personalData.nfzBranch')} required placeholder="Select branch" isDropdown 
+                            label={t('personalData.nfzBranch')} required placeholder={t('personalData.placeholderSelectBranch')} isDropdown
                             value={patientData?.nfzBranch}
                             onPress={() => setShowBranchPicker(true)}
                         />
                     </View>
                     <View style={{ flex: 1 }}>
                         <FormInput {...commonProps} 
-                            label={t('personalData.additionalRights')} required placeholder="Select rights" isDropdown 
+                            label={t('personalData.additionalRights')} required placeholder={t('personalData.placeholderSelectRights')} isDropdown
                             value={patientData?.additionalRights}
                             onPress={() => setShowRightsPicker(true)}
                         />
@@ -1213,14 +1258,14 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
                     </View>
                     <View style={{ flex: 1 }}>
                         <FormInput {...commonProps} 
-                            label={t('personalData.voivodeship')} required placeholder="Select voivodeship" isDropdown 
+                            label={t('personalData.voivodeship')} required placeholder={t('personalData.placeholderSelectVoivodeship')} isDropdown
                             value={patientData?.employer?.address?.voivodeship || ''} 
                             onPress={() => setShowEmpVoivodeshipPicker(true)}
                         />
                     </View>
                 </View>
                 <FormInput {...commonProps} 
-                    label={t('personalData.country')} required placeholder="Select country" isDropdown 
+                    label={t('personalData.country')} required placeholder={t('personalData.placeholderSelectCountry')} isDropdown
                     value={patientData?.employer?.address?.country || ''} 
                     onPress={() => setShowEmpCountryPicker(true)}
                 />
@@ -1301,21 +1346,21 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
                 {(patientData?.consents || [
                     {
                         id: 'personal-data',
-                        title: 'Processing of Personal Data',
-                        description: 'I consent to the processing of my personal data for the purpose of providing medical services in accordance with GDPR.',
+                        title: t('personalData.consentPersonalDataTitle'),
+                        description: t('personalData.consentPersonalDataDescription'),
                         granted: true,
-                        grantedDate: '04 March 2026',
+                        grantedDate: '04-03-2026',
                         fileUrl: 'dummy_url'
                     },
                     {
                         id: 'medical-docs',
-                        title: 'Access to Medical Documentation',
-                        description: 'I consent to providing access to my medical documentation to authorized persons and other medical facilities for the purpose of continuing treatment.'
+                        title: t('personalData.consentMedicalDocsTitle'),
+                        description: t('personalData.consentMedicalDocsDescription')
                     },
                     {
                         id: 'electronic-comm',
-                        title: 'Electronic Communication',
-                        description: 'I consent to receiving medical and organizational information via electronic means (email, SMS).'
+                        title: t('personalData.consentElectronicCommTitle'),
+                        description: t('personalData.consentElectronicCommDescription')
                     }
                 ]).map((item: any, index: number) => (
                     <View key={index} style={ds.consentRow}>
@@ -1572,6 +1617,10 @@ export default PersonalData;
             alignItems: 'center',
             padding: 20,
         },
+        modalOverlayKeyboardVisible: {
+            justifyContent: 'flex-end',
+            paddingBottom: 8,
+        },
         modalContent: {
             backgroundColor: tc.modalBg,
             borderRadius: 12,
@@ -1580,6 +1629,10 @@ export default PersonalData;
             padding: 20,
             borderWidth: isDark ? 1 : 0,
             borderColor: tc.borderColor,
+        },
+        modalKeyboardContainer: {
+            width: '100%',
+            maxWidth: '100%',
         },
         modalHeader: {
             flexDirection: 'row',

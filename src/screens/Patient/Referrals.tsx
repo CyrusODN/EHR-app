@@ -234,16 +234,16 @@ const ReferralsScreen = () => {
                                             <View style={[ds.columnReferred, { paddingRight: 8 }]}>
                                                 {activeTab === 'incoming' ? (
                                                     <Text style={ds.tableCellText} numberOfLines={1} ellipsizeMode="tail">
-                                                        {item.referredBy?.name || 'N/A'} <Text style={{ color: tc.textMuted }}>({item.referredBy?.role || 'provider'})</Text>
+                                                        {item.referredBy?.name || t('common.na')} <Text style={{ color: tc.textMuted }}>({item.referredBy?.role || t('referrals.details.provider')})</Text>
                                                     </Text>
                                                 ) : (
                                                     <Text style={ds.tableCellText} numberOfLines={1} ellipsizeMode="tail">
-                                                        {item.referredTo?.name || 'N/A'} <Text style={{ color: tc.textMuted }}>({item.referredTo?.role || 'provider'})</Text>
+                                                        {item.referredTo?.name || t('common.na')} <Text style={{ color: tc.textMuted }}>({item.referredTo?.role || t('referrals.details.provider')})</Text>
                                                     </Text>
                                                 )}
                                             </View>
                                             <View style={ds.columnReason}>
-                                                <Text style={[ds.tableCellText, { fontWeight: '700' }]} numberOfLines={1}>{item.reason || 'N/A'}</Text>
+                                                <Text style={[ds.tableCellText, { fontWeight: '700' }]} numberOfLines={1}>{item.reason || t('common.na')}</Text>
                                             </View>
                                             <View style={ds.columnStatus}>
                                                 <View style={[ds.statusBadge, { backgroundColor: isDark ? 'rgba(245, 158, 11, 0.15)' : '#FEF9C3' }]}>
@@ -253,7 +253,7 @@ const ReferralsScreen = () => {
                                                 </View>
                                             </View>
                                             <View style={ds.columnDate}>
-                                                <Text style={ds.tableCellText}>{item.createdAt ? new Date(item.createdAt).toLocaleDateString(t('common.dateLocale') || 'en-GB') : 'N/A'}</Text>
+                                                <Text style={ds.tableCellText}>{item.createdAt ? new Date(item.createdAt).toLocaleDateString(t('common.dateLocale') || 'en-GB') : t('common.na')}</Text>
                                             </View>
                                             <View style={ds.columnActions}>
                                                 <TouchableOpacity 
@@ -410,7 +410,7 @@ const ReferralsScreen = () => {
                                         <Text style={ds.detailsLabel}>{t('referrals.details.patient')}</Text>
                                         <View style={ds.infoWithIcon}>
                                             <Feather name="user" size={16} color={tc.textMuted} />
-                                            <Text style={[ds.detailsValue, { flex: 1 }]}>{selectedReferral?.patient?.name || 'N/A'}</Text>
+                                            <Text style={[ds.detailsValue, { flex: 1 }]}>{selectedReferral?.patient?.name || t('common.na')}</Text>
                                         </View>
                                     </View>
                                     <View style={{ flex: 1, alignItems: 'flex-end' }}>
@@ -430,8 +430,8 @@ const ReferralsScreen = () => {
                                         <View style={ds.infoWithIcon}>
                                             <Feather name="user" size={16} color={tc.textMuted} />
                                             <Text style={[ds.detailsValue, { flex: 1 }]}>
-                                                {selectedReferral?.referredTo?.name || 'N/A'} 
-                                                <Text style={{ color: tc.textMuted, fontWeight: '400' }}> ({selectedReferral?.referredTo?.role || 'provider'})</Text>
+                                                {selectedReferral?.referredTo?.name || t('common.na')} 
+                                                <Text style={{ color: tc.textMuted, fontWeight: '400' }}> ({selectedReferral?.referredTo?.role || t('referrals.details.provider')})</Text>
                                             </Text>
                                         </View>
                                     </View>
@@ -440,8 +440,8 @@ const ReferralsScreen = () => {
                                         <View style={ds.infoWithIcon}>
                                             <Feather name="user" size={16} color={tc.textMuted} />
                                             <Text style={[ds.detailsValue, { flex: 1 }]}>
-                                                {selectedReferral?.referredBy?.name || 'N/A'} 
-                                                <Text style={{ color: tc.textMuted, fontWeight: '400' }}> ({selectedReferral?.referredBy?.role || 'provider'})</Text>
+                                                {selectedReferral?.referredBy?.name || t('common.na')} 
+                                                <Text style={{ color: tc.textMuted, fontWeight: '400' }}> ({selectedReferral?.referredBy?.role || t('referrals.details.provider')})</Text>
                                             </Text>
                                         </View>
                                     </View>
@@ -452,7 +452,7 @@ const ReferralsScreen = () => {
                                     <View style={ds.infoWithIcon}>
                                         <Feather name="calendar" size={16} color={tc.textMuted} />
                                         <Text style={ds.detailsValue}>
-                                            {selectedReferral?.createdAt ? new Date(selectedReferral.createdAt).toLocaleDateString(t('common.dateLocale') || 'en-GB') : 'N/A'}
+                                            {selectedReferral?.createdAt ? new Date(selectedReferral.createdAt).toLocaleDateString(t('common.dateLocale') || 'en-GB') : t('common.na')}
                                         </Text>
                                     </View>
                                 </View>
@@ -461,7 +461,7 @@ const ReferralsScreen = () => {
                                     <Text style={ds.detailsLabel}>{t('referrals.details.specialization')}</Text>
                                     <View style={ds.infoWithIcon}>
                                         <MaterialCommunityIcons name="stethoscope" size={18} color={tc.textMuted} />
-                                        <Text style={ds.detailsValue}>{selectedReferral?.specialization || 'N/A'}</Text>
+                                        <Text style={ds.detailsValue}>{selectedReferral?.specialization || t('common.na')}</Text>
                                     </View>
                                 </View>
 
@@ -469,7 +469,7 @@ const ReferralsScreen = () => {
                                     <Text style={ds.detailsLabel}>{t('referrals.details.reason')}</Text>
                                     <View style={ds.infoWithIcon}>
                                         <MaterialCommunityIcons name="file-document-outline" size={18} color={tc.textMuted} />
-                                        <Text style={ds.detailsValue}>{selectedReferral?.reason || 'N/A'}</Text>
+                                        <Text style={ds.detailsValue}>{selectedReferral?.reason || t('common.na')}</Text>
                                     </View>
                                 </View>
 
@@ -477,7 +477,7 @@ const ReferralsScreen = () => {
                                     <Text style={ds.detailsLabel}>{t('referrals.details.notes')}</Text>
                                     <View style={ds.infoWithIcon}>
                                         <MaterialCommunityIcons name="alert-circle-outline" size={18} color={tc.textMuted} />
-                                        <Text style={[ds.detailsValue, { flex: 1 }]}>{selectedReferral?.notes || 'keep in touch with me'}</Text>
+                                        <Text style={[ds.detailsValue, { flex: 1 }]}>{selectedReferral?.notes || t('referrals.details.noNotes')}</Text>
                                     </View>
                                 </View>
 
@@ -485,10 +485,10 @@ const ReferralsScreen = () => {
                                 
                                 <View style={ds.timestampContainer}>
                                     <Text style={ds.timestampText}>
-                                        {t('referrals.details.created')}: {selectedReferral?.createdAt ? new Date(selectedReferral.createdAt).toLocaleString(t('common.dateTimeLocale') || 'en-GB').replace(',', '') : 'N/A'}
+                                        {t('referrals.details.created')}: {selectedReferral?.createdAt ? new Date(selectedReferral.createdAt).toLocaleString(t('common.dateTimeLocale') || 'en-GB').replace(',', '') : t('common.na')}
                                     </Text>
                                     <Text style={ds.timestampText}>
-                                        {t('referrals.details.lastUpdated')}: {selectedReferral?.updatedAt ? new Date(selectedReferral.updatedAt).toLocaleString(t('common.dateTimeLocale') || 'en-GB').replace(',', '') : 'N/A'}
+                                        {t('referrals.details.lastUpdated')}: {selectedReferral?.updatedAt ? new Date(selectedReferral.updatedAt).toLocaleString(t('common.dateTimeLocale') || 'en-GB').replace(',', '') : t('common.na')}
                                     </Text>
                                 </View>
                             </ScrollView>

@@ -131,9 +131,7 @@ const TrendAnalysisModal = ({
     const formatShortDate = (dateStr: string) => {
         const date = new Date(dateStr);
         const day = date.getDate();
-        const monthNames = i18n.language === 'pl'
-            ? ['Sty', 'Lut', 'Mar', 'Kwi', 'Maj', 'Cze', 'Lip', 'Sie', 'Wrz', 'Paź', 'Lis', 'Gru']
-            : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const monthNames = t('common.monthsShort', { returnObjects: true }) as string[];
         return `${day} ${monthNames[date.getMonth()]}`;
     };
 

@@ -62,7 +62,6 @@ const Dashboard = () => {
     const hideAlert = () => {
         setAlertConfig({ ...alertConfig, visible: false });
     };
-    const currentMonth = 'April 2025';
     const { colors } = useTheme();
     const [selectedDate, setSelectedDate] = useState(new Date()); // The Date for which we are showing visits
     const [viewDate, setViewDate] = useState(new Date()); // The month being viewed in the calendar modal
@@ -150,7 +149,7 @@ const Dashboard = () => {
     };
 
     const formatHeaderDate = (date: Date) => {
-        return date.toLocaleDateString('en-GB', {
+        return date.toLocaleDateString(t('common.dateLocale') || 'en-GB', {
             day: 'numeric',
             month: 'long',
             year: 'numeric'
@@ -204,7 +203,10 @@ const Dashboard = () => {
         fetchVisits();
     }, [selectedDate]);
 
-    const currentMonthDisplay = viewDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+    const currentMonthDisplay = viewDate.toLocaleDateString(t('common.dateLocale') || 'en-GB', {
+        month: 'long',
+        year: 'numeric'
+    });
 
     const days = getDaysInMonth();
     const weekdays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
@@ -217,7 +219,7 @@ const Dashboard = () => {
             ? v.patient.name
             : v.patientId?.firstName
                 ? `${v.patientId.firstName} ${v.patientId.lastName || ''}`
-                : v.patientName || 'Unknown Patient',
+                : v.patientName || t('common.na'),
         patientId: v.patient?.id || v.patient?._id || v.patientId?._id || v.patientId || '',
         patientSlug: v.patient?.slug || '',
         patientData: v.patient,

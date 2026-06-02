@@ -47,7 +47,7 @@ const CustomCalendarModal = ({ visible, value, onSelect, onClose, tc, isDark, t,
     const daysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
     const firstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
     
-    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const monthNames = t('common.months', { returnObjects: true }) as string[];
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     
@@ -80,7 +80,7 @@ const CustomCalendarModal = ({ visible, value, onSelect, onClose, tc, isDark, t,
             <View style={ds.modalOverlay}>
                 <View style={ds.customCalendarContent}>
                     <View style={ds.customCalendarHeader}>
-                        <Text style={ds.customCalendarTitle}>{t('patientList.selectDate') || 'Select date'}</Text>
+                        <Text style={ds.customCalendarTitle}>{t('patientList.selectDate')}</Text>
                         <TouchableOpacity onPress={onClose}>
                             <Feather name="x" size={24} color="#fff" />
                         </TouchableOpacity>

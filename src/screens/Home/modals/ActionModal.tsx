@@ -9,6 +9,8 @@ import {
     TextInput,
     Animated,
     Dimensions,
+    KeyboardAvoidingView,
+    Keyboard,
 } from 'react-native';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -73,6 +75,7 @@ const ActionModal = ({ visible, onClose, onView, onStart, onAddNote }: {
     }, [visible]);
 
     const handleClose = () => {
+        Keyboard.dismiss();
         onClose();
     };
 
@@ -115,90 +118,110 @@ const ActionModal = ({ visible, onClose, onView, onStart, onAddNote }: {
                 </TouchableWithoutFeedback>
             </Animated.View>
 
-            <Animated.View
-                style={[
-                    ds.modalContainer,
-                    {
-                        paddingBottom: insets.bottom + 10,
-                        transform: [{ translateY: slideAnim }],
-                    },
-                ]}
+            <KeyboardAvoidingView
+                style={ds.keyboardAvoidingContainer}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                pointerEvents="box-none"
             >
-                {/* Drag Handle */}
-                <View style={ds.dragHandleContainer}>
-                    <View style={ds.dragHandle} />
-                </View>
+                <Animated.View
+                    style={[
+                        ds.modalContainer,
+                        {
+                            paddingBottom: insets.bottom + 10,
+                            transform: [{ translateY: slideAnim }],
+                        },
+                    ]}
+                >
+                    {/* Drag Handle */}
+                    <View style={ds.dragHandleContainer}>
+                        <View style={ds.dragHandle} />
+                    </View>
 
-                {/* Header */}
-                <View style={ds.header}>
-                    <Text style={ds.headerText}>{t('dashboard.actionModal.visitActions')}</Text>
-                    <TouchableOpacity onPress={handleClose} style={ds.closeBtn}>
-                        <Feather name="x" size={18} color={tc.textMuted} />
-                    </TouchableOpacity>
-                </View>
-
-                <View style={ds.content}>
-                    {/* Start Visit - Gradient CTA */}
-                    <TouchableOpacity
-                        style={ds.startVisitBtn}
-                        onPress={onStart}
-                        activeOpacity={0.85}
-                    >
-                        <LinearGradient
-                            colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 0 }}
-                            style={ds.startVisitGradient}
-                        >
-                            <Feather name="play" size={18} color="white" />
-                            <Text style={ds.startVisitText}>{t('visit.start')}</Text>
-                        </LinearGradient>
-                    </TouchableOpacity>
-
-                    {/* Action Buttons */}
-                    {actions.map((action, index) => (
+                    {/* Header */}
+                    <View style={ds.header}>
+                        <Text style={ds.headerText}>{t('dashboard.actionModal.visitActions')}</Text>
                         <TouchableOpacity
-                            key={index}
-                            style={ds.actionButton}
-                            onPress={action.onPress}
+                            onPress={handleClose}
+                            style={ds.closeBtn}
+                        >
+                            <Feather name="x" size={18} color={tc.textMuted} />
+                        </TouchableOpacity>
+                    </View>
+
+                    <View style={ds.content}>
+                        {!showNoteInput ? (
+                            <>
+                                {/* Start Visit - Gradient CTA */}
+                                <TouchableOpacity
+                                    style={ds.startVisitBtn}
+                                    onPress={onStart}
+                                    activeOpacity={0.85}
+                                >
+                                    <LinearGradient
+                                        colors={['#4A90B9', '#5BA6B6', '#68BFB3']}
+                                        start={{ x: 0, y: 0 }}
+                                        end={{ x: 1, y: 0 }}
+                                        style={ds.startVisitGradient}
+                                    >
+                                        <Feather name="play" size={18} color="white" />
+                                        <Text style={ds.startVisitText}>{t('visit.start')}</Text>
+                                    </LinearGradient>
+                                </TouchableOpacity>
+
+                                {/* Action Buttons */}
+                                {actions.map((action, index) => (
+                                    <TouchableOpacity
+                                        key={index}
+                                        style={ds.actionButton}
+                                        onPress={action.onPress}
+                                        activeOpacity={0.7}
+                                    >
+                                        <View style={[ds.actionIconBg, { backgroundColor: action.bg }]}>
+                                            <Feather name={action.icon} size={16} color={action.color} />
+                                        </View>
+                                        <Text style={ds.actionText}>{action.label}</Text>
+                                        <Feather name="chevron-right" size={16} color={tc.borderStrong} />
+                                    </TouchableOpacity>
+                                ))}
+                            </>
+                        ) : (
+                            <View style={ds.noteInputContainer}>
+                                <TextInput
+                                    style={ds.noteInput}
+                                    placeholder={t('dashboard.actionModal.notePlaceholder')}
+                                    placeholderTextColor={tc.textMuted}
+                                    multiline
+                                    value={note}
+                                    onChangeText={setNote}
+                                    autoFocus
+                                    blurOnSubmit={false}
+                                    returnKeyType="default"
+                                />
+                                <TouchableOpacity style={ds.submitNoteBtn} onPress={handleAddNote}>
+                                    <Text style={ds.submitNoteText}>{t('dashboard.actionModal.saveNote')}</Text>
+                                </TouchableOpacity>
+                            </View>
+                        )}
+
+                        {/* Cancel/Back */}
+                        <TouchableOpacity
+                            style={ds.cancelButton}
+                            onPress={() => {
+                                if (showNoteInput) {
+                                    setShowNoteInput(false);
+                                    setNote('');
+                                    Keyboard.dismiss();
+                                    return;
+                                }
+                                handleClose();
+                            }}
                             activeOpacity={0.7}
                         >
-                            <View style={[ds.actionIconBg, { backgroundColor: action.bg }]}>
-                                <Feather name={action.icon} size={16} color={action.color} />
-                            </View>
-                            <Text style={ds.actionText}>{action.label}</Text>
-                            <Feather name="chevron-right" size={16} color={tc.borderStrong} />
+                            <Text style={ds.cancelText}>{showNoteInput ? t('common.back') : t('common.cancel')}</Text>
                         </TouchableOpacity>
-                    ))}
-
-                    {/* Note Input */}
-                    {showNoteInput && (
-                        <View style={ds.noteInputContainer}>
-                            <TextInput
-                                style={ds.noteInput}
-                                placeholder={t('dashboard.actionModal.notePlaceholder')}
-                                placeholderTextColor={tc.textMuted}
-                                multiline
-                                value={note}
-                                onChangeText={setNote}
-                                autoFocus
-                            />
-                            <TouchableOpacity style={ds.submitNoteBtn} onPress={handleAddNote}>
-                                <Text style={ds.submitNoteText}>{t('dashboard.actionModal.saveNote')}</Text>
-                            </TouchableOpacity>
-                        </View>
-                    )}
-
-                    {/* Cancel */}
-                    <TouchableOpacity
-                        style={ds.cancelButton}
-                        onPress={handleClose}
-                        activeOpacity={0.7}
-                    >
-                        <Text style={ds.cancelText}>{t('common.cancel')}</Text>
-                    </TouchableOpacity>
-                </View>
-            </Animated.View>
+                    </View>
+                </Animated.View>
+            </KeyboardAvoidingView>
         </View>
     );
 };
@@ -208,21 +231,18 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
         ...StyleSheet.absoluteFillObject,
         backgroundColor: 'rgba(0, 0, 0, 0.6)',
     },
+    keyboardAvoidingContainer: {
+        ...StyleSheet.absoluteFillObject,
+        justifyContent: 'flex-end',
+    },
     modalContainer: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
+        width: '100%',
+        maxHeight: SCREEN_HEIGHT * 0.88,
         backgroundColor: tc.modalBg,
         borderTopLeftRadius: 32,
         borderTopRightRadius: 32,
         borderWidth: isDark ? 1 : 0,
         borderColor: tc.borderSubtle,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: -4 },
-        shadowOpacity: isDark ? 0.4 : 0.08,
-        shadowRadius: 16,
-        elevation: 20,
     },
     dragHandleContainer: {
         alignItems: 'center',
@@ -259,6 +279,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     },
     content: {
         padding: 20,
+        paddingBottom: 28,
     },
     startVisitBtn: {
         borderRadius: 16,

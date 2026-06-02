@@ -117,8 +117,11 @@ const Laboratory = ({ patientData, onAlert }: { patientData: any, onAlert?: (typ
         try {
             const date = new Date(dateVal);
             if (isNaN(date.getTime())) return dateVal;
-            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-            return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+            return date.toLocaleDateString(t('common.dateLocale') || 'en-GB', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+            });
         } catch (e) { return dateVal; }
     };
 

@@ -59,7 +59,7 @@ export const pl = {
     },
 
     dashboard: {
-        title: 'Dashboard',
+        title: 'Panel',
         overview: 'Przegląd najważniejszych informacji',
         todayPatients: 'Dzisiejsi Pacjenci',
         pendingReports: 'Oczekujące Raporty',
@@ -898,7 +898,7 @@ export const pl = {
             billing: 'Rozliczenia'
         },
         actions: {
-            spotlight: 'Spotlight'
+            spotlight: 'Wyróżnione'
         },
         options: {
             darkMode: 'Tryb nocny',
@@ -1359,6 +1359,31 @@ export const pl = {
         submit: "Zapisz",
         startDate: "Data rozpoczęcia",
         selectDate: "Wybierz datę",
+        placeholderFirstName: "Wpisz imię",
+        placeholderLastName: "Wpisz nazwisko",
+        placeholderPesel: "Wpisz PESEL",
+        placeholderSelectGender: "Wybierz płeć",
+        placeholderMiddleName: "Wpisz drugie imię",
+        placeholderMaidenName: "Wpisz nazwisko rodowe",
+        placeholderBirthPlace: "Wpisz miejsce urodzenia",
+        placeholderBloodType: "A+, O-, itp.",
+        placeholderNumber: "Nr",
+        placeholderCity: "Wpisz miejscowość",
+        placeholderStreet: "Wpisz ulicę",
+        placeholderPostalCode: "Wpisz kod",
+        placeholderSelectVoivodeship: "Wybierz województwo",
+        placeholderSelectCountry: "Wybierz kraj",
+        placeholderSelectBranch: "Wybierz oddział",
+        placeholderSelectRights: "Wybierz uprawnienia",
+        insuredInNfz: "Ubezpieczony w NFZ:",
+        fileSelectError: "Nie udało się wybrać pliku.",
+        consentUploadError: "Nie udało się przesłać dokumentu zgody. Spróbuj ponownie.",
+        consentPersonalDataTitle: "Przetwarzanie danych osobowych",
+        consentPersonalDataDescription: "Wyrażam zgodę na przetwarzanie moich danych osobowych w celu świadczenia usług medycznych zgodnie z RODO.",
+        consentMedicalDocsTitle: "Dostęp do dokumentacji medycznej",
+        consentMedicalDocsDescription: "Wyrażam zgodę na udostępnianie mojej dokumentacji medycznej osobom upoważnionym oraz innym placówkom medycznym w celu kontynuacji leczenia.",
+        consentElectronicCommTitle: "Komunikacja elektroniczna",
+        consentElectronicCommDescription: "Wyrażam zgodę na otrzymywanie informacji medycznych i organizacyjnych drogą elektroniczną (e-mail, SMS).",
         saveSuccess: "Informacje o {{section}} zostały zaktualizowane!",
         saveError: "Nie udało się zaktualizować informacji o {{section}}.",
         consentUploadSuccess: "Dokument zgody został przesłany i zgoda została udzielona pomyślnie!",
@@ -1564,13 +1589,13 @@ export const pl = {
     },
 
     spotlight: {
-        title: 'Spotlight',
+        title: 'Wyróżnione',
         subtitle: 'Bezpiecznie udostępniaj zanonimizowane dane pacjentów do badań klinicznych',
         newSubmission: 'Nowe zgłoszenie',
         mySubmission: 'Moje zgłoszenia',
         patientSelection: 'Wybór pacjenta',
         searchPatient: 'Wyszukaj pacjenta',
-        myRequests: 'Moje zgłoszenia w Spotlight',
+        myRequests: 'Moje zgłoszenia w Wyróżnionych',
         status: {
             pending: 'Oczekujące',
             accepted: 'Zaakceptowane'
@@ -1714,10 +1739,12 @@ export const pl = {
             status: 'Status',
             referredTo: 'Skierowany do',
             referredBy: 'Skierowany przez',
+            provider: 'specjalista',
             date: 'Data',
             specialization: 'Specjalizacja',
             reason: 'Powód skierowania',
             notes: 'Uwagi',
+            noNotes: 'Brak uwag',
             created: 'Utworzono',
             lastUpdated: 'Ostatnia aktualizacja'
         },
@@ -4075,7 +4102,7 @@ export const pl = {
     },
 
     "spotlightPage": {
-        "title": "Spotlight",
+        "title": "Wyróżnione",
         "description": "Bezpieczne udostępnianie zanonimizowanych danych pacjentów do badań klinicznych",
         "tabs": {
             "newSubmission": "Nowe zgłoszenie",
@@ -4084,7 +4111,7 @@ export const pl = {
     },
 
     "spotlightSubmissions": {
-        "title": "Moje zgłoszenia w Spotlight",
+        "title": "Moje zgłoszenia w Wyróżnionych",
         "status": {
             "pending": {
                 "label": "Oczekujące"
@@ -4240,7 +4267,7 @@ export const pl = {
     "anonymizationPreview": {
         "title": "Podgląd zanonimizowanych danych",
         "subtitle": "Sprawdź jak będą wyglądać dane po anonimizacji",
-        "submitButton": "Prześlij do Spotlight",
+        "submitButton": "Prześlij do Wyróżnionych",
         "sections": {
             "demographics": {
                 "title": "Dane demograficzne",
