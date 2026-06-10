@@ -5445,6 +5445,15 @@ export const en = {
                 "referralStatus": "Referral Status",
                 "pending": "pending",
                 "topSpecializations": "Top Specializations"
+            },
+            "export": {
+                "timeframe": "Timeframe",
+                "generatedAt": "Generated at",
+                "summarySection": "Summary",
+                "label": "Label",
+                "value": "Value",
+                "noData": "No data available to export. Please wait for statistics to load.",
+                "error": "Failed to export report. Please try again."
             }
         }
     },

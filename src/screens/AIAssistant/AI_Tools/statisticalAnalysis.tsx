@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Animated } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Animated, Share, Alert, ActivityIndicator } from 'react-native';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -15,6 +15,83 @@ import { getVisitStatistics, getClinicalStatistics, getDemographicsStatistics, g
 
 const { width } = Dimensions.get('window');
 
+const formatDistributionRows = (items: any[] | undefined, labelKey = '_id', valueKey = 'count') => {
+    if (!items?.length) return '';
+    return items.map(item => `${item[labelKey]},${item[valueKey]}`).join('\n');
+};
+
+const buildStatisticsReport = ({
+    t,
+    timeframe,
+    summaryData,
+    visitData,
+    clinicalData,
+    demographicsData,
+    referralData,
+}: {
+    t: (key: string) => string;
+    timeframe: string;
+    summaryData: any;
+    visitData: any;
+    clinicalData: any;
+    demographicsData: any;
+    referralData: any;
+}) => {
+    const lines: string[] = [
+        t('aiAssistant.statisticalAnalysis.title'),
+        `${t('aiAssistant.statisticalAnalysis.export.timeframe')},${timeframe}`,
+        `${t('aiAssistant.statisticalAnalysis.export.generatedAt')},${new Date().toLocaleString()}`,
+        '',
+        t('aiAssistant.statisticalAnalysis.export.summarySection'),
+        `${t('aiAssistant.statisticalAnalysis.totalVisits')},${summaryData?.totalVisits ?? 0}`,
+        `${t('aiAssistant.statisticalAnalysis.totalPatients')},${summaryData?.totalPatients ?? 0}`,
+        `${t('aiAssistant.statisticalAnalysis.referrals')},${summaryData?.totalReferrals ?? 0}`,
+        `${t('aiAssistant.statisticalAnalysis.todaysVisits')},${summaryData?.todayVisits ?? 0}`,
+        '',
+        t('aiAssistant.statisticalAnalysis.charts.visitsOverTime'),
+        `${t('aiAssistant.statisticalAnalysis.export.label')},${t('aiAssistant.statisticalAnalysis.export.value')}`,
+        formatDistributionRows(visitData?.dailyTrend),
+        '',
+        t('aiAssistant.statisticalAnalysis.charts.visitStatus'),
+        `${t('aiAssistant.statisticalAnalysis.export.label')},${t('aiAssistant.statisticalAnalysis.export.value')}`,
+        formatDistributionRows(visitData?.statusDistribution),
+        '',
+        t('aiAssistant.statisticalAnalysis.charts.visitTypes'),
+        `${t('aiAssistant.statisticalAnalysis.export.label')},${t('aiAssistant.statisticalAnalysis.export.value')}`,
+        formatDistributionRows(visitData?.visitTypeDistribution),
+        '',
+        t('aiAssistant.statisticalAnalysis.charts.modalityDistribution'),
+        `${t('aiAssistant.statisticalAnalysis.export.label')},${t('aiAssistant.statisticalAnalysis.export.value')}`,
+        formatDistributionRows(visitData?.modalityDistribution, '_id', 'count'),
+        '',
+        t('aiAssistant.statisticalAnalysis.charts.topDiagnoses'),
+        `${t('aiAssistant.statisticalAnalysis.export.label')},${t('aiAssistant.statisticalAnalysis.export.value')}`,
+        formatDistributionRows(clinicalData?.topDiagnoses, 'name', 'count'),
+        '',
+        t('aiAssistant.statisticalAnalysis.charts.genderDistribution'),
+        `${t('aiAssistant.statisticalAnalysis.export.label')},${t('aiAssistant.statisticalAnalysis.export.value')}`,
+        formatDistributionRows(demographicsData?.genderDistribution),
+        '',
+        t('aiAssistant.statisticalAnalysis.charts.ageGroups'),
+        `${t('aiAssistant.statisticalAnalysis.export.label')},${t('aiAssistant.statisticalAnalysis.export.value')}`,
+        formatDistributionRows(demographicsData?.ageDistribution),
+        '',
+        t('aiAssistant.statisticalAnalysis.charts.patientsByCity'),
+        `${t('aiAssistant.statisticalAnalysis.export.label')},${t('aiAssistant.statisticalAnalysis.export.value')}`,
+        formatDistributionRows(demographicsData?.cityDistribution),
+        '',
+        t('aiAssistant.statisticalAnalysis.charts.referralStatus'),
+        `${t('aiAssistant.statisticalAnalysis.export.label')},${t('aiAssistant.statisticalAnalysis.export.value')}`,
+        formatDistributionRows(referralData?.statusDistribution),
+        '',
+        t('aiAssistant.statisticalAnalysis.charts.topSpecializations'),
+        `${t('aiAssistant.statisticalAnalysis.export.label')},${t('aiAssistant.statisticalAnalysis.export.value')}`,
+        formatDistributionRows(referralData?.specializationDistribution),
+    ];
+
+    return lines.filter(line => line !== undefined).join('\n');
+};
+
 const StatisticalAnalysis = () => {
     const { t } = useTranslation();
     const { colors: tc, isDark } = useThemeColors();
@@ -22,6 +99,7 @@ const StatisticalAnalysis = () => {
     const [activeTab, setActiveTab] = useState('Overview');
     const [timeframe, setTimeframe] = useState('Last Month');
     const [loading, setLoading] = useState(false);
+    const [exporting, setExporting] = useState(false);
     
     const [visitData, setVisitData] = useState<any>(null);
     const [clinicalData, setClinicalData] = useState<any>(null);
@@ -174,6 +252,45 @@ const StatisticalAnalysis = () => {
         }));
     }, [referralData]);
 
+    const handleExportReport = async () => {
+        if (loading) return;
+
+        if (!summaryData && !visitData && !clinicalData && !demographicsData && !referralData) {
+            Alert.alert(
+                t('aiAssistant.statisticalAnalysis.exportReport'),
+                t('aiAssistant.statisticalAnalysis.export.noData')
+            );
+            return;
+        }
+
+        setExporting(true);
+        try {
+            const report = buildStatisticsReport({
+                t,
+                timeframe,
+                summaryData,
+                visitData,
+                clinicalData,
+                demographicsData,
+                referralData,
+            });
+
+            await Share.share({
+                message: report,
+                title: t('aiAssistant.statisticalAnalysis.exportReport'),
+            });
+        } catch (error: any) {
+            if (error?.message !== 'User did not share') {
+                Alert.alert(
+                    t('aiAssistant.statisticalAnalysis.exportReport'),
+                    t('aiAssistant.statisticalAnalysis.export.error')
+                );
+            }
+        } finally {
+            setExporting(false);
+        }
+    };
+
     // ─── Render Functions ───
 
     const renderHeader = () => (
@@ -199,8 +316,16 @@ const StatisticalAnalysis = () => {
                     value={timeframe}
                     onChange={item => setTimeframe(item.value)}
                 />
-                <TouchableOpacity style={ds.exportBtn}>
-                    <Feather name="download" size={16} color={tc.accent} />
+                <TouchableOpacity
+                    style={[ds.exportBtn, (loading || exporting) && ds.exportBtnDisabled]}
+                    onPress={handleExportReport}
+                    disabled={loading || exporting}
+                >
+                    {exporting ? (
+                        <ActivityIndicator size="small" color={tc.accent} />
+                    ) : (
+                        <Feather name="download" size={16} color={tc.accent} />
+                    )}
                     <Text style={ds.exportBtnText}>{t('aiAssistant.statisticalAnalysis.exportReport')}</Text>
                 </TouchableOpacity>
             </View>
@@ -609,6 +734,9 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
         fontWeight: '600',
         color: tc.accent,
         marginLeft: 6,
+    },
+    exportBtnDisabled: {
+        opacity: 0.6,
     },
     kpiContainer: {
         marginTop: 10,

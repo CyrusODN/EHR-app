@@ -5238,6 +5238,15 @@ export const pl = {
                 "referralStatus": "Status skierowań",
                 "pending": "oczekujące",
                 "topSpecializations": "Najczęstsze specjalizacje"
+            },
+            "export": {
+                "timeframe": "Okres",
+                "generatedAt": "Wygenerowano",
+                "summarySection": "Podsumowanie",
+                "label": "Etykieta",
+                "value": "Wartość",
+                "noData": "Brak danych do eksportu. Poczekaj na załadowanie statystyk.",
+                "error": "Nie udało się wyeksportować raportu. Spróbuj ponownie."
             }
         }
     },
