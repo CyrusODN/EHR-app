@@ -31,6 +31,52 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
     UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
+const RELATIONSHIP_OPTIONS = [
+    { value: 'spouse', label: 'Spouse' },
+    { value: 'parent', label: 'Parent' },
+    { value: 'child', label: 'Child' },
+    { value: 'sibling', label: 'Sibling' },
+    { value: 'other', label: 'Other' },
+];
+
+const DOCUMENT_TYPE_OPTIONS = [
+    { value: 'id_card', label: 'ID Card' },
+    { value: 'passport', label: 'Passport' },
+    { value: 'residence_card', label: 'Residence Card' },
+    { value: 'other', label: 'Other' },
+];
+
+const LEGACY_RELATIONSHIP_MAP: Record<string, string> = {
+    Spouse: 'spouse', Parent: 'parent', Child: 'child', Sibling: 'sibling', Other: 'other',
+};
+
+const LEGACY_DOCUMENT_TYPE_MAP: Record<string, string> = {
+    'ID Card': 'id_card', Passport: 'passport', 'Residence Card': 'residence_card', Other: 'other',
+};
+
+const normalizeRelationshipValue = (value?: string) =>
+    value ? (LEGACY_RELATIONSHIP_MAP[value] || value) : '';
+
+const normalizeDocumentTypeValue = (value?: string) =>
+    value ? (LEGACY_DOCUMENT_TYPE_MAP[value] || value) : '';
+
+const getRelationshipLabel = (value?: string) =>
+    RELATIONSHIP_OPTIONS.find((option) => option.value === normalizeRelationshipValue(value))?.label || value || '';
+
+const getAuthorizedPersonName = (person: any) =>
+    person?.name || `${person?.firstName || ''} ${person?.lastName || ''}`.trim();
+
+const normalizeAuthorizedPerson = (person: any) => ({
+    ...person,
+    id: person?.id || person?._id || Date.now().toString(),
+    firstName: person?.firstName || '',
+    lastName: person?.lastName || '',
+    name: getAuthorizedPersonName(person),
+    relationship: normalizeRelationshipValue(person?.relationship),
+    documentType: normalizeDocumentTypeValue(person?.documentType || person?.docType),
+    documentNumber: person?.documentNumber || person?.docNumber || '',
+});
+
 const AccordionItem = ({ title, icon, children, ds, tc }: { title: string, icon: string, children: React.ReactNode, ds: any, tc: any }) => {
     const [expanded, setExpanded] = useState(false);
 
@@ -179,8 +225,6 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
     const [showEmpVoivodeshipPicker, setShowEmpVoivodeshipPicker] = useState(false);
     const [showEmpCountryPicker, setShowEmpCountryPicker] = useState(false);
     
-    const authorizedRelationships = ["Spouse", "Parent", "Child", "Sibling", "Other"];
-    const authorizedDocumentTypes = ["ID Card", "Passport", "Residence Card", "Other"];
     
     const [showAuthRelationPicker, setShowAuthRelationPicker] = useState(false);
     const [showAuthDocTypePicker, setShowAuthDocTypePicker] = useState(false);
@@ -226,7 +270,12 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
             }
             const response: any = await GetPatientPersonalData(patientId);
             if (response) {
-                setPatientData(response);
+                setPatientData({
+                    ...response,
+                    authorizedPersons: (response.authorizedPersons || []).map(normalizeAuthorizedPerson),
+                });
+                setAuthorizeAnyone(!!response.noAuthorizedPersons);
+                setSignedAuthorization(!!response.currentVersionSigned);
             }
         } catch (error) {
             console.log("Fetch personal data error:", error);
@@ -359,22 +408,32 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
     };
 
     const addNewAuthorizedPerson = () => {
-        if (!newAuthPerson.firstName || !newAuthPerson.lastName || !newAuthPerson.relationship) return;
+        if (!newAuthPerson.firstName?.trim() || !newAuthPerson.lastName?.trim() || !newAuthPerson.relationship) {
+            onAlert?.('warning', t('personalData.authPersonRequiredFields'));
+            return;
+        }
+        if (!newAuthPerson.phone?.trim()) {
+            onAlert?.('warning', t('personalData.authPersonPhoneRequired'));
+            return;
+        }
+        if (!newAuthPerson.docType || !newAuthPerson.docNumber?.trim()) {
+            onAlert?.('warning', t('personalData.authPersonDocumentRequired'));
+            return;
+        }
 
-        const entry = {
+        const entry = normalizeAuthorizedPerson({
             id: editingAuthPersonId || Date.now().toString(),
-            firstName: newAuthPerson.firstName,
-            lastName: newAuthPerson.lastName,
-            name: `${newAuthPerson.firstName} ${newAuthPerson.lastName}`,
+            firstName: newAuthPerson.firstName.trim(),
+            lastName: newAuthPerson.lastName.trim(),
             relationship: newAuthPerson.relationship,
-            pesel: newAuthPerson.pesel,
-            phone: newAuthPerson.phone,
-            email: newAuthPerson.email,
-            address: newAuthPerson.address,
+            pesel: newAuthPerson.pesel?.trim() || '',
+            phone: newAuthPerson.phone.trim(),
+            email: newAuthPerson.email?.trim() || '',
+            address: newAuthPerson.address?.trim() || '',
             documentType: newAuthPerson.docType,
-            documentNumber: newAuthPerson.docNumber,
+            documentNumber: newAuthPerson.docNumber.trim(),
             validUntil: newAuthPerson.validUntil.toISOString().split('T')[0]
-        };
+        });
 
         if (editingAuthPersonId) {
             // Update existing
@@ -407,12 +466,12 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
         setNewAuthPerson({
             firstName: person.firstName || '',
             lastName: person.lastName || '',
-            relationship: person.relationship || '',
+            relationship: normalizeRelationshipValue(person.relationship),
             pesel: person.pesel || '',
             phone: person.phone || '',
             email: person.email || '',
             address: person.address || '',
-            docType: person.documentType || person.docType || '',
+            docType: normalizeDocumentTypeValue(person.documentType || person.docType),
             docNumber: person.documentNumber || person.docNumber || '',
             validUntil: person.validUntil ? new Date(person.validUntil) : new Date()
         });
@@ -422,7 +481,7 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
     const removeAuthorizedPerson = (id: string) => {
         setPatientData((prev: any) => ({
             ...prev,
-            authorizedPersons: prev.authorizedPersons.filter((p: any) => p.id !== id)
+            authorizedPersons: (prev?.authorizedPersons || []).filter((p: any) => p.id !== id)
         }));
     };
 
@@ -573,19 +632,24 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
             } else if (section === 'authorized') {
                 payload = {
                     ...payload,
-                    authorizedPersons: (patientData?.authorizedPersons || []).map((p: any) => ({
-                        firstName: p.firstName,
-                        lastName: p.lastName,
-                        relationship: p.relationship,
-                        pesel: p.pesel,
-                        address: p.address,
-                        documentNumber: p.documentNumber,
-                        documentType: p.documentType,
-                        email: p.email,
-                        id: p.id,
-                        phone: p.phone,
-                        validUntil: p.validUntil
-                    }))
+                    noAuthorizedPersons: authorizeAnyone,
+                    currentVersionSigned: signedAuthorization,
+                    authorizedPersons: (patientData?.authorizedPersons || []).map((p: any) => {
+                        const normalized = normalizeAuthorizedPerson(p);
+                        return {
+                            id: normalized.id,
+                            firstName: normalized.firstName,
+                            lastName: normalized.lastName,
+                            relationship: normalized.relationship,
+                            pesel: normalized.pesel || '',
+                            phone: normalized.phone || '',
+                            email: normalized.email || '',
+                            address: normalized.address || '',
+                            documentType: normalized.documentType,
+                            documentNumber: normalized.documentNumber,
+                            validUntil: normalized.validUntil || '',
+                        };
+                    })
                 };
             } else if (section === 'consents') {
                 payload = {
@@ -769,27 +833,27 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
                             <View style={{ flex: 1, marginRight: 8 }}>
                                 <FormInput {...commonProps} 
                                     label={t('personalData.relationship')} required placeholder={t('personalData.relationship')} isDropdown 
-                                    value={newAuthPerson.relationship}
+                                    value={getRelationshipLabel(newAuthPerson.relationship)}
                                     onPress={() => setShowAuthRelationPicker(!showAuthRelationPicker)}
                                 />
                                 {showAuthRelationPicker && (
                                     <View style={ds.inlineDropdown}>
-                                        {authorizedRelationships.map((opt, idx) => (
+                                        {RELATIONSHIP_OPTIONS.map((opt) => (
                                             <TouchableOpacity 
-                                                key={idx} 
+                                                key={opt.value} 
                                                 style={[
                                                     ds.inlineDropdownOption,
-                                                    newAuthPerson.relationship === opt && ds.inlineDropdownOptionSelected
+                                                    newAuthPerson.relationship === opt.value && ds.inlineDropdownOptionSelected
                                                 ]}
                                                 onPress={() => {
-                                                    handleNewAuthPersonChange('relationship', opt);
+                                                    handleNewAuthPersonChange('relationship', opt.value);
                                                     setShowAuthRelationPicker(false);
                                                 }}
                                             >
                                                 <Text style={[
                                                     ds.inlineDropdownOptionText,
-                                                    newAuthPerson.relationship === opt && ds.inlineDropdownOptionTextSelected
-                                                ]}>{opt}</Text>
+                                                    newAuthPerson.relationship === opt.value && ds.inlineDropdownOptionTextSelected
+                                                ]}>{opt.label}</Text>
                                             </TouchableOpacity>
                                         ))}
                                     </View>
@@ -831,27 +895,27 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
 
                         <FormInput {...commonProps} 
                             label={t('personalData.docType')} required placeholder={t('personalData.docType')} isDropdown 
-                            value={newAuthPerson.docType}
+                            value={DOCUMENT_TYPE_OPTIONS.find((opt) => opt.value === newAuthPerson.docType)?.label || ''}
                             onPress={() => setShowAuthDocTypePicker(!showAuthDocTypePicker)}
                         />
                         {showAuthDocTypePicker && (
                             <View style={ds.inlineDropdown}>
-                                {authorizedDocumentTypes.map((opt, idx) => (
+                                {DOCUMENT_TYPE_OPTIONS.map((opt) => (
                                     <TouchableOpacity 
-                                        key={idx} 
+                                        key={opt.value} 
                                         style={[
                                             ds.inlineDropdownOption,
-                                            newAuthPerson.docType === opt && ds.inlineDropdownOptionSelected
+                                            newAuthPerson.docType === opt.value && ds.inlineDropdownOptionSelected
                                         ]}
                                         onPress={() => {
-                                            handleNewAuthPersonChange('docType', opt);
+                                            handleNewAuthPersonChange('docType', opt.value);
                                             setShowAuthDocTypePicker(false);
                                         }}
                                     >
                                         <Text style={[
                                             ds.inlineDropdownOptionText,
-                                            newAuthPerson.docType === opt && ds.inlineDropdownOptionTextSelected
-                                        ]}>{opt}</Text>
+                                            newAuthPerson.docType === opt.value && ds.inlineDropdownOptionTextSelected
+                                        ]}>{opt.label}</Text>
                                     </TouchableOpacity>
                                 ))}
                             </View>
@@ -1313,20 +1377,21 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
                         <Text style={ds.orangeButtonText}>{t('personalData.noAuthorizationStatement')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity 
-                        style={ds.outlineButton}
-                        onPress={() => setShowAuthorizedModal(true)}
+                        style={[ds.outlineButton, authorizeAnyone && { opacity: 0.5 }]}
+                        onPress={() => !authorizeAnyone && setShowAuthorizedModal(true)}
+                        disabled={authorizeAnyone}
                     >
                         <Feather name="plus" size={16} color="#58a6b8" />
                         <Text style={ds.outlineButtonText}>{t('personalData.addAuthorizedPerson')}</Text>
                     </TouchableOpacity>
                 </View>
 
-                {patientData?.authorizedPersons && patientData.authorizedPersons.length > 0 ? (
+                {!authorizeAnyone && patientData?.authorizedPersons && patientData.authorizedPersons.length > 0 ? (
                     patientData.authorizedPersons.map((person: any) => (
                         <View key={person.id} style={ds.authCard}>
                             <View style={ds.authCardContent}>
-                                <Text style={ds.authName}>{person.name}</Text>
-                                <Text style={ds.authDetail}>{person.relationship.toLowerCase()}</Text>
+                                <Text style={ds.authName}>{getAuthorizedPersonName(person) || t('personalData.unnamedAuthPerson')}</Text>
+                                <Text style={ds.authDetail}>{getRelationshipLabel(person.relationship)}</Text>
                                 <Text style={ds.authDetail}>{person.phone}</Text>
                             </View>
                             <View style={ds.authActions}>
@@ -1339,11 +1404,11 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
                             </View>
                         </View>
                     ))
-                ) : (
+                ) : !authorizeAnyone ? (
                     <View style={ds.emptyResultsBox}>
                         <Text style={ds.noDataTextMinimal}>{t('personalData.noAuthPersons')}</Text>
                     </View>
-                )}
+                ) : null}
 
                 <View style={{ alignItems: 'flex-end', marginTop: 15 }}>
                     <SubmitButton {...commonProps} title={t('personalData.save')} onPress={() => handleSave('authorized')} loading={isSaving} />
