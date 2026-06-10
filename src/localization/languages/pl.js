@@ -494,7 +494,17 @@ export const pl = {
                 regenerate: 'Regeneruj',
                 selectAllRequired: 'Proszę wybrać wszystkie wymagane opcje',
                 noContent: 'Brak treści transkrypcji',
-                copiedToInterview: 'Skopiowano do wywiadu pomyślnie'
+                copiedToInterview: 'Skopiowano do wywiadu pomyślnie',
+                controlsHint: 'Nagraj, prześlij audio lub zeskanuj kod QR, aby wygenerować transkrypcję',
+                processing: 'Przetwarzanie audio...',
+                transcriptionSuccess: 'Transkrypcja zakończona pomyślnie',
+                transcriptionFailed: 'Transkrypcja nie powiodła się',
+                audioProcessingFailed: 'Nie udało się przetworzyć pliku audio',
+                recordingFailed: 'Nie udało się rozpocząć nagrywania',
+                mobileRecordingTitle: 'Nagrywanie mobilne',
+                mobileRecordingInstructions: 'Zeskanuj kod QR innym urządzeniem, aby rozpocząć nagrywanie z telefonu',
+                mobileRecordingValidity: 'Link będzie aktywny przez 15 minut',
+                shareConnectLink: 'Udostępnij link połączenia'
             },
             medInfo: {
                 title: 'Informacje o lekach',
@@ -1622,6 +1632,8 @@ export const pl = {
             search: 'Nazwisko, PESEL lub numer karty...',
         },
         enterCriteria: 'Wprowadź kryteria wyszukiwania aby zobaczyć wyniki',
+        loading: 'Ładowanie pacjentów...',
+        noResults: 'Nie znaleziono pacjentów',
         filters: {
             dob: 'Data urodzenia',
             gender: {

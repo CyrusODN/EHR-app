@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
     View,
     Text,
     StyleSheet,
     TouchableOpacity,
     StatusBar,
-    ScrollView,
     TextInput,
     Platform,
-    Modal
+    Modal,
+    FlatList,
+    ActivityIndicator,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -21,17 +22,27 @@ import PrimaryButton from '../../component/button';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { useNavigation } from '@react-navigation/native';
 import { useThemeColors } from '../../hooks/useThemeColors';
+import { GetPatients } from '../../Services/Patient.Service';
+
+const getPatientName = (patient: any) =>
+    patient?.name || `${patient?.firstName || ''} ${patient?.lastName || ''}`.trim();
+
+const parsePatientDate = (value: any): Date | null => {
+    if (!value) return null;
+    const date = value instanceof Date ? value : new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+};
 
 const SearchPatientScreen = () => {
     const { colors: tc, isDark } = useThemeColors();
     const ds = createDynamicStyles(tc, isDark);
     const { t } = useTranslation();
-    const navigation = useNavigation();
+    const navigation = useNavigation<any>();
 
-    // State for filters visibility
+    const [patients, setPatients] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
     const [showFilters, setShowFilters] = useState(false);
-
-    // State for filter inputs
     const [searchText, setSearchText] = useState('');
     const [dobStartDate, setDobStartDate] = useState<Date | null>(null);
     const [dobEndDate, setDobEndDate] = useState<Date | null>(null);
@@ -40,16 +51,12 @@ const SearchPatientScreen = () => {
     const [nextVisitStartDate, setNextVisitStartDate] = useState<Date | null>(null);
     const [nextVisitEndDate, setNextVisitEndDate] = useState<Date | null>(null);
     const [gender, setGender] = useState<string | number>('All');
-
-    // State for date pickers
     const [activePicker, setActivePicker] = useState<string | null>(null);
-
-    // State for checkboxes
     const [hasPesel, setHasPesel] = useState(false);
     const [hasDeclaration, setHasDeclaration] = useState(false);
     const [isDeceased, setIsDeceased] = useState(false);
     const [hasDebt, setHasDebt] = useState(false);
-    const [isActive, setIsActive] = useState(true);
+    const [isActive, setIsActive] = useState(false);
     const [isLongAbsent, setIsLongAbsent] = useState(false);
 
     const genderOptions = [
@@ -59,16 +66,111 @@ const SearchPatientScreen = () => {
         { label: t('patientSearch.filters.gender.other'), value: 'other' },
     ];
 
-    // Function to format date for display
+    useEffect(() => {
+        const fetchPatients = async () => {
+            setLoading(true);
+            try {
+                const response = await GetPatients({ page: 1, limit: 500, skip: 0 }) as any;
+                const patientData = Array.isArray(response)
+                    ? response
+                    : (response?.data || response?.patients || []);
+                setPatients(Array.isArray(patientData) ? patientData : []);
+            } catch (error) {
+                console.error('SearchPatient: failed to fetch patients', error);
+                setPatients([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchPatients();
+    }, []);
+
     const formatDate = (date: any) => {
         if (!date) return t('patientSearch.filters.placeholders.dob') || 'dd/mm/yyyy';
-        const day = date.getDate().toString().padStart(2, '0');
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const year = date.getFullYear();
+        const parsed = parsePatientDate(date);
+        if (!parsed) return t('patientSearch.filters.placeholders.dob') || 'dd/mm/yyyy';
+        const day = parsed.getDate().toString().padStart(2, '0');
+        const month = (parsed.getMonth() + 1).toString().padStart(2, '0');
+        const year = parsed.getFullYear();
         return `${day}/${month}/${year}`;
     };
 
-    // Handle date change
+    const formatDisplayDate = (date: any) => {
+        const parsed = parsePatientDate(date);
+        if (!parsed) return t('common.na');
+        return formatDate(parsed);
+    };
+
+    const isWithinRange = (value: any, start: Date | null, end: Date | null) => {
+        if (!start && !end) return true;
+        const date = parsePatientDate(value);
+        if (!date) return false;
+        if (start && date < start) return false;
+        if (end) {
+            const endOfDay = new Date(end);
+            endOfDay.setHours(23, 59, 59, 999);
+            if (date > endOfDay) return false;
+        }
+        return true;
+    };
+
+    const filteredPatients = useMemo(() => {
+        const query = searchText.trim().toLowerCase();
+
+        return patients.filter((patient) => {
+            if (query) {
+                const name = getPatientName(patient).toLowerCase();
+                const pesel = (patient.pesel || '').toLowerCase();
+                const cardNumber = String(patient.cardNumber || patient.slug || patient.id || patient._id || '').toLowerCase();
+                if (!name.includes(query) && !pesel.includes(query) && !cardNumber.includes(query)) {
+                    return false;
+                }
+            }
+
+            if (gender !== 'All' && (patient.gender || '').toLowerCase() !== String(gender).toLowerCase()) {
+                return false;
+            }
+
+            if (!isWithinRange(patient.dateOfBirth || patient.dob, dobStartDate, dobEndDate)) {
+                return false;
+            }
+
+            if (!isWithinRange(patient.lastVisit, lastVisitStartDate, lastVisitEndDate)) {
+                return false;
+            }
+
+            if (!isWithinRange(patient.nextVisit, nextVisitStartDate, nextVisitEndDate)) {
+                return false;
+            }
+
+            if (hasPesel && !patient.pesel) return false;
+            if (hasDeclaration && !patient.hasDeclaration) return false;
+            if (isDeceased && (patient.status || '').toLowerCase() !== 'deceased') return false;
+            if (hasDebt && !patient.hasDebt) return false;
+            if (isActive && (patient.status || '').toLowerCase() !== 'active') return false;
+            if (isLongAbsent && !patient.longAbsent) return false;
+
+            return true;
+        });
+    }, [
+        patients,
+        searchText,
+        gender,
+        dobStartDate,
+        dobEndDate,
+        lastVisitStartDate,
+        lastVisitEndDate,
+        nextVisitStartDate,
+        nextVisitEndDate,
+        hasPesel,
+        hasDeclaration,
+        isDeceased,
+        hasDebt,
+        isActive,
+        isLongAbsent,
+    ]);
+
     const onDateChange = (event: any, selectedDate?: Date) => {
         if (selectedDate && activePicker) {
             switch (activePicker) {
@@ -85,12 +187,10 @@ const SearchPatientScreen = () => {
         }
     };
 
-    // Toggle filters visibility
     const toggleFilters = () => {
         setShowFilters(!showFilters);
     };
 
-    // Clear all filters
     const clearFilters = () => {
         setDobStartDate(null);
         setDobEndDate(null);
@@ -103,11 +203,10 @@ const SearchPatientScreen = () => {
         setHasDeclaration(false);
         setIsDeceased(false);
         setHasDebt(false);
-        setIsActive(true);
+        setIsActive(false);
         setIsLongAbsent(false);
     };
 
-    // Render checkbox
     const renderCheckbox = (isChecked: boolean, onToggle: any, label: string) => (
         <TouchableOpacity
             style={ds.checkboxContainer}
@@ -120,11 +219,181 @@ const SearchPatientScreen = () => {
         </TouchableOpacity>
     );
 
+    const renderPatientItem = ({ item }: { item: any }) => (
+        <TouchableOpacity
+            style={ds.patientItem}
+            onPress={() => navigation.navigate('PatientProfile', { patientData: item })}
+        >
+            <View style={ds.patientItemContent}>
+                <Text style={ds.patientName} numberOfLines={1}>{getPatientName(item)}</Text>
+                <Text style={ds.patientMeta}>
+                    {t('patientList.pesel')}: {item.pesel || t('common.na')}
+                </Text>
+                <Text style={ds.patientMeta}>
+                    {t('patientList.dob')}: {formatDisplayDate(item.dateOfBirth || item.dob)}
+                </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={tc.textMuted} />
+        </TouchableOpacity>
+    );
+
+    const renderSearchHeader = () => (
+        <View style={ds.searchContainer}>
+            <View style={ds.searchInputContainer}>
+                <Ionicons name="search" size={20} color={tc.textMuted} style={ds.searchIcon} />
+                <TextInput
+                    style={ds.searchInput}
+                    placeholder={t('patientSearch.placeholders.search')}
+                    placeholderTextColor={tc.textMuted}
+                    value={searchText}
+                    onChangeText={setSearchText}
+                />
+            </View>
+
+            <TouchableOpacity
+                style={ds.filtersButton}
+                onPress={toggleFilters}
+            >
+                <Ionicons name="options-outline" size={20} color={tc.accent} />
+                <Text style={ds.filtersButtonText}>{t('patientSearch.filtersLabel')}</Text>
+                <Ionicons
+                    name={showFilters ? "close" : "chevron-down"}
+                    size={16}
+                    color={tc.accent}
+                />
+            </TouchableOpacity>
+
+            {showFilters && (
+                <View style={ds.filtersContainer}>
+                    <Text style={ds.filterSectionTitle}>{t('patientSearch.filters.dob')}</Text>
+                    <View style={ds.dateRangeContainer}>
+                        <TouchableOpacity
+                            style={ds.dateInput}
+                            onPress={() => setActivePicker('dobStart')}
+                        >
+                            <Text style={ds.dateText}>{formatDate(dobStartDate)}</Text>
+                            <MaterialCommunityIcons name="calendar-blank" size={18} color={tc.accent} />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={ds.dateInput}
+                            onPress={() => setActivePicker('dobEnd')}
+                        >
+                            <Text style={ds.dateText}>{formatDate(dobEndDate)}</Text>
+                            <MaterialCommunityIcons name="calendar-blank" size={18} color={tc.accent} />
+                        </TouchableOpacity>
+                    </View>
+
+                    <Text style={ds.filterSectionTitle}>{t('patientSearch.filters.gender.label')}</Text>
+                    <CustomDropdown
+                        placeholder={t('patientSearch.filters.placeholders.gender')}
+                        options={genderOptions}
+                        value={gender}
+                        onChange={setGender}
+                        icon={undefined}
+                    />
+
+                    <Text style={ds.filterSectionTitle}>{t('patientSearch.filters.lastVisit')}</Text>
+                    <View style={ds.dateRangeContainer}>
+                        <TouchableOpacity
+                            style={ds.dateInput}
+                            onPress={() => setActivePicker('lastVisitStart')}
+                        >
+                            <Text style={ds.dateText}>{formatDate(lastVisitStartDate)}</Text>
+                            <MaterialCommunityIcons name="calendar-blank" size={18} color={tc.accent} />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={ds.dateInput}
+                            onPress={() => setActivePicker('lastVisitEnd')}
+                        >
+                            <Text style={ds.dateText}>{formatDate(lastVisitEndDate)}</Text>
+                            <MaterialCommunityIcons name="calendar-blank" size={18} color={tc.accent} />
+                        </TouchableOpacity>
+                    </View>
+
+                    <Text style={ds.filterSectionTitle}>{t('patientSearch.filters.nextVisit')}</Text>
+                    <View style={ds.dateRangeContainer}>
+                        <TouchableOpacity
+                            style={ds.dateInput}
+                            onPress={() => setActivePicker('nextVisitStart')}
+                        >
+                            <Text style={ds.dateText}>{formatDate(nextVisitStartDate)}</Text>
+                            <MaterialCommunityIcons name="calendar-blank" size={18} color={tc.accent} />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={ds.dateInput}
+                            onPress={() => setActivePicker('nextVisitEnd')}
+                        >
+                            <Text style={ds.dateText}>{formatDate(nextVisitEndDate)}</Text>
+                            <MaterialCommunityIcons name="calendar-blank" size={18} color={tc.accent} />
+                        </TouchableOpacity>
+                    </View>
+
+                    <View style={ds.checkboxesContainer}>
+                        <View style={ds.checkboxRow}>
+                            {renderCheckbox(hasPesel, setHasPesel, t('patientSearch.filters.hasPesel'))}
+                            {renderCheckbox(hasDeclaration, setHasDeclaration, t('patientSearch.filters.hasDeclaration'))}
+                        </View>
+
+                        <View style={ds.checkboxRow}>
+                            {renderCheckbox(isDeceased, setIsDeceased, t('patientSearch.filters.isDeceased'))}
+                            {renderCheckbox(hasDebt, setHasDebt, t('patientSearch.filters.hasDebt'))}
+                        </View>
+
+                        <View style={ds.checkboxRow}>
+                            {renderCheckbox(isActive, setIsActive, t('patientSearch.filters.isActive'))}
+                            {renderCheckbox(isLongAbsent, setIsLongAbsent, t('patientSearch.filters.isLongAbsent'))}
+                        </View>
+                    </View>
+
+                    <View style={ds.filterButtonsContainer}>
+                        <PrimaryButton
+                            label={t('patientSearch.buttons.clearFilters')}
+                            onPress={clearFilters}
+                            filled={false}
+                            icon={<Ionicons name="close" size={16} color={tc.accent} />}
+                            style={{ width: '48%' }}
+                            loading={false}
+                            disabled={false}
+                        />
+                        <PrimaryButton
+                            onPress={() => setShowFilters(false)}
+                            label={t('patientSearch.buttons.applyFilters')}
+                            filled={true}
+                            icon={<Ionicons name="funnel-outline" size={16} color="white" />}
+                            style={{ width: '48%' }}
+                            loading={false}
+                            disabled={false}
+                        />
+                    </View>
+                </View>
+            )}
+        </View>
+    );
+
+    const renderEmptyState = () => {
+        if (loading) {
+            return (
+                <View style={ds.resultsMessageContainer}>
+                    <ActivityIndicator size="large" color={tc.accent} />
+                    <Text style={ds.resultsMessage}>{t('patientSearch.loading')}</Text>
+                </View>
+            );
+        }
+
+        return (
+            <View style={ds.resultsMessageContainer}>
+                <Text style={ds.resultsMessage}>{t('patientSearch.noResults')}</Text>
+            </View>
+        );
+    };
+
     return (
         <View style={ds.safeArea}>
             <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={tc.statusBarBg} />
             <View style={ds.container}>
-                {/* Header */}
                 <View style={{
                     width: "100%", backgroundColor: tc.headerBg,
                     flexDirection: "row", justifyContent: "space-around", paddingTop: hp(7)
@@ -134,7 +403,6 @@ const SearchPatientScreen = () => {
                         <Text style={ds.headerSubtitle}>{t('patientSearch.subtitle')}</Text>
                     </View>
 
-                    {/* Back Button */}
                     <TouchableOpacity
                         style={ds.backButton}
                         onPress={() => navigation.goBack()}
@@ -143,174 +411,20 @@ const SearchPatientScreen = () => {
                     </TouchableOpacity>
                 </View>
 
-                <ScrollView style={ds.scrollView} contentContainerStyle={ds.scrollViewContent}>
-                    <View style={ds.searchContainer}>
-                        {/* Search Input */}
-                        <View style={ds.searchInputContainer}>
-                            <Ionicons name="search" size={20} color={tc.textMuted} style={ds.searchIcon} />
-                            <TextInput
-                                style={ds.searchInput}
-                                placeholder={t('patientSearch.placeholders.search')}
-                                placeholderTextColor={tc.textMuted}
-                                value={searchText}
-                                onChangeText={setSearchText}
-                            />
-                        </View>
+                <FlatList
+                    data={loading ? [] : filteredPatients}
+                    keyExtractor={(item, index) => item.id || item._id || index.toString()}
+                    renderItem={renderPatientItem}
+                    ListHeaderComponent={renderSearchHeader}
+                    ListEmptyComponent={renderEmptyState}
+                    contentContainerStyle={ds.listContent}
+                    showsVerticalScrollIndicator={false}
+                />
 
-                        {/* Filters Button */}
-                        <TouchableOpacity
-                            style={ds.filtersButton}
-                            onPress={toggleFilters}
-                        >
-                            <Ionicons name="options-outline" size={20} color={tc.accent} />
-                            <Text style={ds.filtersButtonText}>{t('patientSearch.filtersLabel')}</Text>
-                            <Ionicons
-                                name={showFilters ? "close" : "chevron-down"}
-                                size={16}
-                                color={tc.accent}
-                            />
-                        </TouchableOpacity>
-
-                        {/* Filters Section */}
-                        {showFilters && (
-                            <View style={ds.filtersContainer}>
-                                {/* Date of Birth Filter */}
-                                <Text style={ds.filterSectionTitle}>{t('patientSearch.filters.dob')}</Text>
-                                <View style={ds.dateRangeContainer}>
-                                    <TouchableOpacity
-                                        style={ds.dateInput}
-                                        onPress={() => setActivePicker('dobStart')}
-                                    >
-                                        <Text style={ds.dateText}>
-                                            {formatDate(dobStartDate)}
-                                        </Text>
-                                        <MaterialCommunityIcons name="calendar-blank" size={18} color={tc.accent} />
-                                    </TouchableOpacity>
-
-                                    <TouchableOpacity
-                                        style={ds.dateInput}
-                                        onPress={() => setActivePicker('dobEnd')}
-                                    >
-                                        <Text style={ds.dateText}>
-                                            {formatDate(dobEndDate)}
-                                        </Text>
-                                        <MaterialCommunityIcons name="calendar-blank" size={18} color={tc.accent} />
-                                    </TouchableOpacity>
-                                </View>
-
-                                {/* Gender Filter */}
-                                <Text style={ds.filterSectionTitle}>{t('patientSearch.filters.gender.label')}</Text>
-                                <CustomDropdown
-                                    placeholder={t('patientSearch.filters.placeholders.gender')}
-                                    options={genderOptions}
-                                    value={gender}
-                                    onChange={setGender}
-                                    icon={undefined}
-                                />
-
-                                {/* Last Visit Filter */}
-                                <Text style={ds.filterSectionTitle}>{t('patientSearch.filters.lastVisit')}</Text>
-                                <View style={ds.dateRangeContainer}>
-                                    <TouchableOpacity
-                                        style={ds.dateInput}
-                                        onPress={() => setActivePicker('lastVisitStart')}
-                                    >
-                                        <Text style={ds.dateText}>
-                                            {formatDate(lastVisitStartDate)}
-                                        </Text>
-                                        <MaterialCommunityIcons name="calendar-blank" size={18} color={tc.accent} />
-                                    </TouchableOpacity>
-
-                                    <TouchableOpacity
-                                        style={ds.dateInput}
-                                        onPress={() => setActivePicker('lastVisitEnd')}
-                                    >
-                                        <Text style={ds.dateText}>
-                                            {formatDate(lastVisitEndDate)}
-                                        </Text>
-                                        <MaterialCommunityIcons name="calendar-blank" size={18} color={tc.accent} />
-                                    </TouchableOpacity>
-                                </View>
-
-                                {/* Next Visit Filter */}
-                                <Text style={ds.filterSectionTitle}>{t('patientSearch.filters.nextVisit')}</Text>
-                                <View style={ds.dateRangeContainer}>
-                                    <TouchableOpacity
-                                        style={ds.dateInput}
-                                        onPress={() => setActivePicker('nextVisitStart')}
-                                    >
-                                        <Text style={ds.dateText}>
-                                            {formatDate(nextVisitStartDate)}
-                                        </Text>
-                                        <MaterialCommunityIcons name="calendar-blank" size={18} color={tc.accent} />
-                                    </TouchableOpacity>
-
-                                    <TouchableOpacity
-                                        style={ds.dateInput}
-                                        onPress={() => setActivePicker('nextVisitEnd')}
-                                    >
-                                        <Text style={ds.dateText}>
-                                            {formatDate(nextVisitEndDate)}
-                                        </Text>
-                                        <MaterialCommunityIcons name="calendar-blank" size={18} color={tc.accent} />
-                                    </TouchableOpacity>
-                                </View>
-
-                                {/* Checkboxes */}
-                                <View style={ds.checkboxesContainer}>
-                                    <View style={ds.checkboxRow}>
-                                        {renderCheckbox(hasPesel, setHasPesel, t('patientSearch.filters.hasPesel'))}
-                                        {renderCheckbox(hasDeclaration, setHasDeclaration, t('patientSearch.filters.hasDeclaration'))}
-                                    </View>
-
-                                    <View style={ds.checkboxRow}>
-                                        {renderCheckbox(isDeceased, setIsDeceased, t('patientSearch.filters.isDeceased'))}
-                                        {renderCheckbox(hasDebt, setHasDebt, t('patientSearch.filters.hasDebt'))}
-                                    </View>
-
-                                    <View style={ds.checkboxRow}>
-                                        {renderCheckbox(isActive, setIsActive, t('patientSearch.filters.isActive'))}
-                                        {renderCheckbox(isLongAbsent, setIsLongAbsent, t('patientSearch.filters.isLongAbsent'))}
-                                    </View>
-                                </View>
-
-                                {/* Filter Buttons */}
-                                <View style={ds.filterButtonsContainer}>
-                                    <PrimaryButton
-                                        label={t('patientSearch.buttons.clearFilters')}
-                                        onPress={clearFilters}
-                                        filled={false}
-                                        icon={<Ionicons name="close" size={16} color={tc.accent} />}
-                                        style={{ width: '48%', }}
-                                        loading={false}
-                                        disabled={false}
-                                    />
-                                    <PrimaryButton
-                                        onPress={() => { setShowFilters(false) }}
-                                        label={t('patientSearch.buttons.applyFilters')}
-                                        filled={true}
-                                        icon={<Ionicons name="funnel-outline" size={16} color="white" />}
-                                        style={{ width: '48%', }}
-                                        loading={false}
-                                        disabled={false}
-                                    />
-                                </View>
-                            </View>
-                        )}
-
-                        {/* Results Message */}
-                        <View style={ds.resultsMessageContainer}>
-                            <Text style={ds.resultsMessage}>{t('patientSearch.enterCriteria')}</Text>
-                        </View>
-                    </View>
-                </ScrollView>
-
-                {/* Help Button */}
                 <TouchableOpacity style={ds.helpButtonFloat}>
                     <Text style={ds.helpText}>?</Text>
                 </TouchableOpacity>
 
-                {/* Date Picker Modal */}
                 {activePicker && (
                     Platform.OS === 'ios' ? (
                         <Modal
@@ -319,9 +433,9 @@ const SearchPatientScreen = () => {
                             visible={!!activePicker}
                             onRequestClose={() => setActivePicker(null)}
                         >
-                            <TouchableOpacity 
-                                style={ds.modalOverlay} 
-                                activeOpacity={1} 
+                            <TouchableOpacity
+                                style={ds.modalOverlay}
+                                activeOpacity={1}
                                 onPress={() => setActivePicker(null)}
                             >
                                 <View style={ds.calendarModalContent}>
@@ -409,11 +523,8 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
         justifyContent: 'center',
         backgroundColor: tc.cardBackgroundAlt,
     },
-    scrollView: {
-        flex: 1,
-    },
-    scrollViewContent: {
-        paddingBottom: 30,
+    listContent: {
+        paddingBottom: 90,
     },
     searchContainer: {
         backgroundColor: tc.cardBackground,
@@ -532,6 +643,37 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
         justifyContent: 'space-between',
         marginTop: 10,
     },
+    patientItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: tc.cardBackground,
+        borderRadius: 10,
+        marginHorizontal: 15,
+        marginBottom: 10,
+        padding: 15,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: tc.borderLight,
+        shadowColor: tc.shadow,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: tc.shadowOpacity ?? 0.08,
+        shadowRadius: 2,
+        elevation: 2,
+    },
+    patientItemContent: {
+        flex: 1,
+        marginRight: 10,
+    },
+    patientName: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: tc.textPrimary,
+        marginBottom: 4,
+    },
+    patientMeta: {
+        fontSize: 13,
+        color: tc.textSecondary,
+        marginTop: 2,
+    },
     resultsMessageContainer: {
         alignItems: 'center',
         justifyContent: 'center',
@@ -540,6 +682,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     resultsMessage: {
         color: tc.textSecondary,
         fontSize: 16,
+        marginTop: 12,
     },
     helpButtonFloat: {
         position: 'absolute',

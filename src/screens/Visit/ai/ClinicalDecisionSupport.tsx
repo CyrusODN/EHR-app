@@ -255,7 +255,12 @@ const ClinicalDecisionSupport = ({ visitData, visitId, onSuggestionAccept }: Cli
                             </TouchableOpacity>
                         </View>
 
-                        <ScrollView style={ds.modalBody}>
+                        <ScrollView
+                            style={ds.modalBody}
+                            contentContainerStyle={ds.modalBodyContent}
+                            showsVerticalScrollIndicator={false}
+                            bounces={false}
+                        >
                             <Text style={ds.sectionLabel}>{t('visit.ai.cds.currentVisit') || 'Current Visit'}</Text>
                             <TouchableOpacity
                                 style={[ds.checkItem, selectedData.includes('current-interview') && ds.checkItemActive]}
@@ -303,8 +308,10 @@ const ClinicalDecisionSupport = ({ visitData, visitId, onSuggestionAccept }: Cli
                                 <Text style={ds.cancelButtonText}>{t('common.cancel') || 'Cancel'}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
+                                style={ds.analyzeModalBtnWrapper}
                                 disabled={selectedData.length === 0 || isAnalyzing}
                                 onPress={analyzeClinicalData}
+                                activeOpacity={0.8}
                             >
                                 <LinearGradient
                                     colors={selectedData.length === 0 ? ['#9CA3AF', '#9CA3AF'] : ['#58A7B3', '#8ED1CC']}
@@ -375,10 +382,11 @@ const createStyles = (tc: any, isDark: boolean) => StyleSheet.create({
 
     // Modal
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' },
-    modalContent: { width: wp(85), maxHeight: hp(70), backgroundColor: tc.cardBackground, borderRadius: 14, overflow: 'hidden' },
+    modalContent: { width: wp(85), height: hp(70), backgroundColor: tc.cardBackground, borderRadius: 14, overflow: 'hidden' },
     modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: tc.borderColor },
-    modalTitle: { fontSize: 16, fontWeight: '700', color: tc.textPrimary },
-    modalBody: { padding: 16 },
+    modalTitle: { fontSize: 16, fontWeight: '700', color: tc.textPrimary, flex: 1, marginRight: 12 },
+    modalBody: { flex: 1, paddingHorizontal: 16 },
+    modalBodyContent: { paddingVertical: 16, paddingBottom: 8 },
     sectionLabel: { fontSize: 12, fontWeight: '600', color: tc.textMuted, marginBottom: 8, textTransform: 'uppercase' },
     checkItem: { flexDirection: 'row', alignItems: 'flex-start', padding: 12, borderRadius: 8, borderWidth: 1.5, borderColor: tc.borderColor, marginBottom: 8, gap: 10 },
     checkItemActive: { borderColor: tc.accent, backgroundColor: isDark ? 'rgba(88,167,179,0.1)' : '#F0F9FA' },
@@ -388,10 +396,11 @@ const createStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     checkItemTitle: { fontSize: 14, fontWeight: '600', color: tc.textPrimary },
     checkItemDesc: { fontSize: 12, color: tc.textMuted, marginTop: 2 },
     emptyText: { fontSize: 13, color: tc.textMuted, textAlign: 'center', paddingVertical: 16 },
-    modalFooter: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10, padding: 16, borderTopWidth: 1, borderTopColor: tc.borderColor },
-    cancelButton: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: tc.borderColor },
-    cancelButtonText: { fontSize: 14, color: tc.textSecondary },
-    analyzeModalBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8 },
+    modalFooter: { flexShrink: 0, flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: 10, padding: 16, borderTopWidth: 1, borderTopColor: tc.borderColor, backgroundColor: tc.cardBackground },
+    cancelButton: { minHeight: 44, paddingHorizontal: 16, paddingVertical: 12, borderRadius: 8, borderWidth: 1, borderColor: tc.borderColor, justifyContent: 'center', alignItems: 'center' },
+    cancelButtonText: { fontSize: 14, color: tc.textSecondary, fontWeight: '500' },
+    analyzeModalBtnWrapper: { flexShrink: 0, borderRadius: 8, overflow: 'hidden' },
+    analyzeModalBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 16, paddingVertical: 12, minHeight: 44, borderRadius: 8 },
     analyzeModalBtnText: { fontSize: 14, fontWeight: '600', color: '#fff' },
 });
 

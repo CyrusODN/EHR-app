@@ -494,7 +494,17 @@ export const en = {
                 regenerate: 'Regenerate',
                 selectAllRequired: 'Please select all required options',
                 noContent: 'No transcription content available',
-                copiedToInterview: 'Copied to interview successfully'
+                copiedToInterview: 'Copied to interview successfully',
+                controlsHint: 'Record, upload audio, or scan QR to generate a transcript',
+                processing: 'Processing audio...',
+                transcriptionSuccess: 'Transcription completed successfully',
+                transcriptionFailed: 'Transcription failed',
+                audioProcessingFailed: 'Failed to process audio file',
+                recordingFailed: 'Failed to start recording',
+                mobileRecordingTitle: 'Mobile Recording',
+                mobileRecordingInstructions: 'Scan the QR code with another device to start recording from your mobile device',
+                mobileRecordingValidity: 'Link will be active for 15 minutes',
+                shareConnectLink: 'Share connect link'
             },
             medInfo: {
                 title: 'Medicine Information',
@@ -1580,6 +1590,8 @@ export const en = {
             search: 'Name, PESEL or card number...',
         },
         enterCriteria: 'Enter search criteria to see results',
+        loading: 'Loading patients...',
+        noResults: 'No patients found',
         filters: {
             dob: 'Date of Birth',
             gender: {
