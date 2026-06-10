@@ -20,6 +20,12 @@ import Gap from '../../../component/gap';
 import { useTranslation } from 'react-i18next';
 import { useThemeColors } from '../../../hooks/useThemeColors';
 import { getConsultSessions, createConsultSession, getConsultSessionDetails, sendConsultMessage, deleteConsultSession } from '../../../Services/ConsultTool.Service';
+import {
+    extractToolMessage,
+    extractToolSessionId,
+    extractToolSessions,
+    resolveChatbotServiceToken,
+} from '../../../utils/aiTools';
 interface Message {
     id: string;
     text: string;
@@ -32,42 +38,67 @@ interface ConsultChatProps {
     onShowAlert?: (message: string, type: 'success' | 'warning' | 'error') => void;
 }
 
-const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
+const ConsultChat = ({ serviceToken: propServiceToken, onShowAlert }: ConsultChatProps) => {
     const { t, i18n } = useTranslation();
     const { colors: tc, isDark } = useThemeColors();
     const ds = createDynamicStyles(tc, isDark);
+    const [serviceToken, setServiceToken] = useState<string | null>(propServiceToken || null);
     const [selectedSpecialty, setSelectedSpecialty] = useState('Child Psychiatry');
     const [chatStarted, setChatStarted] = useState(false);
     const [messageText, setMessageText] = useState('');
     const [messages, setMessages] = useState<Message[]>([]);
     const [isAiThinking, setIsAiThinking] = useState(false);
+    const [isStartingSession, setIsStartingSession] = useState(false);
     const scrollViewRef = useRef<ScrollView>(null);
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-    const drawerAnim = useRef(new Animated.Value(-wp(70))).current;
+    const drawerAnim = useRef(new Animated.Value(-wp(70)).current;
     const backdropAnim = useRef(new Animated.Value(0)).current;
 
     const [sessions, setSessions] = useState<any[]>([]);
     const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
     useEffect(() => {
-        if (serviceToken) {
-            const fetchSessions = async () => {
-                console.log("[ConsultChat] Fetching sessions with token:", serviceToken.substring(0, 15) + "...");
-                try {
-                    const response: any = await getConsultSessions(serviceToken);
-                    if (response?.success) {
-                        setSessions(response.data);
-                        console.log("[ConsultChat] Sessions fetched successfully. Count:", response.data?.length);
-                    } else {
-                        console.warn("[ConsultChat] Failed to fetch sessions successfully:", response?.message);
-                    }
-                } catch (error) {
-                    console.error("[ConsultChat] Error in fetchSessions:", error);
+        if (propServiceToken) {
+            setServiceToken(propServiceToken);
+        }
+    }, [propServiceToken]);
+
+    useEffect(() => {
+        const initializeToken = async () => {
+            if (serviceToken) return;
+
+            try {
+                const token = await resolveChatbotServiceToken(null);
+                if (token) {
+                    setServiceToken(token);
                 }
-            };
-            fetchSessions();
-        } else {
-            console.log("[ConsultChat] No service token available yet - skipping session fetch");
+            } catch (error) {
+                console.error('[ConsultChat] Error fetching service token:', error);
+            }
+        };
+
+        initializeToken();
+    }, [serviceToken]);
+
+    const fetchSessions = async (token: string) => {
+        console.log('[ConsultChat] Fetching sessions with token:', token.substring(0, 15) + '...');
+        try {
+            const response: any = await getConsultSessions(token);
+            const sessionList = extractToolSessions(response);
+            if (sessionList.length > 0 || response?.success) {
+                setSessions(sessionList);
+                console.log('[ConsultChat] Sessions fetched successfully. Count:', sessionList.length);
+            } else {
+                console.warn('[ConsultChat] Failed to fetch sessions successfully:', response?.message);
+            }
+        } catch (error) {
+            console.error('[ConsultChat] Error in fetchSessions:', error);
+        }
+    };
+
+    useEffect(() => {
+        if (serviceToken) {
+            fetchSessions(serviceToken);
         }
     }, [serviceToken]);
 
@@ -126,12 +157,10 @@ const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
     };
 
     const handleStartConsultation = async () => {
-        if (!selectedSpecialty) {
-            console.warn("[ConsultChat] Cannot start consultation: No specialty selected");
+        if (!selectedSpecialty || isStartingSession) {
             return;
         }
 
-        // Map specialty labels to API keys
         const specialtyMap: { [key: string]: string } = {
             'Child Psychiatry': 'childPsychiatry',
             'Adult Psychiatry': 'adultPsychiatry',
@@ -139,32 +168,52 @@ const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
         };
         const specialtyKey = specialtyMap[selectedSpecialty] || 'childPsychiatry';
 
-        console.log("[ConsultChat] Starting new consultation process...");
-        
-        if (serviceToken) {
-            try {
-                // Call API - logs will be handled within the service
-                const response: any = await createConsultSession(serviceToken, specialtyKey);
-                if (response?.success && response.data?.sessionId) {
-                    setCurrentSessionId(response.data.sessionId);
-                }
-            } catch (error) {
-                console.error("[ConsultChat] Error creating backend session:", error);
-            }
-        } else {
-            console.warn("[ConsultChat] No service token available - starting session in local-only mode");
-        }
+        setIsStartingSession(true);
 
-        setChatStarted(true);
-        const time = getCurrentTime();
-        setMessages([
-            {
-                id: '1',
-                text: t('aiAssistant.consultChat.welcomeMessage', { specialty: selectedSpecialty }),
-                sender: 'ai',
-                time: time,
-            },
-        ]);
+        try {
+            const token = await resolveChatbotServiceToken(serviceToken);
+            if (!token) {
+                if (onShowAlert) {
+                    onShowAlert(t('aiAssistant.consultChat.failedStartSession'), 'error');
+                }
+                return;
+            }
+
+            if (token !== serviceToken) {
+                setServiceToken(token);
+            }
+
+            const response: any = await createConsultSession(token, specialtyKey);
+            const sessionId = extractToolSessionId(response);
+
+            if (!sessionId) {
+                console.error('[ConsultChat] Failed to create backend session:', response?.message);
+                if (onShowAlert) {
+                    onShowAlert(response?.message || t('aiAssistant.consultChat.failedStartSession'), 'error');
+                }
+                return;
+            }
+
+            setCurrentSessionId(sessionId);
+            setChatStarted(true);
+            setMessages([
+                {
+                    id: '1',
+                    text: t('aiAssistant.consultChat.welcomeMessage', { specialty: selectedSpecialty }),
+                    sender: 'ai',
+                    time: getCurrentTime(),
+                },
+            ]);
+
+            fetchSessions(token);
+        } catch (error) {
+            console.error('[ConsultChat] Error creating backend session:', error);
+            if (onShowAlert) {
+                onShowAlert(t('aiAssistant.consultChat.failedStartSession'), 'error');
+            }
+        } finally {
+            setIsStartingSession(false);
+        }
     };
 
     const handleSendMessage = async () => {
@@ -183,44 +232,54 @@ const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
         setMessageText('');
         setIsAiThinking(true);
 
-        if (serviceToken && currentSessionId) {
-            try {
-                const response: any = await sendConsultMessage(serviceToken, {
-                    message: text,
-                    sessionId: currentSessionId,
-                });
-
-                if (response?.success && response.data) {
-                    const aiTime = getCurrentTime();
-                    const aiMessage: Message = {
-                        id: Date.now().toString(),
-                        text: response.data.message,
-                        sender: 'ai',
-                        time: aiTime,
-                    };
-                    setMessages(prev => [...prev, aiMessage]);
-                } else {
-                    console.warn("[ConsultChat] Failed to get AI response:", response?.message);
-                }
-            } catch (error) {
-                console.error("[ConsultChat] Error sending message:", error);
-            } finally {
-                setIsAiThinking(false);
+        if (!currentSessionId) {
+            setIsAiThinking(false);
+            if (onShowAlert) {
+                onShowAlert(t('aiAssistant.consultChat.failedStartSession'), 'error');
             }
-        } else {
-            console.warn("[ConsultChat] No token or sessionId - cannot send message to API");
-            // Fallback simulation for local-only mode
-            setTimeout(() => {
-                const aiTime = getCurrentTime();
+            return;
+        }
+
+        try {
+            const token = await resolveChatbotServiceToken(serviceToken);
+            if (!token) {
+                if (onShowAlert) {
+                    onShowAlert(t('aiAssistant.consultChat.failedStartSession'), 'error');
+                }
+                return;
+            }
+
+            if (token !== serviceToken) {
+                setServiceToken(token);
+            }
+
+            const response: any = await sendConsultMessage(token, {
+                message: text,
+                sessionId: currentSessionId,
+            });
+
+            const aiText = extractToolMessage(response);
+            if (aiText) {
                 const aiMessage: Message = {
-                    id: (Date.now() + 1).toString(),
-                    text: t('aiAssistant.consultChat.simulationMode'),
+                    id: Date.now().toString(),
+                    text: aiText,
                     sender: 'ai',
-                    time: aiTime,
+                    time: getCurrentTime(),
                 };
-                setIsAiThinking(false);
                 setMessages(prev => [...prev, aiMessage]);
-            }, 1000);
+            } else {
+                console.warn('[ConsultChat] Failed to get AI response:', response?.message);
+                if (onShowAlert) {
+                    onShowAlert(response?.message || t('aiAssistant.consultChat.failedAiResponse'), 'error');
+                }
+            }
+        } catch (error) {
+            console.error('[ConsultChat] Error sending message:', error);
+            if (onShowAlert) {
+                onShowAlert(t('aiAssistant.consultChat.failedAiResponse'), 'error');
+            }
+        } finally {
+            setIsAiThinking(false);
         }
     };
 
@@ -466,7 +525,8 @@ const ConsultChat = ({ serviceToken, onShowAlert }: ConsultChatProps) => {
                                 filled={true}
                                 onPress={handleStartConsultation}
                                 style={ds.startBtn}
-                                disabled={!selectedSpecialty}
+                                disabled={!selectedSpecialty || isStartingSession}
+                                loading={isStartingSession}
                             />
                         </View>
                     </ScrollView>

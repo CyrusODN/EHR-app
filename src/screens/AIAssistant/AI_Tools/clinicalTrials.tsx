@@ -7,6 +7,7 @@ import PrimaryButton from '../../../component/button';
 import CustomTextInput from '../../../component/customTextInput';
 import Gap from '../../../component/gap';
 import { searchClinicalTrials } from '../../../Services/AiAssitants.Service';
+import { resolveChatbotServiceToken } from '../../../utils/aiTools';
 import { useTranslation } from 'react-i18next';
 import { useThemeColors } from '../../../hooks/useThemeColors';
 
@@ -34,8 +35,14 @@ const ClinicalTrials = ({ serviceToken, onShowAlert }: ClinicalTrialsProps) => {
         setLoading(true);
         setSearched(true);
         try {
-            const results = await searchClinicalTrials(serviceToken as string, diagnosis, location);
-            setTrials(results || []);
+            const token = await resolveChatbotServiceToken(serviceToken);
+            if (!token) {
+                if (onShowAlert) onShowAlert(t('aiAssistant.clinicalTrials.fetchFailed'), 'error');
+                return;
+            }
+
+            const results = await searchClinicalTrials(token, diagnosis, location);
+            setTrials(results?.data || results || []);
         } catch (error) {
             console.error("[ClinicalTrials] Search Error:", error);
             if (onShowAlert) onShowAlert(t('aiAssistant.clinicalTrials.fetchFailed'), "error");

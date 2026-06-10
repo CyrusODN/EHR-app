@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { throwServerError } from "../utils/custom_errors";
+import { getChatbotUserId } from '../utils/aiTools';
 
 // Base URL for tools service
 const TOOLS_API_URL = 'https://tools.remedius.ai/api';
@@ -26,7 +26,7 @@ export async function getPharmacopediaSessions(token) {
     try {
         const response = await toolsAxios.get('/pharmacopedia/sessions', {
             params: {
-                userId: 1,
+                userId: getChatbotUserId(),
                 projectId: 'remedy-ehr',
                 limit: 20
             },
@@ -75,7 +75,7 @@ export async function createPharmacopediaSession(token) {
         medications: [],
         patientId: null,
         projectId: "remedy-ehr",
-        userId: "1",
+        userId: getChatbotUserId(),
         visitId: null
     };
 

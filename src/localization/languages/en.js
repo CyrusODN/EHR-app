@@ -5333,6 +5333,8 @@ export const en = {
             "aiThinking": "AI is thinking...",
             "sessionDeletedSuccess": "Session deleted successfully",
             "failedDeleteSession": "Failed to delete session",
+            "failedStartSession": "Failed to start consultation session. Please try again.",
+            "failedAiResponse": "Failed to get AI response. Please try again.",
             "welcomeMessage": "Hello! I'm your {{specialty}} AI assistant. I'm here to help based on evidence-based clinical guidelines. How can I assist you with the patient's condition?",
             "simulationMode": "Simulation: I am in local mode because no session was established."
         },

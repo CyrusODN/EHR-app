@@ -5126,8 +5126,10 @@ export const pl = {
             "aiThinking": "AI myśli...",
             "sessionDeletedSuccess": "Sesja została pomyślnie usunięta",
             "failedDeleteSession": "Nie udało się usunąć sesji",
+            "failedStartSession": "Nie udało się rozpocząć sesji konsultacji. Spróbuj ponownie.",
+            "failedAiResponse": "Nie udało się uzyskać odpowiedzi AI. Spróbuj ponownie.",
             "welcomeMessage": "Witaj! Jestem Twoim asystentem AI ds. {{specialty}}. Pomagam w oparciu o wytyczne kliniczne oparte na dowodach. Jak mogę pomóc w przypadku pacjenta?",
-            "simulationMode": "Symulacja: Jestem w trybie lokalnym, ponieważ nie nawiązano sesji."
+            "simulationMode": "Symulacja: Jestem w trybie lokalnym, ponieważ nie nawiązono sesji."
         },
         "pharmacopedia": {
             "title": "Farmakopedia",

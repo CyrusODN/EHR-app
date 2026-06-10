@@ -19,8 +19,13 @@ import PrimaryButton from '../../../component/button';
 import Gap from '../../../component/gap';
 import { useTranslation } from 'react-i18next';
 import { useThemeColors } from '../../../hooks/useThemeColors';
-import { getChatbotServiceToken } from '../../../Services/AiAssitants.Service';
 import { getPharmacopediaSessions, createPharmacopediaSession, getPharmacopediaSessionDetails, deletePharmacopediaSession, sendPharmacopediaMessage } from '../../../Services/PharmacopediaTool.Service';
+import {
+    extractToolMessage,
+    extractToolSessionId,
+    extractToolSessions,
+    resolveChatbotServiceToken,
+} from '../../../utils/aiTools';
 
 interface Message {
     id: string;
@@ -58,23 +63,16 @@ const PharmacopediaChat = ({ serviceToken: propToken, onShowAlert }: Pharmacoped
     const dot3 = useRef(new Animated.Value(0.3)).current;
 
     useEffect(() => {
-        const init = async () => {
-            let currentToken = serviceToken;
-            
-            if (!currentToken) {
-                console.log("[PharmacopediaChat] No service token provided, fetching...");
-                try {
-                    const tokenRes: any = await getChatbotServiceToken();
-                    if (tokenRes?.serviceToken) {
-                        currentToken = tokenRes.serviceToken;
-                        setServiceToken(currentToken);
-                    }
-                } catch (error) {
-                    console.error("[PharmacopediaChat] Error fetching service token:", error);
-                }
-            }
+        if (propToken) {
+            setServiceToken(propToken);
+        }
+    }, [propToken]);
 
+    useEffect(() => {
+        const init = async () => {
+            const currentToken = await resolveChatbotServiceToken(serviceToken || propToken || null);
             if (currentToken) {
+                setServiceToken(currentToken);
                 fetchSessions(currentToken);
             }
         };
@@ -86,8 +84,9 @@ const PharmacopediaChat = ({ serviceToken: propToken, onShowAlert }: Pharmacoped
         console.log("[PharmacopediaChat] Fetching pharmacopedia sessions...");
         try {
             const response: any = await getPharmacopediaSessions(token);
-            if (response?.success) {
-                setSessions(response.data || []);
+            const sessionList = extractToolSessions(response);
+            if (sessionList.length > 0 || response?.success) {
+                setSessions(sessionList);
             } else {
                 console.warn("[PharmacopediaChat] Failed to load sessions:", response?.message);
             }
@@ -156,18 +155,23 @@ const PharmacopediaChat = ({ serviceToken: propToken, onShowAlert }: Pharmacoped
     };
 
     const handleNewSession = async () => {
-        if (!serviceToken) {
-            console.error("[PharmacopediaChat] Cannot create session: No service token");
-            return;
-        }
-
         setIsCreatingSession(true);
         console.log("[PharmacopediaChat] Initiating new pharmacopedia session creation...");
         
         try {
-            const response: any = await createPharmacopediaSession(serviceToken);
-            if (response?.success && response?.data?.sessionId) {
-                const newSessionId = response.data.sessionId;
+            const token = await resolveChatbotServiceToken(serviceToken);
+            if (!token) {
+                if (onShowAlert) onShowAlert(t('aiAssistant.pharmacopedia.failedCreateQuery'), 'error');
+                return;
+            }
+
+            if (token !== serviceToken) {
+                setServiceToken(token);
+            }
+
+            const response: any = await createPharmacopediaSession(token);
+            const newSessionId = extractToolSessionId(response);
+            if (newSessionId) {
                 console.log("[PharmacopediaChat] Session created successfully:", newSessionId);
                 
                 setActiveQueryId(newSessionId);
@@ -189,7 +193,7 @@ const PharmacopediaChat = ({ serviceToken: propToken, onShowAlert }: Pharmacoped
                 setIsAiThinking(false);
                 
                 // Refresh sessions list in background
-                fetchSessions(serviceToken);
+                fetchSessions(token);
 
                 if (isHistoryOpen) toggleHistory();
             } else {
@@ -278,7 +282,7 @@ const PharmacopediaChat = ({ serviceToken: propToken, onShowAlert }: Pharmacoped
     };
 
     const handleSendMessage = async () => {
-        if (!messageText.trim() || !serviceToken || !activeQueryId) return;
+        if (!messageText.trim() || !activeQueryId) return;
         
         const now = new Date();
         const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
@@ -296,12 +300,21 @@ const PharmacopediaChat = ({ serviceToken: propToken, onShowAlert }: Pharmacoped
         setIsAiThinking(true);
 
         try {
-            const response: any = await sendPharmacopediaMessage(serviceToken, activeQueryId, messageToSend);
-            if (response?.success && response?.data) {
-                const aiTime = response.data.timestamp ? new Date(response.data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : timeStr;
+            const token = await resolveChatbotServiceToken(serviceToken);
+            if (!token) {
+                if (onShowAlert) onShowAlert(t('aiAssistant.pharmacopedia.failedAiResponse'), 'error');
+                return;
+            }
+
+            const response: any = await sendPharmacopediaMessage(token, activeQueryId, messageToSend);
+            const aiText = extractToolMessage(response);
+            if (aiText) {
+                const aiTime = response?.data?.timestamp
+                    ? new Date(response.data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    : timeStr;
                 const aiMessage: Message = {
                     id: (Date.now() + 1).toString(),
-                    text: response.data.message || "",
+                    text: aiText,
                     sender: 'ai',
                     time: aiTime,
                 };

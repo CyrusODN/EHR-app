@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { throwServerError } from "../utils/custom_errors";
+import { getChatbotUserId } from '../utils/aiTools';
 
 // Base URL for tools service
 const TOOLS_API_URL = 'https://tools.remedius.ai/api';
@@ -7,7 +7,7 @@ const TOOLS_API_URL = 'https://tools.remedius.ai/api';
 // Create a separate axios instance for tools to avoid global interceptors from src/api/index.js
 const toolsAxios = axios.create({
     baseURL: TOOLS_API_URL,
-    timeout: 10000,
+    timeout: 120000,
 });
 
 /**
@@ -26,7 +26,7 @@ export async function getConsultSessions(token) {
     try {
         const response = await toolsAxios.get('/consult/sessions', {
             params: {
-                userId: 1,
+                userId: getChatbotUserId(),
                 projectId: 'remedy-ehr',
                 limit: 20
             },
@@ -71,7 +71,7 @@ export async function createConsultSession(token, specialty) {
         patientInfo: {},
         projectId: "remedy-ehr",
         specialty: specialty,
-        userId: "1"
+        userId: getChatbotUserId()
     };
     
     console.log("[ConsultToolService] Initiating createConsultSession...");
