@@ -37,6 +37,27 @@ import { useThemeColors } from '../../../hooks/useThemeColors';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
+const getDefaultFormState = () => {
+    const timeFrom = new Date();
+    timeFrom.setMinutes(0, 0, 0);
+    const timeTo = new Date();
+    timeTo.setHours(timeTo.getHours() + 1, 0, 0, 0);
+    return {
+        date: new Date(),
+        timeFrom,
+        timeTo,
+        office: null as string | null,
+        type: 'Private',
+        specialization: null as string | null,
+        notes: '',
+        isEVisit: false,
+        isPrescriptionOnly: false,
+        isReferral: false,
+        doctor: null as string | null,
+        patient: null as string | null,
+    };
+};
+
 const CreateVisitModal = ({ visible, onClose, onSaveSuccess }: { visible: boolean, onClose: () => void, onSaveSuccess?: () => void }) => {
     const { t, i18n } = useTranslation();
     const navigation = useNavigation<any>();
@@ -83,27 +104,43 @@ const CreateVisitModal = ({ visible, onClose, onSaveSuccess }: { visible: boolea
         }
     }, [visible]);
 
-    const initialTimeFrom = new Date();
-    initialTimeFrom.setMinutes(0, 0, 0);
-    const initialTimeTo = new Date();
-    initialTimeTo.setHours(initialTimeTo.getHours() + 1, 0, 0, 0);
+    const defaultForm = getDefaultFormState();
 
-    const [date, setDate] = useState(new Date());
+    const [date, setDate] = useState(defaultForm.date);
     const [showDatePicker, setShowDatePicker] = useState(false);
-    const [timeFrom, setTimeFrom] = useState(initialTimeFrom);
-    const [timeTo, setTimeTo] = useState(initialTimeTo);
+    const [timeFrom, setTimeFrom] = useState(defaultForm.timeFrom);
+    const [timeTo, setTimeTo] = useState(defaultForm.timeTo);
     const [showTimeFromPicker, setShowTimeFromPicker] = useState(false);
     const [showTimeToPicker, setShowTimeToPicker] = useState(false);
-    const [office, setOffice] = useState<string | null>(null);
-    const [type, setType] = useState<string>('Private');
-    const [specialization, setSpecialization] = useState<string | null>(null);
-    const [notes, setNotes] = useState('');
-    const [isEVisit, setIsEVisit] = useState(false);
-    const [isPrescriptionOnly, setIsPrescriptionOnly] = useState(false);
-    const [isReferral, setIsReferral] = useState(false);
-    const [doctor, setDoctor] = useState<string | null>(null);
-    const [patient, setPatient] = useState<string | null>(null);
+    const [office, setOffice] = useState<string | null>(defaultForm.office);
+    const [type, setType] = useState<string>(defaultForm.type);
+    const [specialization, setSpecialization] = useState<string | null>(defaultForm.specialization);
+    const [notes, setNotes] = useState(defaultForm.notes);
+    const [isEVisit, setIsEVisit] = useState(defaultForm.isEVisit);
+    const [isPrescriptionOnly, setIsPrescriptionOnly] = useState(defaultForm.isPrescriptionOnly);
+    const [isReferral, setIsReferral] = useState(defaultForm.isReferral);
+    const [doctor, setDoctor] = useState<string | null>(defaultForm.doctor);
+    const [patient, setPatient] = useState<string | null>(defaultForm.patient);
     const [loading, setLoading] = useState(false);
+
+    const resetForm = useCallback(() => {
+        const fresh = getDefaultFormState();
+        setDate(fresh.date);
+        setTimeFrom(fresh.timeFrom);
+        setTimeTo(fresh.timeTo);
+        setOffice(fresh.office);
+        setType(fresh.type);
+        setSpecialization(fresh.specialization);
+        setNotes(fresh.notes);
+        setIsEVisit(fresh.isEVisit);
+        setIsPrescriptionOnly(fresh.isPrescriptionOnly);
+        setIsReferral(fresh.isReferral);
+        setDoctor(fresh.doctor);
+        setPatient(fresh.patient);
+        setShowDatePicker(false);
+        setShowTimeFromPicker(false);
+        setShowTimeToPicker(false);
+    }, []);
 
     // Dynamic dropdown options from API
     const [doctorOptions, setDoctorOptions] = useState<{ label: string; value: string }[]>([]);
@@ -211,8 +248,11 @@ const CreateVisitModal = ({ visible, onClose, onSaveSuccess }: { visible: boolea
     }, []);
 
     useEffect(() => {
-        if (visible) fetchData();
-    }, [visible, fetchData]);
+        if (visible) {
+            resetForm();
+            fetchData();
+        }
+    }, [visible, fetchData, resetForm]);
 
     const handleDateChange = (_event: any, selectedDate?: Date) => {
         setShowDatePicker(false);
@@ -308,6 +348,7 @@ const CreateVisitModal = ({ visible, onClose, onSaveSuccess }: { visible: boolea
             const res: any = await CreateVisit(payload);
             const data = res?.data || res;
             if (res?.success || data) {
+                resetForm();
                 if (onSaveSuccess) onSaveSuccess();
                 handleClose();
             }
