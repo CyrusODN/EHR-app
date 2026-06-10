@@ -10,7 +10,8 @@ import {
     ActivityIndicator,
     ScrollView,
     Platform,
-    Modal
+    Modal,
+    Share,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -138,6 +139,40 @@ const CustomCalendarModal = ({ visible, value, onSelect, onClose, tc, isDark, t,
 };
 
 
+const escapeCsvValue = (value: string) => {
+    const safeValue = value ?? '';
+    if (/[",\n]/.test(safeValue)) {
+        return `"${safeValue.replace(/"/g, '""')}"`;
+    }
+    return safeValue;
+};
+
+const getPatientDisplayName = (patient: any) =>
+    patient?.name || `${patient?.firstName || ''} ${patient?.lastName || ''}`.trim() || '';
+
+const buildPatientExportCsv = (rows: any[], t: (key: string) => string, formatDate: (date: any) => string) => {
+    const headers = [
+        t('patientList.patient'),
+        t('patientList.pesel'),
+        t('patientList.dob'),
+        t('patientList.referral'),
+        t('patientList.status'),
+    ];
+
+    const lines = [
+        headers.join(','),
+        ...rows.map((patient) => [
+            escapeCsvValue(getPatientDisplayName(patient)),
+            escapeCsvValue(patient.pesel || t('common.na')),
+            escapeCsvValue(formatDate(patient.dateOfBirth || patient.dob)),
+            escapeCsvValue(patient.referral || t('common.na')),
+            escapeCsvValue(patient.status || t('common.na')),
+        ].join(',')),
+    ];
+
+    return lines.join('\n');
+};
+
 const PatientListScreen = () => {
     const { colors: tc, isDark } = useThemeColors();
     const ds = createDynamicStyles(tc, isDark);
@@ -147,6 +182,7 @@ const PatientListScreen = () => {
     const [patients, setPatients] = useState<any[]>([]);
     const [selectedPatient, setSelectedPatient] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [isExporting, setIsExporting] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
     const [showActionModal, setShowActionModal] = useState(false);
     const [showPatientDetailsModal, setShowPatientDetailsModal] = useState(false);
@@ -332,16 +368,49 @@ const PatientListScreen = () => {
         setIsLongAbsent(false);
     };
 
-    // Export patient list
-    const handleExport = () => {
-        console.log('Export patient list');
-        // Export functionality
+    const getPatientsForExport = async () => {
+        if (totalItems <= patients.length) {
+            return patients;
+        }
+
+        const response = await GetPatients({
+            page: 1,
+            limit: totalItems,
+            skip: 0,
+        }) as any;
+
+        const patientData = Array.isArray(response)
+            ? response
+            : (response?.data || response?.patients || []);
+
+        return Array.isArray(patientData) ? patientData : patients;
     };
 
-    // Print patient list
-    const handlePrint = () => {
-        console.log('Print patient list');
-        // Print functionality
+    const handleExport = async () => {
+        if (isExporting) return;
+
+        setIsExporting(true);
+        try {
+            const exportRows = await getPatientsForExport();
+
+            if (!exportRows.length) {
+                showAlert('warning', t('patientList.exportNoData'));
+                return;
+            }
+
+            const csv = buildPatientExportCsv(exportRows, t, formatDate);
+            await Share.share({
+                message: csv,
+                title: t('patientList.export'),
+            });
+        } catch (error: any) {
+            if (error?.message !== 'User did not share') {
+                console.error('Error exporting patient list:', error);
+                showAlert('error', t('patientList.exportError'));
+            }
+        } finally {
+            setIsExporting(false);
+        }
     };
 
     // Toggle filters
@@ -510,19 +579,16 @@ const PatientListScreen = () => {
                     }}
                 >
                     <TouchableOpacity
-                        style={ds.secondaryButton}
+                        style={[ds.secondaryButton, isExporting && ds.secondaryButtonDisabled]}
                         onPress={handleExport}
+                        disabled={isExporting}
                     >
-                        <Feather name="download" size={18} color={tc.accent} />
+                        {isExporting ? (
+                            <ActivityIndicator size="small" color={tc.accent} />
+                        ) : (
+                            <Feather name="download" size={18} color={tc.accent} />
+                        )}
                         <Text style={ds.buttonText}>{t('patientList.export')}</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={ds.secondaryButton}
-                        onPress={handlePrint}
-                    >
-                        <Feather name="printer" size={18} color={tc.accent} />
-                        <Text style={ds.buttonText}>{t('patientList.print')}</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -808,6 +874,9 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
         borderWidth: 1, 
         borderColor: tc.accent, 
         backgroundColor: tc.cardBackgroundAlt
+    },
+    secondaryButtonDisabled: {
+        opacity: 0.6,
     },
     loadingContainer: {
         flex: 1,

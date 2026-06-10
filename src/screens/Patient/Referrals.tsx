@@ -9,6 +9,7 @@ import {
     Platform,
     Modal,
     TextInput,
+    KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
@@ -39,6 +40,7 @@ const ReferralsScreen = () => {
     const [reason, setReason] = useState('');
     const [notes, setNotes] = useState('');
     const [loading, setLoading] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     const [referrals, setReferrals] = useState<any[]>([]);
     const [patientOptions, setPatientOptions] = useState<{ label: string; value: string }[]>([]);
     const [employeesOptions, setEmployeesOptions] = useState<{ label: string; value: string }[]>([]);
@@ -59,8 +61,15 @@ const ReferralsScreen = () => {
     }, [activeTab]);
 
     React.useEffect(() => {
+        setReferredTo('');
         fetchRequirements();
     }, [referralType]);
+
+    React.useEffect(() => {
+        if (showNewReferralModal) {
+            fetchRequirements();
+        }
+    }, [showNewReferralModal]);
 
     const fetchReferrals = async () => {
         setLoading(true);
@@ -112,39 +121,43 @@ const ReferralsScreen = () => {
         }
     };
 
+    const resetReferralForm = () => {
+        setSelectedPatient('');
+        setReferredTo('');
+        setSpecialization('');
+        setReason('');
+        setNotes('');
+        setReferralType('Doctor');
+    };
+
     const handleSave = async () => {
-        if (!selectedPatient || !referredTo || !specialization || !reason) {
+        if (!selectedPatient || !referredTo || !reason.trim()) {
             showAlert('warning', t('referrals.messages.requiredFields'));
             return;
         }
 
-        setLoading(true);
+        setIsSaving(true);
         try {
             const payload = {
-                type: referralType.toLowerCase(),
-                patientId: selectedPatient,
-                referredToId: referredTo,
-                specialization,
-                reason,
-                notes,
+                patientId: String(selectedPatient),
+                referredToId: String(referredTo),
+                specialization: specialization.trim(),
+                reason: reason.trim(),
+                notes: notes.trim(),
             };
-            const res: any = await CreateReferral(payload);
-            if (res) {
-                showAlert('success', t('referrals.messages.success'));
-                setShowNewReferralModal(false);
-                fetchReferrals();
-                // Reset form
-                setSelectedPatient('');
-                setReferredTo('');
-                setSpecialization('');
-                setReason('');
-                setNotes('');
-            }
-        } catch (error) {
-            console.error("Error creating referral:", error);
-            showAlert('error', t('referrals.messages.error'));
+
+            await CreateReferral(payload);
+
+            showAlert('success', t('referrals.messages.success'));
+            setShowNewReferralModal(false);
+            resetReferralForm();
+            setActiveTab('outgoing');
+            fetchReferrals();
+        } catch (error: any) {
+            console.error('Error creating referral:', error);
+            showAlert('error', error?.message || t('referrals.messages.error'));
         } finally {
-            setLoading(false);
+            setIsSaving(false);
         }
     };
 
@@ -281,15 +294,28 @@ const ReferralsScreen = () => {
                     animationType="slide"
                 >
                     <View style={ds.modalOverlay}>
-                        <View style={ds.modalContent}>
+                        <KeyboardAvoidingView
+                            style={ds.modalContent}
+                            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                        >
                             <View style={ds.modalHeader}>
                                 <Text style={ds.modalTitle}>{t('referrals.modal.title')}</Text>
-                                <TouchableOpacity onPress={() => setShowNewReferralModal(false)}>
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        setShowNewReferralModal(false);
+                                        resetReferralForm();
+                                    }}
+                                >
                                     <Feather name="x" size={24} color={tc.textSecondary} />
                                 </TouchableOpacity>
                             </View>
 
-                            <ScrollView style={ds.modalBody} showsVerticalScrollIndicator={false}>
+                            <ScrollView
+                                style={ds.modalBody}
+                                showsVerticalScrollIndicator={false}
+                                keyboardShouldPersistTaps="handled"
+                                keyboardDismissMode="on-drag"
+                            >
                                 {/* Toggle Doctor/Nurse */}
                                 <View style={ds.toggleContainer}>
                                     <TouchableOpacity
@@ -359,27 +385,30 @@ const ReferralsScreen = () => {
                                 
                                 <Gap height={30} />
                                 
-                                <View style={ds.modalFooter}>
-                                    <PrimaryButton
-                                        label={t('common.cancel')}
-                                        filled={false}
-                                        onPress={() => setShowNewReferralModal(false)}
-                                        style={{ flex: 1 }}
-                                        loading={false}
-                                        disabled={loading}
-                                    />
-                                    <PrimaryButton
-                                        label={t('common.save')}
-                                        filled={true}
-                                        onPress={handleSave}
-                                        style={{ flex: 1 }}
-                                        loading={loading}
-                                        disabled={loading}
-                                    />
-                                </View>
-                                <Gap height={20} />
                             </ScrollView>
-                        </View>
+
+                            <View style={ds.modalFooter}>
+                                <PrimaryButton
+                                    label={t('common.cancel')}
+                                    filled={false}
+                                    onPress={() => {
+                                        setShowNewReferralModal(false);
+                                        resetReferralForm();
+                                    }}
+                                    style={{ flex: 1 }}
+                                    loading={false}
+                                    disabled={isSaving}
+                                />
+                                <PrimaryButton
+                                    label={t('common.save')}
+                                    filled={true}
+                                    onPress={handleSave}
+                                    style={{ flex: 1 }}
+                                    loading={isSaving}
+                                    disabled={isSaving}
+                                />
+                            </View>
+                        </KeyboardAvoidingView>
                     </View>
                 </Modal>
                 
@@ -693,6 +722,7 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     },
     modalBody: {
         flex: 1,
+        marginBottom: 12,
     },
     toggleContainer: {
         flexDirection: 'row',
@@ -741,6 +771,9 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
     modalFooter: {
         flexDirection: 'row',
         gap: 12,
+        paddingTop: 12,
+        borderTopWidth: 1,
+        borderTopColor: tc.borderColor,
     },
     // Details Modal Styles
     detailsModalContent: {

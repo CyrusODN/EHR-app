@@ -28,12 +28,18 @@ export async function GetOutgoingReferrals(queryParams) {
 export async function CreateReferral(payload) {
     console.log("CreateReferral Payload Sent:", JSON.stringify(payload, null, 4));
     try {
-        const result = await postRequest(`${MODEL_NAME}/create`, payload);
+        const result = await postRequest(`${MODEL_NAME}/create`, {
+            patientId: payload.patientId,
+            referredToId: payload.referredToId,
+            reason: payload.reason,
+            specialization: payload.specialization,
+            notes: payload.notes,
+        });
         console.log("CreateReferral API Response:", JSON.stringify(result, null, 4));
         return result;
     } catch (err) {
         console.log("CreateReferral API Error:", JSON.stringify(err, null, 4));
-        return throwServerError(err);
+        throwServerError(err);
     }
 }
 

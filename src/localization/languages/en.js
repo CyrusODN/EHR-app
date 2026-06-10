@@ -1647,7 +1647,9 @@ export const en = {
         female: "Female",
         other: "Other",
         idLabel: "ID:",
-        done: "Done"
+        done: "Done",
+        exportNoData: "No patients available to export",
+        exportError: "Failed to export patient list"
     },
     appointments: {
         title: 'Scheduled Visits',

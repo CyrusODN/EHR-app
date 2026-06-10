@@ -1246,7 +1246,9 @@ export const pl = {
         female: "Kobieta",
         other: "Inna",
         idLabel: "ID:",
-        done: "Gotowe"
+        done: "Gotowe",
+        exportNoData: "Brak pacjentów do eksportu",
+        exportError: "Nie udało się wyeksportować listy pacjentów"
     },
 
     patientLogs: {
