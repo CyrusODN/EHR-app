@@ -328,11 +328,21 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
         }));
     };
 
+    const handleEmployerChange = (field: string, value: string) => {
+        setPatientData((prev: any) => ({
+            ...prev,
+            employer: {
+                ...(prev?.employer || {}),
+                [field]: value
+            }
+        }));
+    };
+
     const handleEmployerAddressChange = (field: string, value: string) => {
         setPatientData((prev: any) => ({
             ...prev,
             employer: {
-                ...prev.employer,
+                ...(prev?.employer || {}),
                 address: {
                     ...(prev?.employer?.address || {}),
                     [field]: value
@@ -1214,47 +1224,51 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
                 <SectionHeader {...commonProps} title={t('personalData.employer')} />
                 <FormInput {...commonProps} 
                     label={t('personalData.employerName')} required placeholder="" 
-                    value={patientData?.employer?.name || ''} 
+                    value={patientData?.employer?.name || ''}
+                    onChangeText={(text: string) => handleEmployerChange('name', text)}
                 />
                 <View style={ds.row}>
                     <View style={{ flex: 1, marginRight: 8 }}>
                         <FormInput {...commonProps} 
                             label={t('personalData.employerNip')} required placeholder="" 
-                            value={patientData?.employer?.nip || ''} 
+                            value={patientData?.employer?.nip || ''}
+                            onChangeText={(text: string) => handleEmployerChange('nip', text)}
                         />
                     </View>
                     <View style={{ flex: 1 }}>
                         <FormInput {...commonProps} 
                             label={t('personalData.occupation')} required placeholder="" 
-                            value={patientData?.employer?.occupation || ''} 
+                            value={patientData?.employer?.occupation || ''}
+                            onChangeText={(text: string) => handleEmployerChange('occupation', text)}
                         />
                     </View>
                 </View>
                 <FormInput {...commonProps} 
                     label={t('personalData.symbol')} placeholder="" 
-                    value={patientData?.employer?.symbol || ''} 
+                    value={patientData?.employer?.productionSymbol || patientData?.employer?.symbol || ''}
+                    onChangeText={(text: string) => handleEmployerChange('productionSymbol', text)}
                 />
  
                 <SectionHeader {...commonProps} title={t('personalData.address')} />
                 <View style={ds.row}>
                     <View style={{ flex: 1, marginRight: 8 }}>
-                        <FormInput {...commonProps} label={t('personalData.street')} required placeholder="" value={patientData?.employer?.address?.street || ''} />
+                        <FormInput {...commonProps} label={t('personalData.street')} required placeholder="" value={patientData?.employer?.address?.street || ''} onChangeText={(text: string) => handleEmployerAddressChange('street', text)} />
                     </View>
                     <View style={{ flex: 1 }}>
-                        <FormInput {...commonProps} label={t('personalData.house')} required placeholder="" value={patientData?.employer?.address?.houseNumber || ''} />
+                        <FormInput {...commonProps} label={t('personalData.house')} required placeholder="" value={patientData?.employer?.address?.houseNumber || ''} onChangeText={(text: string) => handleEmployerAddressChange('houseNumber', text)} />
                     </View>
                 </View>
                 <View style={ds.row}>
                     <View style={{ flex: 1, marginRight: 8 }}>
-                        <FormInput {...commonProps} label={t('personalData.apartment')} placeholder="" value={patientData?.employer?.address?.apartmentNumber || ''} />
+                        <FormInput {...commonProps} label={t('personalData.apartment')} placeholder="" value={patientData?.employer?.address?.apartmentNumber || ''} onChangeText={(text: string) => handleEmployerAddressChange('apartmentNumber', text)} />
                     </View>
                     <View style={{ flex: 1 }}>
-                        <FormInput {...commonProps} label={t('personalData.postalCode')} required placeholder="" value={patientData?.employer?.address?.postalCode || ''} />
+                        <FormInput {...commonProps} label={t('personalData.postalCode')} required placeholder="" value={patientData?.employer?.address?.postalCode || ''} onChangeText={(text: string) => handleEmployerAddressChange('postalCode', text)} />
                     </View>
                 </View>
                 <View style={ds.row}>
                     <View style={{ flex: 1, marginRight: 8 }}>
-                        <FormInput {...commonProps} label={t('personalData.city')} required placeholder="" value={patientData?.employer?.address?.city || ''} />
+                        <FormInput {...commonProps} label={t('personalData.city')} required placeholder="" value={patientData?.employer?.address?.city || ''} onChangeText={(text: string) => handleEmployerAddressChange('city', text)} />
                     </View>
                     <View style={{ flex: 1 }}>
                         <FormInput {...commonProps} 
