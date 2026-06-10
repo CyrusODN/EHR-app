@@ -596,7 +596,7 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
         let payload: any = { patientId };
 
         try {
-            if (section === 'basic' || section === 'more') {
+            if (section === 'basic') {
                 payload = {
                     ...payload,
                     name: patientData?.name,
@@ -1173,36 +1173,6 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
                 />
                 <View style={{ alignItems: 'flex-end', marginTop: 10 }}>
                     <SubmitButton {...commonProps} title={t('personalData.submit')} onPress={() => handleSave('basic')} loading={isSaving} />
-                </View>
-            </AccordionItem>
-            <AccordionItem {...commonProps} title={t('personalData.moreInformation')} icon="info">
-                <FormInput {...commonProps} 
-                    label={t('personalData.middleName')} placeholder={t('personalData.placeholderMiddleName')}
-                    value={patientData?.middleName} 
-                    onChangeText={(text: string) => handleInputChange('middleName', text)}
-                />
-                <FormInput {...commonProps} 
-                    label={t('personalData.maidenName')} placeholder={t('personalData.placeholderMaidenName')}
-                    value={patientData?.maidenName} 
-                    onChangeText={(text: string) => handleInputChange('maidenName', text)}
-                />
-                <FormInput {...commonProps} 
-                    label={t('personalData.birthPlace')} placeholder={t('personalData.placeholderBirthPlace')}
-                    value={patientData?.birthPlace} 
-                    onChangeText={(text: string) => handleInputChange('birthPlace', text)}
-                />
-                <FormInput {...commonProps} 
-                    label={t('personalData.bloodType')} placeholder={t('personalData.placeholderBloodType')}
-                    value={patientData?.bloodType} 
-                    onChangeText={(text: string) => handleInputChange('bloodType', text)}
-                />
-                <FormInput {...commonProps} 
-                    label={t('personalData.internalCardNumber')} placeholder={t('personalData.placeholderNumber')}
-                    value={patientData?.internalCardNumber} 
-                    onChangeText={(text: string) => handleInputChange('internalCardNumber', text)}
-                />
-                <View style={{ alignItems: 'flex-end', marginTop: 10 }}>
-                    <SubmitButton {...commonProps} title={t('personalData.submit')} onPress={() => handleSave('more')} loading={isSaving} />
                 </View>
             </AccordionItem>
 
