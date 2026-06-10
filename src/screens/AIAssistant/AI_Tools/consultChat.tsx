@@ -51,7 +51,7 @@ const ConsultChat = ({ serviceToken: propServiceToken, onShowAlert }: ConsultCha
     const [isStartingSession, setIsStartingSession] = useState(false);
     const scrollViewRef = useRef<ScrollView>(null);
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-    const drawerAnim = useRef(new Animated.Value(-wp(70)).current;
+    const drawerAnim = useRef(new Animated.Value(-wp(70))).current;
     const backdropAnim = useRef(new Animated.Value(0)).current;
 
     const [sessions, setSessions] = useState<any[]>([]);
