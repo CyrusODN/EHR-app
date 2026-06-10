@@ -3142,9 +3142,16 @@ export const en = {
             "currentPassword": "Current Password",
             "newPassword": "New Password",
             "confirmPassword": "Confirm New Password",
+            "success": "Password changed successfully",
+            "error": "Failed to change password",
             "actions": {
                 "cancel": "Cancel",
                 "submit": "Change Password"
+            },
+            "errors": {
+                "required": "This field is required",
+                "length": "Password must be at least 8 characters long",
+                "passwordMismatch": "Passwords do not match"
             }
         }
     },

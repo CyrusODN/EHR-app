@@ -3146,9 +3146,16 @@ export const pl = {
             "currentPassword": "Obecne hasło",
             "newPassword": "Nowe hasło",
             "confirmPassword": "Potwierdź nowe hasło",
+            "success": "Hasło zostało pomyślnie zmienione.",
+            "error": "Wystąpił błąd podczas zmiany hasła. Proszę spróbować ponownie.",
             "actions": {
                 "cancel": "Anuluj",
                 "submit": "Zmień hasło"
+            },
+            "errors": {
+                "required": "To pole jest wymagane",
+                "length": "Hasło musi mieć co najmniej 8 znaków",
+                "passwordMismatch": "Nowe hasło i potwierdzenie hasła nie są zgodne"
             }
         }
     },

@@ -68,6 +68,14 @@ const Profile = ({ onAlert }: { onAlert?: (config: any) => void }) => {
     const [profileImage, setProfileImage] = useState('');
     const [isUploading, setIsUploading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [showChangePassword, setShowChangePassword] = useState(false);
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [isChangingPassword, setIsChangingPassword] = useState(false);
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const fetchUserProfile = async () => {
         setLoading(true);
@@ -130,6 +138,87 @@ const Profile = ({ onAlert }: { onAlert?: (config: any) => void }) => {
             }
         } finally {
             setIsUploading(false);
+        }
+    };
+
+    const resetChangePasswordForm = () => {
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+        setShowCurrentPassword(false);
+        setShowNewPassword(false);
+        setShowConfirmPassword(false);
+    };
+
+    const handleToggleChangePassword = () => {
+        if (showChangePassword) {
+            resetChangePasswordForm();
+        }
+        setShowChangePassword(!showChangePassword);
+    };
+
+    const handleChangePassword = async () => {
+        if (!currentPassword.trim() || !newPassword.trim() || !confirmPassword.trim()) {
+            if (onAlert) {
+                onAlert({
+                    visible: true,
+                    message: t('security_settings.changePassword.errors.required'),
+                    type: 'error',
+                });
+            }
+            return;
+        }
+
+        if (newPassword.length < 8) {
+            if (onAlert) {
+                onAlert({
+                    visible: true,
+                    message: t('security_settings.changePassword.errors.length'),
+                    type: 'error',
+                });
+            }
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            if (onAlert) {
+                onAlert({
+                    visible: true,
+                    message: t('security_settings.changePassword.errors.passwordMismatch'),
+                    type: 'error',
+                });
+            }
+            return;
+        }
+
+        setIsChangingPassword(true);
+        try {
+            await UpdateUserInfo({
+                currentPassword,
+                newPassword,
+            });
+
+            resetChangePasswordForm();
+            setShowChangePassword(false);
+
+            if (onAlert) {
+                onAlert({
+                    visible: true,
+                    message: t('security_settings.changePassword.success'),
+                    type: 'success',
+                });
+            }
+        } catch (error: any) {
+            console.error('Error changing password:', error);
+            if (onAlert) {
+                onAlert({
+                    visible: true,
+                    message: error?.message || t('security_settings.changePassword.error'),
+                    type: 'error',
+                });
+            }
+        } finally {
+            setIsChangingPassword(false);
         }
     };
 
@@ -327,16 +416,111 @@ const Profile = ({ onAlert }: { onAlert?: (config: any) => void }) => {
                 {(!isEditing || loading) && (
                     <ScrollView>
                         {/* Security Section */}
-                        <View style={[ds.sectionContainer]}>
-                            <View style={ds.sectionHeader}>
-                                <Ionicons name="lock-closed-outline" size={20} color={tc.accent} style={ds.sectionIcon} />
-                                <Text style={ds.sectionTitle}>{t('profile_settings.security')}</Text>
+                        <View style={ds.securitySection}>
+                            <View style={ds.securityHeaderRow}>
+                                <View style={ds.sectionHeader}>
+                                    <Ionicons name="lock-closed-outline" size={20} color={tc.accent} style={ds.sectionIcon} />
+                                    <Text style={ds.sectionTitle}>{t('profile_settings.security')}</Text>
+                                </View>
+
+                                <PrimaryButton
+                                    label={t('profile_settings.change_password')}
+                                    filled={false}
+                                    onPress={handleToggleChangePassword}
+                                    style={{ width: '40%' }}
+                                    icon={undefined}
+                                    image={undefined}
+                                    iconStyle={undefined}
+                                    imageStyle={undefined}
+                                    loading={false}
+                                    disabled={false}
+                                />
                             </View>
 
-                            <PrimaryButton label={t('profile_settings.change_password')}
-                                filled={false} onPress={() => { }} style={{ width: '40%' }}
-                                icon={undefined} image={undefined} iconStyle={undefined} imageStyle={undefined}
-                                loading={false} disabled={false} />
+                            {showChangePassword && (
+                                <View style={ds.changePasswordForm}>
+                                    <View style={ds.fullField}>
+                                        <Text style={ds.fieldLabel}>
+                                            {t('security_settings.changePassword.currentPassword')}
+                                        </Text>
+                                        <CustomTextInput
+                                            placeholder={t('security_settings.changePassword.currentPassword')}
+                                            value={currentPassword}
+                                            onChangeText={setCurrentPassword}
+                                            secureTextEntry={!showCurrentPassword}
+                                            icon={<Ionicons name="lock-closed-outline" color={tc.textSecondary} size={20} />}
+                                            right={
+                                                showCurrentPassword
+                                                    ? <Ionicons name="eye-off-outline" size={20} color={tc.textSecondary} />
+                                                    : <Ionicons name="eye-outline" size={20} color={tc.textSecondary} />
+                                            }
+                                            onRightPress={() => setShowCurrentPassword(prev => !prev)}
+                                        />
+                                    </View>
+
+                                    <View style={ds.fullField}>
+                                        <Text style={ds.fieldLabel}>
+                                            {t('security_settings.changePassword.newPassword')}
+                                        </Text>
+                                        <CustomTextInput
+                                            placeholder={t('security_settings.changePassword.newPassword')}
+                                            value={newPassword}
+                                            onChangeText={setNewPassword}
+                                            secureTextEntry={!showNewPassword}
+                                            icon={<Ionicons name="lock-closed-outline" color={tc.textSecondary} size={20} />}
+                                            right={
+                                                showNewPassword
+                                                    ? <Ionicons name="eye-off-outline" size={20} color={tc.textSecondary} />
+                                                    : <Ionicons name="eye-outline" size={20} color={tc.textSecondary} />
+                                            }
+                                            onRightPress={() => setShowNewPassword(prev => !prev)}
+                                        />
+                                    </View>
+
+                                    <View style={ds.fullField}>
+                                        <Text style={ds.fieldLabel}>
+                                            {t('security_settings.changePassword.confirmPassword')}
+                                        </Text>
+                                        <CustomTextInput
+                                            placeholder={t('security_settings.changePassword.confirmPassword')}
+                                            value={confirmPassword}
+                                            onChangeText={setConfirmPassword}
+                                            secureTextEntry={!showConfirmPassword}
+                                            icon={<Ionicons name="lock-closed-outline" color={tc.textSecondary} size={20} />}
+                                            right={
+                                                showConfirmPassword
+                                                    ? <Ionicons name="eye-off-outline" size={20} color={tc.textSecondary} />
+                                                    : <Ionicons name="eye-outline" size={20} color={tc.textSecondary} />
+                                            }
+                                            onRightPress={() => setShowConfirmPassword(prev => !prev)}
+                                        />
+                                    </View>
+
+                                    <View style={ds.changePasswordActions}>
+                                        <TouchableOpacity
+                                            style={ds.cancelButton}
+                                            onPress={handleToggleChangePassword}
+                                            disabled={isChangingPassword}
+                                        >
+                                            <Text style={ds.cancelButtonText}>
+                                                {t('security_settings.changePassword.actions.cancel')}
+                                            </Text>
+                                        </TouchableOpacity>
+                                        <PrimaryButton
+                                            label={t('security_settings.changePassword.actions.submit')}
+                                            filled={true}
+                                            onPress={handleChangePassword}
+                                            style={{ width: '50%', height: 45 }}
+                                            loading={isChangingPassword}
+                                            disabled={isChangingPassword}
+                                            icon={undefined}
+                                            image={undefined}
+                                            iconStyle={undefined}
+                                            imageStyle={undefined}
+                                        />
+                                    </View>
+                                </View>
+                            )}
                         </View>
 
                         {/* Notifications Section */}
@@ -458,6 +642,32 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
         justifyContent: "space-between",
         borderBottomWidth: 1,
         borderBottomColor: tc.borderSubtle,
+    },
+    securitySection: {
+        backgroundColor: tc.cardBackground,
+        paddingVertical: 20,
+        paddingHorizontal: 4,
+        width: '100%',
+        borderBottomWidth: 1,
+        borderBottomColor: tc.borderSubtle,
+    },
+    securityHeaderRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        width: '100%',
+    },
+    changePasswordForm: {
+        paddingHorizontal: 16,
+        paddingTop: 20,
+        gap: 16,
+    },
+    changePasswordActions: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+        gap: 16,
+        marginTop: 8,
     },
     sectionHeader: {
         flexDirection: 'row',
