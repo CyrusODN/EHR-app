@@ -1512,8 +1512,13 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
 
     const renderDiagnosisItem = (diag: any, key: any, isHistory: boolean = false) => {
         const recordId = getRecordId(diag);
+        const isStatusMenuOpen = !isHistory && recordId && openStatusMenu?.type === 'diag' && openStatusMenu.id === recordId;
         return (
-        <View style={[ds.medicationCard, isHistory && { opacity: 0.75 }]} key={key}>
+        <View style={[
+            ds.medicationCard,
+            isHistory && { opacity: 0.75 },
+            isStatusMenuOpen && ds.medicationCardElevated,
+        ]} key={key}>
             <View style={ds.medicationHeader}>
                 <View style={ds.medicationTitleRow}>
                     <Feather name="activity" size={16} color={isHistory ? tc.textMuted : tc.accent} style={{ marginRight: 6 }} />
@@ -1609,8 +1614,13 @@ const MedicalData = ({ patientData, onAlert }: { patientData: any, onAlert?: (ty
 
     const renderChronicItem = (item: any, key: any, isHistory: boolean = false) => {
         const recordId = getRecordId(item);
+        const isStatusMenuOpen = !isHistory && recordId && openStatusMenu?.type === 'chronic' && openStatusMenu.id === recordId;
         return (
-        <View style={[ds.medicationCard, isHistory && { opacity: 0.7 }]} key={key}>
+        <View style={[
+            ds.medicationCard,
+            isHistory && { opacity: 0.7 },
+            isStatusMenuOpen && ds.medicationCardElevated,
+        ]} key={key}>
             <View style={ds.medicationHeader}>
                 <View style={ds.medicationTitleRow}>
                     <Feather name="heart" size={16} color={isHistory ? tc.textMuted : tc.accent} style={{ marginRight: 6 }} />
@@ -2136,6 +2146,11 @@ const createDynamicStyles = (tc: any, isDark: boolean) => StyleSheet.create({
         shadowOpacity: isDark ? 0.2 : 0.03,
         shadowRadius: 2,
         elevation: 2,
+    },
+    medicationCardElevated: {
+        zIndex: 1000,
+        elevation: 10,
+        overflow: 'visible',
     },
     medicationHeader: {
         flexDirection: 'row',
