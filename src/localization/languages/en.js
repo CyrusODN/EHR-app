@@ -5839,7 +5839,8 @@ export const en = {
                     add_office: "Add office",
                     hide_form: "Hide Form",
                     cancel: "Cancel",
-                    save: "Save"
+                    save: "Save",
+                    update: "Update"
                 },
                 form: {
                     name: "Office Name",
@@ -5879,7 +5880,8 @@ export const en = {
             alerts: {
                 save_success: "Director Settings updated successfully!",
                 save_error: "Failed to update settings",
-                upload_error: "Failed to upload certificate"
+                upload_error: "Failed to upload certificate",
+                required_fields: "Please fill in all required office fields"
             }
         },
         profile: {

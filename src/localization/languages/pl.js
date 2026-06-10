@@ -5632,7 +5632,8 @@ export const pl = {
                     add_office: "Dodaj gabinet",
                     hide_form: "Ukryj formularz",
                     cancel: "Anuluj",
-                    save: "Zapisz"
+                    save: "Zapisz",
+                    update: "Aktualizuj"
                 },
                 form: {
                     name: "Nazwa gabinetu",
@@ -5672,7 +5673,8 @@ export const pl = {
             alerts: {
                 save_success: "Ustawienia dyrektora zostały zaktualizowane!",
                 save_error: "Nie udało się zaktualizować ustawień",
-                upload_error: "Nie udało się przesłać certyfikatu"
+                upload_error: "Nie udało się przesłać certyfikatu",
+                required_fields: "Proszę wypełnić wszystkie wymagane pola gabinetu"
             }
         },
         profile: {

@@ -42,6 +42,16 @@ interface Office {
     equipment: string;
 }
 
+const normalizeOfficeTypeForDisplay = (type: string) => {
+    const lower = type.toLowerCase();
+    if (lower.includes('medical')) return 'Medical office';
+    if (lower.includes('therapy')) return 'Therapy office';
+    if (lower.includes('diagnostic')) return 'Diagnostic office';
+    return type;
+};
+
+const isPersistedOfficeId = (id: string) => /^[a-f\d]{24}$/i.test(id);
+
 interface OfficeCardProps {
     office: Office;
     onEdit: (id: string) => void;
@@ -143,10 +153,25 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
         }
     ]);
 
-    // Handle edit office
-    const handleEditOffice = (id: string) => {
-        console.log('Edit office with id:', id);
-        // Navigate to edit screen or show modal
+    const [showAddForm, setShowAddForm] = useState(false);
+    const [editingOfficeId, setEditingOfficeId] = useState<string | null>(null);
+    const [officeName, setOfficeName] = useState('');
+    const [floor, setFloor] = useState('');
+    const [number, setNumber] = useState('');
+    const [type, setType] = useState<string | number>('');
+    const [equipment, setEquipment] = useState('');
+
+    const handleEditOffice = (officeId: string) => {
+        const office = offices.find(off => off.id === officeId);
+        if (!office) return;
+
+        setEditingOfficeId(officeId);
+        setOfficeName(office.title);
+        setFloor(office.floor);
+        setNumber(office.number);
+        setType(normalizeOfficeTypeForDisplay(office.type));
+        setEquipment(office.equipment);
+        setShowAddForm(true);
     };
 
     // Handle delete office
@@ -220,29 +245,45 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
         fetchSettings();
     }, []);
 
-    const [showAddForm, setShowAddForm] = useState(false);
-    const [officeName, setOfficeName] = useState('');
-    const [floor, setFloor] = useState('');
-    const [number, setNumber] = useState('');
-    const [type, setType] = useState<string | number>('');
-    const [equipment, setEquipment] = useState('');
-
     const officeTypeOptions = [
         { label: t('settings.office_certs.offices.types.medical'), value: 'Medical office' },
         { label: t('settings.office_certs.offices.types.therapy'), value: 'Therapy office' },
         { label: t('settings.office_certs.offices.types.diagnostic'), value: 'Diagnostic office' },
     ];
 
-    const handleAddOffice = () => {
-        const newOffice = {
-            id: Math.random().toString(),
-            title: officeName,
-            floor: floor,
-            number: number,
+    const handleSaveOffice = () => {
+        if (!officeName.trim() || !floor.trim() || !number.trim() || !type) {
+            if (onAlert) {
+                onAlert({
+                    visible: true,
+                    type: 'error',
+                    message: t('settings.office_certs.alerts.required_fields'),
+                });
+            }
+            return;
+        }
+
+        const officeData = {
+            title: officeName.trim(),
+            floor: floor.trim(),
+            number: number.trim(),
             type: String(type),
-            equipment: equipment
+            equipment: equipment.trim(),
         };
-        setOffices([...offices, newOffice]);
+
+        if (editingOfficeId) {
+            setOffices(offices.map(office =>
+                office.id === editingOfficeId
+                    ? { ...office, ...officeData }
+                    : office
+            ));
+        } else {
+            setOffices([...offices, {
+                id: `temp-${Date.now()}`,
+                ...officeData,
+            }]);
+        }
+
         resetForm();
     };
 
@@ -253,7 +294,7 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
                 director: directorId,
                 id: id,
                 offices: offices.map(off => ({
-                    _id: off.id.includes('.') ? undefined : off.id, // New offices might have decimal IDs from Math.random
+                    _id: isPersistedOfficeId(off.id) ? off.id : undefined,
                     name: off.title,
                     floor: off.floor,
                     officeNumber: off.number,
@@ -291,7 +332,23 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
         setNumber('');
         setType('');
         setEquipment('');
+        setEditingOfficeId(null);
         setShowAddForm(false);
+    };
+
+    const handleToggleAddForm = () => {
+        if (showAddForm) {
+            resetForm();
+            return;
+        }
+
+        setEditingOfficeId(null);
+        setOfficeName('');
+        setFloor('');
+        setNumber('');
+        setType('');
+        setEquipment('');
+        setShowAddForm(true);
     };
 
     return (
@@ -332,7 +389,7 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
                         <PrimaryButton
                             label={showAddForm ? t('settings.office_certs.offices.buttons.hide_form') : t('settings.office_certs.offices.buttons.add_office')}
                             filled={true}
-                            onPress={() => setShowAddForm(!showAddForm)}
+                            onPress={handleToggleAddForm}
                             style={{ width: "40%" }}
                             icon={<Ionicons name={showAddForm ? "remove" : "add"} size={18} color="white" />}
                             image={undefined}
@@ -413,9 +470,11 @@ const OfficeCertificates = ({ onAlert }: { onAlert?: (config: any) => void }) =>
                                     style={{ width: "30%", height: hp(5.5), marginBottom: 0 }}
                                 />
                                 <PrimaryButton
-                                    label={t('settings.office_certs.offices.buttons.save')}
+                                    label={editingOfficeId
+                                        ? t('settings.office_certs.offices.buttons.update')
+                                        : t('settings.office_certs.offices.buttons.save')}
                                     filled={true}
-                                    onPress={handleAddOffice}
+                                    onPress={handleSaveOffice}
                                     style={{ width: "30%", height: hp(5.5), marginBottom: 0 }}
                                     icon={<FontAwesome name="save" size={16} color="white" />}
                                 />
