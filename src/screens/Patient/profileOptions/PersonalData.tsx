@@ -13,7 +13,8 @@ import {
     Modal,
     ActivityIndicator,
     KeyboardAvoidingView,
-    Keyboard
+    Keyboard,
+    Linking
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
@@ -272,6 +273,7 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
             if (response) {
                 setPatientData({
                     ...response,
+                    consents: response.consents?.length ? response.consents : getDefaultConsents(),
                     authorizedPersons: (response.authorizedPersons || []).map(normalizeAuthorizedPerson),
                 });
                 setAuthorizeAnyone(!!response.noAuthorizedPersons);
@@ -288,6 +290,19 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
         fetchPersonalData();
     }, [initialPatientData]);
     
+
+    const getDefaultConsents = () => [
+        { id: 'personal-data', title: t('personalData.consentPersonalDataTitle'), description: t('personalData.consentPersonalDataDescription'), granted: false },
+        { id: 'medical-docs', title: t('personalData.consentMedicalDocsTitle'), description: t('personalData.consentMedicalDocsDescription'), granted: false },
+        { id: 'electronic-comm', title: t('personalData.consentElectronicCommTitle'), description: t('personalData.consentElectronicCommDescription'), granted: false },
+    ];
+
+    const extractUploadUrl = (response: any): string => {
+        const fileData = Array.isArray(response) ? response[0] : response;
+        const data = fileData?.data ?? fileData;
+        if (typeof data === 'string' && data.startsWith('http')) return data;
+        return data?.url || fileData?.url || response?.url || response?.data?.url || '';
+    };
 
     const formatConsentDate = (dateVal: any) => {
         if (!dateVal) return null;
@@ -518,7 +533,11 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
         setUploadingConsent(true);
         try {
             const response: any = await uploadFileOnServer(consentFile);
-            const fileUrl = response?.url || response?.data?.url || '';
+            const fileUrl = extractUploadUrl(response);
+            if (!fileUrl) {
+                onAlert?.('error', t('personalData.consentUploadError'));
+                return;
+            }
             const documentUrl = fileUrl;
             const documentName = consentFileName || 'consent_form.pdf';
             
@@ -532,11 +551,7 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
 
             // Update the consent item to granted
             setPatientData((prev: any) => {
-                const updatedConsents = (prev?.consents || [
-                    { id: 'personal-data', title: t('personalData.consentPersonalDataTitle'), description: t('personalData.consentPersonalDataDescription') },
-                    { id: 'medical-docs', title: t('personalData.consentMedicalDocsTitle'), description: t('personalData.consentMedicalDocsDescription') },
-                    { id: 'electronic-comm', title: t('personalData.consentElectronicCommTitle'), description: t('personalData.consentElectronicCommDescription') }
-                ]).map((c: any) =>
+                const updatedConsents = (prev?.consents || getDefaultConsents()).map((c: any) =>
                     c.id === activeConsentId ? { ...c, granted: true, grantedDate, date: isoDate, fileUrl, documentUrl, documentName, withDraw: false } : c
                 );
                 return { ...prev, consents: updatedConsents };
@@ -563,6 +578,17 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
             return { ...prev, consents: updatedConsents };
         });
         onAlert?.('success', t('personalData.consentWithdrawSuccess'));
+    };
+
+    const viewConsentDocument = (item: any) => {
+        const url = item.documentUrl || item.fileUrl;
+        if (!url) {
+            onAlert?.('error', t('consentUpload.previewNotAvailable'));
+            return;
+        }
+        Linking.openURL(url).catch(() => {
+            onAlert?.('error', t('consentUpload.previewNotAvailable'));
+        });
     };
 
     const handleSave = async (section: string) => {
@@ -652,15 +678,23 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
                     })
                 };
             } else if (section === 'consents') {
+                const consents = patientData?.consents || getDefaultConsents();
+                const missingDocument = consents.some(
+                    (c: any) => c.granted && !(c.documentUrl || c.fileUrl)
+                );
+                if (missingDocument) {
+                    onAlert?.('error', t('consentUpload.fileRequired'));
+                    return;
+                }
                 payload = {
                     ...payload,
-                    consents: (patientData?.consents || []).map((c: any) => ({
+                    consents: consents.map((c: any) => ({
                         id: c.id,
                         title: c.title,
                         description: c.description,
                         type: c.title,
                         granted: !!c.granted,
-                        date: c.date || new Date().toISOString(),
+                        date: c.granted ? (c.date || new Date().toISOString()) : '',
                         documentName: c.documentName || '',
                         documentUrl: c.documentUrl || c.fileUrl || '',
                         withDraw: !!c.withDraw
@@ -1010,53 +1044,56 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
                         </TouchableOpacity>
                     </View>
 
-                    <View style={{ padding: 20 }}>
-                        <Text style={ds.consentModalDesc}>
-                            {t('personalData.uploadConsentDesc')}
-                        </Text>
+                    <Text style={ds.consentModalDesc}>
+                        {t('personalData.uploadConsentDesc')}
+                    </Text>
 
-                        <PrimaryButton
-                            label={t('personalData.selectFile')}
-                            filled
-                            onPress={handleSelectFile}
-                            icon={<Feather name="upload" size={16} color="#ffffff" />}
-                            style={{ width: 150, height: 44, alignSelf: 'flex-start', marginBottom: 16, borderRadius: 10 }}
-                        />
+                    <PrimaryButton
+                        label={t('personalData.selectFile')}
+                        filled
+                        onPress={handleSelectFile}
+                        icon={<Feather name="upload" size={16} color="#ffffff" />}
+                        style={{ width: 150, height: 44, alignSelf: 'flex-start', marginBottom: 16, borderRadius: 10 }}
+                    />
 
-                        {consentFileName && (
-                            <View style={ds.selectedFileRow}>
-                                <Feather name="file-text" size={16} color="#58a6b8" />
-                                <Text style={ds.selectedFileName}>{consentFileName}</Text>
-                                <TouchableOpacity onPress={() => { setConsentFileName(null); setConsentFile(null); }}>
-                                    <Feather name="x-circle" size={16} color="#ef4444" />
-                                </TouchableOpacity>
-                            </View>
-                        )}
+                    {consentFileName && (
+                        <View style={ds.selectedFileRow}>
+                            <Feather name="file-text" size={16} color="#58a6b8" />
+                            <Text style={ds.selectedFileName}>{consentFileName}</Text>
+                            <TouchableOpacity onPress={() => { setConsentFileName(null); setConsentFile(null); }}>
+                                <Feather name="x-circle" size={16} color="#ef4444" />
+                            </TouchableOpacity>
+                        </View>
+                    )}
 
-                        <Text style={ds.fileTypeHint}>
-                            {t('personalData.acceptedFileTypes')}
-                        </Text>
-                    </View>
+                    <Text style={ds.fileTypeHint}>
+                        {t('personalData.acceptedFileTypes')}
+                    </Text>
 
-                    <View style={ds.modalFooter}>
-                        <PrimaryButton
-                            label={t('personalData.cancel')}
-                            filled={false}
+                    <View style={[ds.modalFooter, ds.consentModalFooter]}>
+                        <TouchableOpacity
+                            style={ds.cancelButton}
                             onPress={() => {
                                 setShowConsentModal(false);
                                 setConsentFileName(null);
+                                setConsentFile(null);
                                 setActiveConsentId(null);
                             }}
-                            style={{ flex: 1, marginRight: 10, height: 44, borderRadius: 10 }}
-                        />
-                        <PrimaryButton
-                            label={uploadingConsent ? t('personalData.uploading') : t('personalData.uploadAndGrant')}
-                            filled
+                            disabled={uploadingConsent}
+                        >
+                            <Text style={ds.cancelButtonText}>{t('personalData.cancel')}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[ds.addButton, (!consentFile || uploadingConsent) && { opacity: 0.5 }]}
                             onPress={handleUploadAndGrant}
                             disabled={!consentFile || uploadingConsent}
-                            loading={uploadingConsent}
-                            style={{ flex: 1.5, height: 44, borderRadius: 10 }}
-                        />
+                        >
+                            {uploadingConsent ? (
+                                <ActivityIndicator color="#ffffff" size="small" />
+                            ) : (
+                                <Text style={ds.addButtonText}>{t('personalData.uploadAndGrant')}</Text>
+                            )}
+                        </TouchableOpacity>
                     </View>
                 </View>
                 </KeyboardAvoidingView>
@@ -1422,26 +1459,7 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
                     </Text>
                 </View>
  
-                {(patientData?.consents || [
-                    {
-                        id: 'personal-data',
-                        title: t('personalData.consentPersonalDataTitle'),
-                        description: t('personalData.consentPersonalDataDescription'),
-                        granted: true,
-                        grantedDate: '04-03-2026',
-                        fileUrl: 'dummy_url'
-                    },
-                    {
-                        id: 'medical-docs',
-                        title: t('personalData.consentMedicalDocsTitle'),
-                        description: t('personalData.consentMedicalDocsDescription')
-                    },
-                    {
-                        id: 'electronic-comm',
-                        title: t('personalData.consentElectronicCommTitle'),
-                        description: t('personalData.consentElectronicCommDescription')
-                    }
-                ]).map((item: any, index: number) => (
+                {(patientData?.consents || getDefaultConsents()).map((item: any, index: number) => (
                     <View key={index} style={ds.consentRow}>
                         <View style={{ flex: 1, paddingRight: 10 }}>
                             <Text style={ds.consentTitle}>{item.title}</Text>
@@ -1464,7 +1482,11 @@ const PersonalData = ({ patientData: initialPatientData, onAlert }: { patientDat
                                         {formatConsentDate(item.grantedDate || item.date) || t('personalData.dateNotAvailable')}
                                     </Text>
                                     <View style={ds.grantedActionsRow}>
-                                        <TouchableOpacity style={ds.eyeButton}>
+                                        <TouchableOpacity
+                                            style={ds.eyeButton}
+                                            onPress={() => viewConsentDocument(item)}
+                                            accessibilityLabel={t('consentCard.viewDocument')}
+                                        >
                                             <Feather name="eye" size={16} color="#3b82f6" />
                                         </TouchableOpacity>
                                         <TouchableOpacity 
@@ -1731,6 +1753,12 @@ export default PersonalData;
             flexDirection: 'row',
             justifyContent: 'flex-end',
             gap: 12,
+        },
+        consentModalFooter: {
+            marginTop: 20,
+            paddingTop: 16,
+            borderTopWidth: 1,
+            borderTopColor: tc.borderColor,
         },
         cancelButton: {
             paddingVertical: 10,
