@@ -13,7 +13,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.MetaDots.RemedyEHR</string>
+	<string>app.hybrid.cyrus.remedyehr</string>
 	<key>PROJECT_ID</key>
 	<string>remedyehr-95137</string>
 	<key>STORAGE_BUCKET</key>
