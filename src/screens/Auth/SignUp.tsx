@@ -163,9 +163,9 @@ const checkValidation = () => {
                 try {
                     GoogleSignin.configure({
                         webClientId:
-                            '383882848574-qkp6dliucskh28daelit50rtqevf1fhj.apps.googleusercontent.com',
+                            '514590497112-c9fher0tpscturvoc8j81q2v5td31gis.apps.googleusercontent.com',
                         iosClientId:
-                            '383882848574-qkp6dliucskh28daelit50rtqevf1fhj.apps.googleusercontent.com',
+                            '514590497112-krrgot73seudg3mgei678obs2r6b1u79.apps.googleusercontent.com',
                     });
                 } catch (configErr) {
                     console.warn('GoogleSignin configure error:', configErr);

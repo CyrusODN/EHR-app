@@ -3,21 +3,23 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>383882848574-qkp6dliucskh28daelit50rtqevf1fhj.apps.googleusercontent.com</string>
+	<string>514590497112-krrgot73seudg3mgei678obs2r6b1u79.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.383882848574-qkp6dliucskh28daelit50rtqevf1fhj</string>
+	<string>com.googleusercontent.apps.514590497112-krrgot73seudg3mgei678obs2r6b1u79</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>514590497112-c9fher0tpscturvoc8j81q2v5td31gis.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
-	<string>AIzaSyAAbgGHc9gy9-De-77lU49xKZ2ij9Ny-Zc</string>
+	<string>AIzaSyAqOfWQyg4o0TGsV5Q_JJuha3WQbtiiUt8</string>
 	<key>GCM_SENDER_ID</key>
-	<string>383882848574</string>
+	<string>514590497112</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>app.hybrid.cyrus.remedyehr</string>
 	<key>PROJECT_ID</key>
-	<string>remedyehr-95137</string>
+	<string>remedy-ehr-5d25e</string>
 	<key>STORAGE_BUCKET</key>
-	<string>remedyehr-95137.firebasestorage.app</string>
+	<string>remedy-ehr-5d25e.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -29,6 +31,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:859566291948:ios:f2f50ea8f9e5ad94ea1ec9</string>
+	<string>1:514590497112:ios:39534fd3378a83e11bad2d</string>
 </dict>
 </plist>
